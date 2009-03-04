@@ -1,0 +1,2 @@
+
+class ThreadInterrupt(BaseException): pass

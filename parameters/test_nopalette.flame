@@ -1,0 +1,7 @@
+<flames name="nopalette">
+<flame name="Fire" version="Apophysis 2.08 beta 2" size="320 240" center="-0.288935107312835 0.27934263360259" scale="80" angle="0.270526034059121" rotate="-15.5" oversample="1" filter="0.2" quality="5" background="0 0 0" brightness="4" gamma="4" >
+   <xform weight="0.5" color="0" linear="0.742" julia="-0.364" coefs="0.663362 -0.977204 -0.237537 -0.042831 -0.00047 0.072205" />
+   <xform weight="0.5" color="1" linear="-0.839" coefs="-0.138573 0.594008 0.594008 0.138573 0.525588 0.106085" />
+   <xform weight="0.5" color="0" linear="1" coefs="0.776319 -0.743416 1.164412 0.981916 0.385522 0.244566" />
+   </flame>
+</flames>
