@@ -231,16 +231,6 @@ class Palette(list):
         if len(self) != 256:
             raise ParsingError("Palette data unreadable")
 
-##    def to_string(self):
-##        lst = ['\n   <palette count="256" format="RGB">']
-##           
-##        for i,color in enumerate(self):
-##            if not i%8: lst.append("\n      ")
-##            lst.append('%02X%02X%02X' %color)
-##
-##        lst.append('\n   </palette>\n')
-##        return "".join(lst)
-
     def to_string(self):  
         return self.formatstr % tuple(itertools.chain(*self))
 
