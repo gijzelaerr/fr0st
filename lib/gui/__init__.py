@@ -8,6 +8,7 @@ from lib.gui.menu import CreateMenu
 from lib.gui.toolbar import CreateToolBar
 from lib.gui.decorators import *
 from lib.gui.constants import ID
+from lib.gui.canvas import XformCanvas
 from lib.threadinterrupt import interruptall
 from lib._exceptions import ThreadInterrupt
 from lib import functions
@@ -32,13 +33,13 @@ class MainWindow(wx.Frame):
         self.CreateStatusBar()
         self.SetMinSize((800,600))
         self.SetDoubleBuffered(True)
-        self.Show(1)
         
         CreateMenu(self)
         CreateToolBar(self)
         
         # Creating Frame Content
         self.image = ImagePanel(self)
+        self.canvas = XformCanvas(self)
 
         self.editorframe = EditorFrame(self, wx.ID_ANY)
         self.editor = self.editorframe.editor
@@ -49,6 +50,7 @@ class MainWindow(wx.Frame):
         
         sizer = wx.BoxSizer(wx.HORIZONTAL)
         sizer.Add(self.TreePanel,0,wx.EXPAND)
+        sizer.Add(self.canvas,0)
         sizer.Add(self.image,0,wx.EXPAND)
 
         self.SetSizer(sizer)
@@ -61,6 +63,8 @@ class MainWindow(wx.Frame):
         # Set up paths
         sys.path.append(os.path.join(sys.path[0],"scripts")) # imp in scripts
         self.flamepath = os.path.join(sys.path[0],"parameters","")
+
+        self.Show(1)
     
 
 #-----------------------------------------------------------------------------
@@ -210,7 +214,10 @@ class MainWindow(wx.Frame):
         if self.find_open_flame(path):
             self.OpenFlameFile(path)
 
-
+    def SetFlame(self, flame):
+        self.flame = flame
+        self.image.RenderPreview()
+        self.canvas.ShowFlame(flame)        
 
         
     def CreateNamespace(self):

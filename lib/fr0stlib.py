@@ -316,6 +316,14 @@ class Xform(object):
 
     coefs = property(_get_coefs,_set_coefs)
 
+    def _get_coords(self):
+        return self.o,self.x,self.y
+
+    def _set_coords(self,v):
+        self.o,self.x,self.y = v
+
+    coords = property(_get_coords,_set_coords)  
+
     def get_screen_coefs(self):
         """Creates a list of coefs in "screen" notation."""
         return self.a,-self.d,-self.b,self.e,self.c,-self.f

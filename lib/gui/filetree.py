@@ -121,8 +121,8 @@ class TreePanel(wx.Panel):
         if self.item:
             data = self.tree.GetPyData(self.item)
             if data.startswith("<flame"):
-                self.parent.flame = Flame(string=data)
-                self.parent.image.RenderPreview()
+                self.parent.SetFlame(Flame(string=data))
+
         event.Skip()
 
 
