@@ -83,6 +83,7 @@ class GUICustom(GUIMode.GUIMove):
     def __init__(self,canvas):
         self.Canvas = canvas
         self.StartMove = None
+        self.MidMove = None
         self.PrevMoveXY = None
 
     def OnLeftDown(self,e):
@@ -107,9 +108,11 @@ class GUICustom(GUIMode.GUIMove):
             self.StartMove = None
 
     def OnMove(self,e):
+        
 ##        self.Canvas._RaiseMouseEvent(e,FloatCanvas.EVT_FC_MOTION)
         if e.Dragging() and e.RightIsDown() and self.StartMove is not None:
-            self.MoveImage(e)     
+            self.MoveImage(e)
+        self.SetFocus() # Makes Canvas automatically take focus under windows.
 
 
     def OnWheel(self,e):
