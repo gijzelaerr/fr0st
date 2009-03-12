@@ -16,6 +16,6 @@ def render(genome,size,quality,estimator=9,**kwds):
     return wx.BitmapFromBuffer(width, height, output_buffer)
 
 # the real function is broken, so we replace it with a stub to allow testing.
-@Locked
-def render(genome,size,quality,estimator=9,**kwds):
-    return wx.EmptyBitmap(size[0],size[1],32)
+##@Locked
+##def render(genome,size,quality,estimator=9,**kwds):
+##    return wx.EmptyBitmap(size[0],size[1],32)
