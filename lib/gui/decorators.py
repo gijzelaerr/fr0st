@@ -1,5 +1,5 @@
 from __future__ import with_statement
-from threading import Thread, Lock, Condition
+from threading import Thread, Lock
 from functools import wraps
 
 from lib._exceptions import *

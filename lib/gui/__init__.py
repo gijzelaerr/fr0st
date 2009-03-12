@@ -217,7 +217,7 @@ class MainWindow(wx.Frame):
     def SetFlame(self, flame):
         self.flame = flame
         self.image.RenderPreview()
-        self.canvas.ShowFlame(flame)        
+        self.canvas.ShowFlame(flame)
 
         
     def CreateNamespace(self):
@@ -302,9 +302,7 @@ class ImagePanel(wx.Panel):
         ratio = flame.size[0] / flame.size[1]
         width = 160 if ratio > 1 else int(160*ratio)
         height = int(width / ratio)
-
         self.bmp = render(genome,(width,height),quality=10,estimator=0,filter=.2)
-
         self.Refresh()
         # Yield Allows the new image to be drawn immediately.
 ##        wx.SafeYield()

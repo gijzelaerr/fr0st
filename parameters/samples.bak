@@ -39,7 +39,7 @@
    </palette>
 </flame>
 
-<flame rotate="-90" center="-0.0176668118505 0.0475291690247" brightness="4" oversample="1" version="Apophysis 2.08 beta 2" zoom="0" name="heart" filter="0.2" scale="184.32" background="0 0 0" quality="5" gamma="4" size="1024 768" >
+<flame rotate="-90" center="-0.0176668118505 0.0475291690247" brightness="4" oversample="1" version="Apophysis 2.08 beta 2" zoom="0" name="julia" filter="0.2" scale="184.32" background="0 0 0" quality="5" gamma="4" size="1024 768" >
    <xform weight="0.333333333333" color="0.506" julia="1.0" coefs="-0.534233 -0.154152 0.154152 -0.534233 0.377468 -0.151808" />
    <xform spherical="6.0" weight="0.333333333333" color="0.0" coefs="0.4 -0.0 -0.0 0.4 0.0 -0.0" />
    <palette count="256" format="RGB">

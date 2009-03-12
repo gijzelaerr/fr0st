@@ -69,8 +69,9 @@ class TreePanel(wx.Panel):
 ##        from time import time
 ##        t = time()
         il = self.il
-        child,cookie = self.tree.GetFirstChild(item)
-        while child.IsOk():
+##        child,cookie = self.tree.GetFirstChild(item)
+##        while child.IsOk():
+        for child in self.iterchildren(item):
             string = self.tree.GetPyData(child)
             genome = Genome.from_string(string)[0]
             try:
@@ -80,7 +81,7 @@ class TreePanel(wx.Panel):
                 num = 2 # Default Icon
             
             self.tree.SetItemImage(child, num)
-            child,cookie = self.tree.GetNextChild(item,cookie)
+##            child,cookie = self.tree.GetNextChild(item,cookie)
 ##        print time() - t
 
 
@@ -122,7 +123,6 @@ class TreePanel(wx.Panel):
             data = self.tree.GetPyData(self.item)
             if data.startswith("<flame"):
                 self.parent.SetFlame(Flame(string=data))
-
         event.Skip()
 
 
