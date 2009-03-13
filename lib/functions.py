@@ -43,12 +43,17 @@ except ImportError:
 #-------------------------------------------------------------------------------
 
 def polar(coord):
-    return cmath.polar(complex(*coord))
+##    return cmath.polar(complex(*coord)) # Use this once 2.6 is default
+    l = sqrt(coord[0]**2 + coord[1]**2)
+    theta = atan2(coord[1], coord[0]) * (180.0/pi)
+    return l, theta   
 
 def rect(r,phi):
-    comp = cmath.rect(r,phi)
-    return comp.real,comp.imag
-
+##    comp = cmath.rect(r,phi)
+##    return comp.real,comp.imag # Use this once 2.6 is default
+    real = r * cos(phi*pi/180.0)
+    imag = r * sin(phi*pi/180.0)
+    return real, imag
 
 def save_flame(filename,flame):
     save_flames(filename,flame)

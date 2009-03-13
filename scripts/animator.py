@@ -65,8 +65,8 @@ def interpolate_coefs(xform1,xform2,temp_xform,pct):
     The x and y triangle points are interpolated in relation to the o point,
     and o in relation to (0,0)."""
     for coord in 'ad','be','cf':
-        r1,phi1 = polar(getattr(xform1,i) for i in coord)
-        r2,phi2 = polar(getattr(xform2,i) for i in coord)
+        r1,phi1 = polar(map(xform1.__getattr__,coord))
+        r2,phi2 = polar(map(xform2.__getattr__,coord))
 
         # Make sure the rotation is less than 180 degrees
         if   phi1-phi2 > pi: phi1 -= 2*pi
