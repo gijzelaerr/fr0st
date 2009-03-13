@@ -1,9 +1,9 @@
+import itertools, numpy as N
 from wx.lib.floatcanvas.FloatCanvas import FloatCanvas, GUIMode, DotGrid
-import numpy as N
 
 
 class XformCanvas(FloatCanvas):
-    colors = ["RED","YELLOW","GREEN"] # TODO: make this wrap around etc.
+    colors = ["RED","YELLOW","GREEN"] # TODO: extend the color list.
 
     def __init__(self, parent):
         FloatCanvas.__init__(self, parent,
@@ -26,31 +26,34 @@ class XformCanvas(FloatCanvas):
 
 
     def ShowFlame(self,flame):
-        xforms = flame.xform
-        diff = len(self.triangles) - len(xforms)
-        if diff < 0:
-            map(self.AddXform, xforms[diff:])
-        elif diff > 0:
-            map(self.RemoveObject, self.triangles[-diff:])
-            self.triangles = self.triangles[:-diff]
+        for t in self.triangles:
+            self.RemoveObjects(itertools.chain((t,),t._text,t._circles))
+        self.triangles = map(self.AddXform,flame.xform)
 
-        for t,x in zip(self.triangles,xforms):
-            t.Points = x.coords
-            
         # TODO: add post and finalxform.
-        
         self.ZoomToBB()
+        self.AdjustZoom()
 
 
     def AddXform(self,xform):
         color = self.colors[len(self.triangles) % len(self.colors)]
-        triangle = self.AddPolygon(xform.coords,
-                                   LineColor=color)
-                                   
-        self.triangles.append(triangle)
-        # TODO: add "OXY" text... maybe subclass FloatCanvas.Polygon.
-
+        points  = xform.coords
+        triangle = self.AddPolygon(points,
+                                   LineColor=color,
+                                   LineStyle = "LongDash")
+        diameter = 6 / self.Scale
+        circles = [self.AddCircle(i, Diameter=diameter, LineColor=color)
+                   for i in points]
+        text = map(lambda x,y: self.AddText(x,y,Size=10,Color=color),
+                   "OXY",points)
+        triangle._circles = circles
+        triangle._text = text
         
+        self.triangles.append(triangle)
+        
+        return triangle
+
+      
     def MakeGrid(self):
         self.GridUnder = DotGrid(Spacing=(.1, .1),
                                  Size=200,
@@ -58,19 +61,27 @@ class XformCanvas(FloatCanvas):
                                  Cross=True,
                                  CrossThickness=1)
         
-    def AdjustGridSpacing(self):
+    def AdjustZoom(self):
+        """resets the grid and circle sizes, refreshes the canvas."""
+        # Adjust Grid Spacing
         spacing = self.GridUnder.Spacing[0]
         newspacing = None
-        # Scale is modified by an arbitrary constant that defines grid density.
-        scale = 25 / self.Scale
+        scale = 25 / self.Scale  # this is an arbitrary constant.
         if scale > spacing:
             newspacing = spacing * 10
         elif scale < spacing / 10:
             newspacing = spacing / 10
-
         if newspacing:
-            self.GridUnder.Spacing = N.array((newspacing,newspacing),
-                                                    N.float)        
+            self.GridUnder.Spacing = N.array((newspacing,newspacing),N.float)
+
+        # Adjust the circles at the triangle edges
+        diameter = 6 / self.Scale
+        map(lambda x: x.SetDiameter(diameter),
+            itertools.chain(*(i._circles for i in self.triangles)))
+
+        # Refresh canvas
+        self._BackgroundDirty = True
+        self.Draw()      
 
     # Currently not bound
     def OnZoomToFit(self,e):
@@ -112,9 +123,10 @@ class GUICustom(GUIMode.GUIMove):
 ##        self.Canvas._RaiseMouseEvent(e,FloatCanvas.EVT_FC_MOTION)
         if e.Dragging() and e.RightIsDown() and self.StartMove is not None:
             self.MoveImage(e)
-        self.SetFocus() # Makes Canvas automatically take focus under windows.
+        self.Canvas.SetFocus() # Makes Canvas take focus under windows.
 
 
     def OnWheel(self,e):
         self.Canvas.Zoom(1.25 if e.GetWheelRotation()>0 else 0.8)
-        self.Canvas.AdjustGridSpacing()
+        self.Canvas.AdjustZoom()
+
