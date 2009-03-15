@@ -13,7 +13,7 @@ from lib.threadinterrupt import interruptall
 from lib._exceptions import ThreadInterrupt
 from lib import functions
 from lib.pyflam3 import Genome
-from lib.gui.rendering import render
+from lib.gui.rendering import Renderer, EVT_IMAGE_READY
 from lib.fr0stlib import Flame
 
 
@@ -34,10 +34,12 @@ class MainWindow(wx.Frame):
         self.SetMinSize((800,600))
         self.SetDoubleBuffered(True)
         
-        CreateMenu(self)
-        CreateToolBar(self)
+        # Launch the render thread
+        self.renderer = Renderer(self)
         
         # Creating Frame Content
+        CreateMenu(self)
+        CreateToolBar(self)
         self.image = ImagePanel(self)
         self.canvas = XformCanvas(self)
 
@@ -83,13 +85,17 @@ class MainWindow(wx.Frame):
     def OnExit(self,e):
 
         self.OnStopScript()
+        self.renderer.exitflag = True
 
         # TODO: check for differences in flame file!
                   
         self.Destroy()
 
 
-
+    @Bind(EVT_IMAGE_READY)
+    def OnImageReady(self,e):
+        callback, size, output_buffer = e.GetValue()
+        callback(size, output_buffer)
 
 
     @Bind(wx.EVT_MENU,id=ID.FOPEN)
@@ -302,14 +308,25 @@ class ImagePanel(wx.Panel):
         ratio = flame.size[0] / flame.size[1]
         width = 160 if ratio > 1 else int(160*ratio)
         height = int(width / ratio)
-        self.bmp = render(genome,(width,height),quality=10,estimator=0,filter=.2)
+        size = width,height
+        self.parent.renderer.AddRequest(self.UpdateBitmap,size,genome,
+                                        size,quality=10,estimator=0,filter=.2)
+##        self.bmp = render(genome,(width,height),quality=10,estimator=0,filter=.2)
+##        self.Refresh()
+##        # Yield Allows the new image to be drawn immediately.
+####        wx.SafeYield()
+##        wx.Yield()  
+
+    def UpdateBitmap(self,size,output_buffer):
+        width,height = size
+        self.bmp = wx.BitmapFromBuffer(width, height, output_buffer)
         self.Refresh()
         # Yield Allows the new image to be drawn immediately.
 ##        wx.SafeYield()
-        wx.Yield()  
+        wx.Yield()
 
-    
-    @Threaded
+        
+##    @Threaded
     def RenderPreview(self):
         self.MakeBitmap(self.parent.flame,strict=True)
 

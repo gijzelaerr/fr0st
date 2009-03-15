@@ -12,7 +12,7 @@ from lib.fr0stlib import Flame
 from lib.pyflam3 import Genome
 from lib import functions
 from decorators import *
-from rendering import render
+from rendering import EVT_IMAGE_READY
 
 class TreePanel(wx.Panel):
 
@@ -63,26 +63,32 @@ class TreePanel(wx.Panel):
         self.tree.Bind(wx.EVT_LEFT_DCLICK, self.OnLeftDClick)
 
 
-    @Threaded
+##    @Threaded
     @Catches(PyDeadObjectError)
     def RenderThumbnails(self, item):
-##        from time import time
-##        t = time()
         il = self.il
-##        child,cookie = self.tree.GetFirstChild(item)
-##        while child.IsOk():
+        num = il.ImageCount - 1
         for child in self.iterchildren(item):
             string = self.tree.GetPyData(child)
             genome = Genome.from_string(string)[0]
-            try:
-                il.Add(render(genome,self.isz,quality=20,estimator=3))
-                num = il.ImageCount-1
-            except:
-                num = 2 # Default Icon
             
-            self.tree.SetItemImage(child, num)
-##            child,cookie = self.tree.GetNextChild(item,cookie)
-##        print time() - t
+##            try:
+##                il.Add(render(genome,self.isz,quality=20,estimator=3))
+##                num = il.ImageCount-1
+##            except:
+##                num = 2 # Default Icon
+##            num = 2 # Just for testing
+            num += 1
+            self.parent.renderer.AddRequest(self.UpdateThumbnail,(child,num,self.isz),genome,
+                                            self.isz,quality=20,estimator=3)
+                                            
+##            self.tree.SetItemImage(child, num)
+
+
+    def UpdateThumbnail(self, data, output_buffer):
+        child,num,(w,h) = data
+        self.il.Add(wx.BitmapFromBuffer(w, h, output_buffer))
+        self.tree.SetItemImage(child,num)
 
 
     def iterchildren(self,item):

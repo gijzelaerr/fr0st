@@ -214,9 +214,7 @@ class MyLog(wx.TextCtrl):
 
 
     # Just a stub to test TreeCtrl
-    def WriteText(self,message):
-        self.write(message)
-
+    WriteText = write
 
 
 
