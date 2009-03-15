@@ -41,7 +41,7 @@ class TreePanel(wx.Panel):
 ##        self.tree.Spacing = 28 # Default is 18
         
 
-        isz = (24,18)
+        isz = (28,21)
         il = wx.ImageList(isz[0], isz[1])
         fldridx     = il.Add(wx.ArtProvider_GetBitmap(wx.ART_FOLDER,      wx.ART_OTHER, isz))
         fldropenidx = il.Add(wx.ArtProvider_GetBitmap(wx.ART_FILE_OPEN,   wx.ART_OTHER, isz))
@@ -50,6 +50,7 @@ class TreePanel(wx.Panel):
         self.tree.SetImageList(il)
         self.il = il
         self.isz = isz
+        self.imgcount = 2
         
 
         self.root = self.tree.AddRoot("The Root Item")
@@ -67,7 +68,6 @@ class TreePanel(wx.Panel):
     @Catches(PyDeadObjectError)
     def RenderThumbnails(self, item):
         il = self.il
-        num = il.ImageCount - 1
         for child in self.iterchildren(item):
             string = self.tree.GetPyData(child)
             genome = Genome.from_string(string)[0]
@@ -78,13 +78,13 @@ class TreePanel(wx.Panel):
 ##            except:
 ##                num = 2 # Default Icon
 ##            num = 2 # Just for testing
-            num += 1
-            self.parent.renderer.AddRequest(self.UpdateThumbnail,(child,num,self.isz),genome,
+            self.imgcount += 1
+            self.parent.renderer.AddRequest(self.UpdateThumbnail,2,(child,self.imgcount,self.isz),genome,
                                             self.isz,quality=20,estimator=3)
                                             
 ##            self.tree.SetItemImage(child, num)
 
-
+            
     def UpdateThumbnail(self, data, output_buffer):
         child,num,(w,h) = data
         self.il.Add(wx.BitmapFromBuffer(w, h, output_buffer))

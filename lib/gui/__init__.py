@@ -13,7 +13,7 @@ from lib.threadinterrupt import interruptall
 from lib._exceptions import ThreadInterrupt
 from lib import functions
 from lib.pyflam3 import Genome
-from lib.gui.rendering import Renderer, EVT_IMAGE_READY
+from lib.gui.rendering import render, Renderer, EVT_IMAGE_READY
 from lib.fr0stlib import Flame
 
 
@@ -155,13 +155,6 @@ class MainWindow(wx.Frame):
     def find_open_flame(self,path):
         """Checks if a particular file is open. Returns the file if True,
         None otherwise."""
-##        root = self.tree.GetRootItem()
-##        child,cookie = self.tree.GetFirstChild(root)
-##        while child.IsOk():
-##            if path == self.tree.GetPyData(child):
-##                return child
-##            child,cookie = self.tree.GetNextChild(root, cookie)
-
         root = self.tree.GetRootItem()
         for child in self.TreePanel.iterchildren(root):
             if path == self.tree.GetPyData(child):
@@ -184,12 +177,10 @@ class MainWindow(wx.Frame):
         for s in flamestrings:
             item = self.tree.AppendItem(child,self.re_name.findall(s)[0])
             self.tree.SetPyData(item,s)
-##            self.tree.SetItemImage(item, 2, wx.TreeItemIcon_Normal)
 ##        self.tree.Expand(child) # Don't expand to make app more responsive
         self.tree.SelectItem(child)
         self.TreePanel.RenderThumbnails(child)
         
-
 
     def SaveFlameFile(self,path):   
         flamestring = self.flame.to_string()
@@ -222,7 +213,7 @@ class MainWindow(wx.Frame):
 
     def SetFlame(self, flame):
         self.flame = flame
-        self.image.RenderPreview()
+        self.image.MakeBitmap(flame)
         self.canvas.ShowFlame(flame)
 
         
@@ -277,7 +268,8 @@ class MainWindow(wx.Frame):
         return self.flame
 
     def preview(self):
-        self.image.MakeBitmap(self.flame)
+        pass
+##        self.image.MakeBitmap(self.flame,True)
 
 
 class ImagePanel(wx.Panel):
@@ -299,9 +291,9 @@ class ImagePanel(wx.Panel):
         allows old requests not correponding to the active flame to be
         discarded."""
         
-        if strict and flame is not self.parent.flame:
-            # Selection was changed in the meantime, so we ignore the request.
-            return
+##        if strict and flame is not self.parent.flame:
+##            # Selection was changed in the meantime, so we ignore the request.
+##            return
 
         genome = Genome.from_string(flame.to_string())[0]
         
@@ -309,7 +301,7 @@ class ImagePanel(wx.Panel):
         width = 160 if ratio > 1 else int(160*ratio)
         height = int(width / ratio)
         size = width,height
-        self.parent.renderer.AddRequest(self.UpdateBitmap,size,genome,
+        self.parent.renderer.AddRequest(self.UpdateBitmap,1,size,genome,
                                         size,quality=10,estimator=0,filter=.2)
 ##        self.bmp = render(genome,(width,height),quality=10,estimator=0,filter=.2)
 ##        self.Refresh()
@@ -326,9 +318,9 @@ class ImagePanel(wx.Panel):
         wx.Yield()
 
         
-##    @Threaded
-    def RenderPreview(self):
-        self.MakeBitmap(self.parent.flame,strict=True)
+####    @Threaded
+##    def RenderPreview(self):
+##        self.MakeBitmap(self.parent.flame,strict=True)
 
 
     @Bind(wx.EVT_PAINT)

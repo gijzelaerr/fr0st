@@ -185,7 +185,7 @@ if __name__ == '__main__':
 
     import time
     t = time.time()
-    buff = interpolate(flame1,flame2,50,'test')
+    buff = interpolate(flame1,flame2,20,'test')
     print time.time()-t
 
     save_flames(os.path.join('..','parameters','interpolate.flame'),*buff)

@@ -26,22 +26,28 @@ def render(genome,size,quality,estimator=9,**kwds):
 class Renderer():
     def __init__(self,parent):
         self.parent = parent
-        self.requests = []
+        self.requests1 = []
+        self.requests2 = []
+        self.results = []
         self.exitflag = None
         Thread(target=self.RenderLoop).start()
 
-    def AddRequest(self,callback,metadata,*args,**kwds):
-        self.requests.append((callback,metadata,args,kwds))
+    def AddRequest(self,callback,priority,metadata,*args,**kwds):
+##        queue = self.requests1 if priority == 1 else self.requests2
+##        queue.append((callback,metadata,args,kwds))
+        if priority == 1:
+            self.requests1 = [(callback,metadata,args,kwds)]
+        else:
+            self.requests2.append((callback,metadata,args,kwds))
 
     @Catches(TypeError)
     def RenderLoop(self):
         while 1:
             if self.exitflag:
                 return
-            if self.requests:
-                # Instead of pop(0), a more sophisticated priorization
-                # could be used.
-                callback,metadata,args,kwds = self.requests.pop(0)
+            queue = self.requests1 or self.requests2
+            if queue:
+                callback,metadata,args,kwds = queue.pop(0)
                 output_buffer = render(*args,**kwds)
                 evt = ImageReadyEvent(callback,metadata,output_buffer)
                 wx.PostEvent(self.parent,evt)
