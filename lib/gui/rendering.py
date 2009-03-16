@@ -1,7 +1,7 @@
 import wx, time
 from threading import Thread
 
-from decorators import Locked, Catches
+from decorators import Catches, Threaded
 from ..pyflam3 import Genome
 
 def render(string,size,quality,estimator=9,**kwds):
