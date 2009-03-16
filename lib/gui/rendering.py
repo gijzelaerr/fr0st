@@ -4,7 +4,6 @@ from threading import Thread
 from decorators import Locked, Catches
 
 
-@Locked
 def render(genome,size,quality,estimator=9,**kwds):
     """Passes render requests on to flam3."""
     width,height = size
@@ -13,16 +12,12 @@ def render(genome,size,quality,estimator=9,**kwds):
     genome.height = height
     genome.sample_density = quality
     genome.estimator = estimator
+    t = time.time()
     output_buffer, stats = genome.render(**kwds)
-##    return wx.BitmapFromBuffer(width, height, output_buffer)
+    print time.time() - t
     return output_buffer
 
-# the real function is broken, so we replace it with a stub to allow testing.
-##@Locked
-##def render(genome,size,quality,estimator=9,**kwds):
-##    return wx.EmptyBitmap(size[0],size[1],32)
 
-# Some new experimental stuff:
 class Renderer():
     def __init__(self,parent):
         self.parent = parent
@@ -33,8 +28,6 @@ class Renderer():
         Thread(target=self.RenderLoop).start()
 
     def AddRequest(self,callback,priority,metadata,*args,**kwds):
-##        queue = self.requests1 if priority == 1 else self.requests2
-##        queue.append((callback,metadata,args,kwds))
         if priority == 1:
             self.requests1 = [(callback,metadata,args,kwds)]
         else:
@@ -52,7 +45,7 @@ class Renderer():
                 evt = ImageReadyEvent(callback,metadata,output_buffer)
                 wx.PostEvent(self.parent,evt)
             else:
-                time.sleep(.05)  # Ideal interval needs to be tested
+                time.sleep(.01)  # Ideal interval needs to be tested
 
 
 myEVT_IMAGE_READY = wx.NewEventType()

@@ -65,4 +65,3 @@ def Threaded(f):
         Thread(target=Catches(ThreadInterrupt)(f),
                args=args,kwargs=kwds,name=f.__name__).start()
     return threaded
-##    return f  # test the gui without threading

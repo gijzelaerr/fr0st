@@ -283,7 +283,7 @@ class ImagePanel(wx.Panel):
 
 
     @Catches(PyDeadObjectError)
-    @Locked
+##    @Locked
     def MakeBitmap(self,flame,strict=False):
         """Renders a preview version of the flame and displays it in the gui.
 

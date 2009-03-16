@@ -37,6 +37,7 @@ class XformCanvas(FloatCanvas):
     def ShowFlame(self,flame):
         for t in self.triangles:
             self.RemoveObjects(itertools.chain((t,),t._text,t._circles))
+        self.triangles = []
         self.triangles = map(self.AddXform,flame.xform)
 
         # TODO: add post and finalxform.
@@ -46,6 +47,7 @@ class XformCanvas(FloatCanvas):
 
     def AddXform(self,xform):
         color = self.colors[len(self.triangles) % len(self.colors)]
+##        color = self.colors[
         points  = xform.coords
         triangle = self.AddPolygon(points,
                                    LineColor=color,

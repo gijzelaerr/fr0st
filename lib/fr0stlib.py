@@ -242,10 +242,10 @@ class Xform(object):
     _default = ["_parent","a","b","c","d","e","f","_chaos","_post"]
     
     def __repr__(self):
-        if self is self._parent.final:
+        index = self.index
+        if index is None:
             return "<finalxform>"
-        else:
-            return "<xform %d>" % self._parent.xform.index(self)
+        return "<xform %d>" % index
       
     def __getattr__(self,v):
         "Returns a default value for non-existing attributes"
@@ -308,6 +308,13 @@ class Xform(object):
 
     post = property(_get_post,_set_post)
 
+    def _get_index(self):
+        if self is self._parent.final:
+            return None
+        return self._parent.xform.index(self)
+
+    index = property(_get_index)
+        
     def _get_coefs(self):
         return self.a,self.d,self.b,self.e,self.c,self.f
 
