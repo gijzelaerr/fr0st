@@ -34,18 +34,20 @@ class XformCanvas(FloatCanvas):
         self.triangles = []
 
 
-    def ShowFlame(self,flame):
+    def ShowFlame(self,flame,rezoom=True):
         for t in self.triangles:
             self.RemoveObjects(itertools.chain((t,),t._text,t._circles))
+##        map(self.RemoveTriangle,self.triangles)
         self.triangles = map(self.AddXform,flame.xform)
         
         if flame.final:
             self.AddXform(flame.final)
             
         # TODO: add post xforms.  
-        
-        self.ZoomToBB()
-        self.AdjustZoom()
+
+        if rezoom:
+            self.ZoomToBB()
+            self.AdjustZoom()
 
 
     def AddXform(self,xform):
@@ -102,18 +104,22 @@ class XformCanvas(FloatCanvas):
     # Currently not bound
     def OnZoomToFit(self,e):
         self.ZoomToBB()
+        self.AdjustZoom()
         self.SetFocus() # Otherwise focus stays on Button.
 
 
 
 class GUICustom(GUIMode.GUIMove):
+    def __init__(self,canvas):
+        GUIMode.GUIMove.__init__(self,canvas)
+        self.Selection = None
 
     def OnLeftDown(self,e):
-        # TODO: write event handlers for this
-        e.Skip()
+        # TODO: select appropriate method based on cursor position, etc.
+        self.Selection = self.Canvas.parent.flame.xform[0]._set_position
 
     def OnLeftUp(self,e):
-        e.Skip()
+        self.Selection = None
 
     def OnRightDown(self,e):
 ##        self.Canvas.CaptureMouse() # Why was this here?
@@ -121,26 +127,26 @@ class GUICustom(GUIMode.GUIMove):
         self.PrevMoveXY = (0,0)
 
     def OnRightUp(self,e):
-        if self.StartMove is not None:
-            self.EndMove = N.array(e.GetPosition())
-            DiffMove = self.StartMove-self.EndMove
-            if N.sum(DiffMove**2) > 16:
-                self.Canvas.MoveImage(DiffMove, 'Pixel')
-            self.StartMove = None
+        self.StartMove = None
 
     def OnMove(self,e):
-        
-##        self.Canvas._RaiseMouseEvent(e,FloatCanvas.EVT_FC_MOTION)
-        if e.Dragging() and e.RightIsDown() and self.StartMove is not None:
+        if  e.RightIsDown() and e.Dragging() and self.StartMove is not None:
             self.EndMove = N.array(e.GetPosition())
 ##            self.MoveImage(e)
             DiffMove = self.StartMove-self.EndMove
             self.Canvas.MoveImage(DiffMove, 'Pixel')
             self.StartMove = self.EndMove
-##            self.Canvas._BackgroundDirty = True
+            self.Canvas.Draw()
+            
+        elif e.LeftIsDown() and e.Dragging() and self.Selection is not None:
+            self.Selection(self.Canvas.PixelToWorld(e.GetPosition()))
+            self.Canvas.ShowFlame(self.Canvas.parent.flame, rezoom=False)
+            self.Canvas.parent.image.MakeBitmap()
             self.Canvas.Draw()
 
-        self.Canvas.SetFocus() # Makes Canvas take focus under windows.
+        else:
+            # TODO: highlight triangle vertices, etc.
+            self.Canvas.SetFocus() # Makes Canvas take focus under windows.
 
 
     def OnWheel(self,e):
