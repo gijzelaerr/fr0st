@@ -3,9 +3,18 @@ from wx.lib.floatcanvas.FloatCanvas import FloatCanvas, GUIMode, DotGrid
 
 
 class XformCanvas(FloatCanvas):
-    colors = ["RED","YELLOW","GREEN"] # TODO: extend the color list.
+    colors = [( 255,   0,   0), # red
+              ( 255, 255,   0), # yellow
+              (   0, 255,   0), # green
+              (   0, 255, 255), # light blue
+              (   0,   0, 255), # dark blue
+              ( 255,   0, 255), # purple
+              ( 255, 127,   0), # orange
+              ( 255,   0, 127)  # another purplish one
+              ] # TODO: extend the color list.
 
     def __init__(self, parent):
+        self.parent = parent
         FloatCanvas.__init__(self, parent,
                              size=(500,500),
                              ProjectionFun=None,
@@ -40,7 +49,7 @@ class XformCanvas(FloatCanvas):
         points  = xform.coords
         triangle = self.AddPolygon(points,
                                    LineColor=color,
-                                   LineStyle = "LongDash")
+                                   LineStyle = "ShortDash")
         diameter = 6 / self.Scale
         circles = [self.AddCircle(i, Diameter=diameter, LineColor=color)
                    for i in points]
@@ -64,15 +73,15 @@ class XformCanvas(FloatCanvas):
     def AdjustZoom(self):
         """resets the grid and circle sizes, refreshes the canvas."""
         # Adjust Grid Spacing
-        spacing = self.GridUnder.Spacing[0]
+        oldspacing = self.GridUnder.Spacing[0]
         newspacing = None
         scale = 25 / self.Scale  # this is an arbitrary constant.
-        if scale > spacing:
-            newspacing = spacing * 10
-        elif scale < spacing / 10:
-            newspacing = spacing / 10
+        if scale > oldspacing:
+            newspacing = oldspacing * 10
+        elif scale < oldspacing / 10:
+            newspacing = oldspacing / 10
         if newspacing:
-            self.GridUnder.Spacing = N.array((newspacing,newspacing),N.float)
+            self.GridUnder.Spacing = N.array((newspacing,newspacing))
 
         # Adjust the circles at the triangle edges
         diameter = 6 / self.Scale
@@ -89,13 +98,8 @@ class XformCanvas(FloatCanvas):
         self.SetFocus() # Otherwise focus stays on Button.
 
 
-class GUICustom(GUIMode.GUIMove):
 
-    def __init__(self,canvas):
-        self.Canvas = canvas
-        self.StartMove = None
-        self.MidMove = None
-        self.PrevMoveXY = None
+class GUICustom(GUIMode.GUIMove):
 
     def OnLeftDown(self,e):
         # TODO: write event handlers for this
@@ -111,9 +115,8 @@ class GUICustom(GUIMode.GUIMove):
 
     def OnRightUp(self,e):
         if self.StartMove is not None:
-            StartMove = self.StartMove
-            EndMove = N.array(e.GetPosition())
-            DiffMove = StartMove-EndMove
+            self.EndMove = N.array(e.GetPosition())
+            DiffMove = self.StartMove-self.EndMove
             if N.sum(DiffMove**2) > 16:
                 self.Canvas.MoveImage(DiffMove, 'Pixel')
             self.StartMove = None
@@ -122,11 +125,28 @@ class GUICustom(GUIMode.GUIMove):
         
 ##        self.Canvas._RaiseMouseEvent(e,FloatCanvas.EVT_FC_MOTION)
         if e.Dragging() and e.RightIsDown() and self.StartMove is not None:
-            self.MoveImage(e)
+            self.EndMove = N.array(e.GetPosition())
+##            self.MoveImage(e)
+            DiffMove = self.StartMove-self.EndMove
+            self.Canvas.MoveImage(DiffMove, 'Pixel')
+            self.StartMove = self.EndMove
+##            self.Canvas._BackgroundDirty = True
+            self.Canvas.Draw()
+
         self.Canvas.SetFocus() # Makes Canvas take focus under windows.
 
 
     def OnWheel(self,e):
         self.Canvas.Zoom(1.25 if e.GetWheelRotation()>0 else 0.8)
         self.Canvas.AdjustZoom()
+
+    def _get_MidMove(self):
+        return self.StartMove
+
+    def _set_MidMove(self,v):
+        self.StartMove = v
+
+    # Win uses MidMove, while Linux uses StartMove (WHY?). This makes the code
+    # Compatible between both.
+    MidMove = property(_get_MidMove,_set_MidMove)
 

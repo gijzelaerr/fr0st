@@ -20,8 +20,8 @@
 #  Boston, MA 02111-1307, USA.
 ##############################################################################
 from ctypes import *
-from pyflam3.constants import *
-from pyflam3.variations import *
+from constants import *
+from variations import *
 import itertools
 import sys
 
