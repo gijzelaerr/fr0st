@@ -37,17 +37,22 @@ class XformCanvas(FloatCanvas):
     def ShowFlame(self,flame):
         for t in self.triangles:
             self.RemoveObjects(itertools.chain((t,),t._text,t._circles))
-        self.triangles = []
         self.triangles = map(self.AddXform,flame.xform)
-
-        # TODO: add post and finalxform.
+        
+        if flame.final:
+            self.AddXform(flame.final)
+            
+        # TODO: add post xforms.  
+        
         self.ZoomToBB()
         self.AdjustZoom()
 
 
     def AddXform(self,xform):
-        color = self.colors[len(self.triangles) % len(self.colors)]
-##        color = self.colors[
+        if xform.isfinal():
+            color = (255,255,255)
+        else:
+            color = self.colors[xform.index % len(self.colors)]
         points  = xform.coords
         triangle = self.AddPolygon(points,
                                    LineColor=color,
@@ -67,7 +72,7 @@ class XformCanvas(FloatCanvas):
       
     def MakeGrid(self):
         self.GridUnder = DotGrid(Spacing=(.1, .1),
-                                 Size=200,
+                                 Size=120,
                                  Color=(100,100,100),
                                  Cross=True,
                                  CrossThickness=1)
