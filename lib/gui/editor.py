@@ -21,13 +21,14 @@ class EditorFrame(wx.Frame):
         self.log = MyLog(self)
 
         CreateEditorToolBar(self)
+        self.SetSize((865,500))
 
         sizer = wx.BoxSizer(wx.HORIZONTAL)
         sizer.Add(self.editor,1,wx.EXPAND)
         sizer.Add(self.log,0,wx.EXPAND)
         self.SetSizer(sizer)
         self.SetAutoLayout(1)
-        sizer.Fit(self)
+##        sizer.Fit(self)
 
         self.wildcard = "Python source (*.py;*.pyw)|*.py;*.pyw|" \
                         "All files (*.*)|*.*"
@@ -121,20 +122,29 @@ class EditorFrame(wx.Frame):
             f.write(self.editor.GetText())        
 
 
+myEVT_PRINT = wx.NewEventType()
+EVT_PRINT = wx.PyEventBinder(myEVT_PRINT, 1)
+class PrintEvent(wx.PyCommandEvent):
+    def __init__(self,message):
+        wx.PyCommandEvent.__init__(self, myEVT_PRINT, wx.ID_ANY)
+        self._message = message
+        
+    def GetValue(self):
+        return self._message
+
 
 class MyLog(wx.TextCtrl):
     re_exc = re.compile(r'^.*?(?=  File "<string>")',re.DOTALL)
     re_line = re.compile(r'(Script, line \d*, in .*?)$',re.MULTILINE)
     re_linenum = re.compile(r'(?<=Script, line )\d*(?=,)')
     _script = None # This is set by the parent
-    messages = []
 
     @BindEvents
     def __init__(self,parent):
         self.parent = parent
         wx.TextCtrl.__init__(self,parent,-1,
                              style = wx.TE_MULTILINE|wx.TE_READONLY|wx.HSCROLL)
-        self.SetMinSize((264,500))
+        self.SetMinSize((264,0))
         self.SetFont(wx.Font(8, wx.MODERN, wx.NORMAL, wx.NORMAL))
         self.oldstderr = sys.stderr   # For debugging purposes!
         sys.stdout = self
@@ -144,11 +154,8 @@ class MyLog(wx.TextCtrl):
 
 
     def write(self,message):
-        """Saves received messages in a list and notifies the parent."""
-        # This is an ugly hack compensating for GTKs inability to write text
-        # directly from another thread
-        self.messages.append(message)
-        self.parent.Refresh()
+        """Notifies the main thread to print a message."""
+        wx.PostEvent(self,PrintEvent(message))
 
 
     def _write(self,message):
@@ -166,17 +173,11 @@ class MyLog(wx.TextCtrl):
         self.AppendText(message)
 
 
-    @XLocked
-    def OnUpdate(self,e):
-        if not self.messages:
-            return
-        map(self._write,self.messages)
-        self.messages = []
+    @Bind(EVT_PRINT)
+    def OnPrint(self,e):
+        self._write(e.GetValue())
 
-
-    if "linux" in sys.platform:
-        OnUpdate = Bind(wx.EVT_UPDATE_UI)(OnUpdate)
-    else:
+    if "win32" in sys.platform:
         write = _write
         
      
@@ -217,13 +218,10 @@ class MyLog(wx.TextCtrl):
     WriteText = write
 
 
-
-
 class CodeEditor(PythonSTC):
     def __init__(self, parent):
         PythonSTC.__init__(self, parent, -1)
         self.SetUpEditor()
-        self.SetMinSize((600,500))
 
     # Some methods to make it compatible with how the wxTextCtrl is used
     def SetValue(self, value):
