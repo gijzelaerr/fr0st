@@ -14,7 +14,8 @@ def render(genome,size,quality,estimator=9,**kwds):
     genome.estimator = estimator
     t = time.time()
     output_buffer, stats = genome.render(**kwds)
-    print time.time() - t
+    t2 = time.time()
+    print t2 - t
     return output_buffer
 
 
