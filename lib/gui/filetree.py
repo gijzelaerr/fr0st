@@ -65,27 +65,20 @@ class TreePanel(wx.Panel):
 
 
 ##    @Threaded
-    @Catches(PyDeadObjectError)
+##    @Catches(PyDeadObjectError)
     def RenderThumbnails(self, item):
-        il = self.il
         for child in self.iterchildren(item):
             string = self.tree.GetPyData(child)
-            genome = Genome.from_string(string)[0]
-            
-##            try:
-##                il.Add(render(genome,self.isz,quality=20,estimator=3))
-##                num = il.ImageCount-1
-##            except:
-##                num = 2 # Default Icon
-##            num = 2 # Just for testing
             self.imgcount += 1
-            self.parent.renderer.AddRequest(self.UpdateThumbnail,2,(child,self.imgcount,self.isz),genome,
-                                            self.isz,quality=20,estimator=3)
-                                            
-##            self.tree.SetItemImage(child, num)
+            self.parent.renderer.Request(self.UpdateThumbnail,
+                                         (child,self.imgcount,self.isz),
+                                         string,self.isz,quality=20,estimator=3)
+            # Set item to default until thumbnail is ready.    
+            self.tree.SetItemImage(child, 2)
 
             
     def UpdateThumbnail(self, data, output_buffer):
+        """Callback function to process rendered thumbnails."""
         child,num,(w,h) = data
         self.il.Add(wx.BitmapFromBuffer(w, h, output_buffer))
         self.tree.SetItemImage(child,num)

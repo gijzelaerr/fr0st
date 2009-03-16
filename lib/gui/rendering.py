@@ -2,10 +2,11 @@ import wx, time
 from threading import Thread
 
 from decorators import Locked, Catches
+from ..pyflam3 import Genome
 
-
-def render(genome,size,quality,estimator=9,**kwds):
+def render(string,size,quality,estimator=9,**kwds):
     """Passes render requests on to flam3."""
+    genome = Genome.from_string(string)[0]
     width,height = size
     genome.pixels_per_unit /= genome.width/float(width) # Adjusts scale
     genome.width = width
@@ -22,31 +23,36 @@ def render(genome,size,quality,estimator=9,**kwds):
 class Renderer():
     def __init__(self,parent):
         self.parent = parent
-        self.requests1 = []
-        self.requests2 = []
-        self.results = []
+        self.urgent = []
+        self.queue = []
         self.exitflag = None
-        Thread(target=self.RenderLoop).start()
+        self.RenderLoop()
 
-    def AddRequest(self,callback,priority,metadata,*args,**kwds):
-        if priority == 1:
-            self.requests1 = [(callback,metadata,args,kwds)]
-        else:
-            self.requests2.append((callback,metadata,args,kwds))
+    def Request(self,callback,metadata,*args,**kwds):
+        """Schedules a genome to be rendered as soon as there are no previous
+        or higher priority requests pending."""
+        self.queue.append((callback,metadata,args,kwds))
+
+    def UrgentRequest(self,callback,metadata,*args,**kwds):
+        """Schedules a render immediately after the current render is done.
+        Cancels previous urgent requests (assuming they are obsolete), but
+        leaves the normal request queue intact."""
+        self.urgent = [(callback,metadata,args,kwds)]
 
     @Catches(TypeError)
+    @Threaded
     def RenderLoop(self):
         while 1:
             if self.exitflag:
                 return
-            queue = self.requests1 or self.requests2
+            queue = self.urgent or self.queue
             if queue:
                 callback,metadata,args,kwds = queue.pop(0)
                 output_buffer = render(*args,**kwds)
                 evt = ImageReadyEvent(callback,metadata,output_buffer)
                 wx.PostEvent(self.parent,evt)
             else:
-                time.sleep(.01)  # Ideal interval needs to be tested
+                time.sleep(.05)  # Ideal interval needs to be tested
 
 
 myEVT_IMAGE_READY = wx.NewEventType()

@@ -282,33 +282,27 @@ class ImagePanel(wx.Panel):
         self.SetMinSize((256,192))
 
 
-    @Catches(PyDeadObjectError)
+##    @Catches(PyDeadObjectError)
 ##    @Locked
     def MakeBitmap(self,flame=None):
         """Renders a preview version of the flame and displays it in the gui.
 
         Threads are locked outside instead of on the inner render call. This
         allows old requests not correponding to the active flame to be
-        discarded."""
-        
+        discarded."""    
         if not flame:
             flame = self.parent.flame
 
-        genome = Genome.from_string(flame.to_string())[0]
-        
         ratio = flame.size[0] / flame.size[1]
         width = 160 if ratio > 1 else int(160*ratio)
         height = int(width / ratio)
         size = width,height
-        self.parent.renderer.AddRequest(self.UpdateBitmap,1,size,genome,
-                                        size,quality=1,estimator=0,filter=.2)
-##        self.bmp = render(genome,(width,height),quality=10,estimator=0,filter=.2)
-##        self.Refresh()
-##        # Yield Allows the new image to be drawn immediately.
-####        wx.SafeYield()
-##        wx.Yield()  
+        self.parent.renderer.UrgentRequest(self.UpdateBitmap,size,flame.to_string(),
+                                           size,quality=1,estimator=0,filter=.2)
+
 
     def UpdateBitmap(self,size,output_buffer):
+        """Callback function to process rendered preview images."""
         width,height = size
         self.bmp = wx.BitmapFromBuffer(width, height, output_buffer)
         self.Refresh()
