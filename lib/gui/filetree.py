@@ -72,7 +72,7 @@ class TreePanel(wx.Panel):
             self.imgcount += 1
             self.parent.renderer.Request(self.UpdateThumbnail,
                                          (child,self.imgcount,self.isz),
-                                         string,self.isz,quality=20,estimator=3)
+                                         string,self.isz,quality=25,estimator=3)
             # Set item to default until thumbnail is ready.    
             self.tree.SetItemImage(child, 2)
 

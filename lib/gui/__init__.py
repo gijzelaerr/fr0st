@@ -298,7 +298,7 @@ class ImagePanel(wx.Panel):
         height = int(width / ratio)
         size = width,height
         self.parent.renderer.UrgentRequest(self.UpdateBitmap,size,flame.to_string(),
-                                           size,quality=5,estimator=0,filter=.2)
+                                           size,quality=2,estimator=0,filter=.2)
 
 
     def UpdateBitmap(self,size,output_buffer):

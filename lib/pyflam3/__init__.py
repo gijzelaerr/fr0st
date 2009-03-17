@@ -244,6 +244,9 @@ class Genome(BaseGenome):
         frame.genomes = cast(pointer(self), POINTER(BaseGenome))
         frame.ngenomes = 1
 
+        self.ntemporal_samples = kwargs.get('ntemporal_samples', 1)
+
+
         output_buffer = kwargs.get('buffer', None)
         if output_buffer:
             if isinstance(output_buffer, buffer):
@@ -395,13 +398,14 @@ class Frame(BaseFrame):
 ##            self.progress = ProgressFunction(progress)
 ##        else:
 ##            self.progress = ProgressFunction()
-
+##
 ##        param = kwargs.get('progress_param', None)
 ##        if param:
 ##            if not isinstance(param, py_object):
 ##                self.progress_parameter = py_object(param)
 ##            else:
 ##                self.progress_parameter = param
+
 
         self.nthreads = kwargs.get('nthreads', 1)
 ##        if not self.nthreads:
