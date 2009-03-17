@@ -65,7 +65,8 @@ class MainWindow(wx.Frame):
 
         # Set up paths
         sys.path.append(os.path.join(sys.path[0],"scripts")) # imp in scripts
-        self.flamepath = os.path.join(sys.path[0],"parameters","")
+        self.flamepath = os.path.join(sys.path[0],"parameters","samples.flame")
+        self.OpenFlameFile(self.flamepath)
 
         self.Show(1)
     
@@ -86,17 +87,29 @@ class MainWindow(wx.Frame):
     def OnExit(self,e):
 
         self.OnStopScript()
-        self.renderer.exitflag = True
+        
+        # check for differences in flame file
+        if self.flame:
+            oldflame = Flame(string=self.tree.GetPyData(self.TreePanel.item))
+            if self.flame.to_string() != oldflame.to_string():
+                dlg = wx.MessageDialog(self, 'Save changes?',
+                                       'Fr0st',wx.YES_NO|wx.CANCEL)
+                result = dlg.ShowModal()
+                if result == wx.ID_YES:
+                    parent = self.tree.GetItemParent(self.TreePanel.item)
+                    path = self.tree.GetPyData(parent)
+                    self.SaveFlameFile(path, confirm=False)
+                elif result == wx.ID_CANCEL:
+                    return
+                dlg.Destroy()
 
-        # TODO: check for differences in flame file!
-                  
+        self.renderer.exitflag = True      
         self.Destroy()
-
 
     @Bind(EVT_IMAGE_READY)
     def OnImageReady(self,e):
-        callback, size, output_buffer = e.GetValue()
-        callback(size, output_buffer)
+        callback, metadata, output_buffer = e.GetValue()
+        callback(metadata, output_buffer)
 
 
     @Bind(wx.EVT_MENU,id=ID.FOPEN)
@@ -115,7 +128,7 @@ class MainWindow(wx.Frame):
     @Bind(wx.EVT_MENU,id=ID.FSAVE)
     @Bind(wx.EVT_TOOL,id=ID.TBSAVE)
     def OnFlameSave(self,e):
-        if not hasattr(self,"flame"): return
+##        if not hasattr(self,"flame"): return
         dDir,dFile = os.path.split(self.flamepath)
         dlg = wx.FileDialog(
             self, message="Save file as ...", defaultDir=dDir, 
@@ -183,7 +196,7 @@ class MainWindow(wx.Frame):
         self.TreePanel.RenderThumbnails(child)
         
 
-    def SaveFlameFile(self,path):   
+    def SaveFlameFile(self,path,confirm=True):   
         flamestring = self.flame.to_string()
         found = False
 
@@ -199,7 +212,7 @@ class MainWindow(wx.Frame):
                 
         if not found:
             lst.append(flamestring)
-        else:
+        elif confirm:
             dlg = wx.MessageDialog(self, '%s in %s already exists.\nDo You want to replace it?'
                                    %(self.flame.name,path),
                                    'Fr0st',
