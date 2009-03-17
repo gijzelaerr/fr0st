@@ -1,6 +1,6 @@
 from __future__ import with_statement
 import wx, os, sys, re
-from wx import stc
+from wx import stc, PyDeadObjectError
 
 from StyledTextCtrl_2 import PythonSTC
 from decorators import *
@@ -147,12 +147,12 @@ class MyLog(wx.TextCtrl):
 ##        self._suppress = 0
 ##        self._syntax  = 0
 
-
+    @Catches(PyDeadObjectError)
     def write(self,message):
         """Notifies the main thread to print a message."""
         wx.PostEvent(self,PrintEvent(message))
 
-
+    @Catches(PyDeadObjectError)
     def _write(self,message):
         self.oldstderr.write("[%s]" %message) # For debugging purposes!
 

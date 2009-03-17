@@ -1,6 +1,6 @@
 from __future__ import with_statement
 import os, sys, wx, time, re, functools, threading
-from wx._core import PyDeadObjectError
+from wx import PyDeadObjectError
 
 from lib.gui.editor import EditorFrame 
 from lib.gui.filetree import TreePanel
@@ -257,7 +257,6 @@ class MainWindow(wx.Frame):
             pass
         except ThreadInterrupt:
             print("\n\nScript Interrupted")
-            raise
         finally:
             self.editor.SetEditable(True)
         self.PrintScriptStats(start) # Don't put this in the finally clause!
@@ -274,7 +273,7 @@ class MainWindow(wx.Frame):
         # Allowed to change any shared state.
         self.image.RenderPreview()
         wx.PostEvent(self.canvas, CanvasRefreshEvent())
-        time.sleep(.1)
+        time.sleep(.05)
 
 
 class ImagePanel(wx.Panel):
