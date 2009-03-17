@@ -39,8 +39,8 @@ class Renderer():
         leaves the normal request queue intact."""
         self.urgent = [(callback,metadata,args,kwds)]
 
-    @Catches(TypeError)
     @Threaded
+    @Catches(TypeError)
     def RenderLoop(self):
         while 1:
             if self.exitflag:

@@ -239,7 +239,7 @@ class Genome(BaseGenome):
     def render(self, **kwargs):
         channels = kwargs.get('channels', 3)
         transparent = kwargs.get('transparent', False) and 1 or 0
-
+        
         frame = Frame(**kwargs)
         frame.genomes = cast(pointer(self), POINTER(BaseGenome))
         frame.ngenomes = 1
@@ -301,7 +301,6 @@ class Genome(BaseGenome):
 
         # VBT: The next line is replaced by the below block
 ##        c_buffer = marshal.from_string(input_buffer)
-
         string_len = len(input_buffer)
         ptr = flam3_malloc(string_len + 1)
         if not ptr:
@@ -380,7 +379,7 @@ class Genome(BaseGenome):
 
 class Frame(BaseFrame):
     def __init__(self, **kwargs):
-        super(BaseFrame, self).__init__()
+##        super(BaseFrame, self).__init__()
         flam3_init_frame(byref(self))
 
         self.pixel_aspect_ratio = kwargs.get('aspect', 1.0)
@@ -391,23 +390,22 @@ class Frame(BaseFrame):
         self.time = kwargs.get('time', 0)
         self.bytes_per_channel = kwargs.get('bytes_per_channel',1)
 
-        progress = kwargs.get('progress_func', None)
-        if callable(progress):
-            self.progress = ProgressFunction(progress)
-        else:
-            self.progress = ProgressFunction()
+##        progress = kwargs.get('progress_func', None)
+##        if callable(progress):
+##            self.progress = ProgressFunction(progress)
+##        else:
+##            self.progress = ProgressFunction()
 
-        param = kwargs.get('progress_param', None)
-        if param:
-            if not isinstance(param, py_object):
-                self.progress_parameter = py_object(param)
-            else:
-                self.progress_parameter = param
+##        param = kwargs.get('progress_param', None)
+##        if param:
+##            if not isinstance(param, py_object):
+##                self.progress_parameter = py_object(param)
+##            else:
+##                self.progress_parameter = param
 
-
-        self.nthreads = kwargs.get('nthreads', 0)
-        if not self.nthreads:
-            self.nthreads = flam3_count_nthreads()
+        self.nthreads = kwargs.get('nthreads', 1)
+##        if not self.nthreads:
+##            self.nthreads = flam3_count_nthreads()
 
 
 
