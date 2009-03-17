@@ -12,7 +12,7 @@ from lib.fr0stlib import Flame
 from lib.pyflam3 import Genome
 from lib import functions
 from decorators import *
-from rendering import EVT_IMAGE_READY
+from _events import EVT_IMAGE_READY
 
 class TreePanel(wx.Panel):
 
@@ -40,7 +40,6 @@ class TreePanel(wx.Panel):
         # This doesn't work, but the above font resizing does...
 ##        self.tree.Spacing = 28 # Default is 18
         
-
         isz = (28,21)
         il = wx.ImageList(isz[0], isz[1])
         fldridx     = il.Add(wx.ArtProvider_GetBitmap(wx.ART_FOLDER,      wx.ART_OTHER, isz))
@@ -51,7 +50,6 @@ class TreePanel(wx.Panel):
         self.il = il
         self.isz = isz
         self.imgcount = 2
-        
 
         self.root = self.tree.AddRoot("The Root Item")
         self.tree.SetPyData(self.root, None)
@@ -60,7 +58,6 @@ class TreePanel(wx.Panel):
 
         self.Bind(wx.EVT_TREE_END_LABEL_EDIT, self.OnEndEdit, self.tree)
         self.Bind(wx.EVT_TREE_BEGIN_LABEL_EDIT, self.OnBeginEdit, self.tree)
-        
         self.tree.Bind(wx.EVT_LEFT_DCLICK, self.OnLeftDClick)
 
 

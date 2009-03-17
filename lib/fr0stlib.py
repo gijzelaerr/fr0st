@@ -29,9 +29,16 @@ class Flame(object):
         """A new flame object can be created by passing it a filename or
         a string. If name is not specified, the first flame will be taken."""
 
-        self.gradient = []
+        # Set minimum required attributes.
         self.xform = []
-
+        self.size = [256,192]
+        self.zoom = 0.0
+        self.center = [0.0,0.0]
+        self.rotate = 0.0
+        self.background = [0.0,0.0,0.0]
+        self.final = None
+        self.scale = 0.0
+        
         if not string and file:
             path = os.path.join(sys.path[0],"parameters",file)
             lst = Flame.load_file(path)
@@ -41,10 +48,12 @@ class Flame(object):
                 for flame in Flame.load_file(path):
                     if 'name="%s"' %name in flame:
                         string = flame ; break
+                if not string:
+                    raise NameError, 'Flame "%s" not found' %name
+                self.from_string(string)
                    
-        if not string:
-            raise NameError, 'Flame "%s" not found' %name
-        self.from_string(string)
+        elif string:
+            self.from_string(string)
 
     @classmethod
     def load_file(cls,filename):
@@ -57,17 +66,6 @@ class Flame(object):
 
             
     def from_string(self,string):
-        counter = 0
-
-        # Set required attributes that might be missing in the file.  
-        self.size = [800,600]
-        self.zoom = 0.0
-        self.center = [0.0,0.0]
-        self.rotate = 0.0
-        self.background = [0.0,0.0,0.0]
-        self.final = None
-        self.scale = 0.0
-
         # Record the header data
         for attr in self.re_attr.findall(self.re_header.search(string).group()):
             name, val = attr.split('="')

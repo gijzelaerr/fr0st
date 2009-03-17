@@ -2,6 +2,7 @@ import wx, time
 from threading import Thread
 
 from decorators import Catches, Threaded
+from _events import ImageReadyEvent
 from ..pyflam3 import Genome
 
 def render(string,size,quality,estimator=9,**kwds):
@@ -13,10 +14,7 @@ def render(string,size,quality,estimator=9,**kwds):
     genome.height = height
     genome.sample_density = quality
     genome.estimator = estimator
-    t = time.time()
     output_buffer, stats = genome.render(**kwds)
-    t2 = time.time()
-    print t2 - t
     return output_buffer
 
 
@@ -42,9 +40,9 @@ class Renderer():
     @Threaded
     @Catches(TypeError)
     def RenderLoop(self):
-        while 1:
-            if self.exitflag:
-                return
+        while not self.exitflag:
+##            if self.exitflag:
+##                return
             queue = self.urgent or self.queue
             if queue:
                 callback,metadata,args,kwds = queue.pop(0)
@@ -52,15 +50,5 @@ class Renderer():
                 evt = ImageReadyEvent(callback,metadata,output_buffer)
                 wx.PostEvent(self.parent,evt)
             else:
-                time.sleep(.05)  # Ideal interval needs to be tested
+                time.sleep(.01)  # Ideal interval needs to be tested
 
-
-myEVT_IMAGE_READY = wx.NewEventType()
-EVT_IMAGE_READY = wx.PyEventBinder(myEVT_IMAGE_READY, 1)
-class ImageReadyEvent(wx.PyCommandEvent):
-    def __init__(self,*args):
-        wx.PyCommandEvent.__init__(self, myEVT_IMAGE_READY, wx.ID_ANY)
-        self._data = args
-
-    def GetValue(self):
-        return self._data

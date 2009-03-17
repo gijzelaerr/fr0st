@@ -13,7 +13,8 @@ from lib.threadinterrupt import interruptall
 from lib._exceptions import ThreadInterrupt
 from lib import functions
 from lib.pyflam3 import Genome
-from lib.gui.rendering import render, Renderer, EVT_IMAGE_READY
+from lib.gui.rendering import render, Renderer
+from lib.gui._events import EVT_IMAGE_READY, CanvasRefreshEvent
 from lib.fr0stlib import Flame
 
 
@@ -177,7 +178,7 @@ class MainWindow(wx.Frame):
         for s in flamestrings:
             item = self.tree.AppendItem(child,self.re_name.findall(s)[0])
             self.tree.SetPyData(item,s)
-##        self.tree.Expand(child) # Don't expand to make app more responsive
+        self.tree.Expand(child)
         self.tree.SelectItem(child)
         self.TreePanel.RenderThumbnails(child)
         
@@ -213,7 +214,7 @@ class MainWindow(wx.Frame):
 
     def SetFlame(self, flame):
         self.flame = flame
-        self.image.MakeBitmap(flame)
+        self.image.RenderPreview(flame)
         self.canvas.ShowFlame(flame)
 
         
@@ -267,9 +268,13 @@ class MainWindow(wx.Frame):
         property because it needs to remain mutable"""
         return self.flame
 
+
     def preview(self):
-        pass
-##        self.image.MakeBitmap(self.flame,True)
+        # WARNING: This function is called from the script thread, so it's not
+        # Allowed to change any shared state.
+        self.image.RenderPreview()
+        wx.PostEvent(self.canvas, CanvasRefreshEvent())
+        time.sleep(.1)
 
 
 class ImagePanel(wx.Panel):
@@ -282,23 +287,21 @@ class ImagePanel(wx.Panel):
         self.SetMinSize((256,192))
 
 
-##    @Catches(PyDeadObjectError)
-##    @Locked
-    def MakeBitmap(self,flame=None):
+    def RenderPreview(self, flame=None):
         """Renders a preview version of the flame and displays it in the gui.
 
         Threads are locked outside instead of on the inner render call. This
         allows old requests not correponding to the active flame to be
         discarded."""    
-        if not flame:
-            flame = self.parent.flame
+        flame = flame or self.parent.flame
 
         ratio = flame.size[0] / flame.size[1]
         width = 160 if ratio > 1 else int(160*ratio)
         height = int(width / ratio)
         size = width,height
-        self.parent.renderer.UrgentRequest(self.UpdateBitmap,size,flame.to_string(),
-                                           size,quality=2,estimator=0,filter=.2)
+        req = self.parent.renderer.UrgentRequest
+        req(self.UpdateBitmap,size,flame.to_string(),
+            size,quality=2,estimator=0,filter=.2)
 
 
     def UpdateBitmap(self,size,output_buffer):

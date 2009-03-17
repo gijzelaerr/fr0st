@@ -6,7 +6,7 @@ from StyledTextCtrl_2 import PythonSTC
 from decorators import *
 from toolbar import CreateEditorToolBar
 from constants import ID
-
+from _events import EVT_PRINT, PrintEvent
 
 
 class EditorFrame(wx.Frame):
@@ -47,7 +47,9 @@ class EditorFrame(wx.Frame):
     @Bind(wx.EVT_CLOSE)
     def OnExit(self,e):
 
-        self.parent.OnStopScript()
+        # Removed this line, script should only be stopped if it has
+        # been changed.
+##        self.parent.OnStopScript()
         
         if self.CheckForChanges() == wx.ID_CANCEL:
             return
@@ -95,6 +97,7 @@ class EditorFrame(wx.Frame):
     def CheckForChanges(self):
         f = open(self.scriptpath)
         if self.editor.GetText() != f.read():
+            self.parent.OnStopScript()
             dlg = wx.MessageDialog(self, 'Save changes?',
                                    'Fr0st',wx.YES_NO|wx.CANCEL)
             result = dlg.ShowModal()
@@ -122,15 +125,7 @@ class EditorFrame(wx.Frame):
             f.write(self.editor.GetText())        
 
 
-myEVT_PRINT = wx.NewEventType()
-EVT_PRINT = wx.PyEventBinder(myEVT_PRINT, 1)
-class PrintEvent(wx.PyCommandEvent):
-    def __init__(self,message):
-        wx.PyCommandEvent.__init__(self, myEVT_PRINT, wx.ID_ANY)
-        self._message = message
-        
-    def GetValue(self):
-        return self._message
+
 
 
 class MyLog(wx.TextCtrl):

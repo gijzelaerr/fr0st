@@ -1,5 +1,8 @@
-import itertools, numpy as N
+import itertools, numpy as N, time
 from wx.lib.floatcanvas.FloatCanvas import FloatCanvas, GUIMode, DotGrid
+
+from decorators import Bind, BindEvents
+from _events import EVT_CANVAS_REFRESH
 
 
 class XformCanvas(FloatCanvas):
@@ -13,6 +16,7 @@ class XformCanvas(FloatCanvas):
               ( 255,   0, 127)  # another purplish one
               ] # TODO: extend the color list.
 
+    @BindEvents
     def __init__(self, parent):
         self.parent = parent
         FloatCanvas.__init__(self, parent,
@@ -34,10 +38,11 @@ class XformCanvas(FloatCanvas):
         self.triangles = []
 
 
-    def ShowFlame(self,flame,rezoom=True):
+    def ShowFlame(self,flame=None,rezoom=True,refresh=True):
+        if flame is None:
+            flame = self.parent.flame
         for t in self.triangles:
             self.RemoveObjects(itertools.chain((t,),t._text,t._circles))
-##        map(self.RemoveTriangle,self.triangles)
         self.triangles = map(self.AddXform,flame.xform)
         
         if flame.final:
@@ -48,7 +53,14 @@ class XformCanvas(FloatCanvas):
         if rezoom:
             self.ZoomToBB()
             self.AdjustZoom()
+        elif refresh:
+            # This is an elif because AdjustZoom already forces a Draw.
+            self.Draw()
 
+    @Bind(EVT_CANVAS_REFRESH)
+    def OnCanvasRefresh(self, e):
+        """Allows the script thread to ask the canvas to refresh."""
+        self.ShowFlame(rezoom=False)
 
     def AddXform(self,xform):
         if xform.isfinal():
@@ -59,7 +71,7 @@ class XformCanvas(FloatCanvas):
         triangle = self.AddPolygon(points,
                                    LineColor=color,
                                    LineStyle = "ShortDash")
-        diameter = 6 / self.Scale
+        diameter = 8 / self.Scale
         circles = [self.AddCircle(i, Diameter=diameter, LineColor=color)
                    for i in points]
         text = map(lambda x,y: self.AddText(x,y,Size=10,Color=color),
@@ -93,7 +105,7 @@ class XformCanvas(FloatCanvas):
             self.GridUnder.Spacing = N.array((newspacing,newspacing))
 
         # Adjust the circles at the triangle edges
-        diameter = 6 / self.Scale
+        diameter = 8 / self.Scale
         map(lambda x: x.SetDiameter(diameter),
             itertools.chain(*(i._circles for i in self.triangles)))
 
@@ -110,16 +122,17 @@ class XformCanvas(FloatCanvas):
 
 
 class GUICustom(GUIMode.GUIMove):
-    def __init__(self,canvas):
-        GUIMode.GUIMove.__init__(self,canvas)
-        self.Selection = None
+##    def __init__(self,canvas):
+##        GUIMode.GUIMove.__init__(self,canvas)
+##        self.callback = None
 
     def OnLeftDown(self,e):
         # TODO: select appropriate method based on cursor position, etc.
-        self.Selection = self.Canvas.parent.flame.xform[0]._set_position
+        self.callback = self.Canvas.parent.flame.xform[0]._set_position
+        self._start_time = time.time()
 
     def OnLeftUp(self,e):
-        self.Selection = None
+        self.callback = None
 
     def OnRightDown(self,e):
 ##        self.Canvas.CaptureMouse() # Why was this here?
@@ -138,11 +151,17 @@ class GUICustom(GUIMode.GUIMove):
             self.StartMove = self.EndMove
             self.Canvas.Draw()
             
-        elif e.LeftIsDown() and e.Dragging() and self.Selection is not None:
-            self.Selection(self.Canvas.PixelToWorld(e.GetPosition()))
-            self.Canvas.ShowFlame(self.Canvas.parent.flame, rezoom=False)
-            self.Canvas.parent.image.MakeBitmap()
-            self.Canvas.Draw()
+        elif e.LeftIsDown() and e.Dragging() and self.callback is not None:
+            # HACK: we need to throttle the refresh rate of the canvas
+            # to let through other events (WHY?)
+            t = time.time()
+            if t - self._start_time < .1:
+                return
+            self._start_time = t
+            self.callback(self.Canvas.PixelToWorld(e.GetPosition()))
+            self.Canvas.ShowFlame(rezoom=False)
+            self.Canvas.parent.image.RenderPreview()
+##            self.Canvas.Draw()
 
         else:
             # TODO: highlight triangle vertices, etc.
