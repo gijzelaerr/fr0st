@@ -239,6 +239,7 @@ class MainWindow(wx.Frame):
                          wx = wx,     # for debugging only!
                          ThreadInterrupt = ThreadInterrupt,
                          GetActiveFlame = self.GetActiveFlame,
+                         SetActiveFlame = self.SetActiveFlame,
                          preview = self.preview
                          )
 
@@ -279,6 +280,11 @@ class MainWindow(wx.Frame):
         """Returns the flame currently loaded in the GUI. This can't be a
         property because it needs to remain mutable"""
         return self.flame
+
+    def SetActiveFlame(self,flame):
+        if not isinstance(flame,Flame):
+            raise TypeError("Argument must be an isntance of the Flame class")
+        self.flame = flame
 
 
     def preview(self):
