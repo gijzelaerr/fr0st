@@ -6,7 +6,7 @@
 #Pygame 1.8.1.win32-py2.5
 #-----------------------------------------------------------------
 
-import os, sys, re, copy, itertools
+import os, sys, re, copy, itertools, colorsys
 from math import *
     
 
@@ -217,6 +217,7 @@ class Flame(object):
 
 class Palette(list):
     re_grad   = re.compile(r'[0-9A-F]{6}(?=[0-9A-F]*.?$)',re.MULTILINE)
+    re_gradb  = re.compile(r'<color index="[\d]{1,3}" rgb="([\d ].*)"/>')
     formatstr = ('\n   <palette count="256" format="RGB">' +
                  32 * ('\n      ' + 24 * '%02X') +
                  '\n   </palette>\n')
@@ -226,11 +227,48 @@ class Palette(list):
             self.append((int(i[0:2],16),
                          int(i[2:4],16),
                          int(i[4:6],16)))
+        for i in self.re_gradb.findall(string):
+            j = map(int, i.split())
+            self.append(j)
         if len(self) != 256:
             raise ParsingError("Palette data unreadable")
 
     def to_string(self):  
         return self.formatstr % tuple(itertools.chain(*self))
+
+    def rotate(self, index):
+        self[:] = self[index:] + self[:index]
+    
+    def hue(self, value):
+        for i in range(256):
+            h,s,v = colorsys.rgb_to_hsv(*map(lambda x: x/256.0,self[i]))
+            h += value
+##            if   h > 1: h -= 1
+##            elif h < 0: h += 1
+            self[i] = map(lambda x: int(x*256), colorsys.hsv_to_rgb(h,s,v))
+            
+    def saturation(self, value):
+        for i in self:
+            j = colorsys.rgb_to_hsv(i[0], i[1], i[2])
+            j[1] = j[1] + value
+            if j[1] < 0: j[1] = 0
+            if j[1] > 1: j[1] = 1
+            i = colorsys.hsv_to_rgb(j[0], j[1], j[2])
+            
+    def brightness(self, value):
+        for i in self:
+            j = colorsys.rgb_to_hsv(i[0], i[1], i[2])
+            j[2] = j[2] + value
+            if j[2] < 0: j[2] = 0
+            if j[2] > 255: j[2] = 255
+            i = colorsys.hsv_to_rgb(j[0], j[1], j[2])
+            
+    def inverse(self):
+        for i in self:
+            i = (255 - i[0], 255 - i[1], 255 - i[2])
+
+    def reverse(self):
+        self.reverse()
 
 
 
