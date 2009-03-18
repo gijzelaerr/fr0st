@@ -1,5 +1,6 @@
 import itertools, numpy as N, time
-from wx.lib.floatcanvas.FloatCanvas import FloatCanvas, GUIMode, DotGrid
+from wx.lib.floatcanvas.FloatCanvas import FloatCanvas, DotGrid
+from wx.lib.floatcanvas.GUIMode import GUIMove
 
 from decorators import Bind, BindEvents
 from _events import EVT_CANVAS_REFRESH
@@ -121,7 +122,7 @@ class XformCanvas(FloatCanvas):
 
 
 
-class GUICustom(GUIMode.GUIMove):
+class GUICustom(GUIMove):
 ##    def __init__(self,canvas):
 ##        GUIMode.GUIMove.__init__(self,canvas)
 ##        self.callback = None
