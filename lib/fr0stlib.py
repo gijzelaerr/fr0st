@@ -45,12 +45,12 @@ class Flame(object):
             if not name:
                 string = lst[0]
             else:
-                for flame in Flame.load_file(path):
-                    if 'name="%s"' %name in flame:
-                        string = flame ; break
+                for flamestring in Flame.load_file(path):
+                    if 'name="%s"' %name in flamestring:
+                        string = flamestring ; break
                 if not string:
                     raise NameError, 'Flame "%s" not found' %name
-                self.from_string(string)
+            self.from_string(string)
                    
         elif string:
             self.from_string(string)
@@ -241,7 +241,7 @@ class Palette(list):
     
     def hue(self, value):
         for i in range(256):
-            h,s,v = colorsys.rgb_to_hsv(*map(lambda x: x/256.0,self[i]))
+            h,s,v = colorsys.rgb_to_hsv(*map(lambda x: x/256.0, self[i]))
             h += value
 ##            if   h > 1: h -= 1
 ##            elif h < 0: h += 1
