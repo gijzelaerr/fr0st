@@ -16,10 +16,11 @@ from lib.pyflam3 import Genome
 from lib.gui.rendering import render, Renderer
 from lib.gui._events import EVT_IMAGE_READY, CanvasRefreshEvent
 from lib.fr0stlib import Flame
+from itemdata import ItemData
 
 
 class MainWindow(wx.Frame):
-    re_name = re.compile(r'(?<= name=").*?(?=")')
+    re_name = re.compile(r'(?<= name=").*?(?=")') # This re is duplicated!
     flame = None
 
     @BindEvents    
@@ -76,7 +77,7 @@ class MainWindow(wx.Frame):
 
     @Bind(wx.EVT_MENU,id=ID.ABOUT)
     def OnAbout(self,e):
-        d= wx.MessageDialog(self,
+        d= wx.MessageDialog(self,"......",
                             " TODO", wx.OK)
         d.ShowModal()
         d.Destroy()
@@ -86,19 +87,21 @@ class MainWindow(wx.Frame):
     @Bind(wx.EVT_MENU,id=ID.EXIT)
     def OnExit(self,e):
 
+        # Give the script editor an opportunity to save.
         self.OnStopScript()
+        if self.editorframe.CheckForChanges() == wx.ID_CANCEL:
+            return
         
         # check for differences in flame file
-        if self.flame:
-            oldflame = Flame(string=self.tree.GetPyData(self.TreePanel.item))
-            if self.flame.to_string() != oldflame.to_string():
-                dlg = wx.MessageDialog(self, 'Save changes?',
+        for item in self.TreePanel.iterchildren(self.TreePanel.root):
+            if any(self.tree.GetPyData(child).HasChanged()
+                   for child in self.TreePanel.iterchildren(item)):
+                path = self.tree.GetPyData(item)[-1]
+                dlg = wx.MessageDialog(self, 'Save changes to %s?' % path,
                                        'Fr0st',wx.YES_NO|wx.CANCEL)
                 result = dlg.ShowModal()
                 if result == wx.ID_YES:
-                    parent = self.tree.GetItemParent(self.TreePanel.item)
-                    path = self.tree.GetPyData(parent)
-                    self.SaveFlameFile(path, confirm=False)
+                    self.SaveFlameFile(path, item, confirm=False)
                 elif result == wx.ID_CANCEL:
                     return
                 dlg.Destroy()
@@ -128,7 +131,6 @@ class MainWindow(wx.Frame):
     @Bind(wx.EVT_MENU,id=ID.FSAVE)
     @Bind(wx.EVT_TOOL,id=ID.TBSAVE)
     def OnFlameSave(self,e):
-##        if not hasattr(self,"flame"): return
         dDir,dFile = os.path.split(self.flamepath)
         dlg = wx.FileDialog(
             self, message="Save file as ...", defaultDir=dDir, 
@@ -161,7 +163,17 @@ class MainWindow(wx.Frame):
         self.editorframe.Show(True)
         self.editorframe.SetFocus() # In case it's already open in background
 
-        
+    @Bind(wx.EVT_MENU,id=ID.UNDO)
+    def OnUndo(self,e):
+        string = self.tree.GetPyData(self.TreePanel.item).Undo()
+        if string:
+            self.SetFlame(Flame(string=string))
+
+    @Bind(wx.EVT_MENU,id=ID.REDO)
+    def OnRedo(Self,e):
+        string = self.tree.GetPyData(self.TreePanel.item).Redo()
+        if string:
+            self.SetFlame(Flame(string=string))
     
 
 #------------------------------------------------------------------------------
@@ -184,37 +196,24 @@ class MainWindow(wx.Frame):
         flamestrings = Flame.load_file(path)
 
         child = self.tree.AppendItem(self.TreePanel.root,os.path.split(path)[1])
-        self.tree.SetPyData(child, path)
+        self.tree.SetPyData(child, ItemData(path))
         self.tree.SetItemImage(child, 0, wx.TreeItemIcon_Normal)
         self.tree.SetItemImage(child, 1, wx.TreeItemIcon_Expanded)
 
         for s in flamestrings:
             item = self.tree.AppendItem(child,self.re_name.findall(s)[0])
-            self.tree.SetPyData(item,s)
+            self.tree.SetPyData(item,ItemData(s))
         self.tree.Expand(child)
         self.tree.SelectItem(child)
         self.TreePanel.RenderThumbnails(child)
         
 
-    def SaveFlameFile(self,path,confirm=True):   
-        flamestring = self.flame.to_string()
-        found = False
-
-        if os.path.exists(path):
-            lst = Flame.load_file(path)
-            for i,s in enumerate(lst):
-                if self.re_name.findall(s)[0] == self.flame.name:
-                    lst[i] = flamestring
-                    found = True
-                    break
-        else:
-            lst = []
-                
-        if not found:
-            lst.append(flamestring)
-        elif confirm:
-            dlg = wx.MessageDialog(self, '%s in %s already exists.\nDo You want to replace it?'
-                                   %(self.flame.name,path),
+    def SaveFlameFile(self, path, item=None, confirm=True):
+        lst = [self.tree.GetPyData(i).GetSaveString()
+               for i in self.TreePanel.iterchildren(item)]
+        if os.path.exists(path) and confirm:
+            dlg = wx.MessageDialog(self, '%s already exists.\nDo You want to replace it?'
+                                   %path,
                                    'Fr0st',
                                    wx.YES_NO)
             if dlg.ShowModal() == wx.ID_NO: return
@@ -228,8 +227,13 @@ class MainWindow(wx.Frame):
     def SetFlame(self, flame):
         self.flame = flame
         self.image.RenderPreview(flame)
+        self.TreePanel.RenderThumbnail()
         self.canvas.ShowFlame(flame)
 
+    def TempSave(self):
+        data = self.tree.GetPyData(self.TreePanel.item)
+        data.append(self.flame.to_string())
+        self.TreePanel.RenderThumbnail()
         
     def CreateNamespace(self):
         """Recreates the namespace each time the script is run to reinitialise

@@ -41,23 +41,17 @@ class EditorFrame(wx.Frame):
         with open(self.scriptpath) as f:
             self.editor.SetValue(f.read())
             
-        self.Show(False) # Should allow to run scripts without showing this frame?
+        self.Show(False) # allows running scripts without showing this frame
 
 
     @Bind(wx.EVT_CLOSE)
     def OnExit(self,e):
 
-        # Removed this line, script should only be stopped if it has
-        # been changed.
+        # Removed this line, script should only be stopped if it has changed.
 ##        self.parent.OnStopScript()
         
         if self.CheckForChanges() == wx.ID_CANCEL:
             return
-        
-        # Reset the script to the saved version, so that it looks like the
-        # editor was closed.
-        with open(self.scriptpath) as f:
-            self.editor.SetValue(f.read())
         self.Show(False)
 
 
@@ -73,7 +67,6 @@ class EditorFrame(wx.Frame):
         if self.CheckForChanges() == wx.ID_CANCEL:
             return
         self.OpenScript()
-
 
 
     @Bind(wx.EVT_TOOL,id=ID.TBSAVE)
@@ -98,14 +91,20 @@ class EditorFrame(wx.Frame):
         f = open(self.scriptpath)
         if self.editor.GetText() != f.read():
             self.parent.OnStopScript()
-            dlg = wx.MessageDialog(self, 'Save changes?',
+            self.SetFocus() # So the user sees where the dialog comes from.
+            dlg = wx.MessageDialog(self, 'Save changes to %s?'
+                                   % os.path.split(self.scriptpath)[-1],
                                    'Fr0st',wx.YES_NO|wx.CANCEL)
             result = dlg.ShowModal()
             if result == wx.ID_YES:
                 self.SaveScript()
+            elif result == wx.ID_NO:
+                # Reset the script to the saved version, so that it looks like
+                # the editor was closed.
+                with open(self.scriptpath) as f:
+                    self.editor.SetValue(f.read())
             dlg.Destroy()
             return result
-
 
     def OpenScript(self):
         dDir,dFile = os.path.split(self.scriptpath)

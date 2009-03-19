@@ -12,6 +12,11 @@ class Filemenu(wx.Menu):
         self.AppendSeparator()
         self.Append(ID.EXIT,"E&xit"," Terminate the program")
 
+class Editmenu(wx.Menu):
+    def __init__(self):
+        wx.Menu.__init__(self)
+        self.Append(ID.UNDO, "&Undo"," Undo last change to the selected flame.")
+        self.Append(ID.REDO, "&Redo"," Redo last change to the selected flame.")
 
 class Scriptmenu(wx.Menu):
     def __init__(self):
@@ -24,6 +29,7 @@ class Scriptmenu(wx.Menu):
 def CreateMenu(parent):
     menu = wx.MenuBar()
     lst = [(Filemenu(),   "&File"),
+           (Editmenu(),   "&Edit"),
            (Scriptmenu(), "&Script")]
     
     map(menu.Append,*zip(*lst))

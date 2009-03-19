@@ -134,6 +134,7 @@ class GUICustom(GUIMove):
 
     def OnLeftUp(self,e):
         self.callback = None
+        parent = self.Canvas.parent.TempSave()
 
     def OnRightDown(self,e):
 ##        self.Canvas.CaptureMouse() # Why was this here?

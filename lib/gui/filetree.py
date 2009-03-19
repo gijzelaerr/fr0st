@@ -21,7 +21,7 @@ class TreePanel(wx.Panel):
         # Use the WANTS_CHARS style so the panel doesn't eat the Return key.
         wx.Panel.__init__(self, parent, -1, style=wx.WANTS_CHARS)
         self.parent = parent
-##        self.log = parent.log
+        self.item = None
                        
         # Specify a size instead of using wx.DefaultSize
         self.tree = wx.TreeCtrl(self, wx.NewId(), wx.DefaultPosition, (200,500),
@@ -61,17 +61,21 @@ class TreePanel(wx.Panel):
         self.tree.Bind(wx.EVT_LEFT_DCLICK, self.OnLeftDClick)
 
 
-##    @Threaded
-##    @Catches(PyDeadObjectError)
     def RenderThumbnails(self, item):
         for child in self.iterchildren(item):
-            string = self.tree.GetPyData(child)
-            self.imgcount += 1
-            self.parent.renderer.Request(self.UpdateThumbnail,
-                                         (child,self.imgcount,self.isz),
-                                         string,self.isz,quality=25,estimator=3)
+            self.RenderThumbnail(child)
             # Set item to default until thumbnail is ready.    
-            self.tree.SetItemImage(child, 2)
+            self.tree.SetItemImage(child, 2)           
+
+
+    def RenderThumbnail(self,child=None):
+        if child is None:
+            child = self.item
+        data = self.tree.GetPyData(child)
+        self.imgcount += 1
+        self.parent.renderer.Request(self.UpdateThumbnail,
+                                     (child,self.imgcount,self.isz),
+                                     data[-1],self.isz,quality=25,estimator=3)
 
             
     def UpdateThumbnail(self, data, output_buffer):
@@ -81,7 +85,9 @@ class TreePanel(wx.Panel):
         self.tree.SetItemImage(child,num)
 
 
-    def iterchildren(self,item):
+    def iterchildren(self,item=None):
+        if item is None:
+            item = self.tree.GetItemParent(self.item)
         child,cookie = self.tree.GetFirstChild(item)
         while child.IsOk():
             yield child
@@ -116,8 +122,8 @@ class TreePanel(wx.Panel):
     def OnSelChanged(self, event):
         self.item = event.GetItem()
         if self.item:
-            data = self.tree.GetPyData(self.item)
-            if data.startswith("<flame"):
+            data = self.tree.GetPyData(self.item)[-1]
+            if data.startswith('<flame'):
                 self.parent.SetFlame(Flame(string=data))
         event.Skip()
 
@@ -131,22 +137,9 @@ class TreePanel(wx.Panel):
     def OnEndEdit(self, event):
         self.item = event.GetItem()
         newname = str(event.GetLabel())
-        # Make sure false edits don't accidentally change the name to ""
+        # Make sure edits don't accidentally change the name to an empty string
         if not newname:
             return
-        
-        if self.tree.GetItemParent(self.item) == self.root:
-            path = self.tree.GetPyData(self.item)
-            shutil.move(path,os.path.join(os.path.split(path)[0],newname))
-            return
 
-        self.parent.flame.name = newname
-        newdata = self.parent.flame.to_string()
-        self.tree.SetPyData(self.item,newdata)
-
-        # Save the result to the flame file
-        parent = self.tree.GetItemParent(self.item)
-        lst = [self.tree.GetPyData(i) for i in self.iterchildren(parent)]
-        path = self.tree.GetPyData(parent)
-        functions.save_flames(path,*lst)
+        self.tree.GetPyData(self.item).name = newname
 
