@@ -94,17 +94,12 @@ class MainWindow(wx.Frame):
         
         # check for differences in flame file
         for item in self.TreePanel.iterchildren(self.TreePanel.root):
-            if any(self.tree.GetPyData(child).HasChanged()
-                   for child in self.TreePanel.iterchildren(item)):
-                path = self.tree.GetPyData(item)[-1]
-                dlg = wx.MessageDialog(self, 'Save changes to %s?' % path,
-                                       'Fr0st',wx.YES_NO|wx.CANCEL)
-                result = dlg.ShowModal()
-                if result == wx.ID_YES:
-                    self.SaveFlameFile(path, item, confirm=False)
-                elif result == wx.ID_CANCEL:
-                    return
-                dlg.Destroy()
+            if self.CheckForChanges(item) == wx.ID_CANCEL:
+                return
+##            head,ext = os.path.split(self.tree.GetPyData(item)[-1])
+##            path = os.path.join(head,'.temp')
+##            if os.path.exists(path):
+##                shutil.
 
         self.renderer.exitflag = True      
         self.Destroy()
@@ -139,6 +134,10 @@ class MainWindow(wx.Frame):
             self.flamepath = dlg.GetPath()
             self.SaveFlameFile(self.flamepath)
         dlg.Destroy()
+        
+        # Reset the history of all data, to allow correct comparisons.
+        for i in self.TreePanel.iterchildren():
+            self.tree.GetPyData(i).Reset()
         
 
     @Bind(wx.EVT_MENU,id=ID.SOPEN)
@@ -183,16 +182,35 @@ class MainWindow(wx.Frame):
         None otherwise."""
         root = self.tree.GetRootItem()
         for child in self.TreePanel.iterchildren(root):
-            if path == self.tree.GetPyData(child):
+            if path == self.tree.GetPyData(child)[-1]:
                 return child
 
+    def CheckForChanges(self,item):
+        if any(self.tree.GetPyData(child).HasChanged()
+               for child in self.TreePanel.iterchildren(item)):
+            path = self.tree.GetPyData(item)[-1]
+            dlg = wx.MessageDialog(self, 'Save changes to %s?' % path,
+                                   'Fr0st',wx.YES_NO|wx.CANCEL)
+            result = dlg.ShowModal()
+            if result == wx.ID_YES:
+                self.SaveFlameFile(path, item, confirm=False)
+            dlg.Destroy()
+            return result
 
     def OpenFlameFile(self,path):
         # Check if file is already open
         item = self.find_open_flame(path)
         if item:
+            dlg = wx.MessageDialog(self, "%s is already open. Do you want to revert to its saved status?" % path,
+                                   'Fr0st',wx.YES_NO|wx.CANCEL)
+            if dlg.ShowModal() != wx.ID_YES:
+                return
             self.tree.Delete(item)
-
+##        else:
+##            head,ext = os.path.split(path)
+##            if ext == ".flame" and os.path.exists(os.path.join(head,'.temp')):
+##                pass # TODO: rescue 
+                
         flamestrings = Flame.load_file(path)
 
         child = self.tree.AppendItem(self.TreePanel.root,os.path.split(path)[1])
@@ -217,12 +235,11 @@ class MainWindow(wx.Frame):
                                    'Fr0st',
                                    wx.YES_NO)
             if dlg.ShowModal() == wx.ID_NO: return
-            dlg.Destroy()            
+            dlg.Destroy()
+        if os.path.exists(os.path.splitext(path)[0] + '.temp'):
+            ItemData._changes[path] = {}
         functions.save_flames(path,*lst)
 
-        # If an open flamefile was modified, it must be reloaded
-        if self.find_open_flame(path):
-            self.OpenFlameFile(path)
 
     def SetFlame(self, flame):
         self.flame = flame
@@ -234,6 +251,12 @@ class MainWindow(wx.Frame):
         data = self.tree.GetPyData(self.TreePanel.item)
         data.append(self.flame.to_string())
         self.TreePanel.RenderThumbnail()
+        # Create a backup version of the flame file
+##        path = self.tree.GetPyData(self.TreePanel.itemparent)[-1]
+####        data.TempSave(self.flame, path)
+##        self.SaveFlameFile(os.path.splitext(path)[0] + ".temp", confirm=False)
+        
+
         
     def CreateNamespace(self):
         """Recreates the namespace each time the script is run to reinitialise

@@ -143,3 +143,9 @@ class TreePanel(wx.Panel):
 
         self.tree.GetPyData(self.item).name = newname
 
+    def _get_itemparent(self):
+        if self.item:
+            return self.tree.GetItemParent(self.item)
+
+    itemparent = property(_get_itemparent)
+
