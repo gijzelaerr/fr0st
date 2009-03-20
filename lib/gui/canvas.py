@@ -32,11 +32,13 @@ class XformCanvas(FloatCanvas):
                         LineStyle="LongDash")
         map(lambda x,y,z: self.AddText(x,y,Position=z,Size=10,Color="Grey"),
             "OXY",points,("tr","tl","br"))
-        
-        self.MakeGrid()
-        self.ZoomToBB()
-        self.GUIMode = GUICustom(self)
+
         self.triangles = []
+        self.MakeGrid()
+        self.ZoomToBB(DrawFlag=False)
+        self.AdjustZoom()
+        self.GUIMode = GUICustom(self)
+        
 
 
     def ShowFlame(self,flame=None,rezoom=True,refresh=True):
@@ -52,7 +54,7 @@ class XformCanvas(FloatCanvas):
         # TODO: add post xforms.  
 
         if rezoom:
-            self.ZoomToBB()
+            self.ZoomToBB(DrawFlag=False)
             self.AdjustZoom()
         elif refresh:
             # This is an elif because AdjustZoom already forces a Draw.
@@ -98,8 +100,9 @@ class XformCanvas(FloatCanvas):
         oldspacing = self.GridUnder.Spacing[0]
         newspacing = None
         scale = 25 / self.Scale  # this is an arbitrary constant.
+        from math import log
         if scale > oldspacing:
-            newspacing = oldspacing * 10
+            newspacing = oldspacing * 10**int(log(scale/oldspacing,10)+1)
         elif scale < oldspacing / 10:
             newspacing = oldspacing / 10
         if newspacing:
@@ -116,7 +119,7 @@ class XformCanvas(FloatCanvas):
 
     # Currently not bound
     def OnZoomToFit(self,e):
-        self.ZoomToBB()
+        self.ZoomToBB(DrawFlag=False)
         self.AdjustZoom()
         self.SetFocus() # Otherwise focus stays on Button.
 

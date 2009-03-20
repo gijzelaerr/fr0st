@@ -96,10 +96,10 @@ class MainWindow(wx.Frame):
         for item in self.TreePanel.iterchildren(self.TreePanel.root):
             if self.CheckForChanges(item) == wx.ID_CANCEL:
                 return
-##            head,ext = os.path.split(self.tree.GetPyData(item)[-1])
-##            path = os.path.join(head,'.temp')
-##            if os.path.exists(path):
-##                shutil.
+            head,ext = os.path.splitext(self.tree.GetPyData(item)[-1])
+            path = os.path.join(head + '.temp')
+            if os.path.exists(path):
+                os.remove(path)
 
         self.renderer.exitflag = True      
         self.Destroy()
@@ -206,10 +206,11 @@ class MainWindow(wx.Frame):
             if dlg.ShowModal() != wx.ID_YES:
                 return
             self.tree.Delete(item)
+        # TODO: rescue crashed flames.
 ##        else:
 ##            head,ext = os.path.split(path)
 ##            if ext == ".flame" and os.path.exists(os.path.join(head,'.temp')):
-##                pass # TODO: rescue 
+##                pass # attempt to recover the flame.
                 
         flamestrings = Flame.load_file(path)
 
@@ -236,9 +237,9 @@ class MainWindow(wx.Frame):
                                    wx.YES_NO)
             if dlg.ShowModal() == wx.ID_NO: return
             dlg.Destroy()
-        if os.path.exists(os.path.splitext(path)[0] + '.temp'):
-            ItemData._changes[path] = {}
         functions.save_flames(path,*lst)
+        # Finally, clear the dict that creates temp files.
+        ItemData._changes[path] = {}
 
 
     def SetFlame(self, flame):
@@ -252,8 +253,8 @@ class MainWindow(wx.Frame):
         data.append(self.flame.to_string())
         self.TreePanel.RenderThumbnail()
         # Create a backup version of the flame file
-##        path = self.tree.GetPyData(self.TreePanel.itemparent)[-1]
-####        data.TempSave(self.flame, path)
+        path = self.tree.GetPyData(self.TreePanel.itemparent)[-1]
+        data.TempSave(self.flame, path)
 ##        self.SaveFlameFile(os.path.splitext(path)[0] + ".temp", confirm=False)
         
 
@@ -357,11 +358,6 @@ class ImagePanel(wx.Panel):
         # Yield Allows the new image to be drawn immediately.
 ##        wx.SafeYield()
         wx.Yield()
-
-        
-####    @Threaded
-##    def RenderPreview(self):
-##        self.MakeBitmap(self.parent.flame,strict=True)
 
 
     @Bind(wx.EVT_PAINT)
