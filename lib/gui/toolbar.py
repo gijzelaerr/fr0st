@@ -15,6 +15,7 @@ def CreateToolBar(parent):
                 )
 
     tb = parent.CreateToolBar(TBFLAGS)
+    parent.tb = tb
     
     tb.AddSimpleTool(ID.TBNEW, GetBMP(wx.ART_NEW),
                      "New", "New flame")
@@ -27,7 +28,16 @@ def CreateToolBar(parent):
 
     tb.AddSeparator()
 
-
+    tb.AddSimpleTool(ID.UNDO, GetBMP(wx.ART_UNDO),
+                     "Undo", "Undo the last change on the curently selected flame.")
+    tb.EnableTool(ID.UNDO,False)
+    
+    tb.AddSimpleTool(ID.REDO, GetBMP(wx.ART_REDO),
+                     "Redo", "Redo the last change on the curently selected flame.")
+    tb.EnableTool(ID.REDO,False)
+    
+    tb.AddSeparator()
+    
     tb.AddSimpleTool(ID.TBOPENSCRIPT, GetBMP(wx.ART_FILE_OPEN),
                      "Open Script", "")
 

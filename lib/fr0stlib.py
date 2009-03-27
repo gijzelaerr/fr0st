@@ -150,7 +150,7 @@ class Flame(object):
             # Write the chaos values.
             xaos = xform.chaos.get_list()
             if xaos:
-                lst.append('chaos="%s" />' %" ".join(map(str,xaos)))
+                lst.append('chaos="%s " />' % " ".join(map(str,xaos)))
             else:
                 lst.append('/>')
         

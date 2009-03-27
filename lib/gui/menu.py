@@ -34,4 +34,5 @@ def CreateMenu(parent):
     
     map(menu.Append,*zip(*lst))
     parent.SetMenuBar(menu)
+    parent.menu = menu
 

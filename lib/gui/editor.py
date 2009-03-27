@@ -38,21 +38,19 @@ class EditorFrame(wx.Frame):
 
 
         # Load the default script
-        with open(self.scriptpath) as f:
-            self.editor.SetValue(f.read())
+        if os.path.exists(self.scriptpath):
+            with open(self.scriptpath) as f:
+                self.editor.SetValue(f.read())
             
         self.Show(False) # allows running scripts without showing this frame
 
 
     @Bind(wx.EVT_CLOSE)
-    def OnExit(self,e):
-
-        # Removed this line, script should only be stopped if it has changed.
-##        self.parent.OnStopScript()
-        
+    def OnExit(self,e):        
         if self.CheckForChanges() == wx.ID_CANCEL:
             return
         self.Show(False)
+        self.Parent.SetFocus()
 
 
     @Bind(wx.EVT_TOOL,id=ID.TBNEW)
@@ -88,8 +86,11 @@ class EditorFrame(wx.Frame):
 
 
     def CheckForChanges(self):
-        f = open(self.scriptpath)
-        if self.editor.GetText() != f.read():
+        if os.path.exists(self.scriptpath):
+            filetext = open(self.scriptpath).read()
+        else:
+            filetext = ""
+        if self.editor.GetText() != filetext:
             self.parent.OnStopScript()
             self.SetFocus() # So the user sees where the dialog comes from.
             dlg = wx.MessageDialog(self, 'Save changes to %s?'
@@ -101,10 +102,10 @@ class EditorFrame(wx.Frame):
             elif result == wx.ID_NO:
                 # Reset the script to the saved version, so that it looks like
                 # the editor was closed.
-                with open(self.scriptpath) as f:
-                    self.editor.SetValue(f.read())
+                self.editor.SetValue(filetext)
             dlg.Destroy()
             return result
+
 
     def OpenScript(self):
         dDir,dFile = os.path.split(self.scriptpath)
@@ -125,13 +126,12 @@ class EditorFrame(wx.Frame):
 
 
 
-
-
 class MyLog(wx.TextCtrl):
     re_exc = re.compile(r'^.*?(?=  File "<string>")',re.DOTALL)
     re_line = re.compile(r'(Script, line \d*, in .*?)$',re.MULTILINE)
     re_linenum = re.compile(r'(?<=Script, line )\d*(?=,)')
     _script = None # This is set by the parent
+
 
     @BindEvents
     def __init__(self,parent):
@@ -146,10 +146,12 @@ class MyLog(wx.TextCtrl):
 ##        self._suppress = 0
 ##        self._syntax  = 0
 
+
     @Catches(PyDeadObjectError)
     def write(self,message):
         """Notifies the main thread to print a message."""
         wx.PostEvent(self,PrintEvent(message))
+
 
     @Catches(PyDeadObjectError)
     def _write(self,message):
@@ -173,10 +175,10 @@ class MyLog(wx.TextCtrl):
 
     if "win32" in sys.platform:
         write = _write
+
         
-     
-        # This is the old procedural write method, it's kept here because it
-        # works even if write is fed the traceback little pieces at a time.
+    # This is the old procedural write method, it's kept here because it
+    # works even if write is fed the traceback little pieces at a time.
 ##    def write(self,message):
 ##
 ##        # Prints the script traceback
@@ -207,9 +209,6 @@ class MyLog(wx.TextCtrl):
 ##        if not self._suppress:
 ##            self.tc.AppendText(message)    
 
-
-    # Just a stub to test TreeCtrl
-    WriteText = write
 
 
 class CodeEditor(PythonSTC):

@@ -1,12 +1,9 @@
-import wx, sys, os, re, shutil, threading
-from wx._core import PyDeadObjectError
+from __future__ import with_statement
+import wx, sys, os, re, shutil, time, cPickle
+from wx import PyDeadObjectError
 from threading import Thread
+import pickle as cPickle
 
-##from ..fr0stlib import Flame
-##from ..pyflam3 import Genome
-##from .. import functions
-##from decorators import *
-##from rendering import render
 
 from lib.fr0stlib import Flame
 from lib.pyflam3 import Genome
@@ -41,7 +38,7 @@ class TreePanel(wx.Panel):
 ##        self.tree.Spacing = 28 # Default is 18
         
         isz = (28,21)
-        il = wx.ImageList(isz[0], isz[1])
+        il = wx.ImageList(*isz)
         fldridx     = il.Add(wx.ArtProvider_GetBitmap(wx.ART_FOLDER,      wx.ART_OTHER, isz))
         fldropenidx = il.Add(wx.ArtProvider_GetBitmap(wx.ART_FILE_OPEN,   wx.ART_OTHER, isz))
         fileidx     = il.Add(wx.ArtProvider_GetBitmap(wx.ART_NORMAL_FILE, wx.ART_OTHER, isz))
@@ -52,7 +49,7 @@ class TreePanel(wx.Panel):
         self.imgcount = 2
 
         self.root = self.tree.AddRoot("The Root Item")
-        self.tree.SetPyData(self.root, None)
+##        self.tree.SetPyData(self.root, None)
 ##        self.tree.SetItemImage(self.root, fldridx, wx.TreeItemIcon_Normal)
 ##        self.tree.SetItemImage(self.root, fldropenidx, wx.TreeItemIcon_Expanded)
 
@@ -87,12 +84,72 @@ class TreePanel(wx.Panel):
 
     def iterchildren(self,item=None):
         if item is None:
-            item = self.tree.GetItemParent(self.item)
+            item = self.itemparent
         child,cookie = self.tree.GetFirstChild(item)
         while child.IsOk():
             yield child
             child,cookie = self.tree.GetNextChild(item,cookie)
+
+
+    def TempSave(self):
+        """Updates the tree's undo list and saves a backup version from
+        which the session can be restored."""
+        # Update the child
+        data = self.itemdata
+        data.append(self.parent.flame.to_string())
+##        text = self.tree.GetItemText(self.item)
+        self.tree.SetItemText(self.item, '* ' + data.name)
+        self.RenderThumbnail()
+
+        # Update the parent
+        data = self.tree.GetPyData(self.itemparent)
+        self.tree.SetItemText(self.itemparent, '* ' + data.name)
+        
+        # Create the temp file.
+        lst = [self.tree.GetPyData(i)[1:] for i in self.iterchildren()]
+        with open(data[-1] + '.temp',"wb") as f:
+            cPickle.dump(lst,f,cPickle.HIGHEST_PROTOCOL)
+        self.parent.EnableUndo(True)
+        self.parent.EnableRedo(False)
+
+
+    def RecoverSession(self,paths):
+        """Restores a working session based on the temp files left by a
+        previous run of the program. Creates backups of the temp files in case
+        manual recovery becomes necessary."""
+        # Get this data now to be used later.
+        temppaths = [i+'.temp' for i in paths]
+        undolists = []
+        for path in temppaths:
+            if os.path.exists(path):
+                lst = cPickle.load(open(path,"rb"))
+            else:
+                lst = []
+            undolists.append(lst)
+        
+        # Create the backup files.
+        targetdir = os.path.join('recovery',time.strftime("%Y%m%d-%H%M%S"))
+        os.makedirs(targetdir)
+        shutil.move('paths.temp',os.path.join(targetdir,'paths.temp'))
+        for path in filter(os.path.exists,temppaths):
+            newpath = os.path.join(targetdir,os.path.basename(path))
+            if os.path.exists(newpath):
+                # Make sure different files with the same basename don't clash.
+                number = 2
+                while os.path.exists(newpath):
+                    head, ext = os.path.splitext(newpath)
+                    newpath = '%s (%s)%s' %(head,number,ext)
+                    number += 1
+            shutil.copy(path,newpath)
             
+        # Finally, recover the actual session
+        for path,undolist in zip(paths,undolists):
+            self.parent.OpenFlameFile(path)
+            for child,lst in zip(self.iterchildren(self.tree.GetSelection()),
+                                 undolist):
+                self.tree.GetPyData(child).extend(lst)
+                self.RenderThumbnail(child)
+
 
 ##    @Bind(wx.EVT_RIGHT_DOWN) # this bind doesn't work
     def OnRightDown(self, event):
@@ -122,9 +179,12 @@ class TreePanel(wx.Panel):
     def OnSelChanged(self, event):
         self.item = event.GetItem()
         if self.item:
-            data = self.tree.GetPyData(self.item)[-1]
-            if data.startswith('<flame'):
-                self.parent.SetFlame(Flame(string=data))
+            string = self.tree.GetPyData(self.item)[-1]
+            if string.startswith('<flame'):
+                self.parent.SetFlame(Flame(string=string))
+            else:
+                self.parent.EnableUndo(False)
+                self.parent.EnableRedo(False)
         event.Skip()
 
 
@@ -141,11 +201,22 @@ class TreePanel(wx.Panel):
         if not newname:
             return
 
-        self.tree.GetPyData(self.item).name = newname
+        self.itemdata.name = newname
+
 
     def _get_itemparent(self):
         if self.item:
-            return self.tree.GetItemParent(self.item)
+            item = self.tree.GetItemParent(self.item)
+            if item == self.root:
+                return self.item
+            return item
 
     itemparent = property(_get_itemparent)
+
+
+    def _get_itemdata(self):
+        if self.item:
+            return self.tree.GetPyData(self.item)
+
+    itemdata = property(_get_itemdata)
 

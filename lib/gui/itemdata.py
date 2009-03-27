@@ -1,36 +1,32 @@
 import re, os
-from collections import defaultdict
 
-from lib import functions
 
 class ItemData(list):
     re_name = re.compile(r'(?<= name=").*?(?=")') # This re is duplicated!
-    _changes = defaultdict(dict)
     
-    def __init__(self,string):
+    def __init__(self, name, string):
         self.append(string)
         self.redo = []
-        self.name = None
+        self._name = name
         
-    def TempSave(self, flame, path):
-        string = flame.to_string()
-        self.append(string)
-        self._changes[path][flame.name] = string
-        backup_path = os.path.splitext(path)[0] + '.temp'
-        functions.save_flames(backup_path,*self._changes[path].values())
 
+    def append(self,v):
+        list.append(self,v)
+        self.redo = []
+
+        
     def GetSaveString(self):
-        if self.name is not None:
-            self[-1] = self.re_name.sub(self.name,self[-1])
         return self[-1]
 
+
     def HasChanged(self):
-        return self.undo or self.name
+        return self.undo #or self.name
+
 
     def Reset(self):
         self[:] = self[-1:]
         self.redo = []
-        self.name = None
+##        self.name = None
 
         
     def Undo(self):
@@ -38,13 +34,25 @@ class ItemData(list):
             self.redo.append(self.pop())
             return self[-1]
 
+
     def Redo(self):
-        if seld.redo:
-            self.append(self.redo.pop())
+        if self.redo:
+            list.append(self,self.redo.pop())
             return self[-1]
+
 
     def _get_undo(self):
         return len(self) - 1
 
     undo = property(_get_undo)
+
+
+    def _get_name(self):
+        return self._name
+
+    def _set_name(self,v):
+        self._name = v
+        self.append(self.re_name.sub(self._name,self[-1]))
+
+    name = property(_get_name, _set_name)
         

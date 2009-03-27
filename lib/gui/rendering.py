@@ -41,8 +41,6 @@ class Renderer():
     @Catches(TypeError)
     def RenderLoop(self):
         while not self.exitflag:
-##            if self.exitflag:
-##                return
             queue = self.urgent or self.queue
             if queue:
                 callback,metadata,args,kwds = queue.pop(0)
