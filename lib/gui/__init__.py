@@ -15,7 +15,7 @@ from lib import functions
 from lib.pyflam3 import Genome
 from lib.gui.rendering import render, Renderer
 from lib.gui._events import EVT_IMAGE_READY, CanvasRefreshEvent
-from lib.fr0stlib import Flame
+from lib.fr0stlib import Flame, BLANKFLAME
 from itemdata import ItemData
 
 
@@ -76,7 +76,7 @@ class MainWindow(wx.Frame):
             self.TreePanel.RecoverSession(paths)
         else:
             # Normal startup
-            self.OpenFlameFile(self.flamepath)
+            self.OpenFlame(self.flamepath)
 
         self.Show(True)
     
@@ -127,6 +127,27 @@ class MainWindow(wx.Frame):
         callback(metadata, output_buffer)
 
 
+    @Bind(wx.EVT_MENU,id=ID.FNEW)
+    @Bind(wx.EVT_TOOL,id=ID.TBNEW)
+    def OnFlameNew(self,e):
+        path = 'untitled.flame'
+        item = self.TreePanel.NewItem(path)
+        self.tree.SelectItem(item)
+        
+        with open('paths.temp','a') as f:
+            f.write(path + '\n')
+            
+
+    @Bind(wx.EVT_MENU,id=ID.FNEW2)
+    @Bind(wx.EVT_TOOL,id=ID.TBNEW2)
+    def OnFlameNew2(self,e):
+        name = 'Untitled'
+        child = self.tree.AppendItem(self.TreePanel.itemparent, name)
+        self.tree.SetPyData(child, ItemData(name, BLANKFLAME))
+        self.tree.SelectItem(child)
+        self.tree.SetItemImage(child, 2)
+
+
     @Bind(wx.EVT_MENU,id=ID.FOPEN)
     @Bind(wx.EVT_TOOL,id=ID.TBOPEN)
     def OnFlameOpen(self,e):
@@ -136,7 +157,7 @@ class MainWindow(wx.Frame):
             defaultFile=dFile, wildcard=self.wildcard, style=wx.OPEN)
         if dlg.ShowModal() == wx.ID_OK:
             self.flamepath = dlg.GetPath()
-            self.OpenFlameFile(self.flamepath)
+            self.OpenFlame(self.flamepath)
         dlg.Destroy()
 
 
@@ -150,7 +171,7 @@ class MainWindow(wx.Frame):
             defaultFile=dFile, wildcard=self.wildcard, style=wx.SAVE)
         if dlg.ShowModal() == wx.ID_OK:
             self.flamepath = dlg.GetPath()
-            self.SaveFlameFile(self.flamepath)
+            self.SaveFlame(self.flamepath)
         dlg.Destroy()
         
         # Reset the history of all data, to allow correct comparisons.
@@ -187,7 +208,7 @@ class MainWindow(wx.Frame):
         data = self.TreePanel.itemdata
         string = data.Undo()
         if string:
-            self.SetFlame(Flame(string=string))
+            self.SetFlame(Flame(string=string), rezoom=False)
             self.TreePanel.RenderThumbnail()
 
 
@@ -197,35 +218,14 @@ class MainWindow(wx.Frame):
         data = self.TreePanel.itemdata
         string = data.Redo()
         if string:
-            self.SetFlame(Flame(string=string))
+            self.SetFlame(Flame(string=string), rezoom=False)
             self.TreePanel.RenderThumbnail()
 
 
 #------------------------------------------------------------------------------
 
-    def find_open_flame(self,path):
-        """Checks if a particular file is open. Returns the file if True,
-        None otherwise."""
-        root = self.tree.GetRootItem()
-        for child in self.TreePanel.iterchildren(root):
-            if path == self.tree.GetPyData(child)[-1]:
-                return child
 
-
-    def CheckForChanges(self,item):
-        if any(self.tree.GetPyData(child).HasChanged()
-               for child in self.TreePanel.iterchildren(item)):
-            path = self.tree.GetPyData(item)[-1]
-            dlg = wx.MessageDialog(self, 'Save changes to %s?' % path,
-                                   'Fr0st',wx.YES_NO|wx.CANCEL)
-            result = dlg.ShowModal()
-            if result == wx.ID_YES:
-                self.SaveFlameFile(path, item, confirm=False)
-            dlg.Destroy()
-            return result
-
-
-    def OpenFlameFile(self,path):
+    def OpenFlame(self,path):
         # Check if file is already open
         item = self.find_open_flame(path)
         if item:
@@ -236,11 +236,7 @@ class MainWindow(wx.Frame):
             self.tree.Delete(item)
 
         # Create the tree root
-        name = os.path.basename(path)
-        item = self.tree.AppendItem(self.TreePanel.root, name)
-        self.tree.SetPyData(item, ItemData(name, path))
-        self.tree.SetItemImage(item, 0, wx.TreeItemIcon_Normal)
-        self.tree.SetItemImage(item, 1, wx.TreeItemIcon_Expanded)
+        item = self.TreePanel.NewItem(path)
 
         # Load the file into the tree
         for s in Flame.load_file(path):
@@ -256,7 +252,7 @@ class MainWindow(wx.Frame):
             f.write(path + '\n')        
         
 
-    def SaveFlameFile(self, path, item=None, confirm=True):
+    def SaveFlame(self, path, item=None, confirm=True):
         # Refuse to save if file is open
         data = self.tree.GetPyData(self.TreePanel.itemparent)
         if data[-1] != path and self.find_open_flame(path):
@@ -292,6 +288,28 @@ class MainWindow(wx.Frame):
         self.tree.SelectItem(self.TreePanel.itemparent)
 
 
+    def find_open_flame(self,path):
+        """Checks if a particular file is open. Returns the file if True,
+        None otherwise."""
+        root = self.tree.GetRootItem()
+        for child in self.TreePanel.iterchildren(root):
+            if path == self.tree.GetPyData(child)[-1]:
+                return child
+
+
+    def CheckForChanges(self,item):
+        if any(self.tree.GetPyData(child).HasChanged()
+               for child in self.TreePanel.iterchildren(item)):
+            path = self.tree.GetPyData(item)[-1]
+            dlg = wx.MessageDialog(self, 'Save changes to %s?' % path,
+                                   'Fr0st',wx.YES_NO|wx.CANCEL)
+            result = dlg.ShowModal()
+            if result == wx.ID_YES:
+                self.SaveFlame(path, item, confirm=False)
+            dlg.Destroy()
+            return result
+
+
     def EnableUndo(self,flag):
         self.tb.EnableTool(ID.UNDO,bool(flag))
         # TODO: same with the menu option
@@ -302,10 +320,10 @@ class MainWindow(wx.Frame):
         # TODO: same with the menu option
 
         
-    def SetFlame(self, flame):
+    def SetFlame(self, flame, rezoom=True):
         self.flame = flame
         self.image.RenderPreview(flame)
-        self.canvas.ShowFlame(flame)
+        self.canvas.ShowFlame(flame,rezoom=rezoom)
 
         # Set Undo and redo buttons to the correct value:
         data = self.TreePanel.itemdata

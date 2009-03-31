@@ -10,6 +10,7 @@ from lib.pyflam3 import Genome
 from lib import functions
 from decorators import *
 from _events import EVT_IMAGE_READY
+from itemdata import ItemData
 
 class TreePanel(wx.Panel):
 
@@ -39,9 +40,9 @@ class TreePanel(wx.Panel):
         
         isz = (28,21)
         il = wx.ImageList(*isz)
-        fldridx     = il.Add(wx.ArtProvider_GetBitmap(wx.ART_FOLDER,      wx.ART_OTHER, isz))
-        fldropenidx = il.Add(wx.ArtProvider_GetBitmap(wx.ART_FILE_OPEN,   wx.ART_OTHER, isz))
-        fileidx     = il.Add(wx.ArtProvider_GetBitmap(wx.ART_NORMAL_FILE, wx.ART_OTHER, isz))
+        il.Add(wx.ArtProvider_GetBitmap(wx.ART_FOLDER,      wx.ART_OTHER, isz))
+        il.Add(wx.ArtProvider_GetBitmap(wx.ART_FILE_OPEN,   wx.ART_OTHER, isz))
+        il.Add(wx.ArtProvider_GetBitmap(wx.ART_NORMAL_FILE, wx.ART_OTHER, isz))
 
         self.tree.SetImageList(il)
         self.il = il
@@ -49,9 +50,6 @@ class TreePanel(wx.Panel):
         self.imgcount = 2
 
         self.root = self.tree.AddRoot("The Root Item")
-##        self.tree.SetPyData(self.root, None)
-##        self.tree.SetItemImage(self.root, fldridx, wx.TreeItemIcon_Normal)
-##        self.tree.SetItemImage(self.root, fldropenidx, wx.TreeItemIcon_Expanded)
 
         self.Bind(wx.EVT_TREE_END_LABEL_EDIT, self.OnEndEdit, self.tree)
         self.Bind(wx.EVT_TREE_BEGIN_LABEL_EDIT, self.OnBeginEdit, self.tree)
@@ -91,13 +89,21 @@ class TreePanel(wx.Panel):
             child,cookie = self.tree.GetNextChild(item,cookie)
 
 
+    def NewItem(self, path):
+        name = os.path.basename(path)
+        item = self.tree.AppendItem(self.root, name)
+        self.tree.SetPyData(item, ItemData(name, path))
+        self.tree.SetItemImage(item, 0, wx.TreeItemIcon_Normal)
+        self.tree.SetItemImage(item, 1, wx.TreeItemIcon_Expanded)
+        return item
+
     def TempSave(self):
         """Updates the tree's undo list and saves a backup version from
         which the session can be restored."""
+        
         # Update the child
         data = self.itemdata
         data.append(self.parent.flame.to_string())
-##        text = self.tree.GetItemText(self.item)
         self.tree.SetItemText(self.item, '* ' + data.name)
         self.RenderThumbnail()
 
@@ -144,7 +150,7 @@ class TreePanel(wx.Panel):
             
         # Finally, recover the actual session
         for path,undolist in zip(paths,undolists):
-            self.parent.OpenFlameFile(path)
+            self.parent.OpenFlame(path)
             for child,lst in zip(self.iterchildren(self.tree.GetSelection()),
                                  undolist):
                 self.tree.GetPyData(child).extend(lst)

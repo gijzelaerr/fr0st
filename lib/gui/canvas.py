@@ -137,7 +137,7 @@ class GUICustom(GUIMove):
 
     def OnLeftUp(self,e):
         self.callback = None
-        parent = self.Canvas.parent.TreePanel.TempSave()
+        self.Canvas.parent.TreePanel.TempSave()
 
     def OnRightDown(self,e):
 ##        self.Canvas.CaptureMouse() # Why was this here?
@@ -170,6 +170,8 @@ class GUICustom(GUIMove):
 
         else:
             # TODO: highlight triangle vertices, etc.
+            
+            # TODO: this is hacky and doesn't work well.
             self.Canvas.SetFocus() # Makes Canvas take focus under windows.
 
 

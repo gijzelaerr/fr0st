@@ -5,6 +5,8 @@ from constants import ID
 class Filemenu(wx.Menu):
     def __init__(self):
         wx.Menu.__init__(self)
+        self.Append(ID.FNEW, "&New File"," Create a new flame file")
+        self.Append(ID.FNEW2, "&New Flame"," Create a new flame")
         self.Append(ID.FOPEN, "&Open"," Open a flame file")
         self.Append(ID.FSAVE, "&Save"," Save a flame to a file")
         self.AppendSeparator()

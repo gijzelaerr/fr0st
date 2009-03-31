@@ -33,16 +33,9 @@ class EditorFrame(wx.Frame):
         self.wildcard = "Python source (*.py;*.pyw)|*.py;*.pyw|" \
                         "All files (*.*)|*.*"
 
-        # Set up paths
-        self.scriptpath = os.path.join(sys.path[0],"scripts", "default.py")
-
-
         # Load the default script
-        if os.path.exists(self.scriptpath):
-            with open(self.scriptpath) as f:
-                self.editor.SetValue(f.read())
-            
-        self.Show(False) # allows running scripts without showing this frame
+        self.scriptpath = os.path.join(sys.path[0],"scripts", "default.py")
+        self.OpenScript(self.scriptpath)
 
 
     @Bind(wx.EVT_CLOSE)
@@ -64,7 +57,14 @@ class EditorFrame(wx.Frame):
     def OnScriptOpen(self,e):
         if self.CheckForChanges() == wx.ID_CANCEL:
             return
-        self.OpenScript()
+        dDir,dFile = os.path.split(self.scriptpath)
+        dlg = wx.FileDialog(
+            self, message="Choose a file", defaultDir=dDir,
+            defaultFile=dFile, wildcard=self.wildcard, style=wx.OPEN)
+        if dlg.ShowModal() == wx.ID_OK:
+            self.scriptpath = dlg.GetPath()
+            self.OpenScript(self.scriptpath)
+        dlg.Destroy()
 
 
     @Bind(wx.EVT_TOOL,id=ID.TBSAVE)
@@ -107,22 +107,16 @@ class EditorFrame(wx.Frame):
             return result
 
 
-    def OpenScript(self):
-        dDir,dFile = os.path.split(self.scriptpath)
-        dlg = wx.FileDialog(
-            self, message="Choose a file", defaultDir=dDir,
-            defaultFile=dFile, wildcard=self.wildcard, style=wx.OPEN)
-        if dlg.ShowModal() == wx.ID_OK:
-            self.scriptpath = dlg.GetPath()
-            with open(self.scriptpath) as f:
+    def OpenScript(self, path):
+        if os.path.exists(path):
+            with open(path) as f:
                 self.editor.SetValue(f.read())
-        dlg.Destroy()
-        self.SetTitle("Script Editor - %s" % self.scriptpath)
+        self.SetTitle("%s - Script Editor" % os.path.basename(path))
         
 
     def SaveScript(self):
         with open(self.scriptpath,"w") as f:
-            f.write(self.editor.GetText())        
+            f.write(self.editor.GetText())
 
 
 
