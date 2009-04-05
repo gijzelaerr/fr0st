@@ -21,7 +21,7 @@ class XformCanvas(FloatCanvas):
     def __init__(self, parent):
         self.parent = parent
         FloatCanvas.__init__(self, parent,
-                             size=(500,500),
+                             size=(400,400),
                              ProjectionFun=None,
                              BackgroundColor="BLACK")
 

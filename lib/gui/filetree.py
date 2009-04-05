@@ -1,5 +1,5 @@
 from __future__ import with_statement
-import wx, sys, os, re, shutil, time, cPickle
+import wx, sys, os, re, shutil, time, cPickle, itertools
 from wx import PyDeadObjectError
 from threading import Thread
 import pickle as cPickle
@@ -51,9 +51,9 @@ class TreePanel(wx.Panel):
 
         self.root = self.tree.AddRoot("The Root Item")
 
-        self.Bind(wx.EVT_TREE_END_LABEL_EDIT, self.OnEndEdit, self.tree)
-        self.Bind(wx.EVT_TREE_BEGIN_LABEL_EDIT, self.OnBeginEdit, self.tree)
-        self.tree.Bind(wx.EVT_LEFT_DCLICK, self.OnLeftDClick)
+##        self.Bind(wx.EVT_TREE_END_LABEL_EDIT, self.OnEndEdit, self.tree)
+##        self.Bind(wx.EVT_TREE_BEGIN_LABEL_EDIT, self.OnBeginEdit, self.tree)
+##        self.tree.Bind(wx.EVT_LEFT_DCLICK, self.OnLeftDClick)
 
 
     def RenderThumbnails(self, item):
@@ -97,26 +97,26 @@ class TreePanel(wx.Panel):
         self.tree.SetItemImage(item, 1, wx.TreeItemIcon_Expanded)
         return item
 
+
     def TempSave(self):
         """Updates the tree's undo list and saves a backup version from
         which the session can be restored."""
         
         # Update the child
         data = self.itemdata
-        data.append(self.parent.flame.to_string())
-        self.tree.SetItemText(self.item, '* ' + data.name)
+        string = self.parent.flame.to_string()
+        data.append(string)
+        self.tree.SetItemText(self.item, data.name)
         self.RenderThumbnail()
+        self.parent.SetFlame(Flame(string=string),rezoom=False)
 
-        # Update the parent
         data = self.tree.GetPyData(self.itemparent)
-        self.tree.SetItemText(self.itemparent, '* ' + data.name)
+##        self.tree.SetItemText(self.itemparent, '* ' + data.name)
         
         # Create the temp file.
         lst = [self.tree.GetPyData(i)[1:] for i in self.iterchildren()]
         with open(data[-1] + '.temp',"wb") as f:
             cPickle.dump(lst,f,cPickle.HIGHEST_PROTOCOL)
-        self.parent.EnableUndo(True)
-        self.parent.EnableRedo(False)
 
 
     def RecoverSession(self,paths):
@@ -150,10 +150,20 @@ class TreePanel(wx.Panel):
             
         # Finally, recover the actual session
         for path,undolist in zip(paths,undolists):
-            self.parent.OpenFlame(path)
-            for child,lst in zip(self.iterchildren(self.tree.GetSelection()),
-                                 undolist):
-                self.tree.GetPyData(child).extend(lst)
+            print path
+            if os.path.exists(path):
+                self.item = self.parent.OpenFlame(path)
+            else:
+                self.item = self.parent.OnFlameNew(None)
+                
+            # This is an ad-hoc izip_longest (2.6 feature!)
+            itr = itertools.chain(self.iterchildren(), itertools.repeat(None))
+            for child,lst in zip(itr, undolist):
+                if child is None:
+                    child = self.parent.OnFlameNew2(None)
+                data = self.tree.GetPyData(child)
+                data.extend(lst)
+                self.tree.SetItemText(child,data.name)
                 self.RenderThumbnail(child)
 
 
@@ -176,11 +186,6 @@ class TreePanel(wx.Panel):
             self.tree.EditLabel(item)  
 
 
-    def OnLeftDClick(self, event):
-        # This should simply activate a rename...
-        event.Skip()
-
-
     @Bind(wx.EVT_TREE_SEL_CHANGED)
     def OnSelChanged(self, event):
         self.item = event.GetItem()
@@ -193,21 +198,17 @@ class TreePanel(wx.Panel):
                 self.parent.EnableRedo(False)
         event.Skip()
 
-
-    def OnBeginEdit(self, event):
-        # This method needs to exist; otherwise On EndEdit is not called
-        # correctly. (???)
-        event.Skip()
         
-
+    @Bind(wx.EVT_TREE_END_LABEL_EDIT)
     def OnEndEdit(self, event):
+        print "called this handler!"
         self.item = event.GetItem()
         newname = str(event.GetLabel())
-        # Make sure edits don't accidentally change the name to an empty string
-        if not newname:
-            return
-
-        self.itemdata.name = newname
+        # Make sure edits don't change the name to an empty string
+        # TODO: this is not working, itemtext is not updated
+        if newname:
+            self.itemdata.name = newname
+        self.tree.SetItemText(self.item, self.itemdata.name)
 
 
     def _get_itemparent(self):

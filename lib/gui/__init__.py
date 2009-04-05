@@ -1,14 +1,15 @@
 from __future__ import with_statement
-import os, sys, wx, time, re, functools, threading
+import os, sys, wx, time, re, threading, itertools
 from wx import PyDeadObjectError
 
-from lib.gui.editor import EditorFrame 
+from lib.gui.scripteditor import EditorFrame 
 from lib.gui.filetree import TreePanel
 from lib.gui.menu import CreateMenu
 from lib.gui.toolbar import CreateToolBar
 from lib.gui.decorators import *
 from lib.gui.constants import ID
 from lib.gui.canvas import XformCanvas
+from lib.gui.xformeditor import XformTabs
 from lib.threadinterrupt import interruptall
 from lib._exceptions import ThreadInterrupt
 from lib import functions
@@ -23,6 +24,7 @@ class MainWindow(wx.Frame):
     re_name = re.compile(r'(?<= name=").*?(?=")') # This re is duplicated!
     wildcard = "Flame file (*.flame)|*.flame|" \
                "All files (*.*)|*.*"
+    filenames = ("Untitled%s.flame" % i for i in itertools.count(1))
 
     @BindEvents    
     def __init__(self,parent,id):
@@ -44,6 +46,7 @@ class MainWindow(wx.Frame):
         CreateMenu(self)
         CreateToolBar(self)
         self.image = ImagePanel(self)
+        self.XformTabs = XformTabs(self)
         self.canvas = XformCanvas(self)
 
         self.editorframe = EditorFrame(self, wx.ID_ANY)
@@ -52,11 +55,15 @@ class MainWindow(wx.Frame):
         
         self.TreePanel = TreePanel(self)
         self.tree = self.TreePanel.tree
+
+        sizer2 = wx.BoxSizer(wx.VERTICAL)
+        sizer2.Add(self.image,0,wx.EXPAND)
+        sizer2.Add(self.XformTabs,1,wx.EXPAND)
         
         sizer = wx.BoxSizer(wx.HORIZONTAL)
         sizer.Add(self.TreePanel,0,wx.EXPAND)
         sizer.Add(self.canvas,0)
-        sizer.Add(self.image,0,wx.EXPAND)
+        sizer.Add(sizer2,0,wx.EXPAND)
 
         self.SetSizer(sizer)
         self.SetAutoLayout(1)
@@ -69,10 +76,10 @@ class MainWindow(wx.Frame):
         self.flamepath = os.path.join(sys.path[0],"parameters","samples.flame")
 
         if os.path.exists('paths.temp'):
+            # TODO: check if another fr0st process is running.
             # Previous session was interrupted
             # TODO: display a message to user explaining situation.
-            paths = [i.strip() for i in open('paths.temp')
-                     if os.path.exists(i.strip())]
+            paths = [i.strip() for i in open('paths.temp')]
             self.TreePanel.RecoverSession(paths)
         else:
             # Normal startup
@@ -130,12 +137,14 @@ class MainWindow(wx.Frame):
     @Bind(wx.EVT_MENU,id=ID.FNEW)
     @Bind(wx.EVT_TOOL,id=ID.TBNEW)
     def OnFlameNew(self,e):
-        path = 'untitled.flame'
+        path = self.filenames.next()
         item = self.TreePanel.NewItem(path)
         self.tree.SelectItem(item)
         
         with open('paths.temp','a') as f:
             f.write(path + '\n')
+            
+        return item
             
 
     @Bind(wx.EVT_MENU,id=ID.FNEW2)
@@ -143,9 +152,15 @@ class MainWindow(wx.Frame):
     def OnFlameNew2(self,e):
         name = 'Untitled'
         child = self.tree.AppendItem(self.TreePanel.itemparent, name)
-        self.tree.SetPyData(child, ItemData(name, BLANKFLAME))
+        data = ItemData(name, BLANKFLAME)
+        self.tree.SetPyData(child, data)
         self.tree.SelectItem(child)
         self.tree.SetItemImage(child, 2)
+        # This adds the flame to the temp file, but without any actual changes.
+        data.pop(0)
+        self.TreePanel.TempSave()
+
+        return child
 
 
     @Bind(wx.EVT_MENU,id=ID.FOPEN)
@@ -210,6 +225,7 @@ class MainWindow(wx.Frame):
         if string:
             self.SetFlame(Flame(string=string), rezoom=False)
             self.TreePanel.RenderThumbnail()
+            self.tree.SetItemText(self.TreePanel.item, data.name)
 
 
     @Bind(wx.EVT_TOOL,id=ID.REDO)
@@ -220,6 +236,7 @@ class MainWindow(wx.Frame):
         if string:
             self.SetFlame(Flame(string=string), rezoom=False)
             self.TreePanel.RenderThumbnail()
+            self.tree.SetItemText(self.TreePanel.item, data.name)
 
 
 #------------------------------------------------------------------------------
@@ -235,8 +252,17 @@ class MainWindow(wx.Frame):
                 return
             self.tree.Delete(item)
 
-        # Create the tree root
-        item = self.TreePanel.NewItem(path)
+        # scan the file to see if it's valid
+        flamestrings = Flame.load_file(path)
+        if flamestrings:
+            # Create the tree root
+            item = self.TreePanel.NewItem(path)
+        else:
+            dlg = wx.MessageDialog(self, "It seems %s is not a valid flame file. Please choose a different flame." % path,
+                                   'Fr0st',wx.OK)
+            dlg.ShowModal()
+            self.OnFlameOpen(None)
+            return
 
         # Load the file into the tree
         for s in Flame.load_file(path):
@@ -249,7 +275,9 @@ class MainWindow(wx.Frame):
 
         # Dump the path to file for bookkeeping
         with open('paths.temp','a') as f:
-            f.write(path + '\n')        
+            f.write(path + '\n')
+
+        return item
         
 
     def SaveFlame(self, path, item=None, confirm=True):
@@ -291,8 +319,7 @@ class MainWindow(wx.Frame):
     def find_open_flame(self,path):
         """Checks if a particular file is open. Returns the file if True,
         None otherwise."""
-        root = self.tree.GetRootItem()
-        for child in self.TreePanel.iterchildren(root):
+        for child in self.TreePanel.iterchildren(self.TreePanel.root):
             if path == self.tree.GetPyData(child)[-1]:
                 return child
 
@@ -310,7 +337,7 @@ class MainWindow(wx.Frame):
             return result
 
 
-    def EnableUndo(self,flag):
+    def EnableUndo(self,flag):        
         self.tb.EnableTool(ID.UNDO,bool(flag))
         # TODO: same with the menu option
 
@@ -324,6 +351,7 @@ class MainWindow(wx.Frame):
         self.flame = flame
         self.image.RenderPreview(flame)
         self.canvas.ShowFlame(flame,rezoom=rezoom)
+        self.XformTabs.UpdateView()
 
         # Set Undo and redo buttons to the correct value:
         data = self.TreePanel.itemdata

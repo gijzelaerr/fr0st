@@ -48,11 +48,11 @@ class ItemData(list):
 
 
     def _get_name(self):
-        return self._name
+        return ('* ' if self.undo else '') + self._name
 
     def _set_name(self,v):
+        self.append(self.re_name.sub(v, self[-1]))
         self._name = v
-        self.append(self.re_name.sub(self._name,self[-1]))
 
     name = property(_get_name, _set_name)
         
