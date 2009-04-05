@@ -54,7 +54,7 @@ class ItemData(list):
 
     def _set_name(self,v):
         self.append(self.re_name.sub(v, self[-1]))
-        self._name = v
+        self._name = v[1:] if v[:2] == '* ' else v
 
     name = property(_get_name, _set_name)
         
