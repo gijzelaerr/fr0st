@@ -62,7 +62,7 @@ class NumberTextCtrl(wx.TextCtrl):
         elif key < wx.WXK_SPACE or key == wx.WXK_DELETE or key > 255:
             event.Skip()
 
-        elif chr(key) in "0123456789.":
+        elif chr(key) in "0123456789.-":
             event.Skip()
 
         else:

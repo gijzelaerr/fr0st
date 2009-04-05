@@ -200,12 +200,13 @@ class TreePanel(wx.Panel):
         
     @Bind(wx.EVT_TREE_END_LABEL_EDIT)
     def OnEndEdit(self, e):
-        self.item = e.GetItem()
+        item = e.GetItem()
+        data = self.tree.GetPyData(item)
         newname = str(e.GetLabel())
         # Make sure edits don't change the name to an empty string
         if newname:
-            self.itemdata.name = newname
-        self.tree.SetItemText(self.item, self.itemdata.name)
+            data.name = newname
+        self.tree.SetItemText(item, data.name)
         e.Veto()
 
 
