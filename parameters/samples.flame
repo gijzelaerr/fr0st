@@ -1,5 +1,5 @@
 <flames name="Fr0st Batch">
-<flame rotate="0" center="0 0" brightness="4" oversample="1" version="Apophysis 2.08 beta" zoom="0" name="linear" filter="0.2" scale="160.0" background="0 0 0" quality="5" gamma="4" size="640 480" >
+<flame name="linear" rotate="0" center="0 0" brightness="4" oversample="1" version="Apophysis 2.08 beta" zoom="0" filter="0.2" scale="160.0" background="0 0 0" quality="5" gamma="4" size="640 480" >
    <xform linear="1.0" weight="0.5" color="0.117" coefs="0.55 -0.0 -0.0 0.55 -0.89479 -0.656737" />
    <xform linear="1.0" weight="0.5" color="0.117" coefs="0.15 -0.0 -0.0 0.15 -0.31 -0.0" />
    <xform weight="1.0" symmetry="1.0" color="0.0" linear="1.0" coefs="1.0 -0.0 -0.0 -1.0 0.0 -0.0" />
@@ -38,7 +38,7 @@
       F49523F68A20F8811FF9791FFB721EFD6C1EFE681EFE641D
    </palette>
 </flame>
-<flame rotate="-90" center="-0.0176668118505 0.0475291690247" brightness="4" oversample="1" version="Apophysis 2.08 beta 2" zoom="0" name="julia" filter="0.2" scale="184.32" background="0 0 0" quality="5" gamma="4" size="1024 768" >
+<flame name="julia" rotate="-90" center="-0.0176668118505 0.0475291690247" brightness="4" oversample="1" version="Apophysis 2.08 beta 2" zoom="0" filter="0.2" scale="184.32" background="0 0 0" quality="5" gamma="4" size="1024 768" >
    <xform weight="0.333333333333" color="0.506" julia="1.0" coefs="-0.534233 -0.154152 0.154152 -0.534233 0.377468 -0.151808" />
    <xform spherical="6.0" weight="0.333333333333" color="0.0" coefs="0.4 -0.0 -0.0 0.4 0.0 -0.0" />
    <palette count="256" format="RGB">
@@ -76,7 +76,7 @@
       DC9AA9DF99ACE298AFE596B1E795B4EA94B7ED92BAF091BC
    </palette>
 </flame>
-<flame rotate="0" center="-0.711014679977 0" brightness="4" oversample="1" version="Apophysis 2.08 beta 2" zoom="0" name="heart" filter="0.2" scale="120.0" background="0 0 0" quality="5" gamma="4" size="600 450" >
+<flame name="heart" rotate="0" center="-0.711014679977 0" brightness="4" oversample="1" version="Apophysis 2.08 beta 2" zoom="0" filter="0.2" scale="120.0" background="0 0 0" quality="5" gamma="4" size="600 450" >
    <xform heart="1.0" weight="0.333333333333" color="0.0" coefs="-0.622778 1.184189 -0.363673 0.075114 -0.612945 1.17149" />
    <xform linear="1.0" weight="0.5" color="0.117" coefs="0.962691 -0.270605 0.270605 0.962691 0.0 -0.0" />
    <palette count="256" format="RGB">

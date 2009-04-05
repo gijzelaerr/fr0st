@@ -1,5 +1,5 @@
 <flames name="Fr0st Batch">
-<flame rotate="-67.18" center="-0.451952073648 3.14448864757" brightness="9.56956521739" oversample="1" version="Apophysis 2.08 beta 2" zoom="-1.077" name="test_0000" filter="0.5" scale="231.67" background="0 0 0" quality="50" gamma="4.14" size="1024 768" >
+<flame name="test_0000" rotate="-67.18" center="-0.451952073648 3.14448864757" brightness="9.56956521739" oversample="1" version="Apophysis 2.08 beta 2" zoom="-1.077" filter="0.5" scale="231.67" background="0 0 0" quality="50" gamma="4.14" size="1024 768" >
    <xform spherical="0.2" weight="0.333333333333" color="0.0" rings2_val="0.247242" rings2="0.467738047242" swirl="0.6" coefs="0.849239397574 -0.201449107749 -0.293182 -0.822091 0.618541 -0.316871" />
    <xform juliascope_power="4.0" weight="0.333333333333" color="0.047" juliascope="0.75" fan="0.313280761708" juliascope_dist="3.0" coefs="-0.207191 0.340875 -0.820053 -0.736373 -0.223182 0.00576" />
    <xform spherical="1.0" linear="0.5" weight="0.1" color="0.0" gaussian_blur="35.0" blur="0.15" coefs="1.0 -0.0 -0.0 1.0 0.0 -0.0" />
@@ -39,8 +39,7 @@
       48528C3E558733548627507F1F4F7D194A7415466F114069
    </palette>
 </flame>
-
-<flame rotate="-75.8795" center="-0.359115920546 2.96558769363" brightness="9.29108695652" oversample="1" version="Apophysis 2.08 beta 2" zoom="-1.02315" name="test_0001" filter="0.485" scale="232.3745" background="0 0 0" quality="47.75" gamma="4.083" size="1024 768" >
+<flame name="test_0001" rotate="-75.8795" center="-0.359115920546 2.96558769363" brightness="9.29108695652" oversample="1" version="Apophysis 2.08 beta 2" zoom="-1.02315" filter="0.485" scale="232.3745" background="0 0 0" quality="47.75" gamma="4.083" size="1024 768" >
    <xform spherical="0.19" weight="0.341666666666" color="0.00715" rings2_val="0.2348799" rings2="0.44435114488" linear="0.015" swirl="0.57" sinusoidal="0.03" coefs="0.838119119805 -0.155853085579 -0.357718004225 -0.760567254921 0.570134194559 -0.357041655145" />
    <xform juliascope_power="3.8" weight="0.341666666666" color="0.0544" juliascope="0.7125" linear="-0.04195" fan="0.297616723623" symmetry="0.01" juliascope_dist="2.85" coefs="-0.135366222993 0.389684733738 -0.842485044413 -0.664274964331 -0.337193053804 0.0103728847712" />
    <xform spherical="0.95" linear="0.525" weight="0.12" color="0.0039" gaussian_blur="33.25" blur="0.1425" coefs="0.997664265755 -0.038079494377 0.029371873118 0.997958580366 -0.00844224783229 -0.0709258851349" />
@@ -80,8 +79,7 @@
       4954884058833658832B547D24547B1F50731C4C6F19486A
    </palette>
 </flame>
-
-<flame rotate="-84.579" center="-0.266279767444 2.78668673969" brightness="9.01260869565" oversample="1" version="Apophysis 2.08 beta 2" zoom="-0.9693" name="test_0002" filter="0.47" scale="233.079" background="0 0 0" quality="45.5" gamma="4.026" size="1024 768" >
+<flame name="test_0002" rotate="-84.579" center="-0.266279767444 2.78668673969" brightness="9.01260869565" oversample="1" version="Apophysis 2.08 beta 2" zoom="-0.9693" filter="0.47" scale="233.079" background="0 0 0" quality="45.5" gamma="4.026" size="1024 768" >
    <xform spherical="0.18" weight="0.35" color="0.0143" rings2_val="0.2225178" rings2="0.420964242518" linear="0.03" swirl="0.54" sinusoidal="0.06" coefs="0.824618490256 -0.11184105862 -0.413218838472 -0.694549355908 0.519539846991 -0.391323646513" />
    <xform juliascope_power="3.6" weight="0.35" color="0.0618" juliascope="0.675" linear="-0.0839" fan="0.281952685537" symmetry="0.02" juliascope_dist="2.7" coefs="-0.0520796546087 0.422955591701 -0.859146267664 -0.592397718293 -0.451161114851 0.0161145175886" />
    <xform spherical="0.9" linear="0.55" weight="0.14" color="0.0078" gaussian_blur="31.5" blur="0.135" coefs="0.993881357035 -0.0759809041872 0.0586236732867 0.995056035906 -0.0168844956646 -0.14185177027" />
@@ -121,8 +119,7 @@
       4A5685425B80395C8030597B2A5A7A25567223536F22506C
    </palette>
 </flame>
-
-<flame rotate="-93.2785" center="-0.173443614342 2.60778578574" brightness="8.73413043478" oversample="1" version="Apophysis 2.08 beta 2" zoom="-0.91545" name="test_0003" filter="0.455" scale="233.7835" background="0 0 0" quality="43.25" gamma="3.969" size="1024 768" >
+<flame name="test_0003" rotate="-93.2785" center="-0.173443614342 2.60778578574" brightness="8.73413043478" oversample="1" version="Apophysis 2.08 beta 2" zoom="-0.91545" filter="0.455" scale="233.7835" background="0 0 0" quality="43.25" gamma="3.969" size="1024 768" >
    <xform spherical="0.17" weight="0.358333333333" color="0.02145" rings2_val="0.2101557" rings2="0.397577340156" linear="0.045" swirl="0.51" sinusoidal="0.09" coefs="0.808866469328 -0.0695344015596 -0.459447038407 -0.625195493962 0.467403935104 -0.419649946531" />
    <xform juliascope_power="3.4" weight="0.358333333333" color="0.0692" juliascope="0.6375" linear="-0.12585" fan="0.266288647452" symmetry="0.03" juliascope_dist="2.55" coefs="0.0392201144445 0.438020786661 -0.870161367353 -0.521178065014 -0.565077802652 0.0229845720244" />
    <xform spherical="0.85" linear="0.575" weight="0.16" color="0.0117" gaussian_blur="29.75" blur="0.1275" coefs="0.988661454239 -0.113649341026 0.0877302007938 0.991297662502 -0.0253267434969 -0.212777655405" />
@@ -162,8 +159,7 @@
       4B5981445E7D3C607D345E793060782C5C722A5A6F2A586E
    </palette>
 </flame>
-
-<flame rotate="-101.978" center="-0.0806074612404 2.4288848318" brightness="8.45565217391" oversample="1" version="Apophysis 2.08 beta 2" zoom="-0.8616" name="test_0004" filter="0.44" scale="234.488" background="0 0 0" quality="41" gamma="3.912" size="1024 768" >
+<flame name="test_0004" rotate="-101.978" center="-0.0806074612404 2.4288848318" brightness="8.45565217391" oversample="1" version="Apophysis 2.08 beta 2" zoom="-0.8616" filter="0.44" scale="234.488" background="0 0 0" quality="41" gamma="3.912" size="1024 768" >
    <xform spherical="0.16" weight="0.366666666666" color="0.0286" rings2_val="0.1977936" rings2="0.374190437794" linear="0.06" swirl="0.48" sinusoidal="0.12" coefs="0.790998077257 -0.0290456374458 -0.496303101972 -0.553665117478 0.414366792125 -0.442020255902" />
    <xform juliascope_power="3.2" weight="0.366666666666" color="0.0766" juliascope="0.6" linear="-0.1678" fan="0.250624609366" symmetry="0.04" juliascope_dist="2.4" coefs="0.134472184094 0.432996015672 -0.875686881875 -0.451037479181 -0.678934738962 0.0309826663441" />
    <xform spherical="0.8" linear="0.6" weight="0.18" color="0.0156" gaussian_blur="28.0" blur="0.12" coefs="0.982016815347 -0.15103043365 0.116666463513 0.986689492092 -0.0337689913292 -0.28370354054" />
@@ -203,8 +199,7 @@
       4D5B7E47617A40647A39637735657732637131616F336070
    </palette>
 </flame>
-
-<flame rotate="-110.6775" center="0.0122286918615 2.24998387786" brightness="8.17717391304" oversample="1" version="Apophysis 2.08 beta 2" zoom="-0.80775" name="test_0005" filter="0.425" scale="235.1925" background="0 0 0" quality="38.75" gamma="3.855" size="1024 768" >
+<flame name="test_0005" rotate="-110.6775" center="0.0122286918615 2.24998387786" brightness="8.17717391304" oversample="1" version="Apophysis 2.08 beta 2" zoom="-0.80775" filter="0.425" scale="235.1925" background="0 0 0" quality="38.75" gamma="3.855" size="1024 768" >
    <xform spherical="0.15" weight="0.375" color="0.03575" rings2_val="0.1854315" rings2="0.350803535432" linear="0.075" swirl="0.45" sinusoidal="0.15" coefs="0.771153835687 0.0095218588549 -0.523823266033 -0.481103248716 0.361056483654 -0.458499455998" />
    <xform juliascope_power="3.0" weight="0.375" color="0.084" juliascope="0.5625" linear="-0.20975" fan="0.234960571281" symmetry="0.05" juliascope_dist="2.25" coefs="0.229183964255 0.406917812807 -0.875909723083 -0.382379849072 -0.792723548125 0.0401083635213" />
    <xform spherical="0.75" linear="0.625" weight="0.2" color="0.0195" gaussian_blur="26.25" blur="0.1125" coefs="0.973961751291 -0.188070406449 0.145407698362 0.981238285034 -0.0422112391615 -0.354629425675" />
@@ -244,8 +239,7 @@
       4E5E7A4964774368783E68753B6B7639697138686F3C6971
    </palette>
 </flame>
-
-<flame rotate="-119.377" center="0.105064844963 2.07108292392" brightness="7.89869565217" oversample="1" version="Apophysis 2.08 beta 2" zoom="-0.7539" name="test_0006" filter="0.41" scale="235.897" background="0 0 0" quality="36.5" gamma="3.798" size="1024 768" >
+<flame name="test_0006" rotate="-119.377" center="0.105064844963 2.07108292392" brightness="7.89869565217" oversample="1" version="Apophysis 2.08 beta 2" zoom="-0.7539" filter="0.41" scale="235.897" background="0 0 0" quality="36.5" gamma="3.798" size="1024 768" >
    <xform spherical="0.14" weight="0.383333333333" color="0.0429" rings2_val="0.1730694" rings2="0.327416633069" linear="0.09" swirl="0.42" sinusoidal="0.18" coefs="0.749479195019 0.0460741237084 -0.542175557952 -0.408625264763 0.308082415612 -0.469215422649" />
    <xform juliascope_power="2.8" weight="0.383333333333" color="0.0914" juliascope="0.525" linear="-0.2517" fan="0.219296533196" symmetry="0.06" juliascope_dist="2.1" coefs="0.318642489722 0.359839720671 -0.87104555222 -0.315589344565 -0.906435857417 0.0503611712538" />
    <xform spherical="0.7" linear="0.65" weight="0.22" color="0.0234" gaussian_blur="24.5" blur="0.105" coefs="0.964512598375 -0.224716156802 0.173929392491 0.974951521862 -0.0506534869937 -0.425555310809" />
@@ -285,8 +279,7 @@
       4F60774B6774466C75426D734171743F6F703F6F6F447173
    </palette>
 </flame>
-
-<flame rotate="-128.0765" center="0.197900998065 1.89218196997" brightness="7.6202173913" oversample="1" version="Apophysis 2.08 beta 2" zoom="-0.70005" name="test_0007" filter="0.395" scale="236.6015" background="0 0 0" quality="34.25" gamma="3.741" size="1024 768" >
+<flame name="test_0007" rotate="-128.0765" center="0.197900998065 1.89218196997" brightness="7.6202173913" oversample="1" version="Apophysis 2.08 beta 2" zoom="-0.70005" filter="0.395" scale="236.6015" background="0 0 0" quality="34.25" gamma="3.741" size="1024 768" >
    <xform spherical="0.13" weight="0.391666666666" color="0.05005" rings2_val="0.1607073" rings2="0.304029730707" linear="0.105" swirl="0.39" sinusoidal="0.21" coefs="0.726123949475 0.0805268336045 -0.551654193193 -0.337302328056 0.256029233398 -0.474356230121" />
    <xform juliascope_power="2.6" weight="0.391666666666" color="0.0988" juliascope="0.4875" linear="-0.29365" fan="0.20363249511" symmetry="0.07" juliascope_dist="1.95" coefs="0.398146515679 0.292879608149 -0.861337009299 -0.251028421815 -1.02006329739 0.0617405419828" />
    <xform spherical="0.65" linear="0.675" weight="0.24" color="0.0273" gaussian_blur="22.75" blur="0.0975" coefs="0.953687687792 -0.260915331185 0.202207304185 0.967837394415 -0.059095734826 -0.496481195944" />
@@ -326,8 +319,7 @@
       5163734D6A714A707247727146767346766F46766F4D7975
    </palette>
 </flame>
-
-<flame rotate="-136.776" center="0.290737151167 1.71328101603" brightness="7.34173913043" oversample="1" version="Apophysis 2.08 beta 2" zoom="-0.6462" name="test_0008" filter="0.38" scale="237.306" background="0 0 0" quality="32" gamma="3.684" size="1024 768" >
+<flame name="test_0008" rotate="-136.776" center="0.290737151167 1.71328101603" brightness="7.34173913043" oversample="1" version="Apophysis 2.08 beta 2" zoom="-0.6462" filter="0.38" scale="237.306" background="0 0 0" quality="32" gamma="3.684" size="1024 768" >
    <xform spherical="0.12" weight="0.4" color="0.0572" rings2_val="0.1483452" rings2="0.280642828345" linear="0.12" swirl="0.36" sinusoidal="0.24" coefs="0.701241641861 0.11280549933 -0.552672409569 -0.26814764193 0.205451069185 -0.474166779682" />
    <xform juliascope_power="2.4" weight="0.4" color="0.1062" juliascope="0.45" linear="-0.3356" fan="0.187968457025" symmetry="0.08" juliascope_dist="1.8" coefs="0.463248061443 0.208213797294 -0.847051806809 -0.189035974495 -1.13359750219 0.074245872913" />
    <xform spherical="0.6" linear="0.7" weight="0.26" color="0.0312" gaussian_blur="21.0" blur="0.09" coefs="0.941507312276 -0.29661639994 0.230217483463 0.959904796368 -0.0675379826583 -0.567407081079" />
@@ -367,8 +359,7 @@
       526570506D6E4D746F4B776F4C7C714C7C6F4D7D6F558177
    </palette>
 </flame>
-
-<flame rotate="-145.4755" center="0.383573304269 1.53438006209" brightness="7.06326086956" oversample="1" version="Apophysis 2.08 beta 2" zoom="-0.59235" name="test_0009" filter="0.365" scale="238.0105" background="0 0 0" quality="29.75" gamma="3.627" size="1024 768" >
+<flame name="test_0009" rotate="-145.4755" center="0.383573304269 1.53438006209" brightness="7.06326086956" oversample="1" version="Apophysis 2.08 beta 2" zoom="-0.59235" filter="0.365" scale="238.0105" background="0 0 0" quality="29.75" gamma="3.627" size="1024 768" >
    <xform spherical="0.11" weight="0.408333333333" color="0.06435" rings2_val="0.1359831" rings2="0.257255925983" linear="0.135" swirl="0.33" sinusoidal="0.27" coefs="0.67498896002 0.142845624977 -0.545753846964 -0.202103695029 0.15686619048 -0.468944892356" />
    <xform juliascope_power="2.2" weight="0.408333333333" color="0.1136" juliascope="0.4125" linear="-0.37755" fan="0.172304418939" symmetry="0.09" juliascope_dist="1.65" coefs="0.509991202023 0.109016290893 -0.828480699303 -0.129925640668 -1.24703010996 0.0878765060361" />
    <xform spherical="0.55" linear="0.725" weight="0.28" color="0.0351" gaussian_blur="19.25" blur="0.0825" coefs="0.927993689965 -0.331768730596 0.257936292347 0.951163313163 -0.0759802304906 -0.638332966214" />
@@ -408,8 +399,7 @@
       53686C52706B50786C507C6D52827053826E54846F5E8978
    </palette>
 </flame>
-
-<flame rotate="-154.175" center="0.476409457371 1.35547910815" brightness="6.7847826087" oversample="1" version="Apophysis 2.08 beta 2" zoom="-0.5385" name="test_0010" filter="0.35" scale="238.715" background="0 0 0" quality="27.5" gamma="3.57" size="1024 768" >
+<flame name="test_0010" rotate="-154.175" center="0.476409457371 1.35547910815" brightness="6.7847826087" oversample="1" version="Apophysis 2.08 beta 2" zoom="-0.5385" filter="0.35" scale="238.715" background="0 0 0" quality="27.5" gamma="3.57" size="1024 768" >
    <xform spherical="0.1" weight="0.416666666666" color="0.0715" rings2_val="0.123621" rings2="0.233869023621" linear="0.15" swirl="0.3" sinusoidal="0.3" coefs="0.647525126989 0.170592831458 -0.531522598198 -0.14003064497 0.110752098822 -0.459036910297" />
    <xform juliascope_power="2.0" weight="0.416666666666" color="0.121" juliascope="0.375" linear="-0.4195" fan="0.156640380854" symmetry="0.1" juliascope_dist="1.5" coefs="0.535135647051 -0.000655814642354 -0.805935340999 -0.0739842734728 -1.36035276311 0.102631728155" />
    <xform spherical="0.5" linear="0.75" weight="0.3" color="0.039" gaussian_blur="17.5" blur="0.075" coefs="0.913170925537 -0.366322659624 0.285340424801 0.941623211361 -0.0844224783229 -0.709258851349" />
@@ -449,8 +439,7 @@
       556A69547468547C6A55816B58886F59896E5B8B6F67927A
    </palette>
 </flame>
-
-<flame rotate="-162.8745" center="0.569245610473 1.17657815421" brightness="6.50630434783" oversample="1" version="Apophysis 2.08 beta 2" zoom="-0.48465" name="test_0011" filter="0.335" scale="239.4195" background="0 0 0" quality="25.25" gamma="3.513" size="1024 768" >
+<flame name="test_0011" rotate="-162.8745" center="0.569245610473 1.17657815421" brightness="6.50630434783" oversample="1" version="Apophysis 2.08 beta 2" zoom="-0.48465" filter="0.335" scale="239.4195" background="0 0 0" quality="25.25" gamma="3.513" size="1024 768" >
    <xform spherical="0.09" weight="0.425" color="0.07865" rings2_val="0.1112589" rings2="0.210482121259" linear="0.165" swirl="0.27" sinusoidal="0.33" coefs="0.619011286888 0.196002944296 -0.510692071968 -0.082695976418 0.0675411227611 -0.444832855572" />
    <xform juliascope_power="1.8" weight="0.425" color="0.1284" juliascope="0.3375" linear="-0.46145" fan="0.140976342769" symmetry="0.11" juliascope_dist="1.35" coefs="0.536353023525 -0.116026828879 -0.779746044081 -0.0214705828894 -1.47355710868 0.118510770909" />
    <xform spherical="0.45" linear="0.775" weight="0.32" color="0.0429" gaussian_blur="15.75" blur="0.0675" coefs="0.897064968661 -0.400229562539 0.312406926311 0.931295427414 -0.0928647261552 -0.780184736484" />
@@ -490,8 +479,7 @@
       566C655677655780675985695D8D6D5F8F6D62916F6F9A7C
    </palette>
 </flame>
-
-<flame rotate="-171.574" center="0.662081763575 0.997677200264" brightness="6.22782608696" oversample="1" version="Apophysis 2.08 beta 2" zoom="-0.4308" name="test_0012" filter="0.32" scale="240.124" background="0 0 0" quality="23" gamma="3.456" size="1024 768" >
+<flame name="test_0012" rotate="-171.574" center="0.662081763575 0.997677200264" brightness="6.22782608696" oversample="1" version="Apophysis 2.08 beta 2" zoom="-0.4308" filter="0.32" scale="240.124" background="0 0 0" quality="23" gamma="3.456" size="1024 768" >
    <xform spherical="0.08" weight="0.433333333333" color="0.0858" rings2_val="0.0988968" rings2="0.187095218897" linear="0.18" swirl="0.24" sinusoidal="0.36" coefs="0.589609888578 0.219042045593 -0.48405282223 -0.0307655520811 0.0276165442272 -0.42676119906" />
    <xform juliascope_power="1.6" weight="0.433333333333" color="0.1358" juliascope="0.3" linear="-0.5034" fan="0.125312304683" symmetry="0.12" juliascope_dist="1.2" coefs="0.512384789174 -0.231810279591 -0.750259450819 0.0273860450948 -1.58663479873 0.135512810808" />
    <xform spherical="0.4" linear="0.8" weight="0.34" color="0.0468" gaussian_blur="14.0" blur="0.06" coefs="0.879703569872 -0.433441922247 0.339113213086 0.920191555882 -0.101306973987 -0.851110621619" />
@@ -531,8 +519,7 @@
       576F62597A625A84645E8A6763936C66956C69986F78A27E
    </palette>
 </flame>
-
-<flame rotate="-180.2735" center="0.754917916677 0.818776246322" brightness="5.94934782609" oversample="1" version="Apophysis 2.08 beta 2" zoom="-0.37695" name="test_0013" filter="0.305" scale="240.8285" background="0 0 0" quality="20.75" gamma="3.399" size="1024 768" >
+<flame name="test_0013" rotate="-180.2735" center="0.754917916677 0.818776246322" brightness="5.94934782609" oversample="1" version="Apophysis 2.08 beta 2" zoom="-0.37695" filter="0.305" scale="240.8285" background="0 0 0" quality="20.75" gamma="3.399" size="1024 768" >
    <xform spherical="0.07" weight="0.441666666667" color="0.09295" rings2_val="0.0865347" rings2="0.163708316535" linear="0.195" swirl="0.21" sinusoidal="0.39" coefs="0.559484069113 0.239686490175 -0.452459509943 0.0152038429121 -0.00869070808309 -0.405283295529" />
    <xform juliascope_power="1.4" weight="0.441666666667" color="0.1432" juliascope="0.2625" linear="-0.54535" fan="0.109648266598" symmetry="0.13" juliascope_dist="1.05" coefs="0.46315231139 -0.342451001459 -0.717836133059 0.0723865465961 -1.69957749062 0.153636969256" />
    <xform spherical="0.35" linear="0.825" weight="0.36" color="0.0507" gaussian_blur="12.25" blur="0.0525" coefs="0.861116233902 -0.465913395537 0.365437090878 0.908323837098 -0.10974922182 -0.922036506754" />
@@ -572,8 +559,7 @@
       58715E5B7D5F5D8861628F6569996A6C9B6C709F6F80AA7F
    </palette>
 </flame>
-
-<flame rotate="-188.973" center="0.847754069779 0.63987529238" brightness="5.67086956522" oversample="1" version="Apophysis 2.08 beta 2" zoom="-0.3231" name="test_0014" filter="0.29" scale="241.533" background="0 0 0" quality="18.5" gamma="3.342" size="1024 768" >
+<flame name="test_0014" rotate="-188.973" center="0.847754069779 0.63987529238" brightness="5.67086956522" oversample="1" version="Apophysis 2.08 beta 2" zoom="-0.3231" filter="0.29" scale="241.533" background="0 0 0" quality="18.5" gamma="3.342" size="1024 768" >
    <xform spherical="0.06" weight="0.45" color="0.1001" rings2_val="0.0741726" rings2="0.140321414173" linear="0.21" swirl="0.18" sinusoidal="0.42" coefs="0.52879703902 0.257922886037 -0.416817172601 0.0547703818875 -0.0411047703289 -0.380887543808" />
    <xform juliascope_power="1.2" weight="0.45" color="0.1506" juliascope="0.225" linear="-0.5873" fan="0.0939842285124" symmetry="0.14" juliascope_dist="0.9" coefs="0.389811785465 -0.442390421363 -0.682848132909 0.113362990886 -1.81237684735 0.172882312589" />
    <xform spherical="0.3" linear="0.85" weight="0.38" color="0.0546" gaussian_blur="10.5" blur="0.045" coefs="0.841334170581 -0.497598877626 0.391356773397 0.895705144296 -0.118191469652 -0.992962391889" />
@@ -613,8 +599,7 @@
       5A745B5D805C618C5E6794636E9E6973A26B77A66F89B281
    </palette>
 </flame>
-
-<flame rotate="-197.6725" center="0.94059022288 0.460974338438" brightness="5.39239130435" oversample="1" version="Apophysis 2.08 beta 2" zoom="-0.26925" name="test_0015" filter="0.275" scale="242.2375" background="0 0 0" quality="16.25" gamma="3.285" size="1024 768" >
+<flame name="test_0015" rotate="-197.6725" center="0.94059022288 0.460974338438" brightness="5.39239130435" oversample="1" version="Apophysis 2.08 beta 2" zoom="-0.26925" filter="0.275" scale="242.2375" background="0 0 0" quality="16.25" gamma="3.285" size="1024 768" >
    <xform spherical="0.05" weight="0.458333333333" color="0.10725" rings2_val="0.0618105" rings2="0.116934511811" linear="0.225" swirl="0.15" sinusoidal="0.45" coefs="0.49771147142 0.273748039314 -0.378066984322 0.0876114413704 -0.0694069381553 -0.354083333219" />
    <xform juliascope_power="1.0" weight="0.458333333333" color="0.158" juliascope="0.1875" linear="-0.62925" fan="0.078320190427" symmetry="0.15" juliascope_dist="0.75" coefs="0.294749239637 -0.526342423522 -0.645676458742 0.150179201083 -1.92502453797 0.193247852107" />
    <xform spherical="0.25" linear="0.875" weight="0.4" color="0.0585" gaussian_blur="8.75" blur="0.0375" coefs="0.820390243361 -0.528454564668 0.416850900296 0.882348970217 -0.126633717484 -1.06388827702" />
@@ -654,8 +639,7 @@
       5B76575F835964905C6C996174A46879A86B7EAD6F92BB83
    </palette>
 </flame>
-
-<flame rotate="-206.372" center="1.03342637598 0.282073384496" brightness="5.11391304348" oversample="1" version="Apophysis 2.08 beta 2" zoom="-0.2154" name="test_0016" filter="0.26" scale="242.942" background="0 0 0" quality="14" gamma="3.228" size="1024 768" >
+<flame name="test_0016" rotate="-206.372" center="1.03342637598 0.282073384496" brightness="5.11391304348" oversample="1" version="Apophysis 2.08 beta 2" zoom="-0.2154" filter="0.26" scale="242.942" background="0 0 0" quality="14" gamma="3.228" size="1024 768" >
    <xform spherical="0.04" weight="0.466666666667" color="0.1144" rings2_val="0.0494484" rings2="0.0935476094484" linear="0.24" swirl="0.12" sinusoidal="0.48" coefs="0.466388896973 0.287168864124 -0.337171694396 0.113526168938 -0.0934371284343 -0.325394839141" />
    <xform juliascope_power="0.8" weight="0.466666666667" color="0.1654" juliascope="0.15" linear="-0.6712" fan="0.0626561523416" symmetry="0.16" juliascope_dist="0.6" coefs="0.181513763426 -0.589566238711 -0.606708550767 0.182731182215 -2.03751223784 0.214732544116" />
    <xform spherical="0.2" linear="0.9" weight="0.42" color="0.0624" gaussian_blur="7.0" blur="0.03" coefs="0.798318915559 -0.558438014149 0.441898554739 0.868269413204 -0.135075965317 -1.13481416216" />
@@ -695,8 +679,7 @@
       5C7954628656679459709E5F7AAA6680AE6A85B46F9AC385
    </palette>
 </flame>
-
-<flame rotate="-215.0715" center="1.12626252908 0.103172430553" brightness="4.83543478261" oversample="1" version="Apophysis 2.08 beta 2" zoom="-0.16155" name="test_0017" filter="0.245" scale="243.6465" background="0 0 0" quality="11.75" gamma="3.171" size="1024 768" >
+<flame name="test_0017" rotate="-215.0715" center="1.12626252908 0.103172430553" brightness="4.83543478261" oversample="1" version="Apophysis 2.08 beta 2" zoom="-0.16155" filter="0.245" scale="243.6465" background="0 0 0" quality="11.75" gamma="3.171" size="1024 768" >
    <xform spherical="0.03" weight="0.475" color="0.12155" rings2_val="0.0370863" rings2="0.0701607070863" linear="0.255" swirl="0.09" sinusoidal="0.51" coefs="0.434989106636 0.298202257737 -0.295100935038 0.132436354424 -0.11309469846 -0.295354731633" />
    <xform juliascope_power="0.6" weight="0.475" color="0.1728" juliascope="0.1125" linear="-0.71315" fan="0.0469921142562" symmetry="0.17" juliascope_dist="0.45" coefs="0.0546901611999 -0.628122523472 -0.566335730554 0.210947355431 -2.14983162902 0.237335289958" />
    <xform spherical="0.15" linear="0.925" weight="0.44" color="0.0663" gaussian_blur="5.25" blur="0.0225" coefs="0.775156194409 -0.587508203065 0.466479280501 0.853481162805 -0.143518213149 -1.20574004729" />
@@ -736,8 +719,7 @@
       5E7B506489536B985675A35D7FAF6586B5698CBB6FA3CB86
    </palette>
 </flame>
-
-<flame rotate="-223.771" center="1.21909868219 -0.0757285233887" brightness="4.55695652174" oversample="1" version="Apophysis 2.08 beta 2" zoom="-0.1077" name="test_0018" filter="0.23" scale="244.351" background="0 0 0" quality="9.5" gamma="3.114" size="1024 768" >
+<flame name="test_0018" rotate="-223.771" center="1.21909868219 -0.0757285233887" brightness="4.55695652174" oversample="1" version="Apophysis 2.08 beta 2" zoom="-0.1077" filter="0.23" scale="244.351" background="0 0 0" quality="9.5" gamma="3.114" size="1024 768" >
    <xform spherical="0.02" weight="0.483333333333" color="0.1287" rings2_val="0.0247242" rings2="0.0467738047242" linear="0.27" swirl="0.06" sinusoidal="0.54" coefs="0.403669564153 0.30687494162 -0.252816589657 0.14438560587 -0.12833861924 -0.264497861548" />
    <xform juliascope_power="0.4" weight="0.483333333333" color="0.1802" juliascope="0.075" linear="-0.7551" fan="0.0313280761708" symmetry="0.18" juliascope_dist="0.3" coefs="-0.0802846755753 -0.639099208407 -0.524950648905 0.234788598195 -2.26197440058 0.261054936061" />
    <xform spherical="0.1" linear="0.95" weight="0.46" color="0.0702" gaussian_blur="3.5" blur="0.015" coefs="0.750939573 -0.615625583826 0.490573098623 0.837999484885 -0.151960460981 -1.27666593243" />
@@ -777,8 +759,7 @@
       5F7E4D668C506E9C5379A85B85B5638DBB6993C26FABD388
    </palette>
 </flame>
-
-<flame rotate="-232.4705" center="1.31193483529 -0.254629477331" brightness="4.27847826087" oversample="1" version="Apophysis 2.08 beta 2" zoom="-0.05385" name="test_0019" filter="0.215" scale="245.0555" background="0 0 0" quality="7.25" gamma="3.057" size="1024 768" >
+<flame name="test_0019" rotate="-232.4705" center="1.31193483529 -0.254629477331" brightness="4.27847826087" oversample="1" version="Apophysis 2.08 beta 2" zoom="-0.05385" filter="0.215" scale="245.0555" background="0 0 0" quality="7.25" gamma="3.057" size="1024 768" >
    <xform spherical="0.01" weight="0.491666666667" color="0.13585" rings2_val="0.0123621" rings2="0.0233869023621" linear="0.285" swirl="0.03" sinusoidal="0.57" coefs="0.372584830196 0.313223269044 -0.211258411175 0.149536852672 -0.139187005837 -0.233354988415" />
    <xform juliascope_power="0.2" weight="0.491666666667" color="0.1876" juliascope="0.0375" linear="-0.79705" fan="0.0156640380854" symmetry="0.19" juliascope_dist="0.15" coefs="-0.217354421911 -0.620794795966 -0.482944746402 0.254248091316 -2.37393224897 0.285890273976" />
    <xform spherical="0.05" linear="0.975" weight="0.48" color="0.0741" gaussian_blur="1.75" blur="0.0075" coefs="0.725707970212 -0.642752137794 0.514160523573 0.821840206285 -0.160402708814 -1.34759181756" />
