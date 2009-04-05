@@ -60,7 +60,7 @@ class Flame(object):
     re_attr   = re.compile(r'[^ ]*?=".*?(?=")') # Works for xforms and header  
 ##    re_grad   = re.compile(r'[0-9A-F]{6}(?=[0-9A-F]*.?$)',re.MULTILINE)
 
-    _default = ["_scale","final","gradient","xform","pixels"]
+    _default = ["_scale","final","gradient","xform","pixels","name"]
 
     
     def __init__(self,file="",string="",name=""):
@@ -232,8 +232,9 @@ class Flame(object):
     attributes = property(_get_attributes)
 
     def iter_attributes(self):
-        return ((k,v) for (k,v) in self.__dict__.iteritems()
-                if k not in self._default)
+        return itertools.chain((("name",self.name),),
+                               ((k,v) for (k,v) in self.__dict__.iteritems()
+                                if k not in self._default))
 
     def _get_width(self):
         return self.size[0]

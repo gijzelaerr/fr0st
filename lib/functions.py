@@ -61,8 +61,8 @@ def save_flame(filename,flame):
 
 def save_flames(filename,*flames):
     lst = [f.to_string() if isinstance(f,Flame) else f for f in flames]
-    lst.insert(0, """<flames name="Fr0st Batch">""")
-    lst.append("""</flames>""")
+    lst.insert(0, """<flames name="Fr0st Batch">\n""")
+    lst.append("""\n</flames>""")
     head, ext = os.path.splitext(filename)
     if os.path.exists(filename) and ext == ".flame":
         shutil.copy(filename,head + ".bak")
