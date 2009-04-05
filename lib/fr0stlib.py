@@ -165,16 +165,16 @@ class Flame(object):
                 else:
                     param = name, val if val%1 else int(val)
                 lst.append('%s="%s" ' %param)
-            lst.append('>')
+            lst.append('>\n')
         else:
-            lst.append('name="fr0st" >')
+            lst.append('name="fr0st" >\n')
 
         # Make each xform       
         xformlist = self.xform[:]
         if self.final:
             xformlist.append(self.final)
         for xform in xformlist:
-            lst.append('\n   <%sxform '%("final" if xform is self.final else ""))
+            lst.append('   <%sxform '%("final" if xform is self.final else ""))
             for name,val in xform.iter_attributes():
                 lst.append('%s="%s" ' %(name,val))
 
@@ -190,7 +190,7 @@ class Flame(object):
             if xaos:
                 lst.append('chaos="%s " />' % " ".join(map(str,xaos)))
             else:
-                lst.append('/>')
+                lst.append('/>\n')
         
         # Make the gradient
         if include_details:
@@ -255,25 +255,28 @@ class Flame(object):
 
 
 class Palette(list):
-    re_grad   = re.compile(r'[0-9A-F]{6}(?=[0-9A-F]*.?$)',re.MULTILINE)
-    re_gradb  = re.compile(r'<color index="[\d]{1,3}" rgb="([\d ].*)"/>')
-    formatstr = ('\n   <palette count="256" format="RGB">' +
+    re_grad = re.compile(r'[0-9A-F]{6}(?=[0-9A-F]*.?$)',re.MULTILINE)
+    re_old_grad  = re.compile(r'<color index="[\d]{1,3}" rgb="([\d. ].*)"/>')
+    
+    formatstr = ('   <palette count="256" format="RGB">' +
                  32 * ('\n      ' + 24 * '%02X') +
                  '\n   </palette>\n')
+    old_formatstr = "".join('   <color index="%s"'%i + ' rgb="%s %s %s"/>\n'
+                                for i in range(256))
     
     def __init__(self,string):
         for i in self.re_grad.findall(string):
             self.append((int(i[0:2],16),
                          int(i[2:4],16),
                          int(i[4:6],16)))
-        for i in self.re_gradb.findall(string):
-            j = map(int, i.split())
-            self.append(j)
+        for i in self.re_old_grad.findall(string):
+            self.append(map(float, i.split()))
         if len(self) != 256:
             raise ParsingError("Palette data unreadable")
 
-    def to_string(self):  
-        return self.formatstr % tuple(itertools.chain(*self))
+    def to_string(self, newformat=True):
+        format = self.formatstr if newformat else self.old_formatstr
+        return format % tuple(itertools.chain(*self))
 
     def rotate(self, index):
         self[:] = self[index:] + self[:index]
