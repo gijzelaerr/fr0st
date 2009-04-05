@@ -150,7 +150,6 @@ class TreePanel(wx.Panel):
             
         # Finally, recover the actual session
         for path,undolist in zip(paths,undolists):
-            print path
             if os.path.exists(path):
                 self.item = self.parent.OpenFlame(path)
             else:
@@ -200,15 +199,14 @@ class TreePanel(wx.Panel):
 
         
     @Bind(wx.EVT_TREE_END_LABEL_EDIT)
-    def OnEndEdit(self, event):
-        print "called this handler!"
-        self.item = event.GetItem()
-        newname = str(event.GetLabel())
+    def OnEndEdit(self, e):
+        self.item = e.GetItem()
+        newname = str(e.GetLabel())
         # Make sure edits don't change the name to an empty string
-        # TODO: this is not working, itemtext is not updated
         if newname:
             self.itemdata.name = newname
         self.tree.SetItemText(self.item, self.itemdata.name)
+        e.Veto()
 
 
     def _get_itemparent(self):

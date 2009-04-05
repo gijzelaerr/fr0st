@@ -32,12 +32,14 @@ class ItemData(list):
     def Undo(self):
         if self.undo:
             self.redo.append(self.pop())
+            self._name = self.re_name.findall(self[-1])[0]
             return self[-1]
 
 
     def Redo(self):
         if self.redo:
             list.append(self,self.redo.pop())
+            self._name = self.re_name.findall(self[-1])[0]
             return self[-1]
 
 
