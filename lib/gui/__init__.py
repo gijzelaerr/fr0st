@@ -83,7 +83,8 @@ class MainWindow(wx.Frame):
             self.TreePanel.RecoverSession(paths)
         else:
             # Normal startup
-            self.OpenFlame(self.flamepath)
+            item = self.OpenFlame(self.flamepath)
+            self.tree.SelectItem(self.tree.GetFirstChild(item)[0])
 
         self.Show(True)
     
