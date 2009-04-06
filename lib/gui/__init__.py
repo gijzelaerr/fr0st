@@ -189,10 +189,6 @@ class MainWindow(wx.Frame):
             self.SaveFlame(self.flamepath)
         dlg.Destroy()
         
-        # Reset the history of all data, to allow correct comparisons.
-        for i in self.TreePanel.iterchildren():
-            self.tree.GetPyData(i).Reset()
-        
 
     @Bind(wx.EVT_MENU,id=ID.SOPEN)
     @Bind(wx.EVT_TOOL,id=ID.TBOPENSCRIPT)
@@ -306,6 +302,9 @@ class MainWindow(wx.Frame):
         for i in self.TreePanel.iterchildren(item):
             data = self.tree.GetPyData(i)
             lst.append(data.GetSaveString())
+
+            # Reset the history of all data, to allow correct comparisons.
+            data.Reset()
             self.tree.SetItemText(i, data.name)
         
         # Finally, save the flame and clear the temp file.
