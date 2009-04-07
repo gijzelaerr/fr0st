@@ -149,6 +149,7 @@ class VarPanel(wx.Panel):
                                           wx.TR_DEFAULT_STYLE
                                         | wx.TR_ROW_LINES
                                         | wx.TR_COLUMN_LINES
+                                        | wx.TR_NO_LINES
                                         | wx.TR_HIDE_ROOT
                                         | wx.TR_FULL_ROW_HIGHLIGHT
                                    )
@@ -157,7 +158,7 @@ class VarPanel(wx.Panel):
         self.tree.AddColumn("Value")
 
         self.tree.SetMainColumn(0)
-        self.tree.SetColumnWidth(0, 172)
+        self.tree.SetColumnWidth(0, 165)
         self.tree.SetColumnWidth(1, 64)
         self.tree.SetColumnEditable(1,True)
 
@@ -211,7 +212,6 @@ class VarPanel(wx.Panel):
             else:
                 # it's a variable
                 name = "_".join(map(self.tree.GetItemText,(parent,item)))
-            print name
             setattr(self.parent.flame.xform[0],name,value)
             self.parent.TreePanel.TempSave()
 
@@ -242,7 +242,8 @@ class NumberTextCtrl(wx.TextCtrl):
     @BindEvents
     def __init__(self,parent):
         self.parent = parent
-        wx.TextCtrl.__init__(self,parent,-1)
+        # Size is set to ubuntu default, maybe make it 75x21 in win only
+        wx.TextCtrl.__init__(self,parent,-1, size=(75,27))
         self.SetValue("0.0")
         self._value = 0.0
 
