@@ -95,7 +95,7 @@ class XformPanel(wx.Panel):
             xform = xform.post
             
         if view == "triangle":
-            self.coefs = chain(xform.x,xform.y,xform.o)
+            self.coefs = chain(*xform.points)
         elif view == "xform":
             self.coefs = xform.coefs
         elif view == "polar":
@@ -109,7 +109,7 @@ class XformPanel(wx.Panel):
             xform = xform.post
 
         if view == "triangle":
-            xform.x,xform.y,xform.o = zip(*[iter(self.coefs)]*2)
+            xform.points = zip(*[iter(self.coefs)]*2)
         elif view == "xform":
             xform.coefs = self.coefs
         elif view == "polar":

@@ -401,13 +401,13 @@ class Xform(object):
 
     coefs = property(_get_coefs,_set_coefs)
 
-    def _get_coords(self):
-        return self.o,self.x,self.y
+    def _get_points(self):
+        return self.x,self.y,self.o
 
-    def _set_coords(self,v):
-        self.o,self.x,self.y = v
+    def _set_points(self,v):
+        self.x,self.y,self.o = v
 
-    coords = property(_get_coords,_set_coords)
+    points = property(_get_points,_set_points)
 
     def get_screen_coefs(self):
         """Creates a list of coefs in "screen" notation."""
