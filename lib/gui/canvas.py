@@ -1,4 +1,4 @@
-import itertools, numpy as N, time
+import itertools, numpy as N, time, wx
 from wx.lib.floatcanvas.FloatCanvas import FloatCanvas, DotGrid
 from wx.lib.floatcanvas.GUIMode import GUIMove
 
@@ -38,6 +38,7 @@ class XformCanvas(FloatCanvas):
         self.ZoomToBB(DrawFlag=False)
         self.AdjustZoom()
         self.GUIMode = GUICustom(self)
+        self._coords = None
         
 
 
@@ -52,7 +53,7 @@ class XformCanvas(FloatCanvas):
             self.AddXform(flame.final)
             
         # TODO: add post xforms.  
-
+        
         if rezoom:
             self.ZoomToBB(DrawFlag=False)
             self.AdjustZoom()
@@ -65,12 +66,13 @@ class XformCanvas(FloatCanvas):
         """Allows the script thread to ask the canvas to refresh."""
         self.ShowFlame(rezoom=False)
 
+
     def AddXform(self,xform):
         if xform.isfinal():
             color = (255,255,255)
         else:
             color = self.colors[xform.index % len(self.colors)]
-        points  = xform.coords
+        points  = xform.points
         triangle = self.AddPolygon(points,
                                    LineColor=color,
                                    LineStyle = "ShortDash")
@@ -124,11 +126,20 @@ class XformCanvas(FloatCanvas):
         self.SetFocus() # Otherwise focus stays on Button.
 
 
+    @Bind(wx.EVT_IDLE)
+    def OnIdle(self,e):
+        if self._coords is not None:
+            coords = self._coords
+            self._coords = None
+            self.GUIMode.ActivateCallback(coords)
+
+
 
 class GUICustom(GUIMove):
 ##    def __init__(self,canvas):
-##        GUIMode.GUIMove.__init__(self,canvas)
+##        GUIMove.__init__(self,canvas)
 ##        self.callback = None
+        
 
     def OnLeftDown(self,e):
         # TODO: select appropriate method based on cursor position, etc.
@@ -136,9 +147,6 @@ class GUICustom(GUIMove):
         self._start_time = time.time()
 
     def OnLeftUp(self,e):
-        if self._e:
-            self.ActivateCallback(e)
-            self._e = None
         self.callback = None
         self.Canvas.parent.TreePanel.TempSave()
             
@@ -162,16 +170,17 @@ class GUICustom(GUIMove):
             self.Canvas.Draw()
             
         elif e.LeftIsDown() and e.Dragging() and self.callback is not None:
-            # HACK: we need to throttle the refresh rate of the canvas
-            # to let through other events (WHY?)
-            t = time.time()
-            if (t - self._start_time < .1):
-                self._e = e
-                return
-            self._e = None
-            self._start_time = t
+##            # HACK: we need to throttle the refresh rate of the canvas
+##            # to let through other events (WHY?)
+##            t = time.time()
+##            if (t - self._start_time < .1):
+##                self._e = e
+##                return
+####            self._e = None
+##            self._start_time = t
 
-            self.ActivateCallback(e)
+##            self.ActivateCallback(e)
+            self.Canvas._coords = self.Canvas.PixelToWorld(e.GetPosition())
             
         else:
             # TODO: highlight triangle vertices, etc.
@@ -181,8 +190,8 @@ class GUICustom(GUIMove):
 ##            self.Canvas.SetFocus() # Makes Canvas take focus under windows.
 
 
-    def ActivateCallback(self,e):
-            self.callback(self.Canvas.PixelToWorld(e.GetPosition()))
+    def ActivateCallback(self,coords):
+            self.callback(coords)
             self.Canvas.ShowFlame(rezoom=False)
             self.Canvas.parent.image.RenderPreview()
  
