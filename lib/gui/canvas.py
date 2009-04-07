@@ -136,8 +136,12 @@ class GUICustom(GUIMove):
         self._start_time = time.time()
 
     def OnLeftUp(self,e):
+        if self._e:
+            self.ActivateCallback(e)
+            self._e = None
         self.callback = None
         self.Canvas.parent.TreePanel.TempSave()
+            
 
     def OnRightDown(self,e):
 ##        self.Canvas.CaptureMouse() # Why was this here?
@@ -146,6 +150,7 @@ class GUICustom(GUIMove):
 
     def OnRightUp(self,e):
         self.StartMove = None
+
 
     def OnMove(self,e):
         if  e.RightIsDown() and e.Dragging() and self.StartMove is not None:
@@ -160,20 +165,27 @@ class GUICustom(GUIMove):
             # HACK: we need to throttle the refresh rate of the canvas
             # to let through other events (WHY?)
             t = time.time()
-            if t - self._start_time < .1:
+            if (t - self._start_time < .1):
+                self._e = e
                 return
+            self._e = None
             self._start_time = t
-            self.callback(self.Canvas.PixelToWorld(e.GetPosition()))
-            self.Canvas.ShowFlame(rezoom=False)
-            self.Canvas.parent.image.RenderPreview()
-##            self.Canvas.Draw()
 
+            self.ActivateCallback(e)
+            
         else:
             # TODO: highlight triangle vertices, etc.
             
             # TODO: this is hacky and doesn't work well.
-            self.Canvas.SetFocus() # Makes Canvas take focus under windows.
+            pass
+##            self.Canvas.SetFocus() # Makes Canvas take focus under windows.
 
+
+    def ActivateCallback(self,e):
+            self.callback(self.Canvas.PixelToWorld(e.GetPosition()))
+            self.Canvas.ShowFlame(rezoom=False)
+            self.Canvas.parent.image.RenderPreview()
+ 
 
     def OnWheel(self,e):
         self.Canvas.Zoom(1.25 if e.GetWheelRotation()>0 else 0.8)

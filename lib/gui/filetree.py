@@ -164,6 +164,7 @@ class TreePanel(wx.Panel):
                 data.extend(lst)
                 self.tree.SetItemText(child,data.name)
                 self.RenderThumbnail(child)
+                self.tree.SelectItem(child)
 
 
 ##    @Bind(wx.EVT_RIGHT_DOWN) # this bind doesn't work
