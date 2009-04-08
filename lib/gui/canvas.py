@@ -1,6 +1,7 @@
 import itertools, numpy as N, time, wx
+from wx.lib.floatcanvas import FloatCanvas as FC
 from wx.lib.floatcanvas.FloatCanvas import FloatCanvas, DotGrid
-from wx.lib.floatcanvas.GUIMode import GUIMove
+##from wx.lib.floatcanvas.GUIMode import GUIMove
 
 from decorators import Bind, BindEvents
 from _events import EVT_CANVAS_REFRESH
@@ -37,9 +38,10 @@ class XformCanvas(FloatCanvas):
         self.MakeGrid()
         self.ZoomToBB(DrawFlag=False)
         self.AdjustZoom()
-        self.GUIMode = GUICustom(self)
+##        self.GUIMode = GUICustom(self)
         self._coords = None
         self._move = None
+        self.StartMove = None
         
 
 
@@ -62,7 +64,8 @@ class XformCanvas(FloatCanvas):
             # This is an elif because AdjustZoom already forces a Draw.
             self.Draw()
 
-    @Bind(EVT_CANVAS_REFRESH)
+
+    @Bind(EVT_CANVAS_REFRESH) # This is a custom event, not a FC one
     def OnCanvasRefresh(self, e):
         """Allows the script thread to ask the canvas to refresh."""
         self.ShowFlame(rezoom=False)
@@ -96,6 +99,7 @@ class XformCanvas(FloatCanvas):
                                  Color=(100,100,100),
                                  Cross=True,
                                  CrossThickness=1)
+
         
     def AdjustZoom(self):
         """resets the grid and circle sizes, refreshes the canvas."""
@@ -120,6 +124,13 @@ class XformCanvas(FloatCanvas):
         self._BackgroundDirty = True
         self.Draw()      
 
+
+    def ActivateCallback(self,coords):
+            self.callback(coords)
+            self.ShowFlame(rezoom=False)
+            self.parent.image.RenderPreview()
+            
+
     # Currently not bound
     def OnZoomToFit(self,e):
         self.ZoomToBB(DrawFlag=False)
@@ -132,48 +143,54 @@ class XformCanvas(FloatCanvas):
         if self._coords is not None:
             coords = self._coords
             self._coords = None
-            self.GUIMode.ActivateCallback(coords)
+            self.ActivateCallback(coords)
 
         elif self._move is not None:
             move = self._move
             self._move = None
             self.MoveImage(move, 'Pixel')
 
+            
+    @Bind(FC.EVT_MOUSEWHEEL)
+    def OnWheel(self,e):
+        self.Zoom(1.25 if e.GetWheelRotation()>0 else 0.8)
+        self.AdjustZoom()
 
 
-class GUICustom(GUIMove):
-##    def __init__(self,canvas):
-##        GUIMove.__init__(self,canvas)
-##        self.callback = None
-        
-
+    @Bind(FC.EVT_LEFT_DOWN)
     def OnLeftDown(self,e):
         # TODO: select appropriate method based on cursor position, etc.
-        self.callback = self.Canvas.parent.flame.xform[0]._set_position
+        self.callback = self.parent.flame.xform[0]._set_position
         self._start_time = time.time()
 
+
+    @Bind(FC.EVT_LEFT_UP)
     def OnLeftUp(self,e):
         self.callback = None
-        self.Canvas.parent.TreePanel.TempSave()
-            
+        self.parent.TreePanel.TempSave()
 
+            
+    @Bind(FC.EVT_RIGHT_DOWN)
     def OnRightDown(self,e):
 ##        self.Canvas.CaptureMouse() # Why was this here?
         self.StartMove = N.array(e.GetPosition())
         self.PrevMoveXY = (0,0)
 
+
+    @Bind(FC.EVT_RIGHT_UP)
     def OnRightUp(self,e):
         self.StartMove = None
 
 
+    @Bind(FC.EVT_MOTION)
     def OnMove(self,e):
         if  e.RightIsDown() and e.Dragging() and self.StartMove is not None:
             self.EndMove = N.array(e.GetPosition())
-            self.Canvas._move = self.StartMove-self.EndMove
+            self._move = self.StartMove-self.EndMove
             self.StartMove = self.EndMove
 
         elif e.LeftIsDown() and e.Dragging() and self.callback is not None:
-            self.Canvas._coords = self.Canvas.PixelToWorld(e.GetPosition())
+            self._coords = self.PixelToWorld(e.GetPosition())
             
         else:
             # TODO: highlight triangle vertices, etc.
@@ -181,16 +198,6 @@ class GUICustom(GUIMove):
             pass
 ##            self.Canvas.SetFocus() # Makes Canvas take focus under windows.
 
-
-    def ActivateCallback(self,coords):
-            self.callback(coords)
-            self.Canvas.ShowFlame(rezoom=False)
-            self.Canvas.parent.image.RenderPreview()
- 
-
-    def OnWheel(self,e):
-        self.Canvas.Zoom(1.25 if e.GetWheelRotation()>0 else 0.8)
-        self.Canvas.AdjustZoom()
 
     def _get_MidMove(self):
         return self.StartMove
