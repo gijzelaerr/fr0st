@@ -39,6 +39,7 @@ class XformCanvas(FloatCanvas):
         self.AdjustZoom()
         self.GUIMode = GUICustom(self)
         self._coords = None
+        self._move = None
         
 
 
@@ -80,7 +81,7 @@ class XformCanvas(FloatCanvas):
         circles = [self.AddCircle(i, Diameter=diameter, LineColor=color)
                    for i in points]
         text = map(lambda x,y: self.AddText(x,y,Size=10,Color=color),
-                   "OXY",points)
+                   "XYO",points)
         triangle._circles = circles
         triangle._text = text
         
@@ -133,6 +134,11 @@ class XformCanvas(FloatCanvas):
             self._coords = None
             self.GUIMode.ActivateCallback(coords)
 
+        elif self._move is not None:
+            move = self._move
+            self._move = None
+            self.MoveImage(move, 'Pixel')
+
 
 
 class GUICustom(GUIMove):
@@ -163,28 +169,14 @@ class GUICustom(GUIMove):
     def OnMove(self,e):
         if  e.RightIsDown() and e.Dragging() and self.StartMove is not None:
             self.EndMove = N.array(e.GetPosition())
-##            self.MoveImage(e)
-            DiffMove = self.StartMove-self.EndMove
-            self.Canvas.MoveImage(DiffMove, 'Pixel')
+            self.Canvas._move = self.StartMove-self.EndMove
             self.StartMove = self.EndMove
-            self.Canvas.Draw()
-            
-        elif e.LeftIsDown() and e.Dragging() and self.callback is not None:
-##            # HACK: we need to throttle the refresh rate of the canvas
-##            # to let through other events (WHY?)
-##            t = time.time()
-##            if (t - self._start_time < .1):
-##                self._e = e
-##                return
-####            self._e = None
-##            self._start_time = t
 
-##            self.ActivateCallback(e)
+        elif e.LeftIsDown() and e.Dragging() and self.callback is not None:
             self.Canvas._coords = self.Canvas.PixelToWorld(e.GetPosition())
             
         else:
             # TODO: highlight triangle vertices, etc.
-            
             # TODO: this is hacky and doesn't work well.
             pass
 ##            self.Canvas.SetFocus() # Makes Canvas take focus under windows.
