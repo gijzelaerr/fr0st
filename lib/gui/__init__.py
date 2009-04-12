@@ -351,6 +351,7 @@ class MainWindow(wx.Frame):
         self.flame = flame
         self.image.RenderPreview(flame)
         self.canvas.ShowFlame(flame,rezoom=rezoom)
+        self.canvas.ActiveXform = 0
         self.XformTabs.UpdateView()
 
         # Set Undo and redo buttons to the correct value:
