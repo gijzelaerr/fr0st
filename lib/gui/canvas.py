@@ -1,4 +1,4 @@
-import itertools, numpy as N, time, wx, sys
+import itertools, numpy as N, time, wx, sys, math
 from wx.lib.floatcanvas import FloatCanvas as FC
 from wx.lib.floatcanvas.FloatCanvas import FloatCanvas, DotGrid
 
@@ -36,22 +36,27 @@ class XformCanvas(FloatCanvas):
         map(lambda x,y,z: self.AddText(x,y,Position=z,Size=10,Color="Grey"),
             "OXY",points,("tr","tl","br"))
 
+
+        # List that hold draw objects
         self.triangles = []
+        self.objects = []
+
         self.MakeGrid()
         self.ZoomToBB(DrawFlag=False)
         self.AdjustZoom()
-        
-        self._coords = None
+
+        # These are used in the OnIdle Method
         self._right_drag = None
         self._left_drag = None
         self._resize_pending = None
-        self.StartMove = None
+
+        # These mark different states of the canvas
         self.ActiveXform = 0
-        self.callback = None
+        self.SelectedXform = -1
         self.axes_locked = True
-        self.SelectedXform = None
-        self.vartext = []
         self.HasChanged = False
+        self.StartMove = None
+        self.callback = None
         
 
     def ShowFlame(self,flame=None,rezoom=True,refresh=True):
@@ -68,7 +73,7 @@ class XformCanvas(FloatCanvas):
         self.triangles.append(self.AddXform(flame.xform[self.ActiveXform],
                                             solid=True))
 
-        if self.SelectedXform is not None:
+        if self.SelectedXform >= 0:
             t = self.triangles[self.SelectedXform]
             t.SetBrush(t.LineColor + (127,),"BiDiagonalHatch")
             
@@ -149,45 +154,65 @@ class XformCanvas(FloatCanvas):
             self.HasChanged = True
 
 
-    def CalculateScale(self, xform, coord):
-        h,v = coord
+    def CalculateScale(self, xform, h, v):
+        a,d,b,e,c,f = xform.coefs
 
-        ratio = (xform.e-xform.d) / (xform.a-xform.b)
+        # The angle of the hypothenuse
+        ratio = (e - d) / (a - b)
+        diffv = (v - d - f) + (h - a - c) * ratio
+
+        val = xform.d if abs(xform.d) > abs(xform.e) else xform.e
+        return (diffv+val) / val
+
+
+##    def SideHitTest(self, xform, coord):
+####        return 0.9 < self.CalculateScale(xform, coord) < 1.1
+
+
+    def SideHitTest(self, h, v):
+
+        for xform in self.parent.flame.xform:
+            a,d,b,e,c,f = xform.coefs
+
+            if any((h < min(a, b) + c,
+                    h > max(a, b) + c,
+                    v < min(d, e) + f,
+                    v > max(d, e) + f)):
+                continue
+            
+            ratio = (e - d) / (a - b)
+            diffx = (v - d - f) + (h - a - c) * ratio
+            diffy = (h - e - f) + (v - b - c) * ratio
+
+            height = diffx * diffy / math.sqrt(diffx**2 + diffy**2)
+            if abs(height) < self.circle_radius:
+                # TODO: close to the line but beyond the xform is still detected as valid
+                def callback(coord):
+                    xform.scale(self.CalculateScale(xform,*coord))
+                print "hypot"
+                return (xform.x, xform.y), xform, callback
+        print
+        return None, None, None
         
-        diffv = (v - xform.x[1]) + (h - xform.x[0]) * ratio
-
-        # A bit of magic... not working 100%
-        # TODO: still manages to get it wrong sometimes.
-        if ratio < -1.0:
-            return (diffv+xform.d) / xform.d
-        return (diffv+xform.e) / xform.e
-
-
-    def SideHitTest(self, *args):
-        return 0.9 < self.CalculateScale(*args) < 1.1
 
     
     def VertexHitTest(self,x,y):
         for xform in self.parent.flame.xform:
             a,d,b,e,c,f = xform.coefs
-            lo = polar((x - c, y - f))[0]
-            lx = polar((x - a - c, y - d - f))[0]
-            ly = polar((x - b - c, y - e - f))[0]
-
-            if lo < self.circle_radius:
-                return (xform.o, xform._set_position if self.axes_locked
+            if polar((x - c, y - f))[0] < self.circle_radius:
+                return (xform.o, xform, xform._set_position if self.axes_locked
                             else xform._set_o)
-            elif lx < self.circle_radius:
-                return xform.x, xform._set_x
-            elif ly < self.circle_radius:
-                return xform.y, xform._set_y
-        return None, None
+            elif polar((x - a - c, y - d - f))[0] < self.circle_radius:
+                return xform.x, xform, xform._set_x
+            elif polar((x - b - c, y - e - f))[0] < self.circle_radius:
+                return xform.y, xform, xform._set_y
+        return None, None, None
                 
 
     def XformHitTest(self,x,y):            
         for xform in self.parent.flame.xform:
             # check if the point is in an xform, by testing if it falls
-            # inside the angle projected from at least 2 of its vertices
+            # inside the angles projected from at least 2 of its vertices
             a,d,b,e,c,f = xform.coefs
                         
             phiox = polar((a, d))[1]
@@ -246,33 +271,30 @@ class XformCanvas(FloatCanvas):
 
         elif self._resize_pending is not None:
             self._resize_pending = None
-            self.RemoveObjects(self.vartext)
+            self.RemoveObjects(self.objects)
             self.SetToNewScale(DrawFlag=False)
             self.AdjustZoom()
-            self.AddObjects(self.vartext)
+            self.AddObjects(self.objects)
 
             
     @Bind(FC.EVT_MOUSEWHEEL)
     def OnWheel(self,e):
-##        self.Zoom(1.25 if e.GetWheelRotation()>0 else 0.8)
-        # Don't use Zoom because it redraws unconditionally.
+        # Don't use self.Zoom because it redraws unconditionally.
         self.Scale *= 1.25 if e.GetWheelRotation()>0 else 0.8
         self._resize_pending = True
-##        self.RemoveObjects(self.vartext)
-##        self.SetToNewScale(DrawFlag=False)
-##        self.AdjustZoom()
-##        self.AddObjects(self.vartext)
 
 
     @Bind(FC.EVT_LEFT_DOWN)
     def OnLeftDown(self,e):
-        if self.SelectedXform is not None:
+        self.CaptureMouse() 
+        if self.SelectedXform >= 0:
             self.ActiveXform = self.SelectedXform
             self.ShowFlame(rezoom=False)
 
 
     @Bind(FC.EVT_LEFT_UP)
     def OnLeftUp(self,e):
+        self.ReleaseMouse()
         if self.HasChanged:
             self.HasChanged = False
             self.parent.TreePanel.TempSave()
@@ -280,72 +302,65 @@ class XformCanvas(FloatCanvas):
             
     @Bind(FC.EVT_RIGHT_DOWN)
     def OnRightDown(self,e):
-##        self.Canvas.CaptureMouse() # Why was this here? Maybe for MSW
+        self.CaptureMouse()
         self.StartMove = N.array(e.GetPosition())
         self.PrevMoveXY = (0,0)
 
 
     @Bind(FC.EVT_RIGHT_UP)
     def OnRightUp(self,e):
+        self.ReleaseMouse()
         self.StartMove = None
 
 
     @Bind(FC.EVT_MOTION)
-    def OnMove(self,e):        
-        # Save this for future reference
-        self._coords = self.PixelToWorld(e.GetPosition())
+    def OnMove(self,e):
+        coords = self.PixelToWorld(e.GetPosition())
         
         if  e.RightIsDown() and e.Dragging() and self.StartMove is not None:
             self.EndMove = N.array(e.GetPosition())
             self._right_drag = self.StartMove - self.EndMove
             
-
         elif e.LeftIsDown() and e.Dragging():
-            self._left_drag = self._coords
+            self._left_drag = coords
             
         else:
-            # This is hacky and doesn't work well.
 ##            self.SetFocus() # Makes Canvas take focus under windows.
 
-            coords = self.PixelToWorld(e.GetPosition())
-            vertex, cb = self.VertexHitTest(*coords)
+            # First, test for vertices
+            vertex, xform, cb = self.VertexHitTest(*coords)
             if cb:
-                self.SelectXform(cb.im_self)
+                self.SelectXform(xform)
                 self.callback = cb
                 return
-               
+
+            # Then, test for sides
+            points, xform, cb = self.SideHitTest(*coords)
+            if cb:
+                self.SelectXform(xform, highlight=points)
+                self.callback = cb
+                return
+
+
+            # Finally, test for area
             xform = self.XformHitTest(*coords)
             if xform:
+                diff = coords - xform.o
+                def callback(coord):
+                    xform._set_position(coord-diff)
+                self.callback = callback
                 self.SelectXform(xform)
 
-                if self.SideHitTest(xform,coords):
-                    def callback(coord):
-                        xform.scale(self.CalculateScale(xform,coord))
-                    self.callback = callback
-                
-                elif False:
-                    # TODO: test for rotation
-                    pass
-                
-                else:
-                    diff = coords - xform.o
-                    def callback(coord):
-                        xform._set_position(coord-diff)
-                    self.callback = callback
-                    self.SelectXform(xform)
-
             else:
-                self.SelectedXform = None
-                self.RemoveObjects(self.vartext)
-                self.vartext = []
+                self.SelectedXform = -1
+                self.RemoveObjects(self.objects)
+                self.objects = []
                 self.ShowFlame(rezoom=False) 
                 self.callback = None
 
 
-    def SelectXform(self, xform):
+    def SelectXform(self, xform, highlight=None):
         index = xform.index
-##        if self.SelectedXform == index:
-##            return
         self.SelectedXform = index
 
         varlist = [i for i in self.parent.XformTabs.Vars.variations
@@ -356,12 +371,16 @@ class XformCanvas(FloatCanvas):
         hor -= 5
         ver -= 5
         
-        self.RemoveObjects(self.vartext)
-        self.vartext = []
+        self.RemoveObjects(self.objects)
+        self.objects = []
         for i in reversed(varlist):
             ver -= 12
-            self.vartext.append(self.AddText(i, self.PixelToWorld((hor,ver)),
+            self.objects.append(self.AddText(i, self.PixelToWorld((hor,ver)),
                                 Size = 8, Position = "tr", Color=color))
+                                            
+        if highlight:
+            self.objects.append(self.AddLine(highlight, LineColor=color,
+                                             LineWidth=2))
             
         self.ShowFlame(rezoom=False)
    
