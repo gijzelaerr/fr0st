@@ -449,7 +449,6 @@ class ImagePanel(wx.Panel):
             size,quality=2,estimator=0,filter=.2)
 
 
-##    @XLocked
     def UpdateBitmap(self,size,output_buffer):
         """Callback function to process rendered preview images."""
         width,height = size

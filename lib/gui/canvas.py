@@ -52,7 +52,7 @@ class XformCanvas(FloatCanvas):
         self._resize_pending = 1
 
         # These mark different states of the canvas
-        self.ActiveXform = None
+        self.parent.ActiveXform = None
         self.SelectedXform = None
         self.axes_locked = True
         self.HasChanged = False
@@ -65,21 +65,21 @@ class XformCanvas(FloatCanvas):
             flame = self.parent.flame
 
         # Checks if the active xform is None or belongs to a previous flame.
-        if self.ActiveXform not in flame.xform:
-            self.ActiveXform = flame.xform[0]
+        if self.parent.ActiveXform not in flame.xform:
+            self.parent.ActiveXform = flame.xform[0]
             
         for t in self.triangles:
             self.RemoveObjects(itertools.chain((t,),t._text,t._circles))
         self.triangles = []
 
         for i in flame.xform:
-            self.triangles.append(self.AddXform(i, solid=i==self.ActiveXform,
+            self.triangles.append(self.AddXform(i, solid=i==self.parent.ActiveXform,
                                                 fill=i==self.SelectedXform))
         
         if flame.final:
             self.triangles.append(self.AddXform(flame.final))
         
-        self.triangles.append(self.AddXform(self.ActiveXform, solid=True))
+        self.triangles.append(self.AddXform(self.parent.ActiveXform, solid=True))
 
         # TODO: add post xforms.  
         
@@ -172,7 +172,7 @@ class XformCanvas(FloatCanvas):
 
 
     def IterXforms(self):
-        active = self.ActiveXform
+        active = self.parent.ActiveXform
         lst = [i for i in self.parent.flame.xform if i != active]
         if active:
             lst.insert(0, active)
@@ -298,12 +298,12 @@ class XformCanvas(FloatCanvas):
     def OnLeftDown(self,e):
         self.CaptureMouse() 
         if self.SelectedXform:
-            self.ActiveXform = self.SelectedXform
+            self.parent.ActiveXform = self.SelectedXform
             self.ShowFlame(rezoom=False)
             self.parent.XformTabs.UpdateView()
 
             # EXPERIMENT!
-            t = self.AddXform(self.ActiveXform)
+            t = self.AddXform(self.parent.ActiveXform)
             self.shadow.extend(itertools.chain((t,),t._text,t._circles))
 
 
@@ -375,7 +375,6 @@ class XformCanvas(FloatCanvas):
                 self.SelectXform(xform)
 
             else:
-##                self.Draw()
                 self.SelectedXform = None
                 self.ShowFlame(rezoom=False)
                 self.callback = None
@@ -392,9 +391,6 @@ class XformCanvas(FloatCanvas):
         hor -= 5
         ver -= 5
 
-##        t = self.AddXform(xform, fill=True)
-##        self.objects.extend(itertools.chain((t,),t._text,t._circles))
-            
         for i in reversed(varlist):
             ver -= 12
             self.objects.append(self.AddText(i, self.PixelToWorld((hor,ver)),
@@ -404,14 +400,8 @@ class XformCanvas(FloatCanvas):
             self.objects.append(self.AddLine(highlight, LineColor=color,
                                              LineWidth=2))
 
-##        self.Draw()
         self.ShowFlame(rezoom=False)
 
-
-##    def UnselectXform(self):
-##        self.RemoveObjects(self.objects)
-##        self.objects = []
-##        self.SelectedXform = None
 
     def _get_MidMove(self):
         return self.StartMove
@@ -428,5 +418,4 @@ class XformCanvas(FloatCanvas):
         return 5 / self.Scale
 
     circle_radius = property(_get_circle_radius)
-
 

@@ -1,6 +1,5 @@
 import wx
 from wx import gizmos
-import wx.lib.customtreectrl as CT
 from itertools import chain
 from collections import defaultdict
 
@@ -39,7 +38,6 @@ class XformTabs(wx.Notebook):
             i.UpdateView()
 
 
-            
 
 class XformPanel(wx.Panel):
 
@@ -90,7 +88,7 @@ class XformPanel(wx.Panel):
         
     def UpdateView(self):
         post, view = self.view
-        xform = self.parent.canvas.ActiveXform
+        xform = self.parent.ActiveXform
         if post:
             xform = xform.post
             
@@ -104,7 +102,7 @@ class XformPanel(wx.Panel):
 
     def UpdateXform(self,e=None):
         post, view = self.view
-        xform = self.parent.canvas.ActiveXform
+        xform = self.parent.ActiveXform
         if post:
             xform = xform.post
 
@@ -193,7 +191,7 @@ class VarPanel(wx.Panel):
             
 
     def UpdateView(self):
-        xform = self.parent.canvas.ActiveXform
+        xform = self.parent.ActiveXform
         for i,name in self.itervars():
             self.tree.SetItemText(i, str(getattr(xform, name)), 1)
 
@@ -206,7 +204,7 @@ class VarPanel(wx.Panel):
         else:
             # it's a variable
             name = "_".join(map(self.tree.GetItemText,(parent,item)))
-        setattr(self.parent.canvas.ActiveXform,name,value)
+        setattr(self.parent.ActiveXform,name,value)
 
 
     @Bind(wx.EVT_TREE_END_LABEL_EDIT)
@@ -242,11 +240,11 @@ class VarPanel(wx.Panel):
     def OnWheel(self,e):
         if e.ControlDown():
             if e.AltDown():
-                diff = 0.001
+                diff = 0.01
             else:
                 diff = 0.1
         elif e.AltDown():
-            diff = 0.01
+            diff = 0.001
         else:
             e.Skip()
             return
@@ -266,7 +264,6 @@ class VarPanel(wx.Panel):
 
     def OnKeyUp(self, e):
         key = e.GetKeyCode()
-        print key == wx.WXK_CONTROL, key == wx.WXK_ALT
         if (key == wx.WXK_CONTROL and not e.AltDown()) or (
             key == wx.WXK_ALT and not e.ControlDown()):
             if self.HasChanged:
