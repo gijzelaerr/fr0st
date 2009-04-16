@@ -108,7 +108,7 @@ class TreePanel(wx.Panel):
         data.append(string)
         self.tree.SetItemText(self.item, data.name)
         self.RenderThumbnail()
-        self.parent.SetFlame(Flame(string=string),rezoom=False)
+        self.parent.SetFlame(self.parent.flame,rezoom=False)
 
         data = self.tree.GetPyData(self.itemparent)
 ##        self.tree.SetItemText(self.itemparent, '* ' + data.name)
@@ -192,6 +192,7 @@ class TreePanel(wx.Panel):
         if self.item:
             string = self.tree.GetPyData(self.item)[-1]
             if string.startswith('<flame'):
+##                self.parent.canvas.ActiveXform = None
                 self.parent.SetFlame(Flame(string=string))
             else:
                 self.parent.EnableUndo(False)

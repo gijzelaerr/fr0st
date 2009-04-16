@@ -63,19 +63,23 @@ class XformCanvas(FloatCanvas):
     def ShowFlame(self, flame=None, rezoom=True, refresh=True):
         if flame is None:
             flame = self.parent.flame
+
+        # Checks if the active xform is None or belongs to a previous flame.
+        if self.ActiveXform not in flame.xform:
+            self.ActiveXform = flame.xform[0]
+            
         for t in self.triangles:
             self.RemoveObjects(itertools.chain((t,),t._text,t._circles))
-
         self.triangles = []
+
         for i in flame.xform:
             self.triangles.append(self.AddXform(i, solid=i==self.ActiveXform,
                                                 fill=i==self.SelectedXform))
         
         if flame.final:
             self.triangles.append(self.AddXform(flame.final))
-
-        if self.ActiveXform:
-            self.triangles.append(self.AddXform(self.ActiveXform, solid=True))
+        
+        self.triangles.append(self.AddXform(self.ActiveXform, solid=True))
 
         # TODO: add post xforms.  
         
@@ -98,12 +102,10 @@ class XformCanvas(FloatCanvas):
                  else self.colors[xform.index%len(self.colors)])
         points  = xform.points
         triangle = self.AddPolygon(points,
-                                   LineColor=color,
-                                   FillColor=color,
-                                   FillStyle="BiDiagonalHatch" if fill
-                                             else "Transparent",
-                                   LineStyle="Solid" if solid
-                                             else self.style)
+                         LineColor=color,
+                         FillColor=color,
+                         FillStyle="BiDiagonalHatch" if fill else "Transparent",
+                         LineStyle="Solid" if solid else self.style)
 
         diameter = self.circle_radius * 2
         circles = [self.AddCircle(i, Diameter=diameter, LineColor=color)
@@ -152,15 +154,8 @@ class XformCanvas(FloatCanvas):
     def ActivateCallback(self,coords):
         if self.callback:
             self.callback(coords)
-            
             self.ShowFlame(rezoom=False)
-            # EXPERIMENT II!
-            self.ShowFlame(rezoom=False, refresh=False)
-            t = self.triangles[-2 if self.ActiveXform.isfinal()
-                               else self.ActiveXform.index]
-            t.SetBrush(t.LineColor, "BiDiagonalHatch")
-            self.Draw()
-            
+            self.parent.XformTabs.UpdateView()
             self.parent.image.RenderPreview()
             self.HasChanged = True
 
@@ -305,6 +300,7 @@ class XformCanvas(FloatCanvas):
         if self.SelectedXform:
             self.ActiveXform = self.SelectedXform
             self.ShowFlame(rezoom=False)
+            self.parent.XformTabs.UpdateView()
 
             # EXPERIMENT!
             t = self.AddXform(self.ActiveXform)
@@ -314,14 +310,15 @@ class XformCanvas(FloatCanvas):
     @Bind(FC.EVT_LEFT_UP)
     def OnLeftUp(self,e):
         self.ReleaseMouse()
-        if self.HasChanged:
-            self.HasChanged = False
-            self.parent.TreePanel.TempSave()
 
         # EXPERIMENT!
         self.RemoveObjects(self.shadow)
         self.shadow = []
         self.Draw()
+        
+        if self.HasChanged:
+            self.HasChanged = False
+            self.parent.TreePanel.TempSave()
 
             
     @Bind(FC.EVT_RIGHT_DOWN)
@@ -411,10 +408,10 @@ class XformCanvas(FloatCanvas):
         self.ShowFlame(rezoom=False)
 
 
-    def UnselectXform(self):
-        self.RemoveObjects(self.objects)
-        self.objects = []
-        self.SelectedXform = None
+##    def UnselectXform(self):
+##        self.RemoveObjects(self.objects)
+##        self.objects = []
+##        self.SelectedXform = None
 
     def _get_MidMove(self):
         return self.StartMove
@@ -431,4 +428,5 @@ class XformCanvas(FloatCanvas):
         return 5 / self.Scale
 
     circle_radius = property(_get_circle_radius)
+
 

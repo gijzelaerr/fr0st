@@ -90,7 +90,7 @@ class XformPanel(wx.Panel):
         
     def UpdateView(self):
         post, view = self.view
-        xform = self.parent.flame.xform[0]
+        xform = self.parent.canvas.ActiveXform
         if post:
             xform = xform.post
             
@@ -104,7 +104,7 @@ class XformPanel(wx.Panel):
 
     def UpdateXform(self,e=None):
         post, view = self.view
-        xform = self.parent.flame.xform[0]
+        xform = self.parent.canvas.ActiveXform
         if post:
             xform = xform.post
 
@@ -174,6 +174,11 @@ class VarPanel(wx.Panel):
         sizer.Add(self.tree,1,wx.EXPAND)
         self.SetSizer(sizer)
 
+        self.tree.GetMainWindow().Bind(wx.EVT_MOUSEWHEEL, self.OnWheel)
+        self.parent.Bind(wx.EVT_KEY_UP, self.OnKeyUp)
+        self.HasChanged = False
+
+
 
     def itervars(self, item=None):
         if not item:
@@ -188,9 +193,20 @@ class VarPanel(wx.Panel):
             
 
     def UpdateView(self):
-        flame = self.parent.flame
+        xform = self.parent.canvas.ActiveXform
         for i,name in self.itervars():
-            self.tree.SetItemText(i, str(getattr(flame.xform[0], name)), 1)
+            self.tree.SetItemText(i, str(getattr(xform, name)), 1)
+
+
+    def SetFlameAttribute(self, item, value):
+        parent = self.tree.GetItemParent(item)
+        if parent == self.root:
+            # it's a variation
+            name = self.tree.GetItemText(item, 0)
+        else:
+            # it's a variable
+            name = "_".join(map(self.tree.GetItemText,(parent,item)))
+        setattr(self.parent.canvas.ActiveXform,name,value)
 
 
     @Bind(wx.EVT_TREE_END_LABEL_EDIT)
@@ -205,14 +221,7 @@ class VarPanel(wx.Panel):
             return
 
         if value != oldvalue:
-            parent = self.tree.GetItemParent(item)
-            if parent == self.root:
-                # it's a variation
-                name = self.tree.GetItemText(item, 0)
-            else:
-                # it's a variable
-                name = "_".join(map(self.tree.GetItemText,(parent,item)))
-            setattr(self.parent.flame.xform[0],name,value)
+            self.SetFlameAttribute(item, value)
             self.parent.TreePanel.TempSave()
 
         e.Veto()
@@ -225,17 +234,45 @@ class VarPanel(wx.Panel):
 ##    @Bind(wx.EVT_TREE_SEL_CHANGED)
     def OnSelChanged(self,e):
         item = e.GetItem()
-##        print self.tree.GetItemText(item)
         if item != self.root:
             self.tree.EditLabel(item,1)
         e.Veto()
 
 
-    def OnMouseMove(self,e):
-        # TODO: implement the apo movement feature
-        pass
+    def OnWheel(self,e):
+        if e.ControlDown():
+            if e.AltDown():
+                diff = 0.001
+            else:
+                diff = 0.1
+        elif e.AltDown():
+            diff = 0.01
+        else:
+            e.Skip()
+            return
+
+        self.SetFocus() # Makes sure OKeyUp gets called.
+        
+        item = self.tree.HitTest(e.GetPosition())[0]
+        name = self.tree.GetItemText(item)
+        val = self.tree.GetItemText(item, 1) or "0.0"
+        
+        val = float(val) + (diff if e.GetWheelRotation() > 0 else -diff)
+        self.SetFlameAttribute(item, val)
+        self.tree.SetItemText(item, str(val), 1)
+        self.parent.image.RenderPreview()
+        self.HasChanged = True
         
 
+    def OnKeyUp(self, e):
+        key = e.GetKeyCode()
+        print key == wx.WXK_CONTROL, key == wx.WXK_ALT
+        if (key == wx.WXK_CONTROL and not e.AltDown()) or (
+            key == wx.WXK_ALT and not e.ControlDown()):
+            if self.HasChanged:
+                self.parent.TreePanel.TempSave()
+                self.HasChanged = False
+            
 
 class NumberTextCtrl(wx.TextCtrl):
 
