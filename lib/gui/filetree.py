@@ -134,7 +134,8 @@ class TreePanel(wx.Panel):
             undolists.append(lst)
         
         # Create the backup files.
-        targetdir = os.path.join('recovery',time.strftime("%Y%m%d-%H%M%S"))
+        targetdir = os.path.join(sys.path[0], 'recovery',
+                                 time.strftime("%Y%m%d-%H%M%S"))
         os.makedirs(targetdir)
         shutil.move('paths.temp',os.path.join(targetdir,'paths.temp'))
         for path in filter(os.path.exists,temppaths):

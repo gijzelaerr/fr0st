@@ -113,6 +113,7 @@ class EditorFrame(wx.Frame):
     def SaveScript(self):
         with open(self.scriptpath,"w") as f:
             f.write(self.editor.GetText())
+        self.SetTitle("%s - Script Editor" % os.path.basename(self.scriptpath))
 
 
 
