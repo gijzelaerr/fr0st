@@ -437,15 +437,3 @@ def write_image(filename, buffer, size, comments=None):
 
     with open(filename, 'wb') as fd:
         write_func(marshal.file_as_FILE(fd), buffer, size[0], size[1], comments)
-
-
-
-##variables = defaultdict(list)
-##for i,_ in XForm._fields_:
-##    items = i.split("_")
-##    if len(items) == 2:
-##        variation, variable = items
-##    if variation not in variations:
-##        continue
-##    variables[variation].append(variable)
-

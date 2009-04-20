@@ -64,35 +64,11 @@ class RandomContext(Structure):
                ]
 
 
-class BaseImageComments(Structure):
-    _fields_ = [ ('genome', c_char_p)
-               , ('badvals', c_char_p) 
-               , ('numiters', c_char_p) 
-               , ('rtime', c_char_p) 
-               ]
+class BaseImageComments(Structure): pass
 
+class RenderStats(Structure): pass
 
-class RenderStats(Structure):
-    _fields_ = [ ('badvals', c_double)
-               , ('num_iters', c_long)
-               , ('render_seconds', c_int)
-               ]
-
-
-class ImageStore(Structure):
-    _fields_ = [ ('width', c_uint)
-               , ('height', c_uint)
-               , ('version', c_int)
-               , ('id', c_int)
-               , ('intensity_weight', c_double * 256)
-               , ('bin_size', c_uint * 256)
-               , ('bin_offset', c_uint * 256)
-               , ('rowcols', POINTER(c_ushort))
-               ]
-
-
-##class BasePalette(Structure):
-##    _fields_ = [ ('_vals', c_double * 256 * 3) ]
+class ImageStore(Structure): pass
 
 class PaletteEntry(Structure):
     _fields_ = [('index', c_double),
@@ -101,152 +77,7 @@ class PaletteEntry(Structure):
 class BasePalette(Structure):
     _fields_ = [('entries', PaletteEntry * 256)]
 
-
-class BaseXForm(Structure):
-    _fields_ = [ ('var', c_double * flam3_nvariations)
-               , ('c', c_double * 3 * 2)
-               , ('post', c_double * 3 * 2)
-               , ('density', c_double)
-               , ('color', c_double)
-               , ('color_speed', c_double)
-               , ('animate', c_double)
-               , ('visibility', c_double)
-               , ('vis_adjusted', c_double)
-               , ('padding', c_int)
-               , ('wind', c_double * 2)
-               , ('precalc_angles_flag', c_int)
-               , ('precalc_atan_xy_flag', c_int)
-               , ('precalc_atan_yx_flag', c_int)
-               , ('has_preblur', c_double)
-################################## end of variables
-               , ('blob_low', c_double)
-               , ('blob_high', c_double)
-               , ('blob_waves', c_double)
-               , ('pdj_a', c_double)
-               , ('pdj_b', c_double)
-               , ('pdj_c', c_double)
-               , ('pdj_d', c_double)
-               , ('fan2_x', c_double)
-               , ('fan2_y', c_double)
-               , ('rings2_val', c_double)
-               , ('perspective_angle', c_double)
-               , ('perspective_dist', c_double)
-               , ('julian_power', c_double)
-               , ('julian_dist', c_double)
-               , ('juliascope_power', c_double)
-               , ('juliascope_dist', c_double)
-               , ('radialBlur_angle', c_double)
-               , ('pie_slices', c_double)
-               , ('pie_rotation', c_double)
-               , ('pie_thickness', c_double)
-               , ('ngon_sides', c_double)
-               , ('ngon_power', c_double)
-               , ('ngon_circle', c_double)
-               , ('ngon_corners', c_double)
-               , ('curl_c1', c_double)
-               , ('curl_c2', c_double)
-               , ('rectangles_x', c_double)
-               , ('rectangles_y', c_double)
-               , ('amw_amp', c_double)
-               , ('disc2_rot', c_double)
-               , ('disc2_twist', c_double)
-               , ('supershape_rnd', c_double)
-               , ('supershape_m', c_double)
-               , ('supershape_n1', c_double)
-               , ('supershape_n2', c_double)
-               , ('supershape_n3', c_double)
-               , ('supershape_holes', c_double)
-               , ('flower_petals', c_double)
-               , ('flower_holes', c_double)
-               , ('conic_eccentricity', c_double)
-               , ('conic_holes', c_double)
-               , ('parabola_height', c_double)
-               , ('parabola_width', c_double)
-               , ('bent2_x', c_double)
-               , ('bent2_y', c_double)
-               , ('bipolar_shift', c_double)
-               , ('cell_size', c_double)
-               , ('cpow_r', c_double)                 
-               , ('cpow_i', c_double)
-               , ('cpow_power', c_double)                 
-               , ('curve_xamp', c_double)                 
-               , ('curve_yamp', c_double)                 
-               , ('curve_xlength', c_double)                 
-               , ('curve_ylength', c_double)                 
-               , ('escher_beta', c_double)                 
-               , ('lazysusan_spin', c_double)                 
-               , ('lazysusan_space', c_double)                 
-               , ('lazysusan_twist', c_double)                 
-               , ('lazysusan_x', c_double)
-               , ('lazysusan_y', c_double)                 
-               , ('modulus_x', c_double)                 
-               , ('modulus_y', c_double)                 
-               , ('oscope_separation', c_double)                 
-               , ('oscope_frequency', c_double)                 
-               , ('oscope_amplitude', c_double)                 
-               , ('oscope_damping', c_double)                 
-               , ('popcorn2_x', c_double)                 
-               , ('popcorn2_y', c_double)                 
-               , ('popcorn2_c', c_double)
-               , ('separation_x', c_double)                 
-               , ('separation_xinside', c_double)                 
-               , ('separation_y', c_double)                 
-               , ('separation_yinside', c_double)                 
-               , ('split_xsize', c_double)                 
-               , ('split_ysize', c_double)                 
-               , ('splits_x', c_double)                 
-               , ('splits_y', c_double)                 
-               , ('stripes_space', c_double)                 
-               , ('stripes_warp', c_double)
-               , ('wedge_angle', c_double)                 
-               , ('wedge_hole', c_double)                 
-               , ('wedge_count', c_double)                 
-               , ('wedge_swirl', c_double)                 
-               , ('wedge_julia_angle', c_double)                 
-               , ('wedge_julia_count', c_double)                 
-               , ('wedge_julia_power', c_double)                 
-               , ('wedge_julia_dist', c_double)                 
-               , ('wedge_sph_angle', c_double)                 
-               , ('wedge_sph_count', c_double)
-               , ('wedge_sph_hole', c_double)                 
-               , ('wedge_sph_swirl', c_double)                 
-               , ('whorl_inside', c_double)                 
-               , ('whorl_outside', c_double)                 
-               , ('waves2_freqx', c_double)                 
-               , ('waves2_scalex', c_double)                 
-               , ('waves2_freqy', c_double)                 
-               , ('waves2_scaley', c_double)                 
-################################## end of variables
-               , ('_persp_vsin', c_double)
-               , ('_persp_vfcos', c_double)
-               , ('_julian_rn', c_double)
-               , ('_julian_cn', c_double)
-               , ('_juliascope_rn', c_double)
-               , ('_juliascope_cn', c_double)
-               , ('_wedgeJulia_rN', c_double)
-               , ('_wedgeJulia_cn', c_double)
-               , ('_wedgeJulia_cf', c_double)                 
-               , ('_radialblur_spinvar', c_double)
-               , ('_radialblur_zoomvar', c_double)
-               , ('_waves_dx2', c_double)
-               , ('_waves_dy2', c_double)
-               , ('_disc2_sinadd', c_double)
-               , ('_disc2_cosadd', c_double)
-               , ('_disc2_timespi', c_double)
-               , ('_supershape_pm_4', c_double)
-               , ('_supershape_pneg1_n1', c_double)
-               , ('num_active_vars', c_int)
-               , ('active_var_weights', c_double * flam3_nvariations)
-               , ('varfunc', c_int * flam3_nvariations)
-               , ('motion_freq', c_int)                 
-               , ('motion_func', c_int)
-               , ('motion', POINTER(BasePalette)) # should be a ptr to xform
-               , ('num_motion', c_int)
-               ]
-
-# HACK: avoid self reference in the xform struct
-BaseXForm._fields_[-1] = ('motion', POINTER(BaseXForm))
-
+class BaseXForm(Structure): pass
 
 class BaseGenome(Structure):
     _fields_ = [ ('name', c_char * (flam3_name_len + 1))

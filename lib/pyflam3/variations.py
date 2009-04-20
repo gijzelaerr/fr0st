@@ -20,6 +20,9 @@
 #  Boston, MA 02111-1307, USA.
 ##############################################################################
 
+from collections import defaultdict
+
+
 VAR_LINEAR = 0
 VAR_SINUSOIDAL =   1
 VAR_SPHERICAL = 2
@@ -110,61 +113,105 @@ for k,v in locals().items():
         variations[k[4:].lower()] = v
 
 
-##variations = { 'linear' : VAR_LINEAR
-##             , 'sinusoidal' : VAR_SINUSOIDAL
-##             , 'spherical' : VAR_SPHERICAL
-##             , 'swirl' : VAR_SWIRL
-##             , 'horseshoe' : VAR_HORSESHOE
-##             , 'polar' : VAR_POLAR
-##             , 'handkerchief' : VAR_HANDKERCHIEF
-##             , 'heart' : VAR_HEART
-##             , 'disc' : VAR_DISC
-##             , 'spiral' : VAR_SPIRAL
-##             , 'hyperbolic' : VAR_HYPERBOLIC
-##             , 'diamond' : VAR_DIAMOND
-##             , 'ex' : VAR_EX
-##             , 'julia' : VAR_JULIA
-##             , 'bent' : VAR_BENT
-##             , 'waves' : VAR_WAVES
-##             , 'fisheye' : VAR_FISHEYE
-##             , 'popcorn' : VAR_POPCORN
-##             , 'exponential' : VAR_EXPONENTIAL
-##             , 'power' : VAR_POWER
-##             , 'cosine' : VAR_COSINE
-##             , 'rings' : VAR_RINGS
-##             , 'fan' : VAR_FAN
-##             , 'blob' : VAR_BLOB
-##             , 'pdj' : VAR_PDJ
-##             , 'fan2' : VAR_FAN2
-##             , 'rings2' : VAR_RINGS2
-##             , 'eyefish' : VAR_EYEFISH
-##             , 'bubble' : VAR_BUBBLE
-##             , 'cylinder' : VAR_CYLINDER
-##             , 'perspective' : VAR_PERSPECTIVE
-##             , 'noise' : VAR_NOISE
-##             , 'julian' : VAR_JULIAN
-##             , 'juliascope' : VAR_JULIASCOPE
-##             , 'blur' : VAR_BLUR
-##             , 'gaussian_blur' : VAR_GAUSSIAN_BLUR
-##             , 'radial_blur' : VAR_RADIAL_BLUR
-##             , 'pie' : VAR_PIE
-##             , 'ngon' : VAR_NGON
-##             , 'curl' : VAR_CURL
-##             , 'rectangles' : VAR_RECTANGLES
-##             , 'arch' : VAR_ARCH
-##             , 'tangent' : VAR_TANGENT
-##             , 'square' : VAR_SQUARE
-##             , 'rays' : VAR_RAYS
-##             , 'blade' : VAR_BLADE
-##             , 'secant' : VAR_SECANT
-##             , 'twintrian' : VAR_TWINTRIAN
-##             , 'cross' : VAR_CROSS
-##             , 'disc2' : VAR_DISC2
-##             , 'super_shape' : VAR_SUPER_SHAPE
-##             , 'flower' : VAR_FLOWER
-##             , 'conic' : VAR_CONIC
-##             , 'parabola' : VAR_PARABOLA
-##             , 'split' : VAR_SPLIT
-##             , 'move' : VAR_MOVE
-##             }
+variable_list = ['blob_low',  
+                 'blob_high',  
+                 'blob_waves',  
+                 'pdj_a',  
+                 'pdj_b',  
+                 'pdj_c',  
+                 'pdj_d',  
+                 'fan2_x',  
+                 'fan2_y',  
+                 'rings2_val',  
+                 'perspective_angle',  
+                 'perspective_dist',  
+                 'julian_power',  
+                 'julian_dist',  
+                 'juliascope_power',  
+                 'juliascope_dist',  
+                 'radialBlur_angle',  
+                 'pie_slices',  
+                 'pie_rotation',  
+                 'pie_thickness',  
+                 'ngon_sides',  
+                 'ngon_power',  
+                 'ngon_circle',  
+                 'ngon_corners',  
+                 'curl_c1',  
+                 'curl_c2',  
+                 'rectangles_x',  
+                 'rectangles_y',  
+                 'amw_amp',  
+                 'disc2_rot',  
+                 'disc2_twist',  
+                 'supershape_rnd',  
+                 'supershape_m',  
+                 'supershape_n1',  
+                 'supershape_n2',  
+                 'supershape_n3',  
+                 'supershape_holes',  
+                 'flower_petals',  
+                 'flower_holes',  
+                 'conic_eccentricity',  
+                 'conic_holes',  
+                 'parabola_height',  
+                 'parabola_width',  
+                 'bent2_x',  
+                 'bent2_y',  
+                 'bipolar_shift',  
+                 'cell_size',  
+                 'cpow_r',                   
+                 'cpow_i',  
+                 'cpow_power',                   
+                 'curve_xamp',                   
+                 'curve_yamp',                   
+                 'curve_xlength',                   
+                 'curve_ylength',                   
+                 'escher_beta',                   
+                 'lazysusan_spin',                   
+                 'lazysusan_space',                   
+                 'lazysusan_twist',                   
+                 'lazysusan_x',  
+                 'lazysusan_y',                   
+                 'modulus_x',                   
+                 'modulus_y',                   
+                 'oscope_separation',                   
+                 'oscope_frequency',                   
+                 'oscope_amplitude',                   
+                 'oscope_damping',                   
+                 'popcorn2_x',                   
+                 'popcorn2_y',                   
+                 'popcorn2_c',  
+                 'separation_x',                   
+                 'separation_xinside',                   
+                 'separation_y',                   
+                 'separation_yinside',                   
+                 'split_xsize',                   
+                 'split_ysize',                   
+                 'splits_x',                   
+                 'splits_y',                   
+                 'stripes_space',                   
+                 'stripes_warp',  
+                 'wedge_angle',                   
+                 'wedge_hole',                   
+                 'wedge_count',                   
+                 'wedge_swirl',                   
+                 'wedge_julia_angle',                   
+                 'wedge_julia_count',                   
+                 'wedge_julia_power',                   
+                 'wedge_julia_dist',                   
+                 'wedge_sph_angle',                   
+                 'wedge_sph_count',  
+                 'wedge_sph_hole',                   
+                 'wedge_sph_swirl',                   
+                 'whorl_inside',                   
+                 'whorl_outside',                   
+                 'waves2_freqx',                   
+                 'waves2_scalex',                   
+                 'waves2_freqy',                   
+                 'waves2_scaley']         
 
+variables = defaultdict(list)
+for i in variable_list:
+    tion, ble = i.split("_", 1)
+    variables[tion].append(ble)
