@@ -19,7 +19,7 @@
 #  the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 #  Boston, MA 02111-1307, USA.
 ##############################################################################
-flam3_nvariations = 54
+flam3_nvariations = 82
 flam3_nxforms = 12
 flam3_parent_fn_len = 30
 flam3_interpolation_linear = 0

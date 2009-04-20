@@ -21,12 +21,12 @@
 ##############################################################################
 
 VAR_LINEAR = 0
-VAR_SINUSOIDAL = 1
+VAR_SINUSOIDAL =   1
 VAR_SPHERICAL = 2
-VAR_SWIRL = 3
-VAR_HORSESHOE = 4
-VAR_POLAR = 5
-VAR_HANDKERCHIEF = 6
+VAR_SWIRL =3
+VAR_HORSESHOE  =4
+VAR_POLAR =5
+VAR_HANDKERCHIEF =6
 VAR_HEART = 7
 VAR_DISC = 8
 VAR_SPIRAL = 9
@@ -66,7 +66,7 @@ VAR_TANGENT = 42
 VAR_SQUARE = 43
 VAR_RAYS = 44
 VAR_BLADE = 45
-VAR_SECANT = 46
+VAR_SECANT2 = 46
 VAR_TWINTRIAN = 47
 VAR_CROSS = 48
 VAR_DISC2 = 49
@@ -74,64 +74,97 @@ VAR_SUPER_SHAPE = 50
 VAR_FLOWER = 51
 VAR_CONIC = 52
 VAR_PARABOLA = 53
-VAR_SPLIT = 54
-VAR_MOVE = 55
+VAR_BENT2 = 54
+VAR_BIPOLAR = 55
+VAR_BOARDERS = 56
+VAR_BUTTERFLY = 57
+VAR_CELL = 58
+VAR_CPOW = 59
+VAR_CURVE = 60
+VAR_EDISC = 61
+VAR_ELLIPTIC = 62
+VAR_ESCHER = 63
+VAR_FOCI = 64
+VAR_LAZYSUSAN = 65
+VAR_LOONIE = 66
+VAR_PRE_BLUR = 67
+VAR_MODULUS = 68
+VAR_OSCILLOSCOPE = 69
+VAR_POLAR2 = 70
+VAR_POPCORN2 = 71
+VAR_SCRY = 72
+VAR_SEPARATION = 73
+VAR_SPLIT = 74
+VAR_SPLITS = 75
+VAR_STRIPES = 76
+VAR_WEDGE = 77
+VAR_WEDGE_JULIA = 78
+VAR_WEDGE_SPH = 79
+VAR_WHORL = 80
+VAR_WAVES2 = 81
 
-variations = { 'linear' : VAR_LINEAR
-             , 'sinusoidal' : VAR_SINUSOIDAL
-             , 'spherical' : VAR_SPHERICAL
-             , 'swirl' : VAR_SWIRL
-             , 'horseshoe' : VAR_HORSESHOE
-             , 'polar' : VAR_POLAR
-             , 'handkerchief' : VAR_HANDKERCHIEF
-             , 'heart' : VAR_HEART
-             , 'disc' : VAR_DISC
-             , 'spiral' : VAR_SPIRAL
-             , 'hyperbolic' : VAR_HYPERBOLIC
-             , 'diamond' : VAR_DIAMOND
-             , 'ex' : VAR_EX
-             , 'julia' : VAR_JULIA
-             , 'bent' : VAR_BENT
-             , 'waves' : VAR_WAVES
-             , 'fisheye' : VAR_FISHEYE
-             , 'popcorn' : VAR_POPCORN
-             , 'exponential' : VAR_EXPONENTIAL
-             , 'power' : VAR_POWER
-             , 'cosine' : VAR_COSINE
-             , 'rings' : VAR_RINGS
-             , 'fan' : VAR_FAN
-             , 'blob' : VAR_BLOB
-             , 'pdj' : VAR_PDJ
-             , 'fan2' : VAR_FAN2
-             , 'rings2' : VAR_RINGS2
-             , 'eyefish' : VAR_EYEFISH
-             , 'bubble' : VAR_BUBBLE
-             , 'cylinder' : VAR_CYLINDER
-             , 'perspective' : VAR_PERSPECTIVE
-             , 'noise' : VAR_NOISE
-             , 'julian' : VAR_JULIAN
-             , 'juliascope' : VAR_JULIASCOPE
-             , 'blur' : VAR_BLUR
-             , 'gaussian_blur' : VAR_GAUSSIAN_BLUR
-             , 'radial_blur' : VAR_RADIAL_BLUR
-             , 'pie' : VAR_PIE
-             , 'ngon' : VAR_NGON
-             , 'curl' : VAR_CURL
-             , 'rectangles' : VAR_RECTANGLES
-             , 'arch' : VAR_ARCH
-             , 'tangent' : VAR_TANGENT
-             , 'square' : VAR_SQUARE
-             , 'rays' : VAR_RAYS
-             , 'blade' : VAR_BLADE
-             , 'secant' : VAR_SECANT
-             , 'twintrian' : VAR_TWINTRIAN
-             , 'cross' : VAR_CROSS
-             , 'disc2' : VAR_DISC2
-             , 'super_shape' : VAR_SUPER_SHAPE
-             , 'flower' : VAR_FLOWER
-             , 'conic' : VAR_CONIC
-             , 'parabola' : VAR_PARABOLA
-             , 'split' : VAR_SPLIT
-             , 'move' : VAR_MOVE
-             }
+
+variations = {}
+for k,v in locals().items():
+    if k.startswith("VAR_"):
+        variations[k[4:].lower()] = v
+
+
+##variations = { 'linear' : VAR_LINEAR
+##             , 'sinusoidal' : VAR_SINUSOIDAL
+##             , 'spherical' : VAR_SPHERICAL
+##             , 'swirl' : VAR_SWIRL
+##             , 'horseshoe' : VAR_HORSESHOE
+##             , 'polar' : VAR_POLAR
+##             , 'handkerchief' : VAR_HANDKERCHIEF
+##             , 'heart' : VAR_HEART
+##             , 'disc' : VAR_DISC
+##             , 'spiral' : VAR_SPIRAL
+##             , 'hyperbolic' : VAR_HYPERBOLIC
+##             , 'diamond' : VAR_DIAMOND
+##             , 'ex' : VAR_EX
+##             , 'julia' : VAR_JULIA
+##             , 'bent' : VAR_BENT
+##             , 'waves' : VAR_WAVES
+##             , 'fisheye' : VAR_FISHEYE
+##             , 'popcorn' : VAR_POPCORN
+##             , 'exponential' : VAR_EXPONENTIAL
+##             , 'power' : VAR_POWER
+##             , 'cosine' : VAR_COSINE
+##             , 'rings' : VAR_RINGS
+##             , 'fan' : VAR_FAN
+##             , 'blob' : VAR_BLOB
+##             , 'pdj' : VAR_PDJ
+##             , 'fan2' : VAR_FAN2
+##             , 'rings2' : VAR_RINGS2
+##             , 'eyefish' : VAR_EYEFISH
+##             , 'bubble' : VAR_BUBBLE
+##             , 'cylinder' : VAR_CYLINDER
+##             , 'perspective' : VAR_PERSPECTIVE
+##             , 'noise' : VAR_NOISE
+##             , 'julian' : VAR_JULIAN
+##             , 'juliascope' : VAR_JULIASCOPE
+##             , 'blur' : VAR_BLUR
+##             , 'gaussian_blur' : VAR_GAUSSIAN_BLUR
+##             , 'radial_blur' : VAR_RADIAL_BLUR
+##             , 'pie' : VAR_PIE
+##             , 'ngon' : VAR_NGON
+##             , 'curl' : VAR_CURL
+##             , 'rectangles' : VAR_RECTANGLES
+##             , 'arch' : VAR_ARCH
+##             , 'tangent' : VAR_TANGENT
+##             , 'square' : VAR_SQUARE
+##             , 'rays' : VAR_RAYS
+##             , 'blade' : VAR_BLADE
+##             , 'secant' : VAR_SECANT
+##             , 'twintrian' : VAR_TWINTRIAN
+##             , 'cross' : VAR_CROSS
+##             , 'disc2' : VAR_DISC2
+##             , 'super_shape' : VAR_SUPER_SHAPE
+##             , 'flower' : VAR_FLOWER
+##             , 'conic' : VAR_CONIC
+##             , 'parabola' : VAR_PARABOLA
+##             , 'split' : VAR_SPLIT
+##             , 'move' : VAR_MOVE
+##             }
 
