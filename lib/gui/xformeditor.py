@@ -133,15 +133,14 @@ class VarPanel(wx.Panel):
         self.parent = parent.parent
 
         # Variations are sorted by their index, i.e. their dict value, not key.
-        gen = ((j,i) for i,j in pyflam3.variations.items())
-        self.variations = [i for j,i in sorted(gen)]
-        self.variables = defaultdict(list)
-        for i in dir(pyflam3.BaseXForm):
-            lst = i.split("_",1)
-            if lst[0] in self.variations:
-                self.variables[lst[0]].append(lst[1])
+##        gen = ((j,i) for i,j in pyflam3.variations.items())
+##        self.variations = [i for j,i in sorted(gen)]
+##        self.variables = defaultdict(list)
+##        for i in dir(pyflam3.BaseXForm):
+##            lst = i.split("_",1)
+##            if lst[0] in self.variations:
+##                self.variables[lst[0]].append(lst[1])
 
-        # TODO: find a way to actually filter out all variables
 
         self.tree = gizmos.TreeListCtrl(self, -1, style =
                                           wx.TR_DEFAULT_STYLE
@@ -162,10 +161,10 @@ class VarPanel(wx.Panel):
 
         self.root = self.tree.AddRoot("The Root Item")
 
-        for i in self.variations:
+        for i in pyflam3.variation_list:
             child = self.tree.AppendItem(self.root, i)
 
-            for j in self.variables[i]:
+            for j in pyflam3.variables[i]:
                 item = self.tree.AppendItem(child,  j)
 
         sizer = wx.BoxSizer(wx.VERTICAL)

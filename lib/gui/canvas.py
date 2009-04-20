@@ -5,6 +5,7 @@ from wx.lib.floatcanvas.FloatCanvas import FloatCanvas, DotGrid
 from decorators import Bind, BindEvents
 from _events import EVT_CANVAS_REFRESH
 from lib.functions import polar
+from lib import pyflam3
 
 
 class XformCanvas(FloatCanvas):
@@ -383,8 +384,7 @@ class XformCanvas(FloatCanvas):
     def SelectXform(self, xform, highlight=None):
         self.SelectedXform = xform
 
-        varlist = [i for i in self.parent.XformTabs.Vars.variations
-                   if getattr(xform,i)]
+        varlist = [i for i in pyflam3.variation_list if getattr(xform,i)]
         color = ((255,255,255) if xform.isfinal()
                  else self.colors[xform.index%len(self.colors)])
         hor, ver = self.GetSize()

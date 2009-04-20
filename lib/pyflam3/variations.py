@@ -22,6 +22,8 @@
 
 from collections import defaultdict
 
+from constants import flam3_nvariations
+
 
 VAR_LINEAR = 0
 VAR_SINUSOIDAL =   1
@@ -108,9 +110,13 @@ VAR_WAVES2 = 81
 
 
 variations = {}
+variation_list = [None] * flam3_nvariations
 for k,v in locals().items():
     if k.startswith("VAR_"):
-        variations[k[4:].lower()] = v
+        name = k[4:].lower()
+        variations[name] = v
+        variation_list[v] = name
+
 
 
 variable_list = ['blob_low',  
@@ -215,3 +221,4 @@ variables = defaultdict(list)
 for i in variable_list:
     tion, ble = i.split("_", 1)
     variables[tion].append(ble)
+
