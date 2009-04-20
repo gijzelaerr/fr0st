@@ -9,7 +9,6 @@
    -the creation of temp_flame can be avoided, but produces som ugly floats
 """
 
-from runscript import *
 
 def equalize_flame_attributes(flame1,flame2):
     """Make two flames have the same number of xforms and the same
@@ -179,13 +178,10 @@ def interpolate_sequence(flames,interval,last_to_first=False):
 
     
 #------------------------------------------------------------------------------
-if __name__ == '__main__':
+if True:
     flame1 = Flame(file='test_interpolation.flame',name='1')
     flame2 = Flame(file='test_interpolation.flame',name='2')
 
-    import time
-    t = time.time()
     buff = interpolate(flame1,flame2,20,'test')
-    print time.time()-t
 
-    save_flames(os.path.join('..','parameters','interpolate.flame'),*buff)
+    save_flames(os.path.join('parameters','interpolate.flame'),*buff)
