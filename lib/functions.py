@@ -24,11 +24,11 @@ def polar(coord):
     theta = atan2(coord[1], coord[0]) * (180.0/pi)
     return l, theta   
 
-def rect(r,phi):
+def rect(coord):
 ##    comp = cmath.rect(r,phi)
 ##    return comp.real,comp.imag # Use this once 2.6 is default
-    real = r * cos(phi*pi/180.0)
-    imag = r * sin(phi*pi/180.0)
+    real = coord[0] * cos(coord[1]*pi/180.0)
+    imag = coord[0] * sin(coord[1]*pi/180.0)
     return real, imag
     
 #-------------------------------------------------------------------------------
@@ -68,31 +68,23 @@ def hls2rgb(color):
 
 #-------------------------------------------------------------------------------
 """
-drange - Returns a linear list of values from x to y over n steps
+drange - Returns a list of values from x to y over n steps
   x - starting value
   y - ending value
   n - number of steps (returned list is n+1 items)
+  curve - lin, par
 """
-def drange(x, y, n):
+def drange(x, y, n, curve='lin', a=1):
     v = []
-    d = (y-x)/float(n)
-    for i in xrange(0, n+1):
-        v.append(x+d*i)
+    if curve=='par':
+        d = (y-x)/(a*float(n)**2)
+        for i in range(0, n+1):
+            v.append(x + a*d*(i**2))
+    else:
+        d = (y-x)/float(n)
+        for i in xrange(0, n+1):
+            v.append(x+d*i)
     return v
-
-"""
-prange - Returns a parabolic list of values from x to y over n steps
-  x - start value
-  y - end value
-  n - number of steps (returned is n+1)
-  a - slope of the curve
-"""
-def prange(x, y, n, a=1):
-  v = []
-  d = (y-x)/(a*float(n)**2)
-  for i in range(0, n+1):
-    v.append(x + a*d*(i**2))
-  return v
 
 """
 Smooth - Returns a smoothed curve from a list of 4 control points
@@ -127,91 +119,87 @@ def smooth(cps, n, t=0.5):
     return pk
     
 """
-smooth_color - Returns list of smoothed color tuples
-  cps - 4 colors, one before and one after the two being smoothed
-  n - distance between colors
-"""
-def smooth_color(c1, c2, n):
-    r = interp(c1[0], c2[0],n)
-    g = interp(c1[1], c2[1],n)
-    b = interp(c1[2], c2[2],n)
-
-    v = []    
-    for i in xrange(0,len(r)):
-        v.append((r[i],g[i],b[i]))
-    return v
-
-def smoother_color(c1,c2,n):
-    rmid = abs((c2[0]-c1[0])/2.0)
-    gmid = abs((c2[1]-c1[1])/2.0)
-    bmid = abs((c2[2]-c1[2])/2.0)
-
-    r1 = pinterp(c1[0],rmid,n)
-    g1 = pinterp(c1[1],gmid,n)
-    b1 = pinterp(c1[2],bmid,n)
-    r2 = pinterp(c2[0],rmid,n)
-    g2 = pinterp(c2[1],gmid,n)
-    b2 = pinterp(c2[2],bmid,n)
-
-    r2.reverse()
-    g2.reverse()
-    b2.reverse()
-
-    r = r1[:-1] + r2
-    g = g1[:-1] + g2
-    b = b1[:-1] + b2
-
-    v = []    
-    for i in xrange(0,len(r)):
-        v.append((r[i],g[i],b[i]))
-    return v
-
-"""
-Interp - Returns a linear vector between two control points
+Interp - Returns a vector between two control points (p is for points and c is for colors)
   cp1 - first control point
   cp2 - second control point
   n - distance between control points
+  curve - lin, par
 """
-def interp(cp1, cp2, n):
+def interp(cp1, cp2, n, curve='lin'):
     d = cp2 - cp1
-    v = drange(0,1,n)
-    pk = []
-    for i in xrange(0, n+1):
-        pk.append(cp1+v[i]*d)
-    return pk
-    
-"""
-pinterp - Returns a parabolic vector between two control points
-  cp1 - first
-  cp2 - second
-  n - distance between
-"""
-def pinterp(cp1, cp2, n):
-    d = cp2 - cp1
-    v = prange(0,1,n)
+    v = drange(0,1,n,curve)
     pk = []
     for i in xrange(0, n+1):
         pk.append(cp1+v[i]*d)
     return pk
 
 """
+space - rect or polar
+"""    
+def pinterp(cp1, cp2, n, curve='lin', space='rect'):
+    if space=='polar':
+        cp1 = polar(cp1)
+        cp2 = polar(cp2)
+        px = interp(cp1[0], cp2[0], n, curve)
+        py = interp(cp1[1], cp2[1], n, curve)
+        pk = []
+        for i in xrange(0,n+1):
+            pk.append(rect((px[i],py[i])))
+    else:
+        px = interp(cp1[0], cp2[0], n, curve)
+        py = interp(cp1[1], cp2[1], n, curve)
+        pk = []
+        for i in xrange(0,n+1):
+            pk.append((px[i],py[i]))
+    return pk
+
+def cinterp(c1, c2, n, curve='lin'):
+    if curve=='par':
+        rmid = abs((c2[0]-c1[0])/2.0)
+        gmid = abs((c2[1]-c1[1])/2.0)
+        bmid = abs((c2[2]-c1[2])/2.0)
+        r1 = interp(c1[0],rmid,n,'par')
+        g1 = interp(c1[1],gmid,n,'par')
+        b1 = interp(c1[2],bmid,n,'par')
+        r2 = interp(c2[0],rmid,n,'par')
+        g2 = interp(c2[1],gmid,n,'par')
+        b2 = interp(c2[2],bmid,n,'par')
+        r2.reverse()
+        g2.reverse()
+        b2.reverse()
+        r = r1[:-1] + r2
+        g = g1[:-1] + g2
+        b = b1[:-1] + b2
+    else:
+        r = interp(c1[0], c2[0], n, curve)
+        g = interp(c1[1], c2[1], n, curve)
+        b = interp(c1[2], c2[2], n, curve)
+    pk = []    
+    for i in xrange(0,len(r)):
+        v.append((r[i],g[i],b[i]))
+    return pk
+    
+"""
 from_seed - Returns a palette from a seed color
 """
-def from_seed(self, seed, split=20, dist=64):
+def from_seed(self, seed, split=20, dist=64, smoothed=False):
     (h,l,s) = rgb2hls(seed)
     split /= 360.0
     comp = hls2rgb((h+0.5,l,s))
     lspl = hls2rgb((h+0.5-split,l,s))
     rspl = hls2rgb((h+0.5+split,l,s))
-    
+
+    if smoothed: curve = 'par'
+    else:        curve = 'lin'
+
     #g1 is from 0 (compliment) to dist (left split)
-    g1 = smoother_color(comp, lspl, dist)
+    g1 = cinterp(comp, lspl, dist, curve)
     #g2 is from dist to 128 (seed)
-    g2 = smoother_color(lspl, seed, 128-dist)
+    g2 = cinterp(lspl, seed, 128-dist, curve)
     #g3 is from 127 to 255-dist
-    g3 = smoother_color(seed, rspl, 128-dist)
+    g3 = cinterp(seed, rspl, 128-dist, curve)
     #g4 is from 255-dist to 255
-    g4 = smoother_color(rspl, comp, dist)
+    g4 = cinterp(rspl, comp, dist, curve)
     
     g = g1[:-1]+g2[1:-1]+g3[:1]+g4
     return g
