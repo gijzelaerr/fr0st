@@ -17,7 +17,8 @@ class PreviewFrame(wx.Frame):
         sizer.Add(self.image, 1, wx.EXPAND)
         self.SetSizer(sizer)
 
-        self._lastsize = 0,0
+        self._lastsize = 1,1
+        self.SetSize((400,300))
 
 
     @Bind(wx.EVT_CLOSE)
@@ -42,9 +43,6 @@ class PreviewFrame(wx.Frame):
         fw, fh = self.size
 
         ratio = min(pw/fw, ph/fh)
-
-##        size = int(fw * ratio), int(nh * ratio)
-
         image.Rescale(int(fw * ratio), int(fh * ratio))
         self.image.bmp = wx.BitmapFromImage(image)
 
@@ -61,9 +59,10 @@ class PreviewFrame(wx.Frame):
         size = int(fw * ratio), int(fh * ratio)
         self.size = size
         
-        req = self.parent.renderer.UrgentRequest
+        req = self.parent.renderer.LargePreviewRequest
         req(self.UpdateBitmap,size,flame.to_string(),
-            size,quality=10,estimator=0,filter=.2)
+            size,quality=10,estimator=0,filter=.2,
+            progress_func = self.prog_func)
 
 
     def UpdateBitmap(self,size,output_buffer):
@@ -73,6 +72,8 @@ class PreviewFrame(wx.Frame):
         self.SetTitle("%s - Flame Preview" % self.parent.flame.name)
         self.image.Refresh()
 
+    def prog_func(self, py_object, fraction, stage, eta):
+        pass
         
 
 class PreviewPanel(wx.Panel):

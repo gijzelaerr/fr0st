@@ -463,7 +463,7 @@ class ImagePanel(wx.Panel):
         width = 160 if ratio > 1 else int(160*ratio)
         height = int(width / ratio)
         size = width,height
-        req = self.parent.renderer.UrgentRequest
+        req = self.parent.renderer.PreviewRequest
         req(self.UpdateBitmap,size,flame.to_string(),
             size,quality=2,estimator=0,filter=.2)
 

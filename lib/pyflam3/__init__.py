@@ -395,9 +395,9 @@ class Frame(BaseFrame):
         self.time = kwargs.get('time', 0)
         self.bytes_per_channel = kwargs.get('bytes_per_channel',1)
 
-##        progress = kwargs.get('progress_func', None)
-##        if callable(progress):
-##            self.progress = ProgressFunction(progress)
+        progress = kwargs.get('progress_func', None)
+        if callable(progress):
+            self.progress = ProgressFunction(progress)
 ##        else:
 ##            self.progress = ProgressFunction()
 ##

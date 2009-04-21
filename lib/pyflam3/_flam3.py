@@ -47,7 +47,8 @@ else:
 
 IteratorFunction = CFUNCTYPE(None, c_void_p, c_double)
 SpatialFilterFunction = CFUNCTYPE(c_double, c_double)
-ProgressFunction = CFUNCTYPE(py_object, c_double, c_int, c_double)
+ProgressFunction = CFUNCTYPE(c_int, POINTER(py_object), c_double, c_int, c_double)
+
 
 def copy_to(src, dest):
     for (src_val, dest_val) in itertools.izip(src, dest):

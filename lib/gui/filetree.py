@@ -66,7 +66,7 @@ class TreePanel(wx.Panel):
             child = self.item
         data = self.tree.GetPyData(child)
         self.imgcount += 1
-        self.parent.renderer.Request(self.UpdateThumbnail,
+        self.parent.renderer.ThumbnailRequest(self.UpdateThumbnail,
                                      (child,self.imgcount,self.isz),
                                      data[-1],self.isz,quality=25,estimator=3)
 
