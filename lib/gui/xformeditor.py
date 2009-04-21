@@ -169,8 +169,8 @@ class VarPanel(wx.Panel):
         self.tree.AddColumn("Value")
 
         self.tree.SetMainColumn(0)
-        self.tree.SetColumnWidth(0, 165)
-        self.tree.SetColumnWidth(1, 64)
+        self.tree.SetColumnWidth(0, 120)
+        self.tree.SetColumnWidth(1, 45)
         self.tree.SetColumnEditable(1,True)
 
         self.root = self.tree.AddRoot("The Root Item")

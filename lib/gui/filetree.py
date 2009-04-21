@@ -22,7 +22,7 @@ class TreePanel(wx.Panel):
         self.item = None
                        
         # Specify a size instead of using wx.DefaultSize
-        self.tree = wx.TreeCtrl(self, wx.NewId(), wx.DefaultPosition, (200,500),
+        self.tree = wx.TreeCtrl(self, wx.NewId(), wx.DefaultPosition, (180,500),
                                wx.TR_DEFAULT_STYLE
                                #wx.TR_HAS_BUTTONS
                                | wx.TR_EDIT_LABELS
@@ -32,11 +32,9 @@ class TreePanel(wx.Panel):
 
         # Change font size so that it fits nicely with images
         font = self.GetFont()
-        font.SetPointSize(11)
+        font.SetPointSize(9)
         self.tree.SetFont(font)
 
-        # This doesn't work, but the above font resizing does...
-##        self.tree.Spacing = 28 # Default is 18
         
         isz = (28,21)
         il = wx.ImageList(*isz)
