@@ -30,6 +30,7 @@ class PreviewFrame(wx.Frame):
     @Bind(wx.EVT_SIZE)
     def OnResize(self, e):
         size = e.GetSize()
+        print size, self._lastsize
 
         if size == self._lastsize:
             # Don't know why, but each resize triggers 2 events
@@ -39,7 +40,7 @@ class PreviewFrame(wx.Frame):
         self.RenderPreview()
 
         image = wx.ImageFromBitmap(self.image.bmp)
-        pw, ph = size
+        pw, ph = map(float,size)
         fw, fh = self.size
 
         ratio = min(pw/fw, ph/fh)

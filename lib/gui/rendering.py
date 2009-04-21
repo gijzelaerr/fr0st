@@ -10,7 +10,11 @@ def render(string,size,quality,estimator=9,**kwds):
     """Passes render requests on to flam3."""
     genome = Genome.from_string(string)[0]
     width,height = size
-    genome.pixels_per_unit /= genome.width/float(width) # Adjusts scale
+    # HACK!
+    try:
+        genome.pixels_per_unit /= genome.width/float(width) # Adjusts scale
+    except:
+        pass
     genome.width = width
     genome.height = height
     genome.sample_density = quality
@@ -20,61 +24,90 @@ def render(string,size,quality,estimator=9,**kwds):
 
 
 class Renderer():
-    def __init__(self,parent):
+    def __init__(self, parent):
         self.parent = parent
-        self.preview = []
-        self.queue = []
-        self.thumb = []
+        self.previewqueue = []
+        self.bgqueue = []
+        self.thumbqueue = []
         self.exitflag = None
-        self.cancelrender = False
+        self.previewflag = 0
+        self.bgflag = 0
         self.RenderLoop()
+        self.bgRenderLoop()
+
 
     def ThumbnailRequest(self,callback,metadata,*args,**kwds):
         """Schedules a genome to be rendered as soon as there are no previous
         or higher priority requests pending."""
-        self.thumb.append((callback,metadata,args,kwds))
+        self.thumbqueue.append((callback,metadata,args,kwds))
+
 
     def PreviewRequest(self,callback,metadata,*args,**kwds):
         """Schedules a render immediately after the current render is done.
         Cancels previous urgent requests (assuming they are obsolete), but
         leaves the normal request queue intact."""
-        self.cancelrender = True
-        self.preview = [(callback,metadata,args,kwds)]
+        self.previewflag = 1
+        self.previewqueue = [(callback,metadata,args,kwds)]
+
         
     def LargePreviewRequest(self,callback,metadata,*args,**kwds):
         """Makes a preview request with a callback function."""
         prog_func = kwds.get("progress_func", None)
         if not prog_func:
             raise KeyError("You must specify a progress function")
-        kwds["progress_func"] = self.prog_wrapper(prog_func)
-        
-        self.cancelrender = True
-        self.preview = [(callback,metadata,args,kwds)]
+        kwds["progress_func"] = self.prog_wrapper(prog_func, "previewflag")
+        self.previewflag = 1
+##        self.previewqueue = [(callback,metadata,args,kwds)]
+        # This is an append so that a simultaneous request for small and
+        # large previews goes through.
+        self.previewqueue.append((callback,metadata,args,kwds))
+
 
     def RenderRequest(self,callback,metadata,*args,**kwds):
-        self.queue = [(callback,metadata,args,kwds)]
+        """Makes a render request run in a different thread than previews,
+        so it can be paused."""
+        prog_func = kwds.get("progress_func", None)
+        if not prog_func:
+            raise KeyError("You must specify a progress function")
+        kwds["progress_func"] = self.prog_wrapper(prog_func, "bgflag")
+
+        self.bgqueue = [(callback,metadata,args,kwds)]
         
 
     @Threaded
     @Catches(TypeError)
     def RenderLoop(self):
         while not self.exitflag:
-            queue = self.preview or self.queue or self.thumb
+            queue = self.previewqueue or self.thumbqueue
             if queue:
                 callback,metadata,args,kwds = queue.pop(0)
-                self.cancelrender = False
+                self.previewflag = 0
+                self.bgflag = 2 # Pauses the other thread
                 output_buffer = render(*args,**kwds)
+                self.bgflag = 0
                 evt = ImageReadyEvent(callback,metadata,output_buffer)
                 wx.PostEvent(self.parent,evt)
             else:
                 time.sleep(.01)  # Ideal interval needs to be tested
 
-        # Shutting down, so render needs to be cancelled.
-        self.cancelrender = True
 
+    @Threaded
+    @Catches(TypeError)
+    def bgRenderLoop(self):
+        while not self.exitflag:
+            if self.bgqueue:
+                callback,metadata,args,kwds = self.bgqueue.pop(0)
+                output_buffer = render(*args,**kwds)
+                evt = ImageReadyEvent(callback,metadata,output_buffer)
+                wx.PostEvent(self.parent,evt)
+            else:
+                time.sleep(.01)
+        
 
-    def prog_wrapper(self, f):
+    def prog_wrapper(self, f, flag):
         def prog_func(*args):
             res = f(*args)
-            return max(int(self.cancelrender), res)
+            return max(getattr(self,flag), res)
         return prog_func
+
+    
