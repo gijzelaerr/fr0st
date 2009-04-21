@@ -214,12 +214,14 @@ class MainWindow(wx.Frame):
 
     @Bind(wx.EVT_TOOL,id=ID.TBEDITOR)
     def OnEditorOpen(self,e):
+        self.editorframe.Show(True)
         self.editorframe.Raise()
         self.editorframe.SetFocus() # In case it's already open in background
 
 
     @Bind(wx.EVT_TOOL, id=ID.TBPREVIEW)
     def OnPreviewOpen(self, e):
+        self.previewframe.Show(True)
         self.previewframe.Raise()
         self.previewframe.RenderPreview()
 
