@@ -1,13 +1,13 @@
-from runscript import *
+from lib.pyflam3 import Genome
 
 flame = Flame(file="samples.flame",name="julia")
 
-from timeit import Timer
+import time
 
-print flame.to_string()
-##print flame.gradient.formatstr
+t = time.time()
+for i in range(1000):
+    Genome.from_string(flame.to_string())
 
-print Timer("flame.gradient.to_string()",
-            "from __main__ import flame").timeit(1000)
+print time.time() - t
 
 

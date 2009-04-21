@@ -169,8 +169,8 @@ class VarPanel(wx.Panel):
         self.tree.AddColumn("Value")
 
         self.tree.SetMainColumn(0)
-        self.tree.SetColumnWidth(0, 120)
-        self.tree.SetColumnWidth(1, 45)
+        self.tree.SetColumnWidth(0, 160)
+        self.tree.SetColumnWidth(1, 60)
         self.tree.SetColumnEditable(1,True)
 
         self.root = self.tree.AddRoot("The Root Item")
@@ -288,7 +288,7 @@ class NumberTextCtrl(wx.TextCtrl):
     @BindEvents
     def __init__(self,parent):
         self.parent = parent
-        # Size is set to ubuntu default, maybe make it 75x21 in win only
+        # Size is set to ubuntu default (75,27), maybe make it 75x21 in win
         wx.TextCtrl.__init__(self,parent,-1, size=(75,27))
         self.SetValue("0.0")
         self._value = 0.0

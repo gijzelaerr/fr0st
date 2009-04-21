@@ -37,7 +37,7 @@ class MainWindow(wx.Frame):
 ##        ib.AddIconFromFile("Icon.ico",wx.BITMAP_TYPE_ANY)
 ##        self.SetIcons(ib)
         self.CreateStatusBar()
-        self.SetMinSize((800,600))
+        self.SetMinSize((750,500))
         self.SetDoubleBuffered(True)
         
         # Launch the render thread
@@ -66,12 +66,15 @@ class MainWindow(wx.Frame):
         
         sizer = wx.BoxSizer(wx.HORIZONTAL)
         sizer.Add(self.TreePanel,0,wx.EXPAND)
-        sizer.Add(self.canvas,1)
+        sizer.Add(self.canvas,1, wx.EXPAND)
         sizer.Add(sizer2,0,wx.EXPAND)
-
+        
         self.SetSizer(sizer)
         self.SetAutoLayout(1)
+
         sizer.Fit(self)
+
+        self.SetSize((800,600))
 
         self.flame = None
 
@@ -446,7 +449,7 @@ class ImagePanel(wx.Panel):
         self.parent = parent
         wx.Panel.__init__(self, parent, -1)
         self.bmp = wx.EmptyBitmap(160,120, 32)
-        self.SetMinSize((200, 200))
+        self.SetMinSize((256, 192))
 
 
     def RenderPreview(self, flame=None):
@@ -480,6 +483,6 @@ class ImagePanel(wx.Panel):
     def OnPaint(self, evt):       
         w,h = self.bmp.GetSize()
         dc = wx.PaintDC(self)
-        dc.DrawBitmap(self.bmp, 100-w/2, 100-h/2, True)
+        dc.DrawBitmap(self.bmp, 128-w/2, 96-h/2, True)
 
 
