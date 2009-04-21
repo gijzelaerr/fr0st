@@ -8,7 +8,7 @@
 
 # This code sets up the namespace in which fr0st scripts run
 
-import os, sys, marshal, copy, random, cmath, shutil
+import os, sys, marshal, copy, random, cmath, shutil, numpy, colorsys
 from math import *
 sys.dont_write_bytecode = False # Why is this line here?
 
@@ -30,6 +30,169 @@ def rect(r,phi):
     real = r * cos(phi*pi/180.0)
     imag = r * sin(phi*pi/180.0)
     return real, imag
+    
+#-------------------------------------------------------------------------------
+"""
+Clip - clips variable if above or below limits
+  v - value
+  mini - minimum value
+  maxi - maximum value
+  rotate - if true, above max wraps to min (default false)
+"""
+def clip(v, mini, maxi, rotate=False):
+    if rotate:
+        if v > maxi: v = v-maxi+mini
+        elif v < mini: v = v+maxi-mini
+    else:
+        if v > maxi: v = maxi
+        elif v < mini: v = mini
+    return v
+
+"""
+Takes an rgb tuple (0-255) and returns hls tuple (hls is scalar)
+"""
+def rgb2hls(color):
+    return colorsys.rgb_to_hls(*map(lambda x: x/256.0, color))
+
+"""
+Takes hls tuple and returns rgb tuple (rgb is int)
+"""    
+def hls2rgb(color):
+    #convert h to scalar
+    h,l,s = color
+    h = clip(h,0,1,True)
+
+    (r,g,b) = colorsys.hls_to_rgb(h,l,s)
+
+    return (r*255,b*255,g*255)
+
+#-------------------------------------------------------------------------------
+"""
+drange - Returns a linear list of values from x to y over n steps
+  x - starting value
+  y - ending value
+  n - number of steps (returned list is n+1 items)
+"""
+def drange(x, y, n):
+    v = []
+    d = (y-x)/float(n)
+    for i in xrange(0, n+1):
+        v.append(x+d*i)
+    return v
+
+"""
+prange - Returns a parabolic list of values from x to y over n steps
+  x - start value
+  y - end value
+  n - number of steps (returned is n+1)
+  a - slope of the curve
+"""
+def prange(x, y, n, a=1):
+  v = []
+  d = (y-x)/(a*float(n)**2)
+  for i in range(0, n+1):
+    v.append(x + a*d*(i**2))
+  return v
+
+"""
+Smooth - Returns a smoothed curve from a list of 4 control points
+  cps - list of control points (4 required - one before and one after the two that are being smoothed)
+  n - distance between control points
+  t - tension of the spline (0.5 = Catmull-Rom)
+"""
+def smooth(cps, n, t=0.5):
+    y0 = cps[1]                     #initial vector location is second control point
+    y1 = cps[2]                     #ending location of the vector
+    
+    dy = y1-y0                      #delta between start and end
+    v = drange(0,1,n)
+    cps = numpy.array(cps)
+    M = numpy.array(
+                    [[0,1,0,0]
+                    ,[-t,0,t,0]
+                    ,[2*t,t-3,3-2*t,-t]
+                    ,[-t,2-t,t-2,t]]
+                    )
+    W = []
+    
+    for i in xrange(0,n+1):
+        vtmp = []
+        for j in xrange(0,4):
+            vtmp.append(v[i]**j)
+        W.append(vtmp)
+
+    W = numpy.array(W)
+    vp = numpy.dot(M,cps)
+    pk = numpy.dot(W,vp)
+    return pk
+    
+"""
+smooth_color - Returns list of smoothed color tuples
+  cps - 4 colors, one before and one after the two being smoothed
+  n - distance between colors
+"""
+def smooth_color(c1, c2, n):
+    r = interp(c1[0], c2[0],n)
+    g = interp(c1[1], c2[1],n)
+    b = interp(c1[2], c2[2],n)
+
+    v = []    
+    for i in xrange(0,len(r)):
+        v.append((r[i],g[i],b[i]))
+    return v
+
+def smoother_color(c1,c2,n):
+    rmid = abs((c2[0]-c1[0])/2.0)
+    gmid = abs((c2[1]-c1[1])/2.0)
+    bmid = abs((c2[2]-c1[2])/2.0)
+
+    r1 = pinterp(c1[0],rmid,n)
+    g1 = pinterp(c1[1],gmid,n)
+    b1 = pinterp(c1[2],bmid,n)
+    r2 = pinterp(c2[0],rmid,n)
+    g2 = pinterp(c2[1],gmid,n)
+    b2 = pinterp(c2[2],bmid,n)
+
+    r2.reverse()
+    g2.reverse()
+    b2.reverse()
+
+    r = r1[:-1] + r2
+    g = g1[:-1] + g2
+    b = b1[:-1] + b2
+
+    v = []    
+    for i in xrange(0,len(r)):
+        v.append((r[i],g[i],b[i]))
+    return v
+
+"""
+Interp - Returns a linear vector between two control points
+  cp1 - first control point
+  cp2 - second control point
+  n - distance between control points
+"""
+def interp(cp1, cp2, n):
+    d = cp2 - cp1
+    v = drange(0,1,n)
+    pk = []
+    for i in xrange(0, n+1):
+        pk.append(cp1+v[i]*d)
+    return pk
+    
+"""
+pinterp - Returns a parabolic vector between two control points
+  cp1 - first
+  cp2 - second
+  n - distance between
+"""
+def pinterp(cp1, cp2, n):
+    d = cp2 - cp1
+    v = prange(0,1,n)
+    pk = []
+    for i in xrange(0, n+1):
+        pk.append(cp1+v[i]*d)
+    return pk
 
 def save_flame(filename,flame):
     save_flames(filename,flame)

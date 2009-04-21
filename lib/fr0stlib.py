@@ -6,7 +6,8 @@
 #Pygame 1.8.1.win32-py2.5
 #-----------------------------------------------------------------
 
-import os, sys, re, copy, itertools, colorsys
+import os, sys, re, copy, itertools
+from functions import *
 from math import *
     
 BLANKFLAME = """<flame name="Untitled" version="fr0st" size="512 384" center="0 0" scale="128" oversample="1" filter="0.2" quality="1" background="0 0 0" brightness="4" gamma="4" gamma_threshold="0.04" >
@@ -279,13 +280,23 @@ class Palette(list):
             for i in xrange(0, 256): self.append((0, 0, 0))
             
     def from_seed(self, seed, split=20, dist=64):
-        (h,s,v) = utils.rgb2hsv(seed)
-        g1 = utils.smooth(utils.hsv2rgb((h+180,s,v)), utils.hsv2rgb((h+180-split,s,v)), dist)
-        g2 = utils.smooth(utils.hsv2rgb((h+180-split,s,v)), seed, 128-dist)
-        g3 = utils.smooth(seed, utils.hsv2rgb((h+180+split,s,v)), 128-dist)
-        g4 = utils.smooth(utils.hsv2rgb((h+180+split,s,v)), utils.hsv2rgb((h+180,s,v)), dist)
-
-        return g1 + g2 + g3 + g4
+        (h,l,s) = rgb2hls(seed)
+        split /= 360.0
+        comp = hls2rgb((h+0.5,l,s))
+        lspl = hls2rgb((h+0.5-split,l,s))
+        rspl = hls2rgb((h+0.5+split,l,s))
+        
+        #g1 is from 0 (compliment) to dist (left split)
+        g1 = smoother_color(hls2rgb((h+0.5,l,s)), hls2rgb((h+0.5-split,l,s)), dist)
+        #g2 is from dist to 128 (seed)
+        g2 = smoother_color(hls2rgb((h+0.5-split,l,s)), seed, 128-dist)
+        #g3 is from 127 to 255-dist
+        g3 = smoother_color(seed, hls2rgb((h+0.5+split,l,s)), 128-dist)
+        #g4 is from 255.5-dist to 255.5
+        g4 = smoother_color(hls2rgb((h+0.5+split,l,s)), hls2rgb((h+0.5,l,s)), dist)
+        
+        g = g1[:-1]+g2[1:-1]+g3[:1]+g4
+        return g
 
     def to_string(self, newformat=True):
         format = self.formatstr if newformat else self.old_formatstr
@@ -296,28 +307,27 @@ class Palette(list):
     
     def hue(self, value):
         for i in range(256):
-            h,s,v = colorsys.rgb_to_hsv(*map(lambda x: x/256.0, self[i]))
+            
             h += value
             if   h > 1: h -= 1
             elif h < 0: h += 1
-            (r,g,b) = colorsys.hsv_to_rgb(h,s,v)
+            (r,g,b) = colorsys.hls_to_rgb(h,l,s)
             self[i] = (r*256, g*256, b*256)
             
     def saturation(self, value):
         for i in self:
-            h,s,v = colorsys.rgb_to_hsv(*map(lambda x: x/256.0, self[i]))
+            h,s,v = colorsys.rgb_to_hls(*map(lambda x: x/256.0, self[i]))
             s += value
             if   s < 0: s = 0
             elif s > 1: s = 1
-            (r,g,b) = colorsys.hsv_to_rgb(h,s,v)
+            (r,g,b) = colorsys.hls_to_rgb(h,l,s)
             self[i] = (r*256, g*256, b*256)
             
     def brightness(self, value):
         for i in self:
-            h,s,v = colorsys.rgb_to_hsv(*map(lambda x: x/256.0, self[i]))
-            v += value
-            if   v < 0: v = 0
-            elif v > 1: v = 1
+            h,s,v = colorsys.rgb_to_hls(*map(lambda x: x/256.0, self[i]))
+            l += value
+            v = clip(v,0,1)
             (r,g,b) = colorsys.hsv_to_rgb(h,s,v)
             self[i] = (r*256, g*256, b*256)
             
