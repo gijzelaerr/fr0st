@@ -76,6 +76,7 @@ class Flame(object):
         self.background = [0.0,0.0,0.0]
         self.final = None
         self.scale = 0.0
+        self.gradient = Palette()
         
         if not string and file:
             path = os.path.join(sys.path[0],"parameters",file)
@@ -264,15 +265,27 @@ class Palette(list):
     old_formatstr = "".join('   <color index="%s"'%i + ' rgb="%s %s %s"/>\n'
                                 for i in range(256))
     
-    def __init__(self,string):
-        for i in self.re_grad.findall(string):
-            self.append((int(i[0:2],16),
-                         int(i[2:4],16),
-                         int(i[4:6],16)))
-        for i in self.re_old_grad.findall(string):
-            self.append(map(float, i.split()))
-        if len(self) != 256:
-            raise ParsingError("Palette data unreadable")
+    def __init__(self,string=None):
+        if string:
+            for i in self.re_grad.findall(string):
+                self.append((int(i[0:2],16),
+                             int(i[2:4],16),
+                             int(i[4:6],16)))
+            for i in self.re_old_grad.findall(string):
+                self.append(map(float, i.split()))
+            if len(self) != 256:
+                raise ParsingError("Palette data unreadable")
+        else:
+            for i in xrange(0, 256): self.append((0, 0, 0))
+            
+    def from_seed(self, seed, split=20, dist=64):
+        (h,s,v) = utils.rgb2hsv(seed)
+        g1 = utils.smooth(utils.hsv2rgb((h+180,s,v)), utils.hsv2rgb((h+180-split,s,v)), dist)
+        g2 = utils.smooth(utils.hsv2rgb((h+180-split,s,v)), seed, 128-dist)
+        g3 = utils.smooth(seed, utils.hsv2rgb((h+180+split,s,v)), 128-dist)
+        g4 = utils.smooth(utils.hsv2rgb((h+180+split,s,v)), utils.hsv2rgb((h+180,s,v)), dist)
+
+        return g1 + g2 + g3 + g4
 
     def to_string(self, newformat=True):
         format = self.formatstr if newformat else self.old_formatstr
@@ -282,28 +295,30 @@ class Palette(list):
         self[:] = self[index:] + self[:index]
     
     def hue(self, value):
-        for i in range(256):
-            h,s,v = colorsys.rgb_to_hsv(*map(lambda x: x/256.0, self[i]))
+        for i in range(256):            h,s,v = colorsys.rgb_to_hsv(*map(lambda x: x/256.0, self[i]))
             h += value
-##            if   h > 1: h -= 1
-##            elif h < 0: h += 1
-            self[i] = map(lambda x: int(x*256), colorsys.hsv_to_rgb(h,s,v))
+            if   h > 1: h -= 1
+            elif h < 0: h += 1
+            (r,g,b) = colorsys.hsv_to_rgb(h,s,v)
+            self[i] = (r*256, g*256, b*256)
             
     def saturation(self, value):
         for i in self:
-            j = colorsys.rgb_to_hsv(i[0], i[1], i[2])
-            j[1] = j[1] + value
-            if j[1] < 0: j[1] = 0
-            if j[1] > 1: j[1] = 1
-            i = colorsys.hsv_to_rgb(j[0], j[1], j[2])
+            h,s,v = colorsys.rgb_to_hsv(*map(lambda x: x/256.0, self[i]))
+            s += value
+            if   s < 0: s = 0
+            elif s > 1: s = 1
+            (r,g,b) = colorsys.hsv_to_rgb(h,s,v)
+            self[i] = (r*256, g*256, b*256)
             
     def brightness(self, value):
         for i in self:
-            j = colorsys.rgb_to_hsv(i[0], i[1], i[2])
-            j[2] = j[2] + value
-            if j[2] < 0: j[2] = 0
-            if j[2] > 255: j[2] = 255
-            i = colorsys.hsv_to_rgb(j[0], j[1], j[2])
+            h,s,v = colorsys.rgb_to_hsv(*map(lambda x: x/256.0, self[i]))
+            v += value
+            if   v < 0: v = 0
+            elif v > 1: v = 1
+            (r,g,b) = colorsys.hsv_to_rgb(h,s,v)
+            self[i] = (r*256, g*256, b*256)
             
     def inverse(self):
         for i in self:
@@ -311,7 +326,6 @@ class Palette(list):
 
     def reverse(self):
         self.reverse()
-
 
 
 class Xform(object):
@@ -489,43 +503,91 @@ class Xform(object):
         self.c += v1
         self.f += v2
 
+#----------------------------------------------------------------------        
+    def _get_xp(self):
+        l = sqrt(self.coefs[0]**2 + self.coefs[1]**2)
+        theta = atan2(self.coefs[1], self.coefs[0]) * (180.0/pi)
+        return (l, theta)
+        
+    def _set_xp(self, coord):
+        self.a = coord[0] * cos(coord[1]*pi/180.0)
+        self.d = coord[0] * sin(coord[1]*pi/180.0)
+
+    xp = property(_get_xp,_set_xp)
+
+    def _get_yp(self):
+        l = sqrt(self.coefs[2]**2 + self.coefs[3]**2)
+        theta = atan2(self.coefs[3], self.coefs[2]) * (180.0/pi)
+        return (l, theta)
+        
+    def _set_yp(self, coord):
+        self.b = coord[0] * cos(coord[1]*pi/180.0)
+        self.e = coord[0] * sin(coord[1]*pi/180.0)
+
+    yp = property(_get_yp,_set_yp)
+
+    def _get_op(self):
+        l = sqrt(self.coefs[4]**2 + self.coefs[5]**2)
+        theta = atan2(self.coefs[5], self.coefs[4]) * (180.0/pi)
+        return (l, theta)
+        
+    def _set_op(self, coord):
+        self.c = coord[0] * cos(coord[1]*pi/180.0)
+        self.f = coord[0] * sin(coord[1]*pi/180.0)
+
+    op = property(_get_op,_set_op)
+    
+    def _get_polars(self):
+        return (xp, yp, op)
+    
+    def _set_polars(self, coord1, coord2, coord3):
+        xp = coord1
+        yp = coord2
+        op = coord3
+        
+    polars = property(_get_polars,_set_polars)
+
 #----------------------------------------------------------------------
-    def scale(self,v):
-        self.a *= v
-        self.d *= v
-        self.b *= v
-        self.e *= v
+    def scale_x(self, v):
+        self.xp = (self.xp[0] * v, self.xp[1])
+
+    def scale_y(self, v):
+        self.yp = (self.yp[0] * v, self.yp[1])
+
+    def scale(self, v):
+        self.scale_x(v)
+        self.scale_y(v)
+        
+    def rotate_x(self, deg):
+        self.xp = (self.xp[0], self.xp[1] + deg)
+        
+    def rotate_y(self, deg):
+        self.yp = (self.yp[0], self.yp[1] + deg)
+        
+    def move(self,v):
+        self.op = (self.op[0] + v, self.op[1])
 
     def rotate(self,deg,pivot="local"):
         if pivot == "local":
             # Get the absolute angle each triangle leg will have after rotating. 
             # Atan2 puts the result into the proper quadrant automatically.
-            angle   = radians(deg)
-            x_angle = atan2(self.a,self.d) + angle
-            y_angle = atan2(self.b,self.e) + angle
-            
-            # Get the length of the triangle leg, and reconstruct the
-            # coordinate pair with the new angle.
-            x_leg  = hypot(self.a,self.d)
-            self.a = sin(x_angle) * x_leg
-            self.d = cos(x_angle) * x_leg
-            
-            y_leg  = hypot(self.b,self.e)
-            self.b = sin(y_angle) * y_leg
-            self.e = cos(y_angle) * y_leg
+            self.rotate_x(deg)
+            self.rotate_y(deg)
         else:
-            self.rotate(deg)
             self.orbit(deg,pivot)
 
     def orbit(self,deg,pivot=(0,0)):
         """Orbits the transform around a fixed point without rotating it."""
-        hor = self.c - pivot[0]
-        ver = self.f - pivot[1]   
-        angle  = atan2(hor,ver) + radians(deg)
-        
-        vector = hypot(hor,ver)
-        self.c = pivot[0] + sin(angle) * vector
-        self.f = pivot[1] + cos(angle) * vector
+        if pivot == (0,0):
+            self.op = (self.op[0], self.op[1] + deg)
+        else:
+            hor = self.c - pivot[0]
+            ver = self.f - pivot[1]   
+            angle  = atan2(hor,ver) + radians(deg)
+            
+            vector = hypot(hor,ver)
+            self.c = pivot[0] + sin(angle) * vector
+            self.f = pivot[1] + cos(angle) * vector
 
     def copy(self):
         self._parent.xform.append(copy.deepcopy(self))
