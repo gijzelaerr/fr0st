@@ -194,6 +194,28 @@ def pinterp(cp1, cp2, n):
         pk.append(cp1+v[i]*d)
     return pk
 
+"""
+from_seed - Returns a palette from a seed color
+"""
+def from_seed(self, seed, split=20, dist=64):
+    (h,l,s) = rgb2hls(seed)
+    split /= 360.0
+    comp = hls2rgb((h+0.5,l,s))
+    lspl = hls2rgb((h+0.5-split,l,s))
+    rspl = hls2rgb((h+0.5+split,l,s))
+    
+    #g1 is from 0 (compliment) to dist (left split)
+    g1 = smoother_color(comp, lspl, dist)
+    #g2 is from dist to 128 (seed)
+    g2 = smoother_color(lspl, seed, 128-dist)
+    #g3 is from 127 to 255-dist
+    g3 = smoother_color(seed, rspl, 128-dist)
+    #g4 is from 255-dist to 255
+    g4 = smoother_color(rspl, comp, dist)
+    
+    g = g1[:-1]+g2[1:-1]+g3[:1]+g4
+    return g
+
 def save_flame(filename,flame):
     save_flames(filename,flame)
 

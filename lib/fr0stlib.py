@@ -7,7 +7,6 @@
 #-----------------------------------------------------------------
 
 import os, sys, re, copy, itertools
-from functions import *
 from math import *
     
 BLANKFLAME = """<flame name="Untitled" version="fr0st" size="512 384" center="0 0" scale="128" oversample="1" filter="0.2" quality="1" background="0 0 0" brightness="4" gamma="4" gamma_threshold="0.04" >
@@ -278,25 +277,6 @@ class Palette(list):
                 raise ParsingError("Palette data unreadable")
         else:
             for i in xrange(0, 256): self.append((0, 0, 0))
-            
-    def from_seed(self, seed, split=20, dist=64):
-        (h,l,s) = rgb2hls(seed)
-        split /= 360.0
-        comp = hls2rgb((h+0.5,l,s))
-        lspl = hls2rgb((h+0.5-split,l,s))
-        rspl = hls2rgb((h+0.5+split,l,s))
-        
-        #g1 is from 0 (compliment) to dist (left split)
-        g1 = smoother_color(hls2rgb((h+0.5,l,s)), hls2rgb((h+0.5-split,l,s)), dist)
-        #g2 is from dist to 128 (seed)
-        g2 = smoother_color(hls2rgb((h+0.5-split,l,s)), seed, 128-dist)
-        #g3 is from 127 to 255-dist
-        g3 = smoother_color(seed, hls2rgb((h+0.5+split,l,s)), 128-dist)
-        #g4 is from 255.5-dist to 255.5
-        g4 = smoother_color(hls2rgb((h+0.5+split,l,s)), hls2rgb((h+0.5,l,s)), dist)
-        
-        g = g1[:-1]+g2[1:-1]+g3[:1]+g4
-        return g
 
     def to_string(self, newformat=True):
         format = self.formatstr if newformat else self.old_formatstr
