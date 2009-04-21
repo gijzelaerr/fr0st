@@ -160,7 +160,7 @@ def pinterp(cps, n, curve='lin', space='rect'):
 cinterp - Helper for interpolating colors
 """
 def cinterp(cps, n, curve='cos'):
-"""
+    """
     if curve=='par' and len(cps)<4: # special case for parabolic smoothing - kinda legacy w/ cos
         rmid = abs((cps[1][0]-cps[0][0])/2.0)
         gmid = abs((cps[1][1]-cps[0][1])/2.0)
@@ -178,7 +178,7 @@ def cinterp(cps, n, curve='cos'):
         g = g1[:-1] + g2
         b = b1[:-1] + b2
     else:
-"""
+    """
     r = vector(cps, n, curve)
     g = vector(cps, n, curve)
     b = vector(cps, n, curve)
