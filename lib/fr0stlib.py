@@ -6,7 +6,7 @@
 #Pygame 1.8.1.win32-py2.5
 #-----------------------------------------------------------------
 
-import os, sys, re, copy, itertools
+import os, sys, re, copy, itertools, colorsys
 from math import *
     
 BLANKFLAME = """<flame name="Untitled" version="fr0st" size="512 384" center="0 0" scale="128" oversample="1" filter="0.2" quality="1" background="0 0 0" brightness="4" gamma="4" gamma_threshold="0.04" >
@@ -287,7 +287,7 @@ class Palette(list):
     
     def hue(self, value):
         for i in range(256):
-            
+            h,s,v = colorsys.rgb_to_hls(*map(lambda x: x/256.0, self[i]))
             h += value
             if   h > 1: h -= 1
             elif h < 0: h += 1
