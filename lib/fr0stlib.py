@@ -295,7 +295,8 @@ class Palette(list):
         self[:] = self[index:] + self[:index]
     
     def hue(self, value):
-        for i in range(256):            h,s,v = colorsys.rgb_to_hsv(*map(lambda x: x/256.0, self[i]))
+        for i in range(256):
+            h,s,v = colorsys.rgb_to_hsv(*map(lambda x: x/256.0, self[i]))
             h += value
             if   h > 1: h -= 1
             elif h < 0: h += 1
@@ -538,25 +539,28 @@ class Xform(object):
     op = property(_get_op,_set_op)
     
     def _get_polars(self):
-        return (xp, yp, op)
+        return self.xp, self.yp, self.op
     
-    def _set_polars(self, coord1, coord2, coord3):
-        xp = coord1
-        yp = coord2
-        op = coord3
+    def _set_polars(self, coord):
+        self.xp, self.yp, self.op = coord
         
     polars = property(_get_polars,_set_polars)
 
 #----------------------------------------------------------------------
+
     def scale_x(self, v):
-        self.xp = (self.xp[0] * v, self.xp[1])
+        self.a *= v
+        self.d *= v
 
     def scale_y(self, v):
-        self.yp = (self.yp[0] * v, self.yp[1])
-
-    def scale(self, v):
-        self.scale_x(v)
-        self.scale_y(v)
+        self.b *= v
+        self.e *= v
+        
+    def scale(self,v):
+        self.a *= v
+        self.d *= v
+        self.b *= v
+        self.e *= v
         
     def rotate_x(self, deg):
         self.xp = (self.xp[0], self.xp[1] + deg)
@@ -569,8 +573,6 @@ class Xform(object):
 
     def rotate(self,deg,pivot="local"):
         if pivot == "local":
-            # Get the absolute angle each triangle leg will have after rotating. 
-            # Atan2 puts the result into the proper quadrant automatically.
             self.rotate_x(deg)
             self.rotate_y(deg)
         else:
