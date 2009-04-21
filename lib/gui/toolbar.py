@@ -52,6 +52,11 @@ def CreateToolBar(parent):
 
     tb.AddSimpleTool(ID.TBEDITOR, GetBMP(wx.ART_MISSING_IMAGE),
                      "Editor", "Open the script editor")
+
+    tb.AddSeparator()
+
+    tb.AddSimpleTool(ID.TBPREVIEW, GetBMP(wx.ART_MISSING_IMAGE),
+                     "Preview", "Open the preview frame")
     
     tb.Realize()
 

@@ -66,7 +66,8 @@ class XformCanvas(FloatCanvas):
             flame = self.parent.flame
 
         # Checks if the active xform is None or belongs to a previous flame.
-        if self.parent.ActiveXform not in flame.xform:
+        if (not self.parent.ActiveXform) or \
+                self.parent.ActiveXform._parent != flame:
             self.parent.ActiveXform = flame.xform[0]
             
         for t in self.triangles:

@@ -10,6 +10,7 @@ from lib import pyflam3
 
 class XformTabs(wx.Notebook):
 
+
     def __init__(self, parent):
         self.parent = parent
         wx.Notebook.__init__(self, parent, -1, size=(21,21), style=
@@ -33,9 +34,32 @@ class XformTabs(wx.Notebook):
         win = wx.Panel(self, -1)
         self.AddPage(win, "Xaos")
 
+        self.Selector = wx.Choice(self.parent, -1)
+        self.Selector.Bind(wx.EVT_CHOICE, self.OnChoice)
+
+
     def UpdateView(self):
         for i in self.Xform, self.Vars:
             i.UpdateView()
+        choices = map(repr, self.parent.flame.xform)
+        final = self.parent.flame.final
+        if final:
+            choices.append(repr(final))
+        self.Selector.Items = choices
+        index = self.parent.ActiveXform.index
+        self.Selector.Selection = len(choices)-1 if index is None else index
+
+
+    def OnChoice(self, e):
+        index = e.GetInt()
+        xforms = self.parent.flame.xform
+        if index >= len(xforms):
+            self.parent.ActiveXform = self.parent.flame.final
+        else:
+            self.parent.ActiveXform = xforms[index]
+
+        self.parent.canvas.ShowFlame(rezoom=False)
+        self.UpdateView()
 
 
 
@@ -132,16 +156,6 @@ class VarPanel(wx.Panel):
         wx.Panel.__init__(self, parent, -1)
         self.parent = parent.parent
 
-        # Variations are sorted by their index, i.e. their dict value, not key.
-##        gen = ((j,i) for i,j in pyflam3.variations.items())
-##        self.variations = [i for j,i in sorted(gen)]
-##        self.variables = defaultdict(list)
-##        for i in dir(pyflam3.BaseXForm):
-##            lst = i.split("_",1)
-##            if lst[0] in self.variations:
-##                self.variables[lst[0]].append(lst[1])
-
-
         self.tree = gizmos.TreeListCtrl(self, -1, style =
                                           wx.TR_DEFAULT_STYLE
                                         | wx.TR_ROW_LINES
@@ -174,7 +188,6 @@ class VarPanel(wx.Panel):
         self.tree.GetMainWindow().Bind(wx.EVT_MOUSEWHEEL, self.OnWheel)
         self.parent.Bind(wx.EVT_KEY_UP, self.OnKeyUp)
         self.HasChanged = False
-
 
 
     def itervars(self, item=None):
@@ -282,7 +295,7 @@ class NumberTextCtrl(wx.TextCtrl):
 
     def GetFloat(self):
         return float(self.GetValue() or "0")
-
+##
     def SetFloat(self,v):
         v = float(v) # Make sure pure ints don't make trouble
         self.SetValue(str(v))
@@ -300,7 +313,7 @@ class NumberTextCtrl(wx.TextCtrl):
             event.Skip()
 
         elif chr(key) in "0123456789.-":
-            event.Skip()
+            event.Skip()  
 
         else:
             # not calling Skip() eats the event
@@ -309,12 +322,12 @@ class NumberTextCtrl(wx.TextCtrl):
 
     @Bind(wx.EVT_KILL_FOCUS)
     def OnKillFocus(self,event):
-        val = self.GetFloat()
-        if not val:
-            self.SetFloat(0.0)
-            # This comparison is done with strings because the floats don't
-            # always compare equal (!)
-        if str(self._value) != str(val):
-            self._value = val
-            self.parent.UpdateXform()
+        # This comparison is done with strings because the floats don't
+        # always compare equal (!)
+        if str(self._value) != self.GetValue():
+            try:
+                self._value = self.GetFloat()
+                self.parent.UpdateXform()
+            except ValueError:
+                self.SetFloat(self._value)
 

@@ -2,7 +2,8 @@ from __future__ import with_statement
 import os, sys, wx, time, re, threading, itertools
 from wx import PyDeadObjectError
 
-from lib.gui.scripteditor import EditorFrame 
+from lib.gui.scripteditor import EditorFrame
+from lib.gui.preview import PreviewFrame
 from lib.gui.filetree import TreePanel
 from lib.gui.menu import CreateMenu
 from lib.gui.toolbar import CreateToolBar
@@ -49,7 +50,9 @@ class MainWindow(wx.Frame):
         self.XformTabs = XformTabs(self)
         self.canvas = XformCanvas(self)
 
-        self.editorframe = EditorFrame(self, wx.ID_ANY)
+        self.previewframe = PreviewFrame(self)
+
+        self.editorframe = EditorFrame(self)
         self.editor = self.editorframe.editor
         self.log = self.editorframe.log 
         
@@ -58,11 +61,12 @@ class MainWindow(wx.Frame):
 
         sizer2 = wx.BoxSizer(wx.VERTICAL)
         sizer2.Add(self.image,0,wx.EXPAND)
+        sizer2.Add(self.XformTabs.Selector,0)
         sizer2.Add(self.XformTabs,1,wx.EXPAND)
         
         sizer = wx.BoxSizer(wx.HORIZONTAL)
         sizer.Add(self.TreePanel,0,wx.EXPAND)
-        sizer.Add(self.canvas,0)
+        sizer.Add(self.canvas,1)
         sizer.Add(sizer2,0,wx.EXPAND)
 
         self.SetSizer(sizer)
@@ -210,9 +214,14 @@ class MainWindow(wx.Frame):
 
     @Bind(wx.EVT_TOOL,id=ID.TBEDITOR)
     def OnEditorOpen(self,e):
-        self.editorframe.Show(True)
+        self.editorframe.Raise()
         self.editorframe.SetFocus() # In case it's already open in background
 
+
+    @Bind(wx.EVT_TOOL, id=ID.TBPREVIEW)
+    def OnPreviewOpen(self, e):
+        self.previewframe.Raise()
+        self.previewframe.RenderPreview()
 
     @Bind(wx.EVT_TOOL,id=ID.UNDO)
     @Bind(wx.EVT_MENU,id=ID.UNDO)
@@ -350,6 +359,7 @@ class MainWindow(wx.Frame):
     def SetFlame(self, flame, rezoom=True):
         self.flame = flame
         self.image.RenderPreview(flame)
+        self.large_preview()
         self.canvas.ShowFlame(flame,rezoom=rezoom)
         self.XformTabs.UpdateView()
 
@@ -368,8 +378,8 @@ class MainWindow(wx.Frame):
                          ThreadInterrupt = ThreadInterrupt,
                          GetActiveFlame = self.GetActiveFlame,
                          SetActiveFlame = self.SetActiveFlame,
-                         preview = self.preview
-                         )
+                         preview = self.preview,
+                         large_preview = self.large_preview)
 
         exec("from lib.functions import *",namespace)
         return namespace
@@ -421,6 +431,10 @@ class MainWindow(wx.Frame):
         self.image.RenderPreview()
         wx.PostEvent(self.canvas, CanvasRefreshEvent())
         time.sleep(.05) # Avoids spamming too many requests.
+
+    def large_preview(self):
+        if self.previewframe.IsShown():
+            self.previewframe.RenderPreview()
 
 
 class ImagePanel(wx.Panel):

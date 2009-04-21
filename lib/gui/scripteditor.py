@@ -12,7 +12,7 @@ from _events import EVT_PRINT, PrintEvent
 class EditorFrame(wx.Frame):
     
     @BindEvents    
-    def __init__(self,parent,id):
+    def __init__(self,parent):
         self.title = "Script Editor"
         self.parent = parent
         wx.Frame.__init__(self,parent,wx.ID_ANY, self.title)
@@ -39,7 +39,7 @@ class EditorFrame(wx.Frame):
         if self.CheckForChanges() == wx.ID_CANCEL:
             return
         self.Show(False)
-        self.Parent.SetFocus()
+        self.Parent.Raise()
 
 
     @Bind(wx.EVT_TOOL,id=ID.TBNEW)
