@@ -37,7 +37,8 @@
       91D834A3D134B3CA34C5C333D4B930DFB12DE9A829F0A025
       F49523F68A20F8811FF9791FFB721EFD6C1EFE681EFE641D
    </palette>
-</flame><flame name="julia" rotate="-90" center="-0.0176668118505 0.0475291690247" brightness="4" oversample="1" version="Apophysis 2.08 beta 2" zoom="0" filter="0.2" scale="184.32" background="0 0 0" quality="5" gamma="4" size="1024 768" >
+</flame>
+<flame name="julia" rotate="-90" center="-0.0176668118505 0.0475291690247" brightness="4" oversample="1" version="Apophysis 2.08 beta 2" zoom="0" filter="0.2" scale="184.32" background="0 0 0" quality="5" gamma="4" size="1024 768" >
    <xform weight="0.333333333333" color="0.506" julia="1.0" coefs="-0.534233 -0.154152 0.154152 -0.534233 0.377468 -0.151808" />
    <xform spherical="6.0" weight="0.333333333333" color="0.0" coefs="0.4 -0.0 -0.0 0.4 0.0 -0.0" />
    <palette count="256" format="RGB">
@@ -74,8 +75,9 @@
       C6A593C8A496CBA398CEA19BD1A09ED49EA1D79DA3D99CA6
       DC9AA9DF99ACE298AFE596B1E795B4EA94B7ED92BAF091BC
    </palette>
-</flame><flame name="heart" rotate="0" center="-0.711014679977 0" brightness="4" oversample="1" version="Apophysis 2.08 beta 2" zoom="0" filter="0.2" scale="120.0" background="0 0 0" quality="5" gamma="4" size="600 450" >
-   <xform heart="1.0" weight="0.333333333333" color="0.0" horseshoe="2.0" coefs="-0.622778 1.184189 -0.363673 0.075114 -0.612945 1.17149" />
+</flame>
+<flame name="heart" rotate="0" center="-0.711014679977 0" brightness="4" oversample="1" version="Apophysis 2.08 beta 2" zoom="0" filter="0.2" scale="120.0" background="0 0 0" quality="5" gamma="4" size="600 450" >
+   <xform heart="1.0" weight="0.333333333333" color="0.0" coefs="-0.622778 1.184189 -0.363673 0.075114 -0.612945 1.17149" />
    <xform linear="1.0" weight="0.5" color="0.117" coefs="0.962691 -0.270605 0.270605 0.962691 0.0 -0.0" />
    <palette count="256" format="RGB">
       415976485B794C607C5165805E5C8B5F699A7A77A27878A1
