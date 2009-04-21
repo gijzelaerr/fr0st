@@ -219,6 +219,6 @@ variable_list = ['blob_low',
 
 variables = defaultdict(list)
 for i in variable_list:
-    tion, ble = i.split("_", 1)
+    tion, ble = i.rsplit("_", 1)
     variables[tion].append(ble)
 
