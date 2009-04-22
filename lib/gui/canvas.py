@@ -4,7 +4,7 @@ from wx.lib.floatcanvas.FloatCanvas import FloatCanvas, DotGrid
 
 from decorators import Bind, BindEvents
 from _events import EVT_CANVAS_REFRESH
-from lib.functions import polar
+from lib.fr0stlib import polar
 from lib import pyflam3
 
 

@@ -4,7 +4,7 @@ from itertools import chain
 from collections import defaultdict
 
 from decorators import Bind,BindEvents
-from lib.functions import polar, rect
+from lib.fr0stlib import polar, rect
 from lib import pyflam3
 
 
