@@ -21,25 +21,27 @@ def range_gen(x, y, n, curve='lin', a=1):
     prev = x
 
     if curve=='par':
-        rangefunc = lambda: (y-x)/(a*float(n))**2, \
-                            (x+a*d*((last+1)**2)) 
-##    elif curve=='npar':
-##        rangefunc = lambda: (x-y)/(a*float(n))**2, \
-##                            (y-a*d*((n-(last+1))**2))
+        d = (y-x)/(a*float(n))**2
+        rangefunc = lambda: (x+a*d*((last+1)**2)) 
+    elif curve=='npar':
+        d = (x-y)/(a*float(n))**2
+        prev = -y
+        rangefunc = lambda: (x+a*d*((n-(last+1))**2))
     elif curve=='cos':
-        rangefunc = lambda: y-x, \
-                            ((x+d*((cos(pi + ((last+1)/float(n))*pi))+1)/2)**a)
+        d = y-x
+        rangefunc = lambda: ((x+d*((cos(pi + ((last+1)/float(n))*pi))+1)/2)**a)
     elif curve=='sinh':
-        rangefunc = lambda: y-x, \
-                            (x+d*(sinh((last+1)/float(n))/sinh(1)))
+        d = y-x
+        rangefunc = lambda: (x+d*(sinh((last+1)/float(n))/sinh(1)))
     elif curve=='tanh':
-        rangefunc = lambda: y-x, \
-                            (x+d*(tanh((last+1)/float(n))/tanh(1)))
+        d = y-x
+        rangefunc = lambda: (x+d*(tanh((last+1)/float(n))/tanh(1)))
     else:
-        rangefunc = lambda: (y-x)/float(n), \
-                            (x+d*(last+1))
+        d = (y-x)/float(n)
+        rangefunc = lambda: (x+d*(last+1))
     while last < n:
-        d, val = rangefunc()
+        val = rangefunc()
+        print val, prev
         yield val-prev
         prev = val
         last += 1
@@ -47,8 +49,6 @@ def range_gen(x, y, n, curve='lin', a=1):
         if last == n:
             last = 0
             prev = x
-
-
 
 #-------------------------------------------------------------------------------
 
