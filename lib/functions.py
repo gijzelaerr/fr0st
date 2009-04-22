@@ -19,29 +19,29 @@ sys.dont_write_bytecode = False # Why is this line here?
 def range_gen(x, y, n, curve='lin', a=1):
     last = 0
     prev = x
+    m = float(n)
 
     if curve=='par':
-        d = (y-x)/(a*float(n))**2
+        d = (y-x)/(a*m)**2
         rangefunc = lambda: (x+a*d*((last+1)**2)) 
     elif curve=='npar':
-        d = (x-y)/(a*float(n))**2
+        d = (x-y)/(a*m)**2
         prev = -y
         rangefunc = lambda: (x+a*d*((n-(last+1))**2))
     elif curve=='cos':
         d = y-x
-        rangefunc = lambda: ((x+d*((cos(pi + ((last+1)/float(n))*pi))+1)/2)**a)
+        rangefunc = lambda: ((x+d*((cos(pi + ((last+1)/m)*pi))+1)/2)**a)
     elif curve=='sinh':
         d = y-x
-        rangefunc = lambda: (x+d*(sinh((last+1)/float(n))/sinh(1)))
+        rangefunc = lambda: (((sinh(a*(2*(last+1)-m)/m) - sinh(-a)) / (2*sinh(a*(2*n-m)/m)/d))+x)
     elif curve=='tanh':
         d = y-x
-        rangefunc = lambda: (x+d*(tanh((last+1)/float(n))/tanh(1)))
+        rangefunc = lambda: (((tanh(a*(2*(last+1)-m)/m) - tanh(-a)) / (2*tanh(a*(2*n-m)/m)/d))+x)
     else:
-        d = (y-x)/float(n)
+        d = (y-x)/m
         rangefunc = lambda: (x+d*(last+1))
     while last < n:
         val = rangefunc()
-        print val, prev
         yield val-prev
         prev = val
         last += 1
@@ -110,28 +110,29 @@ drange - Returns a list of values from x to y over n steps
 """
 def drange(x, y, n, curve='lin', a=1):
     v = []
+    m = float(n)
     if curve=='par':
-        d = (y-x)/(a*float(n)**2)
+        d = (y-x)/((a*m)**2)
         for i in xrange(n+1):
             v.append(x+a*d*(i**2))
     elif curve=='npar':
-        d = (y-x)/(a*float(n)**2)
+        d = (y-x)/((a*m)**2)
         for i in xrange(n+1):
             v.append(y-a*d*((n-i)**2))
     elif curve=='cos':
         d = y-x
         for i in xrange(n+1):
-            v.append((x+d*((cos(pi + (i/float(n))*pi))+1)/2)**a)
+            v.append((x+d*((cos(pi + (i/m)*pi))+1)/2)**a)
     elif curve=='sinh':
         d = y-x
         for i in xrange(n+1):
-            v.append(x+d*(sinh(i/float(n))/sinh(1)))
+            v.append(((sinh(a*(2*i-m)/m) - sinh(-a)) / (2*sinh(a*(2*n-m)/m)/d))+x)
     elif curve=='tanh':
         d = y-x
         for i in xrange(n+1):
-            v.append(x+d*(tanh(i/float(n))/tanh(1)))
+            v.append(((tanh(a*(2*i-m)/m) - tanh(-a)) / (2*tanh(a*(2*n-m)/m)/d))+x)
     else:
-        d = (y-x)/float(n)
+        d = (y-x)/m
         for i in xrange(n+1):
             v.append(x+d*i)
     return v
