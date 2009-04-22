@@ -256,3 +256,18 @@ def from_seed(seed, csplit=0, split=30,  dist=64, curve='lin'):
     
     return g1+g2+g3+g4
 
+def from_seeds(seeds, curve='cos', space='rgb'):
+    ns = len(seeds)
+    d = 256/ns
+    r = 256%ns
+    print ns, d, r
+    ds = []
+    for i in xrange(ns):
+        if i+1<=r: ds.append(d+1)
+        else:      ds.append(d)
+    g = []
+    for i in xrange(ns):
+        tmp = cinterp([seeds[i-1], seeds[i]], ds[i], curve)
+        g += tmp[:-1]
+    return g
+
