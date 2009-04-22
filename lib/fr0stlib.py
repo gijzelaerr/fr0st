@@ -6,7 +6,7 @@
 #Pygame 1.8.1.win32-py2.5
 #-----------------------------------------------------------------
 
-import os, sys, re, copy, itertools
+import re
 from functions import *
 from math import *
     
