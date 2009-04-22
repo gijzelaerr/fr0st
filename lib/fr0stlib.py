@@ -6,7 +6,8 @@
 #Pygame 1.8.1.win32-py2.5
 #-----------------------------------------------------------------
 
-import os, sys, re, copy, itertools, colorsys
+import os, sys, re, copy, itertools
+from functions import *
 from math import *
     
 BLANKFLAME = """<flame name="Untitled" version="fr0st" size="512 384" center="0 0" scale="128" oversample="1" filter="0.2" quality="1" background="0 0 0" brightness="4" gamma="4" gamma_threshold="0.04" >
@@ -287,29 +288,24 @@ class Palette(list):
     
     def hue(self, value):
         for i in range(256):
-            h,s,v = colorsys.rgb_to_hls(*map(lambda x: x/256.0, self[i]))
+            h,l,s = rgb2hls(self[i])
             h += value
-            if   h > 1: h -= 1
-            elif h < 0: h += 1
-            (r,g,b) = colorsys.hls_to_rgb(h,l,s)
-            self[i] = (r*256, g*256, b*256)
+            h = clip(h,0,1,True)
+            self[i] = hls2rgb((h,l,s))
             
     def saturation(self, value):
         for i in self:
-            h,s,v = colorsys.rgb_to_hls(*map(lambda x: x/256.0, self[i]))
+            h,l,s = rgb2hls(self[i])
             s += value
-            if   s < 0: s = 0
-            elif s > 1: s = 1
-            (r,g,b) = colorsys.hls_to_rgb(h,l,s)
-            self[i] = (r*256, g*256, b*256)
+            s = clip(s,0,1)
+            self[i] = hls2rgb((h,l,s))
             
     def brightness(self, value):
         for i in self:
-            h,s,v = colorsys.rgb_to_hls(*map(lambda x: x/256.0, self[i]))
+            h,l,s = rgb2hls(self[i])
             l += value
-            v = clip(v,0,1)
-            (r,g,b) = colorsys.hsv_to_rgb(h,s,v)
-            self[i] = (r*256, g*256, b*256)
+            l = clip(l,0,1)
+            self[i] = hls2rgb((h,l,s))
             
     def inverse(self):
         for i in self:
@@ -516,35 +512,26 @@ class Xform(object):
 
 #----------------------------------------------------------------------        
     def _get_xp(self):
-        l = sqrt(self.coefs[0]**2 + self.coefs[1]**2)
-        theta = atan2(self.coefs[1], self.coefs[0]) * (180.0/pi)
-        return (l, theta)
+        return polar((self.a, self.d))
         
     def _set_xp(self, coord):
-        self.a = coord[0] * cos(coord[1]*pi/180.0)
-        self.d = coord[0] * sin(coord[1]*pi/180.0)
+        self.a, self.d = rect(coord)
 
     xp = property(_get_xp,_set_xp)
 
     def _get_yp(self):
-        l = sqrt(self.coefs[2]**2 + self.coefs[3]**2)
-        theta = atan2(self.coefs[3], self.coefs[2]) * (180.0/pi)
-        return (l, theta)
+        return polar((self.b, self.e))
         
     def _set_yp(self, coord):
-        self.b = coord[0] * cos(coord[1]*pi/180.0)
-        self.e = coord[0] * sin(coord[1]*pi/180.0)
+        self.b, self.e = rect(coord)
 
     yp = property(_get_yp,_set_yp)
 
     def _get_op(self):
-        l = sqrt(self.coefs[4]**2 + self.coefs[5]**2)
-        theta = atan2(self.coefs[5], self.coefs[4]) * (180.0/pi)
-        return (l, theta)
+        return polar((self.c, self.f))
         
     def _set_op(self, coord):
-        self.c = coord[0] * cos(coord[1]*pi/180.0)
-        self.f = coord[0] * sin(coord[1]*pi/180.0)
+        self.c, self.f = rect(coord)
 
     op = property(_get_op,_set_op)
     
@@ -692,3 +679,54 @@ class Chaos(list):
             if i != 1: break
             lst.pop()
         return lst
+#-------------------------------------------------------------------------------
+"""
+File functions from functions to avoid circular import
+"""
+def save_flame(filename,flame):
+    save_flames(filename,flame)
+
+
+def save_flames(filename,*flames):
+    lst = [f.to_string() if isinstance(f,Flame) else f for f in flames]
+    lst.insert(0, """<flames name="Fr0st Batch">\n""")
+    lst.append("""</flames>""")
+    head, ext = os.path.splitext(filename)
+    if os.path.exists(filename) and ext == ".flame":
+        shutil.copy(filename,head + ".bak")
+    f = open(filename,"w")
+    f.write("".join(lst))
+    f.close()
+
+
+def load_flames(filename,*args):
+    """Reads a flame file and returns a list of flame objects, specified
+    by index or name. If no flames are specified, returns all flames in the
+    file, in order."""
+    
+    strings = Flame.load_file(filename)
+    
+    if not args:
+        return [Flame(string=i) for i in strings]
+
+    if all(map(lambda x: type(x) is int, args)):
+           return [Flame(string=strings[key]) for key in args]
+
+    flames = []
+    re_name = re.compile(r'(?<= name=").*?(?=")')
+    temp_names = map(lambda x: re_name.findall(x)[0], strings)
+
+    for key in args:
+        _type = type(key)
+        if _type is str:
+            try:
+                key = temp_names.index(key)
+            except ValueError:
+                raise NameError, ' name "%s" not found in %s' %(key,filename)
+        elif _type is not int:
+            raise TypeError, "Expected flame index or name, got %s" %_type
+
+        flames.append(Flame(string=strings[key]))
+        
+    return flames
+

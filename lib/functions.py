@@ -14,9 +14,6 @@ import os, sys, marshal, copy, random, cmath, shutil, numpy, colorsys
 from math import *
 sys.dont_write_bytecode = False # Why is this line here?
 
-import fr0stlib
-from fr0stlib import Flame, Xform
-
 #-------------------------------------------------------------------------------
 #Experimental thingy for script window map function
 def range_gen(x, y, n, curve='lin', a=1):
@@ -24,11 +21,16 @@ def range_gen(x, y, n, curve='lin', a=1):
     prev = x
     while last < n:
         if curve=='par':
-            d = (y-x)/(a*float(n)**2)
+            d = (y-x)/(a*float(n))**2
             val = (x+a*d*((last+1)**2))
             yield val-prev
             prev = val
             last += 1
+#        elif curve=='npar'
+#            d = (x-y)/(a*float(n))**2
+#            val = (y-a*d*((n-(last+1))**2))
+#            yield val-prev
+#            prev = val
         elif curve=='cos':
             d = y-x
             val = ((x+d*((cos(pi + ((last+1)/float(n))*pi))+1)/2)**a)
@@ -119,23 +121,27 @@ def drange(x, y, n, curve='lin', a=1):
     v = []
     if curve=='par':
         d = (y-x)/(a*float(n)**2)
-        for i in xrange(0,n+1):
+        for i in xrange(n+1):
             v.append(x+a*d*(i**2))
+    elif curve=='npar':
+        d = (y-x)/(a*float(n)**2)
+        for i in xrange(n+1):
+            v.append(y-a*d*((n-i)**2))
     elif curve=='cos':
         d = y-x
-        for i in xrange(0,n+1):
+        for i in xrange(n+1):
             v.append((x+d*((cos(pi + (i/float(n))*pi))+1)/2)**a)
     elif curve=='sinh':
         d = y-x
-        for i in xrange(0,n+1):
+        for i in xrange(n+1):
             v.append(x+d*(sinh(i/float(n))/sinh(1)))
     elif curve=='tanh':
         d = y-x
-        for i in xrange(0,n+1):
+        for i in xrange(n+1):
             v.append(x+d*(tanh(i/float(n))/tanh(1)))
     else:
         d = (y-x)/float(n)
-        for i in xrange(0,n+1):
+        for i in xrange(n+1):
             v.append(x+d*i)
     return v
 
@@ -152,9 +158,10 @@ def vector(cps, n, curve='lin', a=1, t=0.5):
     if len(cps)>1 and len(cps)<4:
         d = cps[1] - cps[0]
         v = drange(0,1,n,curve,a)
-        for i in xrange(0, n+1):
+        for i in xrange(n+1):
             pk.append(cps[0]+v[i]*d)
     elif len(cps)>=4:
+        cps = cps[:4]
         dy = cps[2]-cps[1]
         v = drange(0,1,n,curve,a)
         cps = numpy.array(cps)
@@ -165,9 +172,9 @@ def vector(cps, n, curve='lin', a=1, t=0.5):
                         )
         W = []
         
-        for i in xrange(0,n+1):
+        for i in xrange(n+1):
             vtmp = []
-            for j in xrange(0,4):
+            for j in xrange(4):
                 vtmp.append(v[i]**j)
             W.append(vtmp)
 
@@ -192,7 +199,7 @@ def pinterp(cps, n, curve='lin', space='rect'):
         px = vector(xcps, n, curve)
         py = vector(ycps, n, curve)
         pk = []
-        for i in xrange(0,n+1):
+        for i in xrange(n+1):
             pk.append(rect((px[i],py[i])))
     else:
         xcps = []
@@ -203,7 +210,7 @@ def pinterp(cps, n, curve='lin', space='rect'):
         px = vector(xcps, n, curve)
         py = vector(ycps, n, curve)
         pk = []
-        for i in xrange(0,n+1):
+        for i in xrange(n+1):
             pk.append((px[i],py[i]))
     return pk
 
@@ -222,7 +229,7 @@ def cinterp(cps, n, curve='cos'):
     g = vector(gcps, n, curve)
     b = vector(bcps, n, curve)
     pk = []    
-    for i in xrange(0,len(r)):
+    for i in xrange(len(r)):
         pk.append((r[i],g[i],b[i]))
     return pk
     
@@ -258,49 +265,3 @@ def from_seed(seed, csplit=0, split=30,  dist=64, curve='lin'):
     
     return g1+g2+g3+g4
 
-def save_flame(filename,flame):
-    save_flames(filename,flame)
-
-
-def save_flames(filename,*flames):
-    lst = [f.to_string() if isinstance(f,Flame) else f for f in flames]
-    lst.insert(0, """<flames name="Fr0st Batch">\n""")
-    lst.append("""</flames>""")
-    head, ext = os.path.splitext(filename)
-    if os.path.exists(filename) and ext == ".flame":
-        shutil.copy(filename,head + ".bak")
-    f = open(filename,"w")
-    f.write("".join(lst))
-    f.close()
-
-
-def load_flames(filename,*args):
-    """Reads a flame file and returns a list of flame objects, specified
-    by index or name. If no flames are specified, returns all flames in the
-    file, in order."""
-    
-    strings = Flame.load_file(filename)
-    
-    if not args:
-        return [Flame(string=i) for i in strings]
-
-    if all(map(lambda x: type(x) is int, args)):
-           return [Flame(string=strings[key]) for key in args]
-
-    flames = []
-    re_name = re.compile(r'(?<= name=").*?(?=")')
-    temp_names = map(lambda x: re_name.findall(x)[0], strings)
-
-    for key in args:
-        _type = type(key)
-        if _type is str:
-            try:
-                key = temp_names.index(key)
-            except ValueError:
-                raise NameError, ' name "%s" not found in %s' %(key,filename)
-        elif _type is not int:
-            raise TypeError, "Expected flame index or name, got %s" %_type
-
-        flames.append(Flame(string=strings[key]))
-        
-    return flames

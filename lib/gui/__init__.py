@@ -13,7 +13,7 @@ from lib.gui.canvas import XformCanvas
 from lib.gui.xformeditor import XformTabs
 from lib.threadinterrupt import interruptall
 from lib._exceptions import ThreadInterrupt
-from lib import functions
+from lib import fr0stlib
 from lib.pyflam3 import Genome
 from lib.gui.rendering import render, Renderer
 from lib.gui._events import EVT_IMAGE_READY, CanvasRefreshEvent
@@ -323,7 +323,7 @@ class MainWindow(wx.Frame):
             self.tree.SetItemText(i, data.name)
         
         # Finally, save the flame and clear the temp file.
-        functions.save_flames(path,*lst)
+        fr0stlib.save_flames(path,*lst)
         if os.path.exists(path+'.temp'):
             os.remove(path+'.temp')
 
@@ -377,7 +377,6 @@ class MainWindow(wx.Frame):
     def CreateNamespace(self):
         """Recreates the namespace each time the script is run to reinitialise
         pygame, reassign the flame variable, etc."""
-        reload(functions) # calls pygame.init() again
         namespace = dict(self = self, # for debugging only!
                          wx = wx,     # for debugging only!
                          ThreadInterrupt = ThreadInterrupt,
