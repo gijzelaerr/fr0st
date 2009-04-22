@@ -19,45 +19,36 @@ sys.dont_write_bytecode = False # Why is this line here?
 def range_gen(x, y, n, curve='lin', a=1):
     last = 0
     prev = x
+
+    if curve=='par':
+        rangefunc = lambda: (y-x)/(a*float(n))**2, \
+                            (x+a*d*((last+1)**2)) 
+##    elif curve=='npar':
+##        rangefunc = lambda: (x-y)/(a*float(n))**2, \
+##                            (y-a*d*((n-(last+1))**2))
+    elif curve=='cos':
+        rangefunc = lambda: y-x, \
+                            ((x+d*((cos(pi + ((last+1)/float(n))*pi))+1)/2)**a)
+    elif curve=='sinh':
+        rangefunc = lambda: y-x, \
+                            (x+d*(sinh((last+1)/float(n))/sinh(1)))
+    elif curve=='tanh':
+        rangefunc = lambda: y-x, \
+                            (x+d*(tanh((last+1)/float(n))/tanh(1)))
+    else:
+        rangefunc = lambda: (y-x)/float(n), \
+                            (x+d*(last+1))
     while last < n:
-        if curve=='par':
-            d = (y-x)/(a*float(n))**2
-            val = (x+a*d*((last+1)**2))
-            yield val-prev
-            prev = val
-            last += 1
-#        elif curve=='npar'
-#            d = (x-y)/(a*float(n))**2
-#            val = (y-a*d*((n-(last+1))**2))
-#            yield val-prev
-#            prev = val
-        elif curve=='cos':
-            d = y-x
-            val = ((x+d*((cos(pi + ((last+1)/float(n))*pi))+1)/2)**a)
-            yield val-prev
-            prev = val
-            last += 1
-        elif curve=='sinh':
-            d = y-x
-            val = (x+d*(sinh((last+1)/float(n))/sinh(1)))
-            yield val-prev
-            prev = val
-            last += 1
-        elif curve=='tanh':
-            d = y-x
-            val = (x+d*(tanh((last+1)/float(n))/tanh(1)))
-            yield val-prev
-            prev = val
-            last += 1
-        else:
-            d = (y-x)/float(n)
-            val = (x+d*(last+1))
-            yield val-prev
-            prev = val
-            last += 1
+        d, val = rangefunc()
+        yield val-prev
+        prev = val
+        last += 1
+
         if last == n:
             last = 0
             prev = x
+
+
 
 #-------------------------------------------------------------------------------
 
