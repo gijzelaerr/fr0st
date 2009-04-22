@@ -314,6 +314,26 @@ class Palette(list):
     def inverse(self):
         for i in self:
             i = (255 - i[0], 255 - i[1], 255 - i[2])
+    
+    def blur(self, space='rgb'):
+        tmp = []
+        for i in xrange(0, len(self)):
+            a = self[i-1]
+            b = self[i]
+            if i==len(self)-1: c = self[0]
+            else:            c = self[i+1]
+            if space=='hls':
+                a = rgb2hls(a)
+                b = rgb2hls(b)
+                c = rgb2hls(c)
+            r = (a[0] + 2*b[0] + c[0])/4.0
+            g = (a[1] + 2*b[1] + c[1])/4.0
+            b = (a[2] + 2*b[2] + c[2])/4.0
+            if space=='hls':
+                color = (hls2rgb((r,g,b)))
+            color = (r,g,b)
+            tmp.append(color)
+        self[:] = tmp
 
     def reverse(self):
         self.reverse()

@@ -1,3 +1,5 @@
+from __future__ import generators
+
 #Copyright (c) 2008 Vitor Bosshard
 #This program licensed under the GPL. See license.txt for details.
 #
@@ -15,6 +17,45 @@ sys.dont_write_bytecode = False # Why is this line here?
 import fr0stlib
 from fr0stlib import Flame, Xform
 
+#-------------------------------------------------------------------------------
+#Experimental thingy for script window map function
+def range_gen(x, y, n, curve='lin', a=1):
+    last = 0
+    prev = x
+    while last < n:
+        if curve=='par':
+            d = (y-x)/(a*float(n)**2)
+            val = (x+a*d*((last+1)**2))
+            yield val-prev
+            prev = val
+            last += 1
+        elif curve=='cos':
+            d = y-x
+            val = ((x+d*((cos(pi + ((last+1)/float(n))*pi))+1)/2)**a)
+            yield val-prev
+            prev = val
+            last += 1
+        elif curve=='sinh':
+            d = y-x
+            val = (x+d*(sinh((last+1)/float(n))/sinh(1)))
+            yield val-prev
+            prev = val
+            last += 1
+        elif curve=='tanh':
+            d = y-x
+            val = (x+d*(tanh((last+1)/float(n))/tanh(1)))
+            yield val-prev
+            prev = val
+            last += 1
+        else:
+            d = (y-x)/float(n)
+            val = (x+d*(last+1))
+            yield val-prev
+            prev = val
+            last += 1
+        if last == n:
+            last = 0
+            prev = x
 
 #-------------------------------------------------------------------------------
 
@@ -143,14 +184,24 @@ def pinterp(cps, n, curve='lin', space='rect'):
     if space=='polar':
         for i in cps:
             i = polar(i)
-        px = vector(cps, n, curve)
-        py = vector(cps, n, curve)
+        xcps = []
+        ycps = []
+        for i in cps:
+            xcps.append(i[0])
+            ycps.append(i[1])
+        px = vector(xcps, n, curve)
+        py = vector(ycps, n, curve)
         pk = []
         for i in xrange(0,n+1):
             pk.append(rect((px[i],py[i])))
     else:
-        px = vector(cps, n, curve)
-        py = vector(cps, n, curve)
+        xcps = []
+        ycps = []
+        for i in cps:
+            xcps.append(i[0])
+            ycps.append(i[1])
+        px = vector(xcps, n, curve)
+        py = vector(ycps, n, curve)
         pk = []
         for i in xrange(0,n+1):
             pk.append((px[i],py[i]))
@@ -160,28 +211,16 @@ def pinterp(cps, n, curve='lin', space='rect'):
 cinterp - Helper for interpolating colors
 """
 def cinterp(cps, n, curve='cos'):
-    """
-    if curve=='par' and len(cps)<4: # special case for parabolic smoothing - kinda legacy w/ cos
-        rmid = abs((cps[1][0]-cps[0][0])/2.0)
-        gmid = abs((cps[1][1]-cps[0][1])/2.0)
-        bmid = abs((cps[1][2]-cps[0][2])/2.0)
-        r1 = vector([cps1[0],rmid],n,curve)
-        g1 = vector([cps1[1],gmid],n,curve)
-        b1 = vector([cps1[2],bmid],n,curve)
-        r2 = vector([cps2[0],rmid],n,curve)
-        g2 = vector([cps2[1],gmid],n,curve)
-        b2 = vector([cps2[2],bmid],n,curve)
-        r2.reverse()
-        g2.reverse()
-        b2.reverse()
-        r = r1[:-1] + r2
-        g = g1[:-1] + g2
-        b = b1[:-1] + b2
-    else:
-    """
-    r = vector(cps, n, curve)
-    g = vector(cps, n, curve)
-    b = vector(cps, n, curve)
+    rcps = []
+    gcps = []
+    bcps = []
+    for i in cps:
+        rcps.append(i[0])
+        gcps.append(i[1])
+        bcps.append(i[2])
+    r = vector(rcps, n, curve)
+    g = vector(gcps, n, curve)
+    b = vector(bcps, n, curve)
     pk = []    
     for i in xrange(0,len(r)):
         pk.append((r[i],g[i],b[i]))
@@ -204,13 +243,13 @@ def from_seed(seed, csplit=0, split=30,  dist=64, curve='lin'):
     rspl = hls2rgb((h+split,l,s))
 
     #g1 is from 0 (compliment) to dist (left split)
-    g1 = cinterp(comp, lspl, dist, curve)
+    g1 = cinterp([comp, lspl], dist, curve)
     #g2 is from dist to 128 (seed)
-    g2 = cinterp(lspl, seed, 128-dist, curve)
+    g2 = cinterp([lspl, seed], 128-dist, curve)
     #g3 is from 127 to 255-dist
-    g3 = cinterp(seed, rspl, 128-dist, curve)
+    g3 = cinterp([seed, rspl], 128-dist, curve)
     #g4 is from 255-dist to 255
-    g4 = cinterp(rspl, comp, dist, curve)
+    g4 = cinterp([rspl, comp], dist, curve)
     
     g1 = g1[:-1]
     g2 = g2[:-1]
