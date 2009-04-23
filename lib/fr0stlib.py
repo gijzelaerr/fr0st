@@ -214,7 +214,8 @@ class Flame(object):
         self.xform.append(Xform(self,
                                 ("coefs",[1,0,0,1,0,0]),
                                 ("linear",1),
-                                ("color",0)))
+                                ("color",0)
+                                ("weight",1)))
 
     def clear(self):
         self.xform = []

@@ -91,6 +91,56 @@ class Interpolation(list):
             for j in xrange(nf):
                 self[j].gradient[i] = vector[j]
 
+"""
+Erik's secret sauce added for better flava
+"""
+def get_pad(xform, target):
+    HOLES = ['spherical', 'ngon', 'julian', 'juliascope', 'polar', 'wedge_sph', 'wedge_julia']
+    
+    target.add_xform()
+    target.xform[-1] = copy.deepcopy(xform)
+    t = target.xform[-1]
+    t.coefs = [0.0,1.0,1.0,0.0,0.0,0.0]
+    if len(set(t).intersection(HOLES)) > 0:
+        #negative ident
+        t.coefs = [-1.0,0.0,0.0,-1.0,0.0,0.0]
+        t.linear = -1.0
+    if 'rectangles' in t.attributes:
+        t.rectangles = 1.0
+        t.rectangles_x = 0.0
+        t.rectangles_y = 0.0
+    if 'rings2' in t.attributes:
+        t.rings2 = 1.0
+        t.rings2_val = 0.0
+    if 'fan2' in t.attributes:
+        t.fan2 = 1.0
+        t.fan2_x = 0.0
+        t.fan2_y = 0.0
+    if 'blob' in t.attributes:
+        t.blob = 1.0
+        t.blob_low = 1.0
+        t.blob_high = 1.0
+        t.blob_waves = 1.0
+    if 'perspective' in t.attributes:
+        t.perspective = 1.0
+        t.perspective_angle = 0.0
+    if 'curl' in t.attributes:
+        t.curl = 1.0
+        t.curl_c1 = 0.0
+        t.curl_c2 = 0.0
+    if 'super_shape' in t.attributes:
+        t.super_shape = 1.0
+        t.super_shape_n1 = 2.0
+        t.super_shape_n2 = 2.0
+        t.super_shape_n3 = 2.0
+        t.super_shape_rnd = 0.0
+        t.super_shape_holes = 0.0
+    if 'fan' in t.attributes:
+        t.fan = 1.0
+    if 'rings' in t.attributes:
+        t.rings = 1.0
+    t.weight = 0.000001
+#-----------------------------------------------------------------------------
 
 def equalize_flame_attributes(flame1,flame2):
     """Make two flames have the same number of xforms and the same
@@ -98,19 +148,14 @@ def equalize_flame_attributes(flame1,flame2):
     diff = len(flame1.xform) - len(flame2.xform)
     if diff < 0:
         for i in range(-diff):
-            flame1.add_xform()
-            flame1.xform[-1].symmetry = 1
+            get_pad(flame2.xform[diff+i], flame1)
     elif diff > 0:
         for i in range(diff):
-            flame2.add_xform()
-            flame2.xform[-1].symmetry = 1
-
-    if flame1.final or flame2.final:
-        for flame in flame1,flame2:
-            flame.create_final()
-            flame.xform.append(flame.final)
-            flame.final = None
-
+            get_pad(flame1.xform[diff+i], flame2)
+    if (flame1.final or flame2.final) and not (flame1.final, flame2.final):
+        if flame1.final: flame2.create_final()
+        else:            flame1.create_final()
+        
     # Size can be interpolated correctly, but it's pointless to
     # produce frames that can't be turned into an animation.
     flame1.size = flame2.size     
