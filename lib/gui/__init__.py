@@ -385,7 +385,7 @@ class MainWindow(wx.Frame):
                          preview = self.preview,
                          large_preview = self.large_preview)
 
-        exec("from lib.fr0stlib import *",namespace)
+        exec("from lib.fr0stlib import *; name='__main__'",namespace)
         return namespace
 
 

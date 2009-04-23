@@ -19,10 +19,10 @@ class Interpolation(list):
             equalize_flame_attributes(keys[i-1], keys[i])
         
         #start frame attribs
-        for name in keys[0].attributes:
+        for name, test in keys[0].iter_attributes():
             cps = []
-            test = getattr(keys[0], name)
-            if type(test) <> str and name not in 'size':
+            #test = getattr(keys[0], name)
+            if type(test) <> str and name not in ['size']:
                 for k in keys:
                     tmp = getattr(k,name)
                     if type(tmp) == list:
@@ -83,19 +83,10 @@ class Interpolation(list):
 
         #end xforms
         #start gradient
-#        for i in xrange(256):
- #           cps = []
-  #          for k in keys:
-   #             cps.append(k.gradient[i])
-    #        vector = interp(cps, interval, curve, a, t, False, True, c_space)
-     #       for j in xrange(nf):
-      #          self[j].gradient[i] = vector[j]
-
-
         for i, cps in enumerate(zip(*(key.gradient for key in keys))):
             vector = interp(cps, interval, curve, a, t, False, True, c_space)
-            for s,v in zip(self,vector):
-                s.gradient[i] = v
+            for f,v in zip(self,vector):
+                f.gradient[i] = v
 
 """
 Erik's secret sauce added for better flava
@@ -190,6 +181,7 @@ def equalize_flame_attributes(flame1,flame2):
                 delattr(flame2,name)
             else:
                 raise TypeError, "flame.%s can't be %s" %(name,_type)
+
 
 #------------------------------------------------
 f1 = Flame(file='samples.flame',name='julia')

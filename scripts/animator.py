@@ -75,7 +75,7 @@ def interpolate_coefs(xform1,xform2,temp_xform,pct):
         if   not r1: phi1 = phi2
         elif not r2: phi2 = phi1
 
-        newx,newy = rect(r1+(r2-r1)*pct,phi1+(phi2-phi1)*pct)
+        newx,newy = rect((r1+(r2-r1)*pct,phi1+(phi2-phi1)*pct))
         
         # A 1e-7 value (occurs only with x) creates a pointless post xform.
         if abs(newx) < 0.000001: newx = 0
@@ -178,7 +178,7 @@ def interpolate_sequence(flames,interval,last_to_first=False):
 
     
 #------------------------------------------------------------------------------
-if True:
+if name == '__main__':
     flame1 = Flame(file='test_interpolation.flame',name='1')
     flame2 = Flame(file='test_interpolation.flame',name='2')
 
