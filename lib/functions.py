@@ -149,8 +149,8 @@ interp - Sort of the front-end to interpolation system. It will determine if you
   smooth - Use smoothing spline
   loop   - Create looping vector
 """
-def interp(cps, n, curve='lin', a=1.0, t=0.5, \
-           smooth=False, loop=False, space='rgb'):
+def interp(cps, n, curve='lin', a=1.0, t=0.5, smooth=False, loop=False,
+           space='rgb'):
 
     #Determine which interpolation function to use           
     if type(cps[0])==types.TupleType:
@@ -279,7 +279,7 @@ def pinterp(cps, n, curve='lin', a=1.0, t=0.5, space='rect'):
         px = vector(xcps, n, curve, a, t)
         py = vector(ycps, n, curve, a, t)
         pk = []
-        for i in xrange(n+1):
+        for i in xrange(n):
             pk.append(rect((px[i],py[i])))
     else:
         xcps = []
@@ -290,7 +290,7 @@ def pinterp(cps, n, curve='lin', a=1.0, t=0.5, space='rect'):
         px = vector(xcps, n, curve, a, t)
         py = vector(ycps, n, curve, a, t)
         pk = []
-        for i in xrange(n+1):
+        for i in xrange(n):
             pk.append((px[i],py[i]))
     return pk
 
