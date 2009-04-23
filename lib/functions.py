@@ -113,7 +113,7 @@ def hls2rgb(color):
     h = clip(h,0,1,True)
 
     (r,b,g) = colorsys.hls_to_rgb(h,l,s)
-    return (r*255,g*255,b*255)
+    return (int(r*255),int(g*255),int(b*255))
 
 #-------------------------------------------------------------------------------
 """
@@ -167,12 +167,13 @@ def interp(cps, n, curve='lin', a=1.0, t=0.5, smooth=False, loop=False,
     if loop:
         if smooth and len(cps)>2:
             v = []
-            #if not enough for splines, append first onto last and continue
-            if len(cps)==3: cps = cps + cps[:1]
             #vector does middle 2 on smooth, so rotate 1 to 2
             cps = cps[-1:] + cps[:-1]
             for i in xrange(len(cps)):
-                v += ifunc(cps[:4], n, curve, a, t, space)
+                #with 3, index 0 becomes the 4th item
+                if len(cps)==3: tcps = cps + cps[:1]
+                else:           tcps = cps[:4]
+                v += ifunc(tcps, n, curve, a, t, space)
                 cps = cps[1:] + cps[:1]
         else:
             v = []
@@ -256,7 +257,6 @@ def vector(cps, n, curve='lin', a=1, t=0.5, space=None):
             W.append(vtmp)
 
         W = numpy.array(W)
-        print cps
         vp = numpy.dot(M,cps)
         p = numpy.dot(W,vp)
         for i in xrange(len(p)):
@@ -314,7 +314,8 @@ def cinterp(cps, n, curve='cos', a=1.0, t=0.5, space='rgb'):
     b = vector(bcps, n, curve, a, t)
     pk = []    
     for i in xrange(len(r)):
-        pk.append((r[i],g[i],b[i]))
+        if space=='hls': pk.append(hls2rgb((r[i],g[i],b[i])))
+        else:            pk.append((int(r[i]),int(g[i]),int(b[i])))
     return pk
 
 """
