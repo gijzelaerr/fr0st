@@ -83,13 +83,19 @@ class Interpolation(list):
 
         #end xforms
         #start gradient
-        for i in xrange(256):
-            cps = []
-            for k in keys:
-                cps.append(k.gradient[i])
+#        for i in xrange(256):
+ #           cps = []
+  #          for k in keys:
+   #             cps.append(k.gradient[i])
+    #        vector = interp(cps, interval, curve, a, t, False, True, c_space)
+     #       for j in xrange(nf):
+      #          self[j].gradient[i] = vector[j]
+
+
+        for i, cps in enumerate(zip(*(key.gradient for key in keys))):
             vector = interp(cps, interval, curve, a, t, False, True, c_space)
-            for j in xrange(nf):
-                self[j].gradient[i] = vector[j]
+            for s,v in zip(self,vector):
+                s.gradient[i] = v
 
 """
 Erik's secret sauce added for better flava
@@ -189,7 +195,10 @@ def equalize_flame_attributes(flame1,flame2):
 f1 = Flame(file='samples.flame',name='julia')
 f2 = Flame(file='samples.flame',name='linear')
 f3 = Flame(file='samples.flame',name='heart')
+from time import time
+t = time()
 i = Interpolation([f1,f2,f3], smooth=True, curve='tanh')
+print time()-t
 while True:
     for f in i:
         SetActiveFlame(f)
