@@ -220,6 +220,14 @@ class Flame(object):
     def clear(self):
         self.xform = []
         self.final = None
+
+
+    def iter_xforms(self):
+        for i in self.xform:
+            yield i
+        if self.final:
+            yield self.final
+
         
     def _get_angle(self):
         return radians(self.rotate)
@@ -228,6 +236,7 @@ class Flame(object):
         self.rotate = degrees(v)
 
     angle = property(_get_angle,_set_angle)
+
 
     def _get_attributes(self):
         return [i for i in self.__dict__ if i not in self._default]
@@ -239,6 +248,7 @@ class Flame(object):
                                ((k,v) for (k,v) in self.__dict__.iteritems()
                                 if k not in self._default))
 
+
     def _get_width(self):
         return self.size[0]
 
@@ -246,6 +256,7 @@ class Flame(object):
         self.size[0] = v
 
     width = property(_get_width,_set_width)
+
 
     def _get_height(self):
         return self.size[0]

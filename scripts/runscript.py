@@ -13,5 +13,6 @@ import sys,os
 if sys.path[0] == os.path.dirname(__file__):
     sys.path.append(sys.path[0])
     sys.path[0] = os.path.join(os.path.dirname(__file__),'..')
-    from lib.fr0stlib import *
+
+from lib.fr0stlib import *
 

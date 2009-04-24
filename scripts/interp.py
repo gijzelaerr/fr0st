@@ -1,3 +1,5 @@
+from runscript import *
+
 class Interpolation(list):
    
     def __init__(self, keys, interval=50, flamename='frame', offset=0, curve='lin',
@@ -184,14 +186,15 @@ def equalize_flame_attributes(flame1,flame2):
 
 
 #------------------------------------------------
-f1 = Flame(file='samples.flame',name='julia')
-f2 = Flame(file='samples.flame',name='linear')
-f3 = Flame(file='samples.flame',name='heart')
-from time import time
-t = time()
-i = Interpolation([f1,f2,f3], smooth=True, curve='tanh')
-print time()-t
-while True:
-    for f in i:
-        SetActiveFlame(f)
-        preview()
+if __name__ == '__main__':
+    f1 = Flame(file='samples.flame',name='julia')
+    f2 = Flame(file='samples.flame',name='linear')
+    f3 = Flame(file='samples.flame',name='heart')
+    from time import time
+    t = time()
+    i = Interpolation([f1,f2,f3], smooth=True, curve='tanh')
+    print time()-t
+    while True:
+        for f in i:
+            SetActiveFlame(f)
+            preview()

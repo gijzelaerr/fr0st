@@ -1,5 +1,5 @@
-<Flames name="test_interpolation">
-<flame name="1" version="Apophysis 2.08 beta 2" size="1024 768" center="-0.451952073648444 3.14448864756949" scale="231.67" angle="1.17251219148979" rotate="-67.18" zoom="-1.077" oversample="1" filter="0.5" quality="50" background="0 0 0" brightness="9.5695652173913" gamma="4.14" >
+<flames name="Fr0st Batch">
+<flame name="A" version="Apophysis 2.08 beta 2" size="1024 768" center="-0.451952073648444 3.14448864756949" scale="231.67" angle="1.17251219148979" rotate="-67.18" zoom="-1.077" oversample="1" filter="0.5" quality="50" background="0 0 0" brightness="9.5695652173913" gamma="4.14" >
    <xform weight="0.333333333333333" color="0" spherical="0.2" swirl="0.6" rings2="0.467738047242165" coefs="0.822091 -0.293182 -0.293182 -0.822091 0.618541 -0.316871" rings2_val="0.247242" />
    <xform weight="0.333333333333333" color="0.047" fan="0.313280761707574" juliascope="0.75" coefs="-0.207191 0.340875 -0.820053 -0.736373 -0.223182 0.00576" juliascope_power="4" juliascope_dist="3" />
    <xform weight="0.1" color="0" linear="0.5" spherical="1" blur="0.15" gaussian_blur="35" coefs="1 0 0 1 0 0" />
@@ -37,8 +37,7 @@
       9E6CA7B470B1B973B0B972AFB571AEAD6AAE8C5F9D61558E
       48528C3E558733548627507F1F4F7D194A7415466F114069
    </palette>
-</flame>
-<flame name="2" version="Apophysis 2.08 beta 2" size="1024 768" center="1.40477098839424 -0.433530431273218" scale="245.76" angle="4.20921055703472" rotate="-241.17" oversample="1" filter="0.2" quality="5" background="0 0 0" brightness="4" gamma="3" >
+</flame><flame name="B" version="Apophysis 2.08 beta 2" size="1024 768" center="1.40477098839424 -0.433530431273218" scale="245.76" angle="4.20921055703472" rotate="-241.17" oversample="1" filter="0.2" quality="5" background="0 0 0" brightness="4" gamma="3" >
    <xform weight="0.5" color="0.143" linear="0.3" sinusoidal="0.6" coefs="0.341886 0.317293 -0.154085 0.166029 -0.166997 -0.185283" chaos="0.5 " />
    <xform weight="0.5" color="0.195" symmetry="0.2" linear="-0.839" coefs="-0.410706 -0.53109 -0.40858 0.315965 -2.436637 0.582008" />
    <xform weight="0.5" color="0.078" linear="1" coefs="0.622099 -0.741389 0.622099 0.741389 -0.323077 -1.391518" chaos="1 1 1 0 " />
@@ -77,5 +76,4 @@
       3A57263453213551233750253952283A542C435C324D6639
       6283466B934A75A44E83B25791C1619AC868A1D06FBDE48C
    </palette>
-</flame>
-</Flames>
+</flame></flames>
