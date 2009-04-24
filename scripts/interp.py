@@ -149,9 +149,9 @@ def equalize_flame_attributes(flame1,flame2):
     elif diff > 0:
         for i in range(diff):
             get_pad(flame1.xform[diff+i], flame2)
-    if (flame1.final or flame2.final) and not (flame1.final, flame2.final):
-        if flame1.final: flame2.create_final()
-        else:            flame1.create_final()
+    if flame1.final or flame2.final:
+        flame1.create_final()
+        flame2.create_final()
         
     # Size can be interpolated correctly, but it's pointless to
     # produce frames that can't be turned into an animation.
