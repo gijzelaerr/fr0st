@@ -1,94 +1,113 @@
 from runscript import *
 
 class Interpolation(list):
-   
-    def __init__(self, keys, interval=50, flamename='frame', offset=0, curve='lin',
-                 a=1.0, t=0.5, smooth=False, p_space='rect', c_space='hls'):
 
+    def __init__(self, keys, n=50, **kwargs):
+        #Set defaults
+        self.flamename = 'frame'
+        self.offset = 0
+        self.curve = 'lin'
+        self.a = 1.0
+        self.t = 0.5
+        self.smooth = False
+        self.loop = True
+        self.kwargs['loop'] = True
+        self.p_space = 'polar'
+        self.c_space = 'rgb'
+
+        #Get defaults from kwargs
+        for key in kwargs:
+            if key=='flamename': flamename=kwargs[key]
+            elif key=='offset':  offset=kwargs[key]
+            elif key=='curve':   curve=kwargs[key]
+            elif key=='a':       a=kwargs[key]
+            elif key=='t':       t=kwargs[key]
+            elif key=='smooth':  smooth=kwargs[key]
+            elif key=='p_space': p_space=kwargs[key]
+            elif key=='c_space': c_space=kwargs[key]
+            
         nk = len(keys)
-        nf = nk*interval
+        nf = nk * n
         
-        curves = {}
-
-        for i in xrange(nf):
-            self.append(Flame())
-            self[i].name = flamename + str(i + offset)
-            
-        #First frame is at 0
-
+        tmp = []
         for i in xrange(nk):
-            #Equalize
-            equalize_flame_attributes(keys[i-1], keys[i])
-        
-        #start frame attribs
-        for name, test in keys[0].iter_attributes():
-            cps = []
-            #test = getattr(keys[0], name)
-            if type(test) <> str and name not in ['size']:
-                for k in keys:
-                    tmp = getattr(k,name)
-                    if type(tmp) == list:
-                        cps.append(tuple(tmp))
-                    else:
-                        cps.append(tmp)
-                vector = interp(cps, interval, curve, a, t, smooth, True)
-                for i in xrange(nf):
-                    if type(vector[i]) == tuple:
-                        setattr(self[i], name, list(vector[i]))
-                    else:
-                        setattr(self[i], name, vector[i])
-            else:
-                pass
-        #done frame attribs
-        #start xforms
-        maxi = 0
-        for k in keys:
-            if len(k.xform)> maxi: maxi = len(k.xform)
-        
-        for i in xrange(maxi):
-            #add blank xforms to all the dummies
-            for f in self:
-                f.add_xform()
+            k1 = Flame(string=keys[i-1].to_string())
+            k2 = Flame(string=keys[i].to_string())
+            equalize_flame_attributes(k1, k2)
+            tmp.append(k2)
+        keys = tmp
 
-            #coef interp
-            cpsx = []
-            cpsy = []
-            cpso = []
-            attrset = []
-            for k in keys:
-                if len(k.xform)<i+1:
-                    cpsx.append((1, 0))
-                    cpsy.append((0, 1))
-                    cpso.append((0, 0))
-                else:
-                    a,d,b,e,c,f = k.xform[i].coefs
-                    cpsx.append((a,d))
-                    cpsy.append((b,e))
-                    cpso.append((c,f))
-                    attrset += set(attrset).union(k.xform[i].attributes)
-            vx = interp(cpsx, interval, curve, a, t, smooth, True, p_space)
-            vy = interp(cpsy, interval, curve, a, t, smooth, True, p_space)
-            vo = interp(cpso, interval, curve, a, t, smooth, True, p_space)
-            for j in xrange(nf):
-                self[j].xform[i].coefs = [vx[j][0], vx[j][1], vy[j][0], vy[j][1], vo[j][0], vo[j][1]]
-            
-            #attribute interp
-            for name in attrset:
+        for i in range(nf):
+            #Make new, empty flame
+            self.append(Flame())
+            self[i].name = flamename + str(offset+i)
+
+            #Flame attrs
+            interp_attrs = ['scale', 'rotate', 'brightness', 'gamma']
+            for name, test in keys[0].iter_attributes():
                 cps = []
+                
+                if name in interp_attrs:
+                    for k in keys:
+                        tmp = getattr(k,name)
+                        if type(tmp) == list: cps.append(tuple(tmp))
+                        else:                 cps.append(tmp)
+                    val = interp(cps, n, i, **kwargs)
+                    if type(val)==tuple: setattr(self[i], name, list(val))
+                    else:                setattr(self[i], name, val)
+                else:
+                    pass
+            #end flame attrs
+            
+            maxi = 0
+            for k in keys:
+                if len(k.xform)>maxi: maxi=len(k.xform)
+            
+            #Xform attrs
+            for x in xrange(maxi):
+                #Add xform
+                self[i].add_xform()
+                
+                #coef interp
+                cpsx = []
+                cpsy = []
+                cpso = []
+                attrset = []
                 for k in keys:
-                    if hasattr(k.xform[i], name): cps.append(getattr(k.xform[i], name))
-                    else:                         cps.append(0)
-                vector = interp(cps, interval, curve, a, t, smooth, True)
-                for j in xrange(nf):
-                    if name=='weight': vector[j] = clip(vector[j], 0.0000001, 10000)
-                    setattr(self[j].xform[i], name, vector[j])
-
-        #end xforms
-        #start gradient
-        for i, cps in enumerate(zip(*(key.gradient for key in keys))):
-            vector = interp(cps, interval, curve, a, t, False, True, c_space)
-            for f,v in zip(self,vector):
-                f.gradient[i] = v
+                    if len(k.xform)<x+1:
+                        cpsx.append((1,0))
+                        cpsy.append((0,1))
+                        cpso.append((0,0))
+                    else:
+                        a,d,b,e,c,f = k.xform[x].coefs
+                        cpsx.append((a,d))
+                        cpsy.append((b,e))
+                        cpso.append((c,f))
+                        attrset += set(attrset).union(k.xform[x].attributes)
+                vx = interp(cpsx, n, i, **kwargs)
+                vy = interp(cpsy, n, i, **kwargs)
+                vo = interp(cpso, n, i, **kwargs)
+                self[i].xform[x].coefs = tuple(vx + vy + vo)
+                
+                #attribute intep
+                for name in attrset:
+                    cps = []
+                    for k in keys:
+                        if len(k.xform)>x and hasattr(k.xform[x], name):
+                            cps.append(getattr(k.xform[x], name))
+                        else:
+                            cps.append(0)
+                    val = interp(cps, n, i, **kwargs)
+                    if name=='weight': val = clip(val, 0, 100)
+                    setattr(self[i].xform[x], name, val)
+            #end xforms
+            
+            #gradient
+            for c, cps in enumerate(zip(*(key.gradient for key in keys))):
+                val = interp(cps, n, i, **kwargs)
+                self[i].gradient[c] = val
+        #end xform
+    #end init
 
 """
 Erik's secret sauce added for better flava
@@ -138,7 +157,7 @@ def get_pad(xform, target):
         t.fan = 1.0
     if 'rings' in t.attributes:
         t.rings = 1.0
-    t.weight = 0.000001
+    t.weight = 0
 #-----------------------------------------------------------------------------
 
 def equalize_flame_attributes(flame1,flame2):
@@ -147,13 +166,21 @@ def equalize_flame_attributes(flame1,flame2):
     diff = len(flame1.xform) - len(flame2.xform)
     if diff < 0:
         for i in range(-diff):
-            get_pad(flame2.xform[diff+i], flame1)
+#            get_pad(flame2.xform[diff+i], flame1)
+            flame1.add_xform()
+            flame1.xform[-1].symmetry = 1
     elif diff > 0:
         for i in range(diff):
-            get_pad(flame1.xform[diff+i], flame2)
+#            get_pad(flame1.xform[diff+i], flame2)
+            flame2.add_xform()
+            flame2.xform[-1].symmetry = 1
     if flame1.final or flame2.final:
-        flame1.create_final()
-        flame2.create_final()
+#        flame1.create_final()
+#        flame2.create_final()
+        for flame in flame1,flame2:
+            flame.create_final()
+            flame.xform.append(flame.final)
+            flame.final = None
         
     # Size can be interpolated correctly, but it's pointless to
     # produce frames that can't be turned into an animation.
@@ -187,12 +214,18 @@ def equalize_flame_attributes(flame1,flame2):
 
 #------------------------------------------------
 if __name__ == '__main__':
-    f1 = Flame(file='samples.flame',name='julia')
-    f2 = Flame(file='samples.flame',name='linear')
+    f1 = Flame(file='samples.flame',name='linear')
+    f2 = Flame(file='samples.flame',name='julia')
     f3 = Flame(file='samples.flame',name='heart')
+    f4 = Flame(file='test_interpolation.flame',name='A')
+    f5 = Flame(file='test_interpolation.flame',name='B')
     from time import time
     t = time()
-    i = Interpolation([f1,f2,f3], smooth=True, curve='tanh')
+    i = Interpolation([f1,f2,f3,f4,f5,f2,f4,f3], smooth=True, curve='tanh')
+#    f = file('/home/jmil/Desktop/test.flame', 'w')
+#    for frame in i:
+#        f.write(frame.to_string())
+#    f.close()
     print time()-t
     while True:
         for f in i:

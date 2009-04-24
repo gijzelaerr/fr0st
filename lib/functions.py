@@ -10,63 +10,12 @@ from __future__ import generators
 
 # This code sets up the namespace in which fr0st scripts run
 
-import os, sys, marshal, copy, random, cmath, shutil, numpy, colorsys, itertools, types
+import os, sys, marshal, copy, random, cmath, shutil, numpy, colorsys, itertools
 from math import *
 sys.dont_write_bytecode = False # Why is this line here?
 
 #-------------------------------------------------------------------------------
-#Experimental thingy for script window map function
-def range_gen(x, y, n, curve='lin', a=1):
-    last = 0
-    prev = x
-    m = float(n)
-
-    if curve=='par':
-        d = (y-x)/(a*m)**2
-        rangefunc = lambda: (x+a*d*((last+1)**2)) 
-    elif curve=='npar':
-        d = (x-y)/(a*m)**2
-        prev = -y
-        rangefunc = lambda: (x+a*d*((n-(last+1))**2))
-    elif curve=='cos':
-        d = y-x
-        rangefunc = lambda: ((x+d*((cos(pi + ((last+1)/m)*pi))+1)/2)**a)
-    elif curve=='sinh':
-        d = y-x
-        rangefunc = lambda: (((sinh(a*(2*(last+1)-m)/m) - sinh(-a)) / (2*sinh(a*(2*n-m)/m)/d))+x)
-    elif curve=='tanh':
-        d = y-x
-        rangefunc = lambda: (((tanh(a*(2*(last+1)-m)/m) - tanh(-a)) / (2*tanh(a*(2*n-m)/m)/d))+x)
-    else:
-        d = (y-x)/m
-        rangefunc = lambda: (x+d*(last+1))
-    while last < n:
-        val = rangefunc()
-        yield val-prev
-        prev = val
-        last += 1
-
-        if last == n:
-            last = 0
-            prev = x
-            
-def vector_gen(cps, n, curve='lin', a=1.0, t=0.5, loop=False):
-    if loop:
-        v = []
-        cps = cps[-1:] + cps[:-1]
-        for i in xrange(len(cps)):
-            vt = vector(cps[:4], n, curve, a=1.0, t=0.5)
-            v += vt[:-1]
-            cps = cps[1:] + cps[:1]
-    else:
-        v = vector(cps, n, curve, a=1.0, t=0.5)
-    v2 = v[1:] + v[:1]
-    def diff(x,y): return y-x
-    v=map(diff,v,v2)
-    itr = itertools.cycle(v)
-    return itr
-
-#-------------------------------------------------------------------------------
+#Converters
 
 def polar(coord):
 ##    return cmath.polar(complex(*coord)) # Use this once 2.6 is default
@@ -80,8 +29,28 @@ def rect(coord):
     real = coord[0] * cos(coord[1]*pi/180.0)
     imag = coord[0] * sin(coord[1]*pi/180.0)
     return real, imag
+
+"""
+Takes an rgb tuple (0-255) and returns hls tuple (hls is scalar)
+"""
+def rgb2hls(color):
+    return colorsys.rgb_to_hls(*map(lambda x: x/256.0, color))
+
+"""
+Takes hls tuple and returns rgb tuple (rgb is int)
+"""    
+def hls2rgb(color):
+    #convert h to scalar
+    h,l,s = color
+    h = clip(h,0,1,True)
+    l = clip(l,0,1)
+    s = clip(s,0,1)
+
+    (r,b,g) = colorsys.hls_to_rgb(h,l,s)
+    return (int(r*255),int(g*255),int(b*255))
     
 #-------------------------------------------------------------------------------
+#General utils
 """
 Clip - clips variable if above or below limits
   v - value
@@ -98,24 +67,8 @@ def clip(v, mini, maxi, rotate=False):
         elif v < mini: v = mini
     return v
 
-"""
-Takes an rgb tuple (0-255) and returns hls tuple (hls is scalar)
-"""
-def rgb2hls(color):
-    return colorsys.rgb_to_hls(*map(lambda x: x/256.0, color))
-
-"""
-Takes hls tuple and returns rgb tuple (rgb is int)
-"""    
-def hls2rgb(color):
-    #convert h to scalar
-    h,l,s = color
-    h = clip(h,0,1,True)
-
-    (r,b,g) = colorsys.hls_to_rgb(h,l,s)
-    return (int(r*255),int(g*255),int(b*255))
-
 #-------------------------------------------------------------------------------
+#Interpolation and smoothing code
 """
 interp - Sort of the front-end to interpolation system. It will determine if you
     are interpolating 1, 2, or 3-dimensional data and handle it accordingly.
@@ -140,183 +93,161 @@ interp - Sort of the front-end to interpolation system. It will determine if you
     Space is a setting only for color and coordinate interpolation. In color
     interpolation, you have the choice between rgb and hls interpolations. For
     coordinate interpolation you can chose between rect and polar options.
-    
+
+args:
   cps    - List of control points
   n      - Distance (steps) between control points
+  i      - index value to return
+
+kwargs:    
   curve  - Curve type of the interpolation
   a      - Curve parameter (mostly tied to slope)
   t      - Spline tension
   smooth - Use smoothing spline
   loop   - Create looping vector
+  p_space- Coordinate interpolation space (rect, polar)
+  c_space- Color interpolation space (rgb, hls)
 """
-def interp(cps, n, curve='lin', a=1.0, t=0.5, smooth=False, loop=False,
-           space='rgb'):
+def interp(cps, n, i, **kwargs):
+    #Set defaults
+    smooth = kwargs.get('smooth',False)
+    loop   = kwargs.get('loop',True)
 
-    #Determine which interpolation function to use           
-    if type(cps[0])==types.TupleType:
-        if len(cps[0])==2:                  #2-tuple = coordinate
-            ifunc=pinterp
-            if space=='rgb':                #switch space to something related
-                space = 'rect'
+    #Determine data dimensions
+    if type(cps[0])==tuple:
+        if len(cps[0])==2:
+            ifunc=vector2d
+        elif len(cps[0])==3:
+            ifunc=vector3d
+            kwargs['smooth']=False
         else:
-            ifunc=cinterp                   #3-tuple = color
+            #exception
+            print "Only 1-, 2-, and 3-d variables are supported."
     else:
-        ifunc=vector                        #non-tuple = point
+        ifunc=vector
 
-    #4 types are handled - looping, smooth, looping and smooth, and none
     if loop:
         if smooth and len(cps)>2:
-            v = []
-            #vector does middle 2 on smooth, so rotate 1 to 2
-            cps = cps[-1:] + cps[:-1]
-            for i in xrange(len(cps)):
-                #with 3, index 0 becomes the 4th item
-                if len(cps)==3: tcps = cps + cps[:1]
-                else:           tcps = cps[:4]
-                v += ifunc(tcps, n, curve, a, t, space)
-                cps = cps[1:] + cps[:1]
+            #Determine list rotation
+            seg = i/n
+            cps = cps[seg-1:] + cps[:seg-1]
+            #if 3 long pad the non-interpolating point, otherwise cat to 4
+            if len(cps)==3: tcps = cps + cps[:1]
+            else:           tcps = cps[:4]
+            return ifunc(tcps, n, i%n, **kwargs)
         else:
-            v = []
-            for i in xrange(len(cps)):
-                v += ifunc(cps[:2], n, curve, a, space)
-                cps = cps[1:] + cps[:1]
+            #Determine list rotation
+            cps = cps[i/n:] + cps[:i/n]
+            return ifunc(cps, n, i%n, **kwargs)
     else:
         if smooth and len(cps)>3:
-            v = ifunc(cps[:4], n, curve, a, t, space)
+            return ifunc(cps[:4], n, i%n, **kwargs)    
         else:
-            v = ifunc(cps[:2], n, curve, a, space)
-    return v
+            return ifunc(cps[:2], n, i%n, **kwargs)
+#---end interp
 
-"""
-drange - Returns a list of values from x to y over n steps.
-  x     - starting value
-  y     - ending value
-  n     - number of steps (returned list is n items long ending with y)
-  curve - lin, par, npar, cos, sinh, tanh
-  a     - curve param
-"""
-def drange(x, y, n, curve='lin', a=1):
-    v = []
-    m = float(n)
+def drange(x, y, n, i, **kwargs):
+    #Set defaults
+    curve = kwargs.get('curve','lin')
+    a     = kwargs.get('a',1.0)
+
+    m=float(n)
+
     if curve=='par':
-        d = (y-x)/((a*m)**2)
-        for i in xrange(1,n+1):
-            v.append(x+a*d*(i**2))
+        d = (y-x)/(m**2)
+        return (x+d*(i**2))
     elif curve=='npar':
-        d = (y-x)/((a*m)**2)
-        for i in xrange(1,n+1):
-            v.append(y-a*d*((n-i)**2))
+        d = (y-x)/(m**2)
+        return (y-d*((n-i)**2))
     elif curve=='cos':
         d = y-x
-        for i in xrange(1,n+1):
-            v.append((x+d*((cos(pi + (i/m)*pi))+1)/2)**a)
+        return (x+d*((cos(pi + (i/m)*pi))+1)/2)**a
     elif curve=='sinh':
         d = y-x
-        for i in xrange(1,n+1):
-            v.append(((sinh(a*(2*i-m)/m) - sinh(-a)) / (2*sinh(a*(2*n-m)/m)/d))+x)
+        if d<>0: return x+((sinh(a*(2*i-m)/m) - sinh(-a)) / (2*sinh(a*(2*n-m)/m)/d))
+        else:    return 0
     elif curve=='tanh':
         d = y-x
-        for i in xrange(1,n+1):
-            v.append(((tanh(a*(2*i-m)/m) - tanh(-a)) / (2*tanh(a*(2*n-m)/m)/d))+x)
+        if d<>0: return x+((tanh(a*(2*i-m)/m) - tanh(-a)) / (2*tanh(a*(2*n-m)/m)/d))
+        else:    return 0
     else:
         d = (y-x)/m
-        for i in xrange(1,n+1):
-            v.append(x+d*i)
-    return v
+        return x+d*i
+#---end drange
 
-"""
-vector - Returns a vector between control points
-  cps - list of control points (min 4 required for Cardinal Splines)
-  n - distance between control points
-  curve - curve of the line between the two points to be smoothed
-  a - curve parameter
-  t - tension of the spline (0.5 = Catmull-Rom)
-"""
-def vector(cps, n, curve='lin', a=1, t=0.5, space=None):
-    pk = []
+def vector(cps, n, i, **kwargs):
+    #Set defaults
+    t = kwargs.get('t', 0.5)
+        
     if len(cps)>1 and len(cps)<4:
-        d = cps[1] - cps[0]
-        v = drange(0,1,n,curve,a)
-        for i in v:
-            pk.append(cps[0]+i*d)
-    elif len(cps)>=4:
-        cps = cps[:4]
-        dy = cps[2]-cps[1]
-        v = drange(0,1,n,curve,a)
+        return drange(cps[0], cps[1], n, i, **kwargs)
+    elif len(cps)==4:
+        v = drange(0, 1, n, i, **kwargs)
         cps = numpy.array(cps)
         M = numpy.array([[0,1,0,0]
                         ,[-t,0,t,0]
                         ,[2*t,t-3,3-2*t,-t]
                         ,[-t,2-t,t-2,t]])
         W = []
-        
-        for i in v:
-            vtmp = []
-            for j in xrange(4):
-                vtmp.append(i**j)
-            W.append(vtmp)
+        for j in xrange(4):
+            W.append(v**j)
 
         W = numpy.array(W)
         vp = numpy.dot(M,cps)
-        p = numpy.dot(W,vp)
-        for i in xrange(len(p)):
-            pk.append(p[i])
-    return pk
-
-"""
-pinterp - Helper for point interpolation
-  space - rect or polar
-"""    
-def pinterp(cps, n, curve='lin', a=1.0, t=0.5, space='rect'):
-    if space=='polar':
-        for i in cps:
-            i = polar(i)
-        xcps = []
-        ycps = []
-        for i in cps:
-            xcps.append(i[0])
-            ycps.append(i[1])
-        px = vector(xcps, n, curve, a, t)
-        py = vector(ycps, n, curve, a, t)
-        pk = []
-        for i in xrange(n):
-            pk.append(rect((px[i],py[i])))
+        return numpy.dot(W,vp)
     else:
-        xcps = []
-        ycps = []
-        for i in cps:
-            xcps.append(i[0])
-            ycps.append(i[1])
-        px = vector(xcps, n, curve, a, t)
-        py = vector(ycps, n, curve, a, t)
-        pk = []
-        for i in xrange(n):
-            pk.append((px[i],py[i]))
-    return pk
+        #exception code
+        print "You have the wrong number of cps."
+#---end vector
 
-"""
-cinterp - Helper for interpolating colors
-"""
-def cinterp(cps, n, curve='cos', a=1.0, t=0.5, space='rgb'):
+def vector2d(cps, n, i, **kwargs):
+    #Set defaults
+    p_space = kwargs.get('p_space','polar')
+    
+    if p_space=='polar':
+        tmp = []
+        for c in cps:
+            tmp.append(polar(c))
+        cps = tmp
+    xcps = []
+    ycps = []
+    for c in cps:
+        xcps.append(c[0])
+        ycps.append(c[1])
+    if p_space=='polar':
+        return rect((vector(xcps,n,i,**kwargs),vector(ycps,n,i,**kwargs)))
+    else:
+        return (vector(xcps,n,i,**kwargs),vector(ycps,n,i,**kwargs))
+#---end vector2d
+
+def vector3d(cps, n, i, **kwargs):
+    #Set defaults
+    c_space = kwargs.get('c_space','rgb')
+    
+    if c_space=='hls':
+        tmp = []
+        for c in cps:
+            tmp.append(rgb2hls(c))
+        cps = tmp
     rcps = []
     gcps = []
     bcps = []
-    for i in cps:
-        if space=='hls':
-            r,g,b = rgb2hls(i)
-        else:
-            r,g,b = i
-        rcps.append(r)
-        gcps.append(g)
-        bcps.append(b)
-    r = vector(rcps, n, curve, a, t)
-    g = vector(gcps, n, curve, a, t)
-    b = vector(bcps, n, curve, a, t)
-    pk = []    
-    for i in xrange(len(r)):
-        if space=='hls': pk.append(hls2rgb((r[i],g[i],b[i])))
-        else:            pk.append((int(r[i]),int(g[i]),int(b[i])))
-    return pk
+    for c in cps:
+        rcps.append(c[0])
+        gcps.append(c[1])
+        bcps.append(c[2])
+    if c_space=='hls':
+        return hls2rgb((vector(rcps,n,i,**kwargs)
+                       ,vector(gcps,n,i,**kwargs)
+                       ,vector(bcps,n,i,**kwargs)))
+    else:
+        return (clip(vector(rcps,n,i,**kwargs),0,255)
+               ,clip(vector(gcps,n,i,**kwargs),0,255)
+               ,clip(vector(bcps,n,i,**kwargs),0,255))
+#---end vector3d
+
+#-------------------------------------------------------------------------------
+#Random palette methods
 
 """
 from_seed - Returns a palette from a seed color
