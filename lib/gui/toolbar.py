@@ -57,6 +57,9 @@ def CreateToolBar(parent):
 
     tb.AddSimpleTool(ID.TBPREVIEW, GetBMP(wx.ART_MISSING_IMAGE),
                      "Preview", "Open the preview frame")
+
+    tb.AddSimpleTool(ID.TBGRADIENT, GetBMP(wx.ART_MISSING_IMAGE),
+                     "Gradient", "Open the gradient frame")
     
     tb.Realize()
 
