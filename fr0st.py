@@ -29,7 +29,6 @@ if len(sys.argv) is 1:
     sys.argv.append('default')
 
 try:
-    modname = sys.argv[1]
-    __import__(modname)
+    __import__(sys.argv[1])
 except ImportError:
     raise ImportError, "Unable to load script %s" %modname
