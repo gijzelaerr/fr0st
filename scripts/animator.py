@@ -178,7 +178,8 @@ def interpolate_sequence(flames,interval,last_to_first=False):
 
     
 #------------------------------------------------------------------------------
-if name == '__main__':
+if __name__ == '__main__':
+    print "Running default test"
     flame1 = Flame(file='test_interpolation.flame',name='1')
     flame2 = Flame(file='test_interpolation.flame',name='2')
 
