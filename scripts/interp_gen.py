@@ -1,7 +1,8 @@
 from runscript import *
 
 def interpolation(keys, n=50, **kwargs):
-    last = -1
+    last = 0
+    cache = []
 
     #Set defaults
     flamename = kwargs.get('flamename','frame')
@@ -40,9 +41,16 @@ def interpolation(keys, n=50, **kwargs):
     keys = tmp
         
     while last < nf:
-        yield get_flame(keys, n, last, **settings)
+        if len(cache) < last + 1:
+            cache.append(get_flame(keys, n, last, **settings))
+            if last%10<>9: print '.',
+            if last%10==9: print str(last+1) + '/' + str(nf)
+            if last==nf-1: print "Calculations complete"
+        yield cache[last]
         last += 1
-    last = 0
+        if last >= nf:
+            last = 0
+#---end
 
 def get_flame(keys, n, i, **kwargs):
     #Make new, empty flame
@@ -228,6 +236,8 @@ if __name__ == '__main__':
     f4 = Flame(file='test_interpolation.flame',name='A')
     f5 = Flame(file='test_interpolation.flame',name='B')
     i = interpolation([f1,f2,f3,f4,f5,f2,f4,f3], smooth=True, curve='tanh')
+    buff = i.next()   #buffer to take advantage of threading
     while True:
-        SetActiveFlame(i.next())
+        SetActiveFlame(buff)
         preview()
+        buff = i.next()
