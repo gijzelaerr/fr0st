@@ -202,14 +202,13 @@ def vector(cps, n, i, **kwargs):
 
 def vector2d(cps, n, i, **kwargs):
     #Set defaults
-    p_space  = kwargs.get('p_space','rect')
-
+    p_space = kwargs.get('p_space','polar')
+    
     if p_space=='polar':
         tmp = []
         for c in cps:
             tmp.append(polar(c))
         cps = tmp
-
     xcps = []
     ycps = []
     for c in cps:

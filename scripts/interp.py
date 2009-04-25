@@ -11,7 +11,7 @@ class Interpolation(list):
         self.t = 0.5
         self.smooth = False
         self.loop = True
-        kwargs['loop'] = True
+        self.kwargs['loop'] = True
         self.p_space = 'polar'
         self.c_space = 'rgb'
 
@@ -40,7 +40,7 @@ class Interpolation(list):
         for i in range(nf):
             #Make new, empty flame
             self.append(Flame())
-            self[i].name = self.flamename + str(self.offset+i)
+            self[i].name = flamename + str(offset+i)
 
             #Flame attrs
             interp_attrs = ['scale', 'rotate', 'brightness', 'gamma']
@@ -221,7 +221,7 @@ if __name__ == '__main__':
     f5 = Flame(file='test_interpolation.flame',name='B')
     from time import time
     t = time()
-    i = Interpolation([f1,f2], smooth=True, curve='tanh')
+    i = Interpolation([f1,f2,f3,f4,f5,f2,f4,f3], smooth=True, curve='tanh')
 #    f = file('/home/jmil/Desktop/test.flame', 'w')
 #    for frame in i:
 #        f.write(frame.to_string())

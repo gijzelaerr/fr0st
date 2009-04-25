@@ -14,7 +14,6 @@ def interpolation(keys, n=50, **kwargs):
     loop      = kwargs.get('loop',True)
     p_space   = kwargs.get('p_space','polar')
     c_space   = kwargs.get('c_space','rgb')
-#    rotation  = kwargs.get('rotation', None)
 
     #for now
     loop = True
@@ -29,7 +28,6 @@ def interpolation(keys, n=50, **kwargs):
              ,'loop': loop
              ,'p_space': p_space
              ,'c_space': c_space}
-#             ,'rotation': rotation}
 
     nk = len(keys)
     nf = nk * n
@@ -237,7 +235,7 @@ if __name__ == '__main__':
     f3 = Flame(file='samples.flame',name='heart')
     f4 = Flame(file='test_interpolation.flame',name='A')
     f5 = Flame(file='test_interpolation.flame',name='B')
-    i = interpolation([f1,f2], smooth=True, curve='tanh')
+    i = interpolation([f1,f2,f3,f4,f5,f2,f4,f3], smooth=True, curve='tanh')
     buff = i.next()   #buffer to take advantage of threading
     while True:
         SetActiveFlame(buff)
