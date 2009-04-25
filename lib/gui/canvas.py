@@ -5,7 +5,6 @@ from wx.lib.floatcanvas.FloatCanvas import FloatCanvas, DotGrid
 from decorators import Bind, BindEvents
 from _events import EVT_CANVAS_REFRESH
 from lib.fr0stlib import polar
-from lib.fr0stlib import Flame
 from lib import pyflam3
 
 
@@ -64,11 +63,7 @@ class XformCanvas(FloatCanvas):
 
     def ShowFlame(self, flame=None, rezoom=True, refresh=True):
         if flame is None:
-            if self.parent.flame:
-                flame = self.parent.flame
-            else:
-                flame = Flame()
-                flame.add_xform()
+            flame = self.parent.flame
 
         # Checks if the active xform is None or belongs to a previous flame.
         if (not self.parent.ActiveXform) or \
@@ -179,16 +174,13 @@ class XformCanvas(FloatCanvas):
 
 
     def IterXforms(self):
-        if self.parent.flame:
-            active = self.parent.ActiveXform
-            lst = [i for i in self.parent.flame.xform if i != active]
-            if active:
-                lst.insert(0, active)
-            if self.parent.flame.final:
-                lst.append(self.parent.flame.final)
-            return lst
-        else:
-            return []
+        active = self.parent.ActiveXform
+        lst = [i for i in self.parent.flame.xform if i != active]
+        if active:
+            lst.insert(0, active)
+        if self.parent.flame.final:
+            lst.append(self.parent.flame.final)
+        return lst       
 
 
     def SideHitTest(self, h, v):

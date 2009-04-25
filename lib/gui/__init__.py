@@ -4,7 +4,6 @@ from wx import PyDeadObjectError
 
 from lib.gui.scripteditor import EditorFrame
 from lib.gui.preview import PreviewFrame
-from lib.gui.gradient import GradientFrame
 from lib.gui.filetree import TreePanel
 from lib.gui.menu import CreateMenu
 from lib.gui.toolbar import CreateToolBar
@@ -52,7 +51,6 @@ class MainWindow(wx.Frame):
         self.canvas = XformCanvas(self)
 
         self.previewframe = PreviewFrame(self)
-        self.gradientframe = GradientFrame(self)
 
         self.editorframe = EditorFrame(self)
         self.editor = self.editorframe.editor
@@ -229,12 +227,6 @@ class MainWindow(wx.Frame):
         self.previewframe.Show(True)
         self.previewframe.Raise()
         self.previewframe.RenderPreview()
-        
-    @Bind(wx.EVT_TOOL, id=ID.TBGRADIENT)
-    def OnGradientOpen(self, e):
-        self.gradientframe.Show(True)
-        self.gradientframe.Raise()
-        self.gradientframe.UpdateGradient()
 
     @Bind(wx.EVT_TOOL,id=ID.UNDO)
     @Bind(wx.EVT_MENU,id=ID.UNDO)
