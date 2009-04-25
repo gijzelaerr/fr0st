@@ -112,7 +112,7 @@ def interp(cps, n, i, **kwargs):
     #Set defaults
     smooth = kwargs.get('smooth',False)
     loop   = kwargs.get('loop',True)
-
+    loops  = True
     #Determine data dimensions
     if type(cps[0])==tuple:
         if len(cps[0])==2:

@@ -1,5 +1,23 @@
 from runscript import *
 
+"""
+Interpolation options:
+  keys      - list of frames to interpolate in order
+  n         - distance between keyframes
+  flamename - base name for frames
+  offset    - offset for frame index value
+  curve     - lin, par, npar, cos, sinh, tanh
+  a         - curve parameter (slope)
+  t         - spline tension (0.5 = catmull-rom)
+  smooth    - use smoothing
+  loop      - loop animation (non-looping as yet supported)
+  loops     - loop genomes
+  p_space   - coordinate interpolation space: rect, polar
+  c_space   - color interpolation space: rgb, hls
+  rotate    - number of rotations (- for counter-clockwise)
+  pivot     - number of pivots (- for counter-clockwise)
+"""
+
 def interpolation(keys, n=50, **kwargs):
     last = 0
     cache = []
@@ -12,39 +30,40 @@ def interpolation(keys, n=50, **kwargs):
     t         = kwargs.get('t',0.5)
     smooth    = kwargs.get('smooth',False)
     loop      = kwargs.get('loop',True)
+    loops     = kwargs.get('loops',True)
     p_space   = kwargs.get('p_space','polar')
     c_space   = kwargs.get('c_space','rgb')
     rotate    = kwargs.get('rotate',1)
+    pivot     = kwargs.get('pivot',1)
 
     #for now
-    loop = True
+    kwargs['flamename'] = flamename
+    kwargs['offset']    = offset
+    kwargs['curve']     = curve
+    kwargs['a']         = a
+    kwargs['t']         = t
+    kwargs['smooth']    = smooth
+    kwargs['loop']      = True
+    kwargs['p_space']   = p_space
+    kwargs['c_space']   = c_space
+    kwargs['rotate']    = rotate
+    kwargs['pivot']     = pivot
 
-    #there got to be a better way! May not be needed when I fix non-looping
-    settings={'flamename': flamename
-             ,'offset': offset
-             ,'curve': curve
-             ,'a': a
-             ,'t': t
-             ,'smooth': smooth
-             ,'loop': loop
-             ,'p_space': p_space
-             ,'c_space': c_space
-             ,'rotate': rotate}
-
-    nk = len(keys)
-    nf = nk * n
-    
     tmp = []
-    for i in xrange(nk):
+    for i in xrange(len(keys)):
         k1 = Flame(string=keys[i-1].to_string())
         k2 = Flame(string=keys[i].to_string())
         equalize_flame_attributes(k1, k2)
+        if loops: tmp.append(k1)
         tmp.append(k2)
     keys = tmp
-        
+
+    nk = len(keys)
+    nf = nk * n
+            
     while last < nf:
         if len(cache) < last + 1:
-            cache.append(get_flame(keys, n, last, **settings))
+            cache.append(get_flame(keys, n, last, **kwargs))
             if last%10<>9: print '.',
             if last%10==9: print str(last+1) + '/' + str(nf)
             if last==nf-1: print "Calculations complete"
@@ -59,6 +78,7 @@ def get_flame(keys, n, i, **kwargs):
     flame = Flame()
     flame.name = kwargs.get('flamename') + str(kwargs.get('offset')+i)
     rotate = kwargs.get('rotate',1)
+    pivot = kwargs.get('pivot',1)
 
     #Flame attrs
     interp_attrs = ['scale', 'rotate', 'brightness', 'gamma']
@@ -110,7 +130,10 @@ def get_flame(keys, n, i, **kwargs):
             spin = rotate*360/float(n)
             spin *= i%n
             flame.xform[x].rotate(spin)
-
+        if pivot<>0 and type(pivot)==int:
+            spin = rotate*360/float(n)
+            spin *= i%n
+            flame.xform[x].rotate(spin)
         
         #attribute intep
         for name in attrset:
@@ -238,12 +261,17 @@ def equalize_flame_attributes(flame1,flame2):
 
 #------------------------------------------------
 if __name__ == '__main__':
+    #load flames
     f1 = Flame(file='samples.flame',name='linear')
     f2 = Flame(file='samples.flame',name='julia')
     f3 = Flame(file='samples.flame',name='heart')
     f4 = Flame(file='test_interpolation.flame',name='A')
     f5 = Flame(file='test_interpolation.flame',name='B')
-    i = interpolation([f1,f2,f3,f4,f5,f2,f4,f3], smooth=True, curve='tanh')
+
+    #interpolation options - check top of file.
+    i = interpolation([f1,f2,f3,f4,f5,f2,f4,f3]
+                     ,smooth=True, curve='sinh')
+
     buff = i.next()   #buffer to take advantage of threading
     while True:
         SetActiveFlame(buff)
