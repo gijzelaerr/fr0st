@@ -14,6 +14,7 @@ def interpolation(keys, n=50, **kwargs):
     loop      = kwargs.get('loop',True)
     p_space   = kwargs.get('p_space','polar')
     c_space   = kwargs.get('c_space','rgb')
+    rotate    = kwargs.get('rotate',1)
 
     #for now
     loop = True
@@ -27,7 +28,8 @@ def interpolation(keys, n=50, **kwargs):
              ,'smooth': smooth
              ,'loop': loop
              ,'p_space': p_space
-             ,'c_space': c_space}
+             ,'c_space': c_space
+             ,'rotate': rotate}
 
     nk = len(keys)
     nf = nk * n
@@ -56,6 +58,7 @@ def get_flame(keys, n, i, **kwargs):
     #Make new, empty flame
     flame = Flame()
     flame.name = kwargs.get('flamename') + str(kwargs.get('offset')+i)
+    rotate = kwargs.get('rotate',1)
 
     #Flame attrs
     interp_attrs = ['scale', 'rotate', 'brightness', 'gamma']
@@ -103,6 +106,11 @@ def get_flame(keys, n, i, **kwargs):
         vy = interp(cpsy, n, i, **kwargs)
         vo = interp(cpso, n, i, **kwargs)
         flame.xform[x].coefs = tuple(vx + vy + vo)
+        if rotate<>0 and type(rotate)==int:
+            spin = rotate*360/float(n)
+            spin *= i%n
+            flame.xform[x].rotate(spin)
+
         
         #attribute intep
         for name in attrset:
