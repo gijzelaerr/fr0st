@@ -14,6 +14,16 @@ import os, sys, marshal, copy, random, cmath, shutil, numpy, colorsys, itertools
 from math import *
 sys.dont_write_bytecode = False # Why is this line here?
 
+
+def flatten(l):
+    result = []
+    for el in l:
+        if hasattr(el,'__iter__') and not isinstance(el,basestring):
+            result.extend(flatten(el))
+        else:
+            result.append(el)
+    return result
+    
 #-------------------------------------------------------------------------------
 #Converters
 

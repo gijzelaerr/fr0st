@@ -19,6 +19,7 @@ from lib.gui.rendering import render, Renderer
 from lib.gui._events import EVT_IMAGE_READY, CanvasRefreshEvent
 from lib.fr0stlib import Flame, BLANKFLAME
 from itemdata import ItemData
+from array import array
 
 
 class MainWindow(wx.Frame):
@@ -47,6 +48,7 @@ class MainWindow(wx.Frame):
         CreateMenu(self)
         CreateToolBar(self)
         self.image = ImagePanel(self)
+        self.grad = GradientPanel(self)
         self.XformTabs = XformTabs(self)
         self.canvas = XformCanvas(self)
 
@@ -59,6 +61,10 @@ class MainWindow(wx.Frame):
         self.TreePanel = TreePanel(self)
         self.tree = self.TreePanel.tree
 
+        sizer3 = wx.BoxSizer(wx.VERTICAL)
+        sizer3.Add(self.grad,0,wx.ALIGN_CENTER_HORIZONTAL)
+        sizer3.Add(self.canvas,1,wx.EXPAND)
+
         sizer2 = wx.BoxSizer(wx.VERTICAL)
         sizer2.Add(self.image,0,wx.EXPAND)
         sizer2.Add(self.XformTabs.Selector,0)
@@ -66,7 +72,7 @@ class MainWindow(wx.Frame):
         
         sizer = wx.BoxSizer(wx.HORIZONTAL)
         sizer.Add(self.TreePanel,0,wx.EXPAND)
-        sizer.Add(self.canvas,1, wx.EXPAND)
+        sizer.Add(sizer3,1,wx.EXPAND)
         sizer.Add(sizer2,0,wx.EXPAND)
         
         self.SetSizer(sizer)
@@ -457,6 +463,8 @@ class ImagePanel(wx.Panel):
         The renderer takes care of denying repeated requests so that at most
         one redundant preview is rendered."""    
         flame = flame or self.parent.flame
+        #update the gradient as well
+        self.parent.grad.UpdateGradient()
 
         ratio = flame.size[0] / flame.size[1]
         width = 160 if ratio > 1 else int(160*ratio)
@@ -484,4 +492,23 @@ class ImagePanel(wx.Panel):
         dc = wx.PaintDC(self)
         dc.DrawBitmap(self.bmp, 128-w/2, 96-h/2, True)
 
+class GradientPanel(wx.Panel):
 
+    @BindEvents
+    def __init__(self,parent):
+        self.parent = parent
+        wx.Panel.__init__(self, parent, -1)
+        self.bmp = wx.EmptyBitmap(256,10,32)
+        self.SetMinSize((260, 10))
+
+    def UpdateGradient(self, flame=None):
+        flame = flame or self.parent.flame
+        grad = fr0stlib.flatten(flame.gradient) * 10
+        buff = array('c',map(chr,grad))
+        self.bmp = wx.BitmapFromBuffer(256,10,buff)
+        self.Refresh()
+
+    @Bind(wx.EVT_PAINT)
+    def OnPaint(self, evt):
+        dc = wx.PaintDC(self)
+        dc.DrawBitmap(self.bmp, 2, 0, True)
