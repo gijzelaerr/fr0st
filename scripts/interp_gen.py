@@ -4,62 +4,38 @@ from runscript import *
 Interpolation options:
   keys      - list of frames to interpolate in order
   n         - distance between keyframes
-  flamename - base name for frames
-  offset    - offset for frame index value
-  curve     - lin, par, npar, cos, sinh, tanh
-  a         - curve parameter (slope)
-  t         - spline tension (0.5 = catmull-rom)
-  smooth    - use smoothing
-  loop      - loop animation (non-looping as yet supported)
-  loops     - loop genomes
-  p_space   - coordinate interpolation space: rect, polar
-  c_space   - color interpolation space: rgb, hls
-  rotate    - number of rotations (- for counter-clockwise)
-  pivot     - number of pivots (- for counter-clockwise)
+  settings  - interpolation settings (see bottom of script)
 """
-
 def interpolation(keys, n=50, **kwargs):
     last = 0
     cache = []
 
     #Set defaults
-    flamename = kwargs.get('flamename','frame')
-    offset    = kwargs.get('offset',0)
-    curve     = kwargs.get('curve','lin')
-    a         = kwargs.get('a',1.0)
-    t         = kwargs.get('t',0.5)
-    smooth    = kwargs.get('smooth',False)
     loop      = kwargs.get('loop',True)
     loops     = kwargs.get('loops',True)
-    p_space   = kwargs.get('p_space','polar')
-    c_space   = kwargs.get('c_space','rgb')
-    rotate    = kwargs.get('rotate',1)
-    pivot     = kwargs.get('pivot',1)
-
-    #for now
-    kwargs['flamename'] = flamename
-    kwargs['offset']    = offset
-    kwargs['curve']     = curve
-    kwargs['a']         = a
-    kwargs['t']         = t
-    kwargs['smooth']    = smooth
-    kwargs['loop']      = True
-    kwargs['p_space']   = p_space
-    kwargs['c_space']   = c_space
-    kwargs['rotate']    = rotate
-    kwargs['pivot']     = pivot
 
     tmp = []
-    for i in xrange(len(keys)):
-        k1 = Flame(string=keys[i-1].to_string())
-        k2 = Flame(string=keys[i].to_string())
-        equalize_flame_attributes(k1, k2)
-        if loops: tmp.append(k1)
-        tmp.append(k2)
+    if loop:
+        for i in xrange(len(keys)-1):
+            k1 = Flame(string=keys[i].to_string())
+            k2 = Flame(string=keys[i+1].to_string())
+            equalize_flame_attributes(k1, k2)
+            if loops: tmp.append(k1)
+            tmp.append(k1)
+            if i==len(keys)-2:tmp.append(k2)
+        tmp.append(Flame(string=keys[-1].to_string()))
+    else:
+        for i in xrange(len(keys)):
+            k1 = Flame(string=keys[i-1].to_string())
+            k2 = Flame(string=keys[i].to_string())
+            equalize_flame_attributes(k1, k2)
+            if loops: tmp.append(k2)
+            tmp.append(k2)
     keys = tmp
 
     nk = len(keys)
-    nf = nk * n
+    if loop: nf = nk * n
+    else:    nf = (nk-1) * n
             
     while last < nf:
         if len(cache) < last + 1:
@@ -77,8 +53,8 @@ def get_flame(keys, n, i, **kwargs):
     #Make new, empty flame
     flame = Flame()
     flame.name = kwargs.get('flamename') + str(kwargs.get('offset')+i)
-    rotate = kwargs.get('rotate',1)
-    pivot = kwargs.get('pivot',1)
+    rotate = kwargs.get('rotate')
+    pivot = kwargs.get('pivot')
 
     #Flame attrs
     interp_attrs = ['scale', 'rotate', 'brightness', 'gamma']
@@ -126,14 +102,12 @@ def get_flame(keys, n, i, **kwargs):
         vy = interp(cpsy, n, i, **kwargs)
         vo = interp(cpso, n, i, **kwargs)
         flame.xform[x].coefs = tuple(vx + vy + vo)
-        if rotate<>0 and type(rotate)==int:
-            spin = rotate*360/float(n)
-            spin *= i%n
+        if rotate['count']<>0:
+            spin = drange(0,rotate['count']*360,n,i%n,**rotate)
             flame.xform[x].rotate(spin)
-        if pivot<>0 and type(pivot)==int:
-            spin = rotate*360/float(n)
-            spin *= i%n
-            flame.xform[x].rotate(spin)
+        if pivot['count']<>0:
+            spin = drange(0,pivot['count']*360,n,i%n,**pivot)
+            flame.xform[x].orbit(spin)
         
         #attribute intep
         for name in attrset:
@@ -267,13 +241,29 @@ if __name__ == '__main__':
     f3 = Flame(file='samples.flame',name='heart')
     f4 = Flame(file='test_interpolation.flame',name='A')
     f5 = Flame(file='test_interpolation.flame',name='B')
+    
+    settings = {'flamename':'frame'             #base name for frames
+               ,'offset':   0                   #offset for frame index value
+               ,'curve':    'lin'               #lin, par, npar, cos, sinh, tanh
+               ,'a':        1                   #curve parameter (slope)
+               ,'t':        0.5                 #spline tension (0.5 = catmull-rom)
+               ,'smooth':   True                #use smoothing
+               ,'loop':     False                #loop animation
+               ,'loops':    True                #loop keyframes between interpolations
+               ,'p_space':  'polar'             #coordinate interpolation space: rect, polar
+               ,'c_space':  'hls'               #color interpolation space: rgb, hls
+               ,'rotate':   {'count':   1       #number of rotations (- for counter-clockwise)
+                            ,'curve':   'lin'   #rotation curve
+                            ,'a':       1}      #rotation curve param
+               ,'pivot':    {'count':   1       #number of pivots (- for counter-clockwise)
+                            ,'curve':   'lin'   #pivot curve
+                            ,'a':       1}      #pivot curve param
+               }
 
     #interpolation options - check top of file.
-    i = interpolation([f1,f2,f3,f4,f5,f2,f4,f3]
-                     ,smooth=True, curve='sinh')
-
+    i = interpolation([f2,f3,f4], **settings)
     buff = i.next()   #buffer to take advantage of threading
     while True:
-        SetActiveFlame(buff)
-        preview()
+#        SetActiveFlame(buff)
+#        preview()
         buff = i.next()
