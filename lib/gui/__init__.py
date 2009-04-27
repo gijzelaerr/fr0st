@@ -76,7 +76,7 @@ class MainWindow(wx.Frame):
 
         self.SetSize((800,600))
 
-        self.flame = None
+        self.flame = Flame(string=fr0stlib.BLANKFLAME)
 
         # Set up paths
         sys.path.append(os.path.join(sys.path[0],"scripts")) # imp in scripts
