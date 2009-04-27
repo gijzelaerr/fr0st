@@ -1,3 +1,4 @@
+from runscript import *
 from interp import Interpolation
 
 # HACK: put this in while John fixes his script.
