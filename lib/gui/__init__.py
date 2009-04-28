@@ -48,7 +48,7 @@ class MainWindow(wx.Frame):
         CreateMenu(self)
         CreateToolBar(self)
         self.image = ImagePanel(self)
-        self.grad = GradientPanel(self)
+        #self.grad = GradientPanel(self)
         self.XformTabs = XformTabs(self)
         self.canvas = XformCanvas(self)
 
@@ -61,9 +61,9 @@ class MainWindow(wx.Frame):
         self.TreePanel = TreePanel(self)
         self.tree = self.TreePanel.tree
 
-        sizer3 = wx.BoxSizer(wx.VERTICAL)
-        sizer3.Add(self.grad,0,wx.ALIGN_CENTER_HORIZONTAL)
-        sizer3.Add(self.canvas,1,wx.EXPAND)
+        #sizer3 = wx.BoxSizer(wx.VERTICAL)
+        #sizer3.Add(self.grad,0,wx.ALIGN_CENTER_HORIZONTAL)
+        #sizer3.Add(self.canvas,1,wx.EXPAND)
 
         sizer2 = wx.BoxSizer(wx.VERTICAL)
         sizer2.Add(self.image,0,wx.EXPAND)
@@ -72,7 +72,8 @@ class MainWindow(wx.Frame):
         
         sizer = wx.BoxSizer(wx.HORIZONTAL)
         sizer.Add(self.TreePanel,0,wx.EXPAND)
-        sizer.Add(sizer3,1,wx.EXPAND)
+        #sizer.Add(sizer3,1,wx.EXPAND)
+        sizer.Add(self.canvas,1,wx.EXPAND)
         sizer.Add(sizer2,0,wx.EXPAND)
         
         self.SetSizer(sizer)
@@ -464,7 +465,7 @@ class ImagePanel(wx.Panel):
         one redundant preview is rendered."""    
         flame = flame or self.parent.flame
         #update the gradient as well
-        self.parent.grad.UpdateGradient()
+        #self.parent.grad.UpdateGradient()
 
         ratio = flame.size[0] / flame.size[1]
         width = 160 if ratio > 1 else int(160*ratio)
