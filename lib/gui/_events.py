@@ -32,3 +32,14 @@ class CanvasRefreshEvent(wx.PyCommandEvent):
 
     def GetValue(self):
         return self._args
+
+
+myEVT_PROGRESS = wx.NewEventType()
+EVT_PROGRESS = wx.PyEventBinder(myEVT_PROGRESS, 1)
+class ProgressEvent(wx.PyCommandEvent):
+    def __init__(self,*args):
+        wx.PyCommandEvent.__init__(self, myEVT_PROGRESS, wx.ID_ANY)
+        self._args = args
+
+    def GetArgs(self):
+        return self._args

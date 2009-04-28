@@ -492,7 +492,8 @@ class ImagePanel(wx.Panel):
         dc = wx.PaintDC(self)
         dc.DrawBitmap(self.bmp, 128-w/2, 96-h/2, True)
 
-class GradientPanel(wx.Panel):
+
+class GradientPanel(wx.Panel):
 
     @BindEvents
     def __init__(self,parent):

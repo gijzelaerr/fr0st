@@ -1,6 +1,7 @@
-import wx
+import wx, sys
 
 from decorators import *
+from _events import EVT_PROGRESS, ProgressEvent
 
 
 
@@ -11,14 +12,25 @@ class PreviewFrame(wx.Frame):
         self.title = "Flame Preview"
         self.parent = parent
         wx.Frame.__init__(self,parent,wx.ID_ANY, self.title)
+
+        self.CreateStatusBar()
         
         self.image = PreviewPanel(self)
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(self.image, 1, wx.EXPAND)
         self.SetSizer(sizer)
+        self.SetDoubleBuffered(True)
+        self.oldbmp = None
 
         self._lastsize = 1,1
-        self.SetSize((400,300))
+        self.SetSize((600,450))
+        self.SetMinSize((128,119)) # This makes for a 120x90 bitmap
+
+    def GetCorrectSize(self):
+        """This method corrects platform dependency issues."""
+        if "linux" in sys.platform:
+            return self.GetSize()
+        return self.GetCorrectSize()
 
 
     @Bind(wx.EVT_CLOSE)
@@ -27,21 +39,17 @@ class PreviewFrame(wx.Frame):
         self.Parent.Raise()
 
 
+##    @Bind(wx.EVT_SIZE if "linux" in sys.platform else wx.EVT_IDLE)
     @Bind(wx.EVT_SIZE)
     def OnResize(self, e):
-        size = e.GetSize()
-        print size, self._lastsize
+        size = self.GetCorrectSize() # e.GetSize()
 
-        if size == self._lastsize:
-            # Don't know why, but each resize triggers 2 events
-            return
-        
-        self._lastsize = size
-        self.RenderPreview()
+        if not self.oldbmp:
+            self.oldbmp = self.image.bmp
+        image = wx.ImageFromBitmap(self.oldbmp)
 
-        image = wx.ImageFromBitmap(self.image.bmp)
         pw, ph = map(float,size)
-        fw, fh = self.size
+        fw, fh = self.image.bmp.GetSize() # This used to be self.size (?)
 
         ratio = min(pw/fw, ph/fh)
         image.Rescale(int(fw * ratio), int(fh * ratio))
@@ -51,11 +59,21 @@ class PreviewFrame(wx.Frame):
         e.Skip()
 
 
+    @Bind(wx.EVT_IDLE)
+    def OnIdle(self, e):
+        size = self.GetCorrectSize()
+        if size == self._lastsize:
+            return
+
+        self._lastsize = size
+        self.RenderPreview()
+        
+
     def RenderPreview(self, flame=None):
         flame = flame or self.parent.flame
 
         fw,fh = flame.size
-        pw,ph = self.GetSize()
+        pw,ph = self.GetCorrectSize()
         ratio = min(pw/fw, ph/fh)
         size = int(fw * ratio), int(fh * ratio)
         self.size = size
@@ -71,10 +89,19 @@ class PreviewFrame(wx.Frame):
         width,height = size
         self.image.bmp = wx.BitmapFromBuffer(width, height, output_buffer)
         self.SetTitle("%s - Flame Preview" % self.parent.flame.name)
+        self.SetStatusText("rendering: 100.00 %")
         self.image.Refresh()
+        self.oldbmp = None
 
-    def prog_func(self, py_object, fraction, stage, eta):
-        pass
+
+    def prog_func(self, *args):
+        wx.PostEvent(self, ProgressEvent(*args))
+
+
+    @Bind(EVT_PROGRESS)
+    def OnProgress(self, e):
+        py_object, fraction, stage, eta = e.GetArgs()
+        self.SetStatusText("rendering: %.2f %%" %fraction)
         
 
 class PreviewPanel(wx.Panel):
@@ -90,7 +117,7 @@ class PreviewPanel(wx.Panel):
     def OnPaint(self, evt):       
         fw,fh = self.bmp.GetSize()
         dc = wx.PaintDC(self)
-        pw,ph = self.parent.GetSize()
+        pw,ph = self.parent.GetCorrectSize()
         dc.DrawBitmap(self.bmp, (pw-fw)/2, (ph-fh)/2, True)
         
 
