@@ -110,13 +110,12 @@ VAR_WAVES2 = 81
 
 
 variations = {}
-variation_list = [None] * flam3_nvariations
+variation_list = [None] * 82 #flam3_nvariations
 for k,v in locals().items():
     if k.startswith("VAR_"):
         name = k[4:].lower()
         variations[name] = v
         variation_list[v] = name
-
 
 
 variable_list = ['blob_low',  

@@ -31,8 +31,6 @@ if 'win32' not in sys.platform:
 else:
     try:
         libflam3 = CDLL('libflam3.dll')
-        # VBT: Alternative?
-##        libflam3 = WinDLL('libflam3.dll')
     except WindowsError:
         # Assume file not found
         import os.path
@@ -152,6 +150,77 @@ class BaseFrame(Structure):
                , ('nthreads', c_int)
                ]
 
+
+if "win" in sys.platform:
+
+    class BasePalette(Structure):
+        _fields_ = [ ('_vals', c_double * (256 * 3)) ]
+        
+    class BaseGenome(Structure):
+        _fields_ = [ ('name', c_char * (flam3_name_len + 1))
+                   , ('time', c_double)
+                   , ('interpolation', c_int)
+                   , ('interpolation_space', c_int)
+                   , ('palette_interpolation', c_int)
+                   , ('num_xforms', c_int)
+                   , ('final_xform_index', c_int)
+                   , ('final_xform_enable', c_int)
+                   , ('xform', POINTER(BaseXForm))
+                   , ('genome_index', c_int)
+                   , ('parent_fname', c_char * flam3_parent_fn_len)
+                   , ('symmetry', c_int)
+                   , ('palette', BasePalette) 
+                   , ('input_image', c_char_p)
+                   , ('palette_index', c_int )      #TODO: Propertyize this(huh?)
+                   , ('brightness', c_double)
+                   , ('contrast', c_double)
+                   , ('gamma', c_double)
+                   , ('width', c_int )                  # wrapped
+                   , ('height', c_int )                 # wrapped
+                   , ('spatial_oversample', c_int )
+                   , ('_center', c_double * 2)          # wrapped
+                   , ('rot_center', c_double * 2)       # wrapped
+                   , ('rotate', c_double)           #TODO: Propertyize this
+                                                    #TODO: Add a angle version of the property
+                   , ('vibrancy', c_double)
+                   , ('hue_rotation', c_double)
+                   , ('background', c_double * 3)   #TODO: Propertyize this
+                   , ('zoom', c_double)
+                   , ('pixels_per_unit', c_double)
+                   , ('spatial_filter_radius', c_double)
+                   , ('spatial_filter_func', SpatialFilterFunction) #TODO: Hide this?
+                   , ('spatial_filter_support', c_double)   #TODO: Propertyize this
+                   , ('sample_density', c_double)
+                   , ('nbatches', c_int)
+                   , ('ntemporal_samples', c_int)
+                   , ('estimator', c_double)
+                   , ('estimator_curve', c_double)
+                   , ('estimator_minimum', c_double)
+                   , ('edits', c_void_p)
+                   , ('gam_lin_thresh', c_double)
+                   , ('palette_index0', c_int)
+                   , ('hue_rotation0', c_double)
+                   , ('palette_index1', c_int)
+                   , ('hue_rotation1', c_double)
+                   , ('palette_blend', c_double)
+                   , ('motion_exp', c_double)
+                   ]
+
+    class BaseFrame(Structure):
+        _fields_ = [ ('temporal_filter_radius', c_double)
+                   , ('pixel_aspect_ratio', c_double)
+                   , ('genomes', POINTER(BaseGenome))
+                   , ('ngenomes', c_int)
+                   , ('verbose', c_int)
+                   , ('bits', c_int)
+                   , ('time', c_double)
+                   , ('progress', ProgressFunction) 
+                   , ('progress_parameter', py_object)
+                   #, ('progress_parameter', c_void_p)
+                   , ('rc', RandomContext) 
+                   , ('nthreads', c_int)
+                   ]
+    
 
 def allocate_output_buffer(size, channels):
     return (c_ubyte * (size[0] * size[1] * channels))()
