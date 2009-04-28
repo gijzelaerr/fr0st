@@ -30,7 +30,7 @@ class PreviewFrame(wx.Frame):
         """This method corrects platform dependency issues."""
         if "linux" in sys.platform:
             return self.GetSize()
-        return self.GetCorrectSize()
+        return self.GetSizer().GetSize()
 
 
     @Bind(wx.EVT_CLOSE)
