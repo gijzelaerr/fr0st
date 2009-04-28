@@ -14,7 +14,8 @@ def CreateToolBar(parent):
                 #| wx.TB_HORZ_LAYOUT
                 )
 
-    tb = wx.ToolBar(parent, -1, wx.DefaultPosition, wx.DefaultSize, TBFLAGS)
+    tb = parent.CreateToolBar(TBFLAGS)
+    parent.tb = tb
     
     tb.AddSimpleTool(ID.TBNEW, GetBMP(wx.ART_NEW),
                      "New", "New flame file")
@@ -59,7 +60,6 @@ def CreateToolBar(parent):
     
     tb.Realize()
 
-    return tb
 
 
 def CreateEditorToolBar(parent):
