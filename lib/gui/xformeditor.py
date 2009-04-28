@@ -8,11 +8,42 @@ from lib.fr0stlib import polar, rect
 from lib import pyflam3
 
 
-class XformTabs(wx.Notebook):
+class XformTabs(wx.Panel):
+    def __init__(self,parent):
+        self.parent = parent
+        wx.Panel.__init__(self, parent, -1)
+
+        self.Selector = wx.Choice(self, -1)
+        self.Selector.Bind(wx.EVT_CHOICE, self.OnChoice)
+
+        self.note = XformNote(self)
+                
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(self.Selector,0,wx.EXPAND)
+        sizer.Add(self.note,1,wx.EXPAND)
+        self.SetSizer(sizer)
+        self.SetAutoLayout(1)
+    
+    def UpdateView(self):
+        self.note.UpdateView()
+
+    def OnChoice(self, e):
+        index = e.GetInt()
+        xforms = self.parent.flame.xform
+        if index >= len(xforms):
+            self.parent.ActiveXform = self.parent.flame.final
+        else:
+            self.parent.ActiveXform = xforms[index]
+
+        self.parent.canvas.ShowFlame(rezoom=False)
+        self.UpdateView()    
+
+
+class XformNote(wx.Notebook):
 
 
     def __init__(self, parent):
-        self.parent = parent
+        self.parent = parent.parent
         wx.Notebook.__init__(self, parent, -1, size=(21,21), style=
                              wx.BK_DEFAULT
                              #wx.BK_TOP 
@@ -34,8 +65,7 @@ class XformTabs(wx.Notebook):
         win = wx.Panel(self, -1)
         self.AddPage(win, "Xaos")
 
-        self.Selector = wx.Choice(self.parent, -1)
-        self.Selector.Bind(wx.EVT_CHOICE, self.OnChoice)
+        self.Selector = parent.Selector
 
 
     def UpdateView(self):
@@ -48,18 +78,6 @@ class XformTabs(wx.Notebook):
         self.Selector.Items = choices
         index = self.parent.ActiveXform.index
         self.Selector.Selection = len(choices)-1 if index is None else index
-
-
-    def OnChoice(self, e):
-        index = e.GetInt()
-        xforms = self.parent.flame.xform
-        if index >= len(xforms):
-            self.parent.ActiveXform = self.parent.flame.final
-        else:
-            self.parent.ActiveXform = xforms[index]
-
-        self.parent.canvas.ShowFlame(rezoom=False)
-        self.UpdateView()
 
 
 

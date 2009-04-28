@@ -1,5 +1,5 @@
 from __future__ import with_statement
-import os, sys, wx, time, re, threading, itertools
+import os, sys, wx, wx.aui, time, re, threading, itertools
 from wx import PyDeadObjectError
 
 from lib.gui.scripteditor import EditorFrame
@@ -30,8 +30,10 @@ class MainWindow(wx.Frame):
 
     @BindEvents    
     def __init__(self,parent,id):
-        self.title = "Fractal Fr0st"
+        self.title = "Fractal Fr0st Experimental GUI"
         wx.Frame.__init__(self,parent,wx.ID_ANY, self.title)    
+
+        self._mgr = wx.aui.AuiManager(self)
 
         # This icon stuff is not working...
 ##        ib=wx.IconBundle()
@@ -39,6 +41,7 @@ class MainWindow(wx.Frame):
 ##        self.SetIcons(ib)
         self.CreateStatusBar()
         self.SetMinSize((750,500))
+        self.SetSize((800,600))
         self.SetDoubleBuffered(True)
         
         # Launch the render thread
@@ -46,41 +49,36 @@ class MainWindow(wx.Frame):
         
         # Creating Frame Content
         CreateMenu(self)
-        CreateToolBar(self)
+        self.tb = CreateToolBar(self)
         self.image = ImagePanel(self)
-        self.grad = GradientPanel(self)
+        #self.grad = GradientPanel(self)
         self.XformTabs = XformTabs(self)
         self.canvas = XformCanvas(self)
-
         self.previewframe = PreviewFrame(self)
 
         self.editorframe = EditorFrame(self)
         self.editor = self.editorframe.editor
         self.log = self.editorframe.log 
-        
+
         self.TreePanel = TreePanel(self)
         self.tree = self.TreePanel.tree
 
-        sizer3 = wx.BoxSizer(wx.VERTICAL)
-        sizer3.Add(self.grad,0,wx.ALIGN_CENTER_HORIZONTAL)
-        sizer3.Add(self.canvas,1,wx.EXPAND)
-
-        sizer2 = wx.BoxSizer(wx.VERTICAL)
-        sizer2.Add(self.image,0,wx.EXPAND)
-        sizer2.Add(self.XformTabs.Selector,0)
-        sizer2.Add(self.XformTabs,1,wx.EXPAND)
-        
-        sizer = wx.BoxSizer(wx.HORIZONTAL)
-        sizer.Add(self.TreePanel,0,wx.EXPAND)
-        sizer.Add(sizer3,1,wx.EXPAND)
-        sizer.Add(sizer2,0,wx.EXPAND)
-        
-        self.SetSizer(sizer)
-        self.SetAutoLayout(1)
-
-        sizer.Fit(self)
-
-        self.SetSize((800,600))
+        #add toolbar
+        self._mgr.AddPane(self.tb, wx.aui.AuiPaneInfo().Name('Main Toolbar').
+                          ToolbarPane().Top())
+        #Xform editor is center pane
+        self._mgr.AddPane(self.canvas, wx.aui.AuiPaneInfo().Name('canvas').
+                          CenterPane())
+        #left is the tree panel
+        self._mgr.AddPane(self.TreePanel, wx.aui.AuiPaneInfo().Name('TreePanel').
+                          Caption('Open Files').Left().Position(0).
+                          MinSize(wx.Size(180,)))
+        #right is the img panel above the xform tabs editor/selector
+        self._mgr.AddPane(self.image, wx.aui.AuiPaneInfo().Name('image').Movable(False).
+                          CaptionVisible(False).Right().Position(0).Fixed().BestSize(wx.Size(256,192)))
+        self._mgr.AddPane(self.XformTabs, wx.aui.AuiPaneInfo().Name('XformTabs').
+                          Caption('Xform Attributes').Right().Position(1).BestSize(wx.Size(256,300)))
+        self._mgr.Update()
 
         self.flame = Flame(string=fr0stlib.BLANKFLAME)
 
@@ -97,10 +95,7 @@ class MainWindow(wx.Frame):
         else:
             # Normal startup
             item = self.OpenFlame(self.flamepath)
-            self.tree.SelectItem(self.tree.GetFirstChild(item)[0])
-
-        self.Show(True)
-    
+            self.tree.SelectItem(self.tree.GetFirstChild(item)[0])        self.Show(True)
 
 #-----------------------------------------------------------------------------
 # Event handlers
@@ -464,7 +459,7 @@ class ImagePanel(wx.Panel):
         one redundant preview is rendered."""    
         flame = flame or self.parent.flame
         #update the gradient as well
-        self.parent.grad.UpdateGradient()
+        #self.parent.grad.UpdateGradient()
 
         ratio = flame.size[0] / flame.size[1]
         width = 160 if ratio > 1 else int(160*ratio)
