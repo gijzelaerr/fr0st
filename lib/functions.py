@@ -56,7 +56,7 @@ def hls2rgb(color):
     l = clip(l,0,1)
     s = clip(s,0,1)
 
-    return map(lambda x: int(x*256),colorsys.hls_to_rgb(h,l,s))
+    return tuple(map(lambda x: int(x*256),colorsys.hls_to_rgb(h,l,s)))
     
 #-------------------------------------------------------------------------------
 #General utils
@@ -275,13 +275,21 @@ def from_seed(seed, csplit=0, split=30,  dist=64, curve='lin'):
     rspl = hls2rgb((h+split,l,s))
 
     #g1 is from 0 (compliment) to dist (left split)
-    g1 = interp([comp, lspl], dist, curve)
+    g1 = []
+    for i in xrange(dist):
+        g1.append(tuple(map(int,interp([comp, lspl], dist, i, curve=curve))))
     #g2 is from dist to 128 (seed)
-    g2 = interp([lspl, seed], 128-dist, curve)
+    g2 = []
+    for i in xrange(128-dist):
+        g2.append(tuple(map(int,interp([lspl, seed], 128-dist, i, curve=curve))))
     #g3 is from 127 to 255-dist
-    g3 = interp([seed, rspl], 128-dist, curve)
+    g3 = []
+    for i in xrange(128-dist):
+        g3.append(tuple(map(int,interp([seed, rspl], 128-dist, i, curve=curve))))
     #g4 is from 255-dist to 255
-    g4 = interp([rspl, comp], dist, curve)
+    g4 = []
+    for i in xrange(dist):
+        g4.append(tuple(map(int,interp([rspl, comp], dist, i, curve=curve))))
     
     return g1+g2+g3+g4
 
@@ -295,7 +303,10 @@ def from_seeds(seeds, curve='cos', space='rgb'):
         else:      ds.append(d)
     g = []
     for i in xrange(ns):
-        tmp = interp([seeds[i-1], seeds[i]], ds[i], curve, space=space)
+        tmp = []
+        for j in xrange(ds[i]):
+            tmp.append(interp([seeds[i-1], seeds[i]], ds[i], j, curve=curve, c_space=space))
         g += tmp
     return g
+
 

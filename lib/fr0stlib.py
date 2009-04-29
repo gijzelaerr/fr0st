@@ -327,6 +327,7 @@ class Palette(list):
             i = (255 - i[0], 255 - i[1], 255 - i[2])
     
     def blur(self, value, space='rgb'):
+        value = clip(value,0,127)
         tmp = []
         for i in xrange(0, len(self)):
             a = self[i-1]
@@ -337,9 +338,11 @@ class Palette(list):
                 a = rgb2hls(a)
                 b = rgb2hls(b)
                 c = rgb2hls(c)
-            r = (a[0] + 2*b[0] + c[0])/4.0
-            g = (a[1] + 2*b[1] + c[1])/4.0
-            b = (a[2] + 2*b[2] + c[2])/4.0
+            v = value
+            w = 127 - value
+            r = (v*a[0] + 2*w*b[0] + v*c[0])/(4.0*127)
+            g = (v*a[1] + 2*w*b[1] + v*c[1])/(4.0*127)
+            b = (v*a[2] + 2*w*b[2] + v*c[2])/(4.0*127)
             if space=='hls':
                 color = (hls2rgb((r,g,b)))
             color = (r,g,b)
