@@ -9,7 +9,8 @@ from lib.gui.menu import CreateMenu
 from lib.gui.toolbar import CreateToolBar
 from lib.gui.decorators import *
 from lib.gui.constants import ID
-from lib.gui.canvas import XformCanvas
+##from lib.gui.canvas import XformCanvas
+from lib.gui.gradient import MainNotebook
 from lib.gui.xformeditor import XformTabs
 from lib.threadinterrupt import interruptall
 from lib._exceptions import ThreadInterrupt
@@ -19,7 +20,6 @@ from lib.gui.rendering import render, Renderer
 from lib.gui._events import EVT_IMAGE_READY, CanvasRefreshEvent
 from lib.fr0stlib import Flame, BLANKFLAME
 from itemdata import ItemData
-from array import array
 
 
 class MainWindow(wx.Frame):
@@ -48,9 +48,12 @@ class MainWindow(wx.Frame):
         CreateMenu(self)
         CreateToolBar(self)
         self.image = ImagePanel(self)
-        #self.grad = GradientPanel(self)
+##        self.grad = GradientPanel(self)
         self.XformTabs = XformTabs(self)
-        self.canvas = XformCanvas(self)
+##        self.canvas = XformCanvas(self)
+        self.notebook = MainNotebook(self)
+        self.grad = self.notebook.grad
+        self.canvas = self.notebook.canvas
 
         self.previewframe = PreviewFrame(self)
 
@@ -61,9 +64,10 @@ class MainWindow(wx.Frame):
         self.TreePanel = TreePanel(self)
         self.tree = self.TreePanel.tree
 
-        #sizer3 = wx.BoxSizer(wx.VERTICAL)
-        #sizer3.Add(self.grad,0,wx.ALIGN_CENTER_HORIZONTAL)
-        #sizer3.Add(self.canvas,1,wx.EXPAND)
+        sizer3 = wx.BoxSizer(wx.VERTICAL)
+##        sizer3.Add(self.grad,0,wx.ALIGN_CENTER_HORIZONTAL)
+##        sizer3.Add(self.canvas,1,wx.EXPAND)
+        sizer3.Add(self.notebook,1,wx.EXPAND)
 
         sizer2 = wx.BoxSizer(wx.VERTICAL)
         sizer2.Add(self.image,0,wx.EXPAND)
@@ -465,7 +469,7 @@ class ImagePanel(wx.Panel):
         one redundant preview is rendered."""    
         flame = flame or self.parent.flame
         #update the gradient as well
-        #self.parent.grad.UpdateGradient()
+        self.parent.grad.image.Update()
 
         ratio = flame.size[0] / flame.size[1]
         width = 160 if ratio > 1 else int(160*ratio)
@@ -493,24 +497,3 @@ class ImagePanel(wx.Panel):
         dc = wx.PaintDC(self)
         dc.DrawBitmap(self.bmp, 128-w/2, 96-h/2, True)
 
-
-class GradientPanel(wx.Panel):
-
-    @BindEvents
-    def __init__(self,parent):
-        self.parent = parent
-        wx.Panel.__init__(self, parent, -1)
-        self.bmp = wx.EmptyBitmap(256,10,32)
-        self.SetMinSize((260, 10))
-
-    def UpdateGradient(self, flame=None):
-        flame = flame or self.parent.flame
-        grad = fr0stlib.flatten(flame.gradient) * 10
-        buff = array('c',map(chr,grad))
-        self.bmp = wx.BitmapFromBuffer(256,10,buff)
-        self.Refresh()
-
-    @Bind(wx.EVT_PAINT)
-    def OnPaint(self, evt):
-        dc = wx.PaintDC(self)
-        dc.DrawBitmap(self.bmp, 2, 0, True)

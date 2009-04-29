@@ -306,14 +306,16 @@ class Palette(list):
             self[i] = hls2rgb((h,l,s))
             
     def saturation(self, value):
-        for i in self:
+##        for i in self:
+        for i in range(256):
             h,l,s = rgb2hls(self[i])
             s += value
             s = clip(s,0,1)
             self[i] = hls2rgb((h,l,s))
             
     def brightness(self, value):
-        for i in self:
+##        for i in self:
+        for i in range(256):
             h,l,s = rgb2hls(self[i])
             l += value
             l = clip(l,0,1)

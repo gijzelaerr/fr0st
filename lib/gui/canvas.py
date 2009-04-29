@@ -23,7 +23,7 @@ class XformCanvas(FloatCanvas):
     
     @BindEvents
     def __init__(self, parent):
-        self.parent = parent
+        self.parent = parent.parent
         FloatCanvas.__init__(self, parent,
                              size=(300,300),
                              ProjectionFun=None,
