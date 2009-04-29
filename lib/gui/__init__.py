@@ -76,8 +76,8 @@ class MainWindow(wx.Frame):
         
         sizer = wx.BoxSizer(wx.HORIZONTAL)
         sizer.Add(self.TreePanel,0,wx.EXPAND)
-        #sizer.Add(sizer3,1,wx.EXPAND)
-        sizer.Add(self.canvas,1,wx.EXPAND)
+        sizer.Add(sizer3,1,wx.EXPAND)
+##        sizer.Add(self.canvas,1,wx.EXPAND)
         sizer.Add(sizer2,0,wx.EXPAND)
         
         self.SetSizer(sizer)
