@@ -299,7 +299,8 @@ class Palette(list):
         self[:] = self[index:] + self[:index]
     
     def hue(self, value):
-        for i in range(256):
+        value = value/360.0
+        for i in xrange(256):
             h,l,s = rgb2hls(self[i])
             h += value
             h = clip(h,0,1,True)
@@ -307,7 +308,7 @@ class Palette(list):
             
     def saturation(self, value):
 ##        for i in self:
-        for i in range(256):
+        for i in xrange(256):
             h,l,s = rgb2hls(self[i])
             s += value
             s = clip(s,0,1)
@@ -315,7 +316,7 @@ class Palette(list):
             
     def brightness(self, value):
 ##        for i in self:
-        for i in range(256):
+        for i in xrange(256):
             h,l,s = rgb2hls(self[i])
             l += value
             l = clip(l,0,1)
@@ -325,7 +326,7 @@ class Palette(list):
         for i in self:
             i = (255 - i[0], 255 - i[1], 255 - i[2])
     
-    def blur(self, space='rgb'):
+    def blur(self, value, space='rgb'):
         tmp = []
         for i in xrange(0, len(self)):
             a = self[i-1]
