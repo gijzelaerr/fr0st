@@ -14,7 +14,11 @@ import os, sys, marshal, copy, random, cmath, shutil, numpy, colorsys, itertools
 from math import *
 sys.dont_write_bytecode = False # Why is this line here?
 
-
+#-------------------------------------------------------------------------------
+#Utility functions
+"""
+flatten - Flattens any iteratable type to a list
+"""
 def flatten(l):
     result = []
     for el in l:
@@ -23,6 +27,19 @@ def flatten(l):
         else:
             result.append(el)
     return result
+
+"""
+in_ranges - Returns True if n is in one of the tuple ranges
+  n - number to check
+  ranges - list of min-max tuples (or single tuple)
+"""
+def in_ranges(n, ranges):
+    if type(ranges)==list:
+        for r in ranges:
+            if n >= r[0] and n <= r[1]: return True
+    else:
+        if n >= ranges[0] and n <= ranges[1]: return True
+    return False
     
 #-------------------------------------------------------------------------------
 #Converters
@@ -254,59 +271,3 @@ def vector3d(cps, n, i, **kwargs):
                ,clip(vector(gcps,n,i,**kwargs),0,255)
                ,clip(vector(bcps,n,i,**kwargs),0,255))
 #---end vector3d
-
-#-------------------------------------------------------------------------------
-#Random palette methods
-
-"""
-from_seed - Returns a palette from a seed color
-  seed - seed color
-  csplit - dist from compliment wheel's other side is (can be neg)
-  split - dist from seed rspl and lspl are
-  dist - distance from compliment in palette index
-  curve - type of palette smoothing (splines are not recommended at this time)
-"""
-def from_seed(seed, csplit=0, split=30,  dist=64, curve='lin'):
-    (h,l,s) = rgb2hls(seed)
-    split /= 360.0
-    csplit /= 360.0
-    comp = hls2rgb((h+csplit+0.5,l,s))
-    lspl = hls2rgb((h-split,l,s))
-    rspl = hls2rgb((h+split,l,s))
-
-    #g1 is from 0 (compliment) to dist (left split)
-    g1 = []
-    for i in xrange(dist):
-        g1.append(tuple(map(int,interp([comp, lspl], dist, i, curve=curve))))
-    #g2 is from dist to 128 (seed)
-    g2 = []
-    for i in xrange(128-dist):
-        g2.append(tuple(map(int,interp([lspl, seed], 128-dist, i, curve=curve))))
-    #g3 is from 127 to 255-dist
-    g3 = []
-    for i in xrange(128-dist):
-        g3.append(tuple(map(int,interp([seed, rspl], 128-dist, i, curve=curve))))
-    #g4 is from 255-dist to 255
-    g4 = []
-    for i in xrange(dist):
-        g4.append(tuple(map(int,interp([rspl, comp], dist, i, curve=curve))))
-    
-    return g1+g2+g3+g4
-
-def from_seeds(seeds, curve='cos', space='rgb'):
-    ns = len(seeds)
-    d = 256/ns
-    r = 256%ns
-    ds = []
-    for i in xrange(ns):
-        if i+1<=r: ds.append(d+1)
-        else:      ds.append(d)
-    g = []
-    for i in xrange(ns):
-        tmp = []
-        for j in xrange(ds[i]):
-            tmp.append(interp([seeds[i-1], seeds[i]], ds[i], j, curve=curve, c_space=space))
-        g += tmp
-    return g
-
-

@@ -351,6 +351,84 @@ class Palette(list):
 
     def reverse(self):
         self.reverse()
+        
+    def from_seed(self, seed, csplit=0, split=30,  dist=64, curve='lin'):
+        (h,l,s) = rgb2hls(seed)
+        split /= 360.0
+        csplit /= 360.0
+        comp = hls2rgb((h+csplit+0.5,l,s))
+        lspl = hls2rgb((h-split,l,s))
+        rspl = hls2rgb((h+split,l,s))
+
+        #from 0 (compliment) to dist (left split)
+        g = []
+        for i in xrange(dist):
+            g.append(tuple(map(int,interp([comp, lspl], dist, i, curve=curve))))
+        #from dist to 128 (seed)
+        for i in xrange(128-dist):
+            g.append(tuple(map(int,interp([lspl, seed], 128-dist, i, curve=curve))))
+        #from 127 to 255-dist
+        for i in xrange(128-dist):
+            g.append(tuple(map(int,interp([seed, rspl], 128-dist, i, curve=curve))))
+        #from 255-dist to 255
+        for i in xrange(dist):
+            g.append(tuple(map(int,interp([rspl, comp], dist, i, curve=curve))))
+        
+        self[:] = g
+
+    def from_seeds(self, seeds, curve='cos', space='rgb'):
+        ns = len(seeds)
+        d = 256/ns
+        r = 256%ns
+        ds = []
+        for i in xrange(ns):
+            if i+1<=r: ds.append(d+1)
+            else:      ds.append(d)
+        g = []
+        for i in xrange(ns):
+            tmp = []
+            for j in xrange(ds[i]):
+                tmp.append(interp([seeds[i-1], seeds[i]], ds[i], j, curve=curve, c_space=space))
+            g += tmp
+        self[:] = g
+
+    """Beginnings of a random generator that takes some ranges"""
+    def random(self, **kwargs):
+        h_ranges = kwargs.get('h_ranges', (0,1))
+        l_ranges = kwargs.get('l_ranges', (0,1))
+        s_ranges = kwargs.get('s_ranges', (0,1))
+        blocks = kwargs.get('blocks', 64)
+        
+        #need to split up blocks
+        mbs = 256/blocks                        #mean block size
+        mbsr = 256%blocks                       #remainder
+        bsv = mbs/2                             #size variance 1/2 mean
+        bs = []
+        for i in xrange(blocks):
+            v = random.randint(-bsv, bsv)
+            if v<>0: mbsr -= v
+            bs.append(mbs + v)
+        
+        if mbsr>0:
+            r = len(bs)/mbsr
+            for i in xrange(mbsr):
+                bs[i*r] += 1
+        elif mbsr<0:
+            r = -len(bs)/mbsr
+            for i in xrange(-mbsr):
+                bs[i*r] -= 1
+        tmp = []
+        for b in bs:
+            h = random.random()
+            while not in_ranges(h, h_ranges): h = random.random()
+            l = random.random()
+            while not in_ranges(l, l_ranges): l = random.random()
+            s = random.random()
+            while not in_ranges(s, s_ranges): s = random.random()
+            else:
+                for i in xrange(b):
+                    tmp.append(hls2rgb((h,l,s)))
+        self[:] = tmp
 
 
 class Xform(object):
