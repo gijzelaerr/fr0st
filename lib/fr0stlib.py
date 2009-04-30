@@ -296,7 +296,7 @@ class Palette(list):
         return format % tuple(itertools.chain(*self))
 
     def rotate(self, index):
-        self[:] = self[index:] + self[:index]
+        self[:] = self[-index:] + self[:-index]
     
     def hue(self, value):
         value = value/360.0
