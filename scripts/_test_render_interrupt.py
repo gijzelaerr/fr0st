@@ -1,4 +1,4 @@
-from ..lib.gui.rendering import render
+from lib.gui.rendering import render
 
 size = 256,192
 
