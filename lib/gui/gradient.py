@@ -1,4 +1,4 @@
-import wx
+import wx, itertools
 
 from decorators import *
 from lib.functions import flatten
@@ -65,7 +65,7 @@ class GradientPanel(wx.Panel):
 
     def OnSlider(self, e):
         new = e.GetInt()
-        val = (new - self._old)/180.+0.5
+        val = (new - self._old)
         self._old = new
         self.func(val)
 
@@ -95,12 +95,21 @@ class Gradient(wx.Panel):
 
 
     def Update(self, flame=None):
+        import time
+        t = time.time()
         flame = flame or self.parent.flame
-        grad = flatten(flame.gradient)
+
+        grad = itertools.chain(*flame.gradient)
+        
 ##        buff = array('c',map(chr,grad))
         buff = self.formatstr % tuple(grad)
-        self.bmp = wx.BitmapFromBuffer(256, 50, buff *50)
+        
+##        self.bmp = wx.BitmapFromBuffer(256, 50, buff *50)
+        img = wx.ImageFromBuffer(256, 1, buff)
+        img.Rescale(256, 50)
+        self.bmp = wx.BitmapFromImage(img)
 
+        print (time.time() - t) * 1000, " ms"
         self.Refresh()
 
 
@@ -109,3 +118,18 @@ class Gradient(wx.Panel):
         dc = wx.PaintDC(self)
         dc.DrawBitmap(self.bmp, 2, 0, True)
 
+    @Bind(wx.EVT_LEFT_DOWN)
+    def OnLeftDown(self, e):
+        self._grad_copy = self.parent.flame.gradient[:]
+        self._startpos = e.GetPosition()
+
+    @Bind(wx.EVT_LEFT_UP)
+    def OnLeftUp(self, e):
+        self.parent.TreePanel.TempSave()
+
+    @Bind(wx.EVT_MOVE)
+    def OnMove(self, e):
+        if e.LeftIsDown() and e.Dragging():
+            offset = e.GetPosition[0] - self._startpos[0]
+            
+            
