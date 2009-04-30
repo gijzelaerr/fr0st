@@ -65,7 +65,7 @@ class GradientPanel(wx.Panel):
         self.SetSizer(sizer1)
         self.Layout()
 
-        self._leftdown = False
+        self._startval = None
 
 
     @Bind(wx.EVT_IDLE)
@@ -96,7 +96,7 @@ class GradientPanel(wx.Panel):
 
     def OnLeftDown(self, e):
         self._grad_copy = self.parent.flame.gradient[:]
-        self._leftdown = True
+        self._startval = self.slider.GetValue()
         e.Skip()
         
 
@@ -104,13 +104,13 @@ class GradientPanel(wx.Panel):
         if self._changed:
             self.parent.TreePanel.TempSave()
             self._changed = False
-        self._leftdown = False
+        self._startval = None
         e.Skip()
 
         
     def OnSlider(self, e):
-        if self._leftdown:
-            self._new = e.GetInt()
+        if self._startval is not None:
+            self._new = e.GetInt() - self._startval
 
         
 
