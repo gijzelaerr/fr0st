@@ -228,9 +228,9 @@ def allocate_output_buffer(size, channels):
 #-----------------------------------------------------------------------------
 # VBT: This function is needed to make a direct call to flam3_iterate work.
 
-#void prepare_xform_fn_ptrs(flam3_genome *cp, randctx *rc)
-libflam3.prepare_xform_fn_ptrs.argtypes = [POINTER(BaseGenome), POINTER(RandomContext)]
-prepare_xform_fn_ptrs = libflam3.prepare_xform_fn_ptrs
+###void prepare_xform_fn_ptrs(flam3_genome *cp, randctx *rc)
+##libflam3.prepare_xform_fn_ptrs.argtypes = [POINTER(BaseGenome), POINTER(RandomContext)]
+##prepare_xform_fn_ptrs = libflam3.prepare_xform_fn_ptrs
 
 
 #void flam3_colorhist(flam3_genome *cp, int num_batches, double *hist)
@@ -288,10 +288,10 @@ flam3_version = libflam3.flam3_version
 libflam3.flam3_create_xform_distrib.argtypes = [POINTER(BaseGenome), POINTER(c_ushort)]
 flam3_create_xform_distrib = libflam3.flam3_create_xform_distrib
 
-# int flam3_iterate(flam3_genome *g, int nsamples, int fuse, double *samples, unsigned short *xform_distrib, randctx *rc);
-libflam3.flam3_iterate.argtypes = [POINTER(BaseGenome), c_int, c_int, POINTER(c_double), POINTER(c_ushort), POINTER(RandomContext)]
-libflam3.flam3_iterate.restype = c_int
-flam3_iterate = libflam3.flam3_iterate
+### int flam3_iterate(flam3_genome *g, int nsamples, int fuse, double *samples, unsigned short *xform_distrib, randctx *rc);
+##libflam3.flam3_iterate.argtypes = [POINTER(BaseGenome), c_int, c_int, POINTER(c_double), POINTER(c_ushort), POINTER(RandomContext)]
+##libflam3.flam3_iterate.restype = c_int
+##flam3_iterate = libflam3.flam3_iterate
 
 ### void flam3_interpolate(flam3_genome *genomes, int ngenomes, double time, flam3_genome *result);
 ##libflam3.flam3_interpolate.argtypes = [POINTER(BaseGenome), c_int, c_double, POINTER(BaseGenome)]
