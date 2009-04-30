@@ -17,18 +17,6 @@ sys.dont_write_bytecode = False # Why is this line here?
 #-------------------------------------------------------------------------------
 #Utility functions
 """
-flatten - Flattens any iteratable type to a list
-"""
-def flatten(l):
-    result = []
-    for el in l:
-        if hasattr(el,'__iter__') and not isinstance(el,basestring):
-            result.extend(flatten(el))
-        else:
-            result.append(el)
-    return result
-
-"""
 in_ranges - Returns True if n is in one of the tuple ranges
   n - number to check
   ranges - list of min-max tuples (or single tuple)

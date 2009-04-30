@@ -1,8 +1,6 @@
 import wx, itertools
 
 from decorators import *
-from lib.functions import flatten
-from array import array
 
 from lib.gui.canvas import XformCanvas
 
