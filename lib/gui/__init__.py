@@ -85,7 +85,7 @@ class MainWindow(wx.Frame):
 
         sizer.Fit(self)
 
-        self.SetSize((800,600))
+##        self.SetSize((800,600))
 
         self.flame = Flame(string=fr0stlib.BLANKFLAME)
 
@@ -378,6 +378,7 @@ class MainWindow(wx.Frame):
         self.large_preview()
         self.canvas.ShowFlame(flame,rezoom=rezoom)
         self.XformTabs.UpdateView()
+        self.grad.ResetSlider()
 
         # Set Undo and redo buttons to the correct value:
         data = self.TreePanel.itemdata
