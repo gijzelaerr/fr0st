@@ -30,6 +30,7 @@ class GradientPanel(wx.Panel):
         self.parent = parent.parent
         self.choice = 'rotate'
         self._old = 0
+        self._new = None
         
         self.choices = {'hue':(-180,180),
                         'saturation': (-100,100),
@@ -62,13 +63,21 @@ class GradientPanel(wx.Panel):
 
 
     def OnSlider(self, e):
-        new = e.GetInt()
-        val = (new - self._old)
-        self._old = new
-        self.func(val)
+        self._new = e.GetInt()
+##        val = (new - self._old)
+##        self._old = new
+##        self.func(val)
+##        self.image.Update()
 
-        self.image.Update()
 
+    @Bind(wx.EVT_IDLE)
+    def OnIdle(self, e):
+        if self._new is not None:
+            val = (self._new - self._old)
+            self._old, self._new = self._new, None
+            self.func(val)
+            self.image.Update()            
+        
 
     def OnChoice(self, e):
         self.choice = e.GetString()
@@ -93,13 +102,9 @@ class Gradient(wx.Panel):
 
 
     def Update(self, flame=None):
-        import time
-        t = time.time()
         flame = flame or self.parent.flame
 
         grad = itertools.chain(*flame.gradient)
-        
-##        buff = array('c',map(chr,grad))
         buff = self.formatstr % tuple(grad)
         
 ##        self.bmp = wx.BitmapFromBuffer(256, 50, buff *50)
@@ -107,7 +112,6 @@ class Gradient(wx.Panel):
         img.Rescale(256, 50)
         self.bmp = wx.BitmapFromImage(img)
 
-        print (time.time() - t) * 1000, " ms"
         self.Refresh()
 
 
