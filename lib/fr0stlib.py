@@ -397,9 +397,9 @@ class Palette(list):
         h_ranges = kwargs.get('h_ranges', (0,1))
         l_ranges = kwargs.get('l_ranges', (0,1))
         s_ranges = kwargs.get('s_ranges', (0,1))
-        blocks = kwargs.get('blocks', 64)
+        b_range  = kwargs.get('blocks', (32,64))
         
-        #need to split up blocks
+        blocks = random.randint(b_range[0],b_range[1])
         mbs = 256/blocks                        #mean block size
         mbsr = 256%blocks                       #remainder
         bsv = mbs/2                             #size variance 1/2 mean
@@ -412,11 +412,11 @@ class Palette(list):
         if mbsr>0:
             r = len(bs)/mbsr
             for i in xrange(mbsr):
-                bs[i*r] += 1
+                bs[(i*r)+random.randrange(r)] += 1
         elif mbsr<0:
             r = -len(bs)/mbsr
             for i in xrange(-mbsr):
-                bs[i*r] -= 1
+                bs[(i*r)+random.randrange(r)] -= 1
         tmp = []
         for b in bs:
             h = random.random()
