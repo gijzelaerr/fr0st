@@ -151,7 +151,7 @@ class BaseFrame(Structure):
                ]
 
 
-if "win" in sys.platform:
+if 0: #"win" in sys.platform:
 
     class BasePalette(Structure):
         _fields_ = [ ('_vals', c_double * (256 * 3)) ]
