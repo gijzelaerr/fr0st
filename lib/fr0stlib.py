@@ -783,12 +783,8 @@ def save_flame(filename,flame):
     save_flames(filename,flame)
 
 
-def save_flames(filename,flames):
-    #lst = [f.to_string() if isinstance(f,Flame) else f for f in flames]
-    lst = []
-    for f in flames:
-        if isinstance(f,Flame): lst.append(f.to_string())
-        elif type(f)==str:      lst.append(f)
+def save_flames(filename,*flames):
+    lst = [f.to_string() if isinstance(f,Flame) else f for f in flames]
     lst.insert(0, """<flames name="Fr0st Batch">\n""")
     lst.append("""</flames>""")
     head, ext = os.path.splitext(filename)
