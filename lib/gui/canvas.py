@@ -3,7 +3,7 @@ from wx.lib.floatcanvas import FloatCanvas as FC
 from wx.lib.floatcanvas.FloatCanvas import FloatCanvas, DotGrid
 
 from decorators import Bind, BindEvents
-from _events import EVT_CANVAS_REFRESH
+from _events import EVT_THREAD_MESSAGE
 from lib.fr0stlib import polar
 from lib import pyflam3
 
@@ -93,7 +93,7 @@ class XformCanvas(FloatCanvas):
             self.Draw()
 
 
-    @Bind(EVT_CANVAS_REFRESH) # This is a custom event, not a FC one
+    @Bind(EVT_THREAD_MESSAGE)
     def OnCanvasRefresh(self, e):
         """Allows the script thread to ask the canvas to refresh."""
         self.ShowFlame(rezoom=False)

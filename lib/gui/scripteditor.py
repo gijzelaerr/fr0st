@@ -6,7 +6,7 @@ from StyledTextCtrl_2 import PythonSTC
 from decorators import *
 from toolbar import CreateEditorToolBar
 from constants import ID
-from _events import EVT_PRINT, PrintEvent
+from _events import EVT_THREAD_MESSAGE, ThreadMessageEvent
 
 
 class EditorFrame(wx.Frame):
@@ -138,9 +138,9 @@ class MyLog(wx.TextCtrl):
 
 
     @Catches(PyDeadObjectError)
-    def write(self,message):
+    def write(self, message):
         """Notifies the main thread to print a message."""
-        wx.PostEvent(self,PrintEvent(message))
+        wx.PostEvent(self, ThreadMessageEvent(message))
 
 
     @Catches(PyDeadObjectError)
@@ -159,7 +159,7 @@ class MyLog(wx.TextCtrl):
         self.AppendText(message)
 
 
-    @Bind(EVT_PRINT)
+    @Bind(EVT_THREAD_MESSAGE)
     def OnPrint(self,e):
         self._write(e.GetValue())
 

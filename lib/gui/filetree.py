@@ -8,7 +8,6 @@ import pickle as cPickle
 from lib.fr0stlib import Flame
 from lib.pyflam3 import Genome
 from decorators import *
-from _events import EVT_IMAGE_READY
 from itemdata import ItemData
 
 class TreePanel(wx.Panel):

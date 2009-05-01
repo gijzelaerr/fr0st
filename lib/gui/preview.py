@@ -1,7 +1,7 @@
 import wx, sys
 
 from decorators import *
-from _events import EVT_PROGRESS, ProgressEvent
+from _events import EVT_THREAD_MESSAGE, ThreadMessageEvent
 
 
 
@@ -95,10 +95,10 @@ class PreviewFrame(wx.Frame):
 
 
     def prog_func(self, *args):
-        wx.PostEvent(self, ProgressEvent(*args))
+        wx.PostEvent(self, ThreadMessageEvent(*args))
 
 
-    @Bind(EVT_PROGRESS)
+    @Bind(EVT_THREAD_MESSAGE)
     def OnProgress(self, e):
         py_object, fraction, stage, eta = e.GetArgs()
         self.SetStatusText("rendering: %.2f %%" %fraction)

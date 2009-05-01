@@ -1,45 +1,25 @@
 import wx
 
 
-myEVT_IMAGE_READY = wx.NewEventType()
-EVT_IMAGE_READY = wx.PyEventBinder(myEVT_IMAGE_READY, 1)
-class ImageReadyEvent(wx.PyCommandEvent):
+myEVT_THREAD_MESSAGE = wx.NewEventType()
+EVT_THREAD_MESSAGE = wx.PyEventBinder(myEVT_THREAD_MESSAGE, 1)
+class ThreadMessageEvent(wx.PyCommandEvent):
+    """Notifies the main thread to update something controlled by wx, which is
+    not thread-safe.
+
+    This event type can optionally carry arbitrary information which can be
+    retrieved through GetMessage().
+
+    Should be used no more than once for each widget, to avoid multiple handlers
+    catching an event only meant for one of them."""
+    
     def __init__(self,*args):
-        wx.PyCommandEvent.__init__(self, myEVT_IMAGE_READY, wx.ID_ANY)
-        self._data = args
-
-    def GetValue(self):
-        return self._data
-
-
-myEVT_PRINT = wx.NewEventType()
-EVT_PRINT = wx.PyEventBinder(myEVT_PRINT, 1)
-class PrintEvent(wx.PyCommandEvent):
-    def __init__(self,message):
-        wx.PyCommandEvent.__init__(self, myEVT_PRINT, wx.ID_ANY)
-        self._message = message
-        
-    def GetValue(self):
-        return self._message
-
-
-myEVT_CANVAS_REFRESH = wx.NewEventType()
-EVT_CANVAS_REFRESH = wx.PyEventBinder(myEVT_CANVAS_REFRESH, 1)
-class CanvasRefreshEvent(wx.PyCommandEvent):
-    def __init__(self,*args):
-       wx.PyCommandEvent.__init__(self, myEVT_CANVAS_REFRESH, wx.ID_ANY)
-       self._args = args
-
-    def GetValue(self):
-        return self._args
-
-
-myEVT_PROGRESS = wx.NewEventType()
-EVT_PROGRESS = wx.PyEventBinder(myEVT_PROGRESS, 1)
-class ProgressEvent(wx.PyCommandEvent):
-    def __init__(self,*args):
-        wx.PyCommandEvent.__init__(self, myEVT_PROGRESS, wx.ID_ANY)
+        wx.PyCommandEvent.__init__(self, myEVT_THREAD_MESSAGE, wx.ID_ANY)
         self._args = args
 
-    def GetArgs(self):
+    def GetMessage(self):
         return self._args
+
+    # For compatibility with existing code
+    GetArgs = GetValue = GetMessage
+    

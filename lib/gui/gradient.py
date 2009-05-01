@@ -1,8 +1,8 @@
 import wx, itertools
 
 from decorators import *
-
 from lib.gui.canvas import XformCanvas
+from _events import EVT_THREAD_MESSAGE
 
 
 # TODO: this class doesn't belong here.
@@ -66,6 +66,11 @@ class GradientPanel(wx.Panel):
         self.Layout()
 
         self._startval = None
+
+
+    @Bind(EVT_THREAD_MESSAGE)
+    def OnUpdate(self, e):
+        self.image.Update()
 
 
     @Bind(wx.EVT_IDLE)

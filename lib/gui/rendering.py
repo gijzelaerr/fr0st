@@ -2,7 +2,7 @@ import wx, time
 from threading import Thread
 
 from decorators import Catches, Threaded
-from _events import ImageReadyEvent
+from _events import ThreadMessageEvent
 from ..pyflam3 import Genome
 
 
@@ -85,7 +85,7 @@ class Renderer():
                 self.bgflag = 2 # Pauses the other thread
                 output_buffer = render(*args,**kwds)
                 self.bgflag = 0
-                evt = ImageReadyEvent(callback,metadata,output_buffer)
+                evt = ThreadMessageEvent(callback,metadata,output_buffer)
                 wx.PostEvent(self.parent,evt)
             else:
                 time.sleep(.01)  # Ideal interval needs to be tested

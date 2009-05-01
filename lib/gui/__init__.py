@@ -17,7 +17,7 @@ from lib._exceptions import ThreadInterrupt
 from lib import fr0stlib
 from lib.pyflam3 import Genome
 from lib.gui.rendering import render, Renderer
-from lib.gui._events import EVT_IMAGE_READY, CanvasRefreshEvent
+from lib.gui._events import EVT_THREAD_MESSAGE, ThreadMessageEvent
 from lib.fr0stlib import Flame, BLANKFLAME
 from itemdata import ItemData
 
@@ -147,7 +147,7 @@ class MainWindow(wx.Frame):
         self.Destroy()
 
 
-    @Bind(EVT_IMAGE_READY)
+    @Bind(EVT_THREAD_MESSAGE)
     def OnImageReady(self,e):
         callback, metadata, output_buffer = e.GetValue()
         callback(metadata, output_buffer)
@@ -373,10 +373,14 @@ class MainWindow(wx.Frame):
 
         
     def SetFlame(self, flame, rezoom=True):
+        """Changes the active flame and updates all relevant widgets.
+        This function can only be called from the main thread, because wx is
+        not thread-safe under linux (wxgtk)."""
         self.flame = flame
         self.image.RenderPreview(flame)
         self.large_preview()
         self.canvas.ShowFlame(flame,rezoom=rezoom)
+        self.grad.image.Update()
         self.XformTabs.UpdateView()
         self.grad.ResetSlider()
 
@@ -445,7 +449,8 @@ class MainWindow(wx.Frame):
         # WARNING: This function is called from the script thread, so it's not
         # Allowed to change any shared state.
         self.image.RenderPreview()
-        wx.PostEvent(self.canvas, CanvasRefreshEvent())
+        wx.PostEvent(self.canvas, ThreadMessageEvent())
+        wx.PostEvent(self.grad, ThreadMessageEvent())
         time.sleep(.05) # Avoids spamming too many requests.
 
     def large_preview(self):
@@ -469,8 +474,6 @@ class ImagePanel(wx.Panel):
         The renderer takes care of denying repeated requests so that at most
         one redundant preview is rendered."""    
         flame = flame or self.parent.flame
-        #update the gradient as well
-        self.parent.grad.image.Update()
 
         ratio = flame.size[0] / flame.size[1]
         width = 160 if ratio > 1 else int(160*ratio)
