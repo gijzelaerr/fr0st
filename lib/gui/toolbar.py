@@ -27,8 +27,11 @@ def CreateToolBar(parent):
                      "Open", "Open a flame file")
 
     tb.AddSimpleTool(ID.TBSAVE, GetBMP(wx.ART_FLOPPY),
-                     "Save", "Save the current flame")
-
+                     "Save", "Save the current flame file.")
+    
+    tb.AddSimpleTool(ID.TBSAVEAS, GetBMP(wx.ART_FLOPPY),
+                     "Save as", "Save the current flame file to a different location.")
+    
     tb.AddSeparator()
 
     tb.AddSimpleTool(ID.UNDO, GetBMP(wx.ART_UNDO),
@@ -78,6 +81,9 @@ def CreateEditorToolBar(parent):
 
     tb.AddSimpleTool(ID.TBSAVE, GetBMP(wx.ART_FLOPPY),
                      "Save", "Long help for 'Save'")
+    
+    tb.AddSimpleTool(ID.TBSAVEAS, GetBMP(wx.ART_FLOPPY),
+                     "Save as", "Long help for 'Save as'")
 
     tb.AddSeparator()
 

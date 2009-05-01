@@ -64,20 +64,20 @@ class EditorFrame(wx.Frame):
 
 
     @Bind(wx.EVT_TOOL,id=ID.TBSAVE)
-    def OnScriptSave(self,e):
+    def OnScriptSave(self, e):
+        self.SaveScript(self.scriptpath, confirm=False)
+
+
+    @Bind(wx.EVT_TOOL,id=ID.TBSAVEAS)
+    def OnScriptSaveAs(self, e):
         dDir,dFile = os.path.split(self.scriptpath)
         dlg = wx.FileDialog(self, message="Save file as ...",
                             defaultDir=dDir, 
                             defaultFile=dFile,
                             wildcard=self.wildcard, style=wx.SAVE)
         if dlg.ShowModal() == wx.ID_OK:
-            self.scriptpath = path = dlg.GetPath()
-            if os.path.exists(path):
-                dlg2 = wx.MessageDialog(self, '%s already exists.\nDo You want to replace it?'
-                                       %path,'Fr0st',wx.YES_NO)
-                if dlg2.ShowModal() == wx.ID_NO: return
-                dlg2.Destroy()      
-            self.SaveScript()
+            self.scriptpath = path = dlg.GetPath()   
+            self.SaveScript(path)
         dlg.Destroy()
         
 
@@ -94,7 +94,7 @@ class EditorFrame(wx.Frame):
                                    'Fr0st',wx.YES_NO|wx.CANCEL)
             result = dlg.ShowModal()
             if result == wx.ID_YES:
-                self.SaveScript()
+                self.SaveScript(self.scriptpath, confirm=False)
             elif result == wx.ID_NO:
                 # Reset the script to the saved version, so that it looks like
                 # the editor was closed.
@@ -110,10 +110,16 @@ class EditorFrame(wx.Frame):
         self.SetTitle("%s - Script Editor" % os.path.basename(path))
         
 
-    def SaveScript(self):
-        with open(self.scriptpath,"w") as f:
+    def SaveScript(self, path, confirm=True):
+        if os.path.exists(path) and confirm:
+            dlg = wx.MessageDialog(self, '%s already exists.\nDo You want to replace it?'
+                                   %path,'Fr0st',wx.YES_NO)
+            if dlg.ShowModal() == wx.ID_NO: return
+            dlg.Destroy()
+            
+        with open(path,"w") as f:
             f.write(self.editor.GetText())
-        self.SetTitle("%s - Script Editor" % os.path.basename(self.scriptpath))
+        self.SetTitle("%s - Script Editor" % os.path.basename(path))
 
 
 
@@ -161,7 +167,7 @@ class MyLog(wx.TextCtrl):
 
     @Bind(EVT_THREAD_MESSAGE)
     def OnPrint(self,e):
-        self._write(e.GetValue())
+        self._write(e.GetValue()[0])
 
     if "win32" in sys.platform:
         write = _write

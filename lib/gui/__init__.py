@@ -199,10 +199,17 @@ class MainWindow(wx.Frame):
     @Bind(wx.EVT_TOOL,id=ID.TBSAVE)
     def OnFlameSave(self,e):
         self.flamepath = self.tree.GetPyData(self.TreePanel.itemparent)[-1]
+        self.SaveFlame(self.flamepath, confirm=False)
+
+        
+    @Bind(wx.EVT_MENU,id=ID.FSAVEAS)
+    @Bind(wx.EVT_TOOL,id=ID.TBSAVEAS)
+    def OnFlameSaveAs(self,e):
+        self.flamepath = self.tree.GetPyData(self.TreePanel.itemparent)[-1]
         dDir,dFile = os.path.split(self.flamepath)
-        dlg = wx.FileDialog(
-            self, message="Save file as ...", defaultDir=dDir, 
-            defaultFile=dFile, wildcard=self.wildcard, style=wx.SAVE)
+        dlg = wx.FileDialog(self, message="Save file as ...", defaultDir=dDir,
+                            defaultFile=dFile, wildcard=self.wildcard,
+                            style=wx.SAVE)
         if dlg.ShowModal() == wx.ID_OK:
             self.flamepath = dlg.GetPath()
             self.SaveFlame(self.flamepath)
@@ -302,7 +309,7 @@ class MainWindow(wx.Frame):
         return item
         
 
-    def SaveFlame(self, path, item=None, confirm=True):
+    def SaveFlame(self, path, confirm=True):
         # Refuse to save if file is open
         data = self.tree.GetPyData(self.TreePanel.itemparent)
         if data[-1] != path and self.find_open_flame(path):
@@ -314,9 +321,7 @@ class MainWindow(wx.Frame):
         # Check if we're overwriting anything
         if os.path.exists(path) and confirm:
             dlg = wx.MessageDialog(self, '%s already exists.\nDo You want to replace it?'
-                                   %path,
-                                   'Fr0st',
-                                   wx.YES_NO)
+                                   %path, 'Fr0st', wx.YES_NO)
             if dlg.ShowModal() == wx.ID_NO: return
             dlg.Destroy()
 
@@ -325,7 +330,7 @@ class MainWindow(wx.Frame):
         data[-1] = path
                       
         lst = []
-        for i in self.TreePanel.iterchildren(item):
+        for i in self.TreePanel.iterchildren():
             data = self.tree.GetPyData(i)
             lst.append(data.GetSaveString())
 
