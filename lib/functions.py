@@ -14,6 +14,19 @@ import os, sys, marshal, copy, random, cmath, shutil, numpy, colorsys, itertools
 from math import *
 sys.dont_write_bytecode = False # Why is this line here?
 
+hues = {'red': 0,
+        'orange': 1/12.0,
+        'yellow': 1/6.0,
+        'lime': 0.25,
+        'green': 1/3.0,
+        'turquois': 5/12.0,
+        'cyan': 0.5,
+        'lblue': 7/12.0,
+        'blue': 2/3.0,
+        'purple': 0.75,
+        'pink': 5/6.0,
+        'magenta': 11/12.0}
+
 #-------------------------------------------------------------------------------
 #Utility functions
 """
@@ -164,6 +177,8 @@ def drange(x, y, n, i, **kwargs):
     #Set defaults
     curve = kwargs.get('curve','lin')
     a     = kwargs.get('a',1.0)
+    peak  = kwargs.get('peak',0.5)
+    freq  = kwargs.get('freq',1)
 
     m=float(n)
 
@@ -189,6 +204,65 @@ def drange(x, y, n, i, **kwargs):
         return x+d*i
 #---end drange
 
+"""
+prange - Periodic range
+"""
+def prange(x, y, n, i, **kwargs):
+    curve = kwargs.get('curve','lin')
+    a     = kwargs.get('a',1.0)
+    peak  = kwargs.get('peak',0.5)    
+    freq  = kwargs.get('freq',1)
+
+    n1=int(peak*n)
+    n2=n-n1
+    m=float(n)
+    
+    if curve=='pp-par':     #par up, par down
+        if i<n1: return drange(x,y,n1,i,curve='par',a=a)
+        else:    return drange(y,x,n2,i-n1,curve='par',a=a)
+    elif curve=='pn-par':   #par up, npar down
+        if i<n1: return drange(x,y,n1,i,curve='par',a=a)
+        else:    return drange(y,x,n2,i-n1,curve='npar',a=a)
+    elif curve=='np-par':   #npar up, par down (smooth parabolic shape)
+        if i<n1: return drange(x,y,n1,i,curve='npar',a=a)
+        else:    return drange(y,x,n2,i-n1,curve='par',a=a)
+    elif curve=='nn-par':   #npar up, npar down
+        if i<n1: return drange(x,y,n1,i,curve='npar',a=a)
+        else:    return drange(y,x,n2,i-n1,curve='npar',a=a)
+    elif curve=='sin':      #sine wave (positive and negative)
+        d = y-x
+        if d<>0: return x+d*sin((i/m)*pi*2*freq)
+        else:    return 0
+    elif curve=='cos':     #cosine wave (positive only)
+        d = y-x
+        if d<>0: return (x+d*((cos(pi + (i/m)*pi*2*freq))+1)/2)**a
+        else:    return 0
+    else:                   #linear
+        if i<n1: return drange(x,y,n1,i,curve='lin',a=a)
+        else:    return drange(y,x,n2,i-n1,curve='lin',a=a)
+#---end prange
+
+def spline(cps, n, **kwargs):
+    t      = kwargs.get('t', 0.5)
+    spline = kwargs.get('spline', 'Cardinal')
+    
+    v = []
+    for i in xrange(n): v.append(drange(0,1,n,i,**kwargs))
+    cps = numpy.array(cps)
+    M = numpy.array([[0,1,0,0]
+                   ,[-t,0,t,0]
+                   ,[2*t,t-3,3-2*t,-t]
+                   ,[-t,2-t,t-2,t]])
+    W = []
+    for i in xrange(len(v)):
+        tmp = []
+        for j in xrange(4): tmp.append(v[i]**j)
+        W.append(tmp)
+    W = numpy.array(W)
+    vp = numpy.dot(M,cps)
+    return list(numpy.dot(W,vp))
+#---end spline
+
 def vector(cps, n, i, **kwargs):
     #Set defaults
     t = kwargs.get('t', 0.5)
@@ -196,6 +270,7 @@ def vector(cps, n, i, **kwargs):
     if len(cps)>1 and len(cps)<4:
         return drange(cps[0], cps[1], n, i, **kwargs)
     elif len(cps)==4:
+        if cache:
         v = drange(0, 1, n, i, **kwargs)
         cps = numpy.array(cps)
         M = numpy.array([[0,1,0,0]
