@@ -270,7 +270,7 @@ def vector(cps, n, i, **kwargs):
     if len(cps)>1 and len(cps)<4:
         return drange(cps[0], cps[1], n, i, **kwargs)
     elif len(cps)==4:
-        if cache:
+##        if cache:
         v = drange(0, 1, n, i, **kwargs)
         cps = numpy.array(cps)
         M = numpy.array([[0,1,0,0]
