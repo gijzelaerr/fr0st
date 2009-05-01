@@ -27,214 +27,16 @@ import marshal as marshal
 import _pyapi
 from _exceptions import *
 
-##def _fix_index(list_type, key):
-##    if key < 0:
-##        key += len(self)
-##
-##    if key < 0 or key >= len(list_type):
-##        raise IndexError
-##
-##    return key
-
-
-##class ImageComments(BaseImageComments):
-##    @classmethod
-##    def from_stats(cls, stats, genome):
-##        comments = cls()
-##        comments.genome = genome.to_str()
-##        comments.badvals = str(stats.badvals / float(stats.num_iters))
-##        comments.numiters = str(float(stats.num_iters))
-##        comments.rtime = str(stats.render_seconds)
-##        return comments
-
-##class Palette(BasePalette):
-##    def __getitem__(self, key):
-##        return self._vals.__getitem__(key)
-##
-##    def __len__(self):
-##        return self._vals.__len__()
-##
-##    def __setitem__(self, key, val):
-##        return self._vals.__setitem__(key, val)
-##
-##    @classmethod
-##    def get_standard(cls, index=flam3_palette_random, hue_rotation=0):
-##        pal = Palette()
-##        flam3_get_palette(index, byref(pal), hue_rotation)
-##        return pal
-        
-
-##class _VariationHelper(object):
-##    def __init__(self, parent):
-##        self._parent = parent
-##
-##    def __len__(self):
-##        return flam3_nvariations 
-##
-##    def __iter__(self):
-##        for key in variations:
-##            yield key, self[key]
-##
-##    def __setitem__(self, key, value):
-##        if isinstance(key, str):
-##            key = variations[key]
-##
-##        if isinstance(key, int):
-##            self._parent.var[key] = value
-##        else:
-##            raise TypeError('key must be an int or string')
-##
-##    def __getitem__(self, key):
-##        if isinstance(key, str):
-##            key = variations[key]
-##
-##        if isinstance(key, int):
-##            return self._parent.var[key]
-##        else:
-##            raise TypeError('key must be an int or string')
-
-
-##class XForm(BaseXForm):
-##    def _get_variations(self):
-##        if not getattr(self, '_variations', None):
-##            self._variations = _VariationHelper(self)
-##        return self._variations
-##
-##    variations = property(fget=_get_variations)
-##
-##class _XFormHelper(object):
-##    def __init__(self, parent):
-##        self._parent = parent
-##        self._xforms = cast(parent.xform, POINTER(XForm))
-##
-##    def __len__(self):
-##        return self._parent.num_xforms
-##
-##    def __iter__(self):
-##        for i in range(0, self._parent.num_xforms):
-##            yield self._xforms[i]
-##
-##    def __setitem__(self, key, value):
-##        if isinstance(key, int):
-##            self._xforms[_fix_index(self, key)] = value
-##        elif isinstance(key, slice):
-##            raise NotImplementedError('sorry, I suck and the usefulness'\
-##                                      'of slices here is questionable')
-##        else:
-##            raise TypeError('invalid key type')
-##
-##    def __delitem__(self, key):
-##        if isinstance(key, int):
-##            self.remove(key)
-##        elif isinstance(key, slice):
-##            raise NotImplementedError('sorry, I suck and the usefulness'\
-##                                      'of slices here is questionable')
-##        else:
-##            raise TypeError('invalid key type')
-##
-##    def __getitem__(self, key):
-##        if isinstance(key, int):
-##            return self._xforms[_fix_index(self, key)]
-##        elif isinstance(key, slice):
-##            raise NotImplementedError('sorry, I suck and the usefulness'\
-##                                      'of slices here is questionable')
-##        else:
-##            raise TypeError('invalid key type')
-##
-##    def append(self, value=None):
-##        flam3_add_xforms(byref(self._parent), 1)
-##        if value:
-##            self._xforms[len(self) - 1] = value
-##
-##    def remove(self, index):
-##        flam4_delete_xform(byref(self._parent), index)
-
-##class _FakedGenomeSize(object):
-##    def __init__(self, parent):
-##        self._parent = parent
-##
-##    def __len__(self):
-##        return 2
-##
-##    def __iter__(self):
-##        yield self._parent.width
-##        yield self._parent.height
-##
-##    def __setitem__(self, key, value):
-##        if isinstance(key, int):
-##            if key == 0:
-##                self._parent.width = value
-##            elif key == 1:
-##                self._parent.height = value
-##            else:
-##                raise IndexError('key must be 0 or 1')
-##        else:
-##            raise TypeError('key must be an int')
-##
-##    def __getitem__(self, key):
-##        if isinstance(key, int):
-##            if key == 0:
-##                return self._parent.width
-##            elif key == 1:
-##                return self._parent.height
-##            else:
-##                raise IndexError('key must be 0 or 1')
-##        else:
-##            raise TypeError('key must be an int')
-        
 
 class Genome(BaseGenome):
-##    def __init__(self, num_xforms=0):
-##        """allocate a new genome and add xform(s)"""
-##        if num_xforms:
-##            flam3_add_xforms(byref(self), num_xforms)
-##
-##    def _get_xforms(self):
-##        if not getattr(self, '_xforms', None):
-##            self._xforms = _XFormHelper(self)
-##        return self._xforms
-##    xforms = property(fget=_get_xforms)
 
     def _get_size(self):
-##        if not getattr(self, '_faked_size', None):
-##            self._faked_size = _FakedGenomeSize(self)
-##        return self._faked_size
         return self.width, self.height
 
     def _set_size(self, value):
         self.width, self.height = value
 
     size = property(_get_size, _set_size)
-
-##    def _get_rot_center(self):
-##        return self.rot_center
-##
-##    def _set_rot_center(self, value):
-##        self.rot_center[0], self.rot_center[1] = value
-##
-##    rotation_center = property(fget=_get_rot_center, fset=_set_rot_center)
-##
-##    def _get_center(self):
-##        return self._center
-##
-##    def _set_center(self, value):
-##        self._center[0], self._center[1] = value
-##
-##    center = property(fget=_get_center, fset=_set_center)
-##
-##    def _get_background(self):
-##        return self.background
-##
-##    def _set_background(self, value):
-##        bg = self.background
-##        bg[0], bg[1], bg[2] = value
-##
-##    bgcolor = property(fget=_get_background, fset=_set_background)
-##
-##    def clone(self):
-##        other = Genome()
-##        flam3_copy(byref(other), byref(self))
-##        return other
 
     def render(self, **kwargs):
         channels = kwargs.get('channels', 3)
@@ -245,7 +47,6 @@ class Genome(BaseGenome):
         frame.ngenomes = 1
 
         self.ntemporal_samples = kwargs.get('ntemporal_samples', 1)
-
 
 ##        output_buffer = kwargs.get('buffer', None)
 ##        if output_buffer:
@@ -270,23 +71,6 @@ class Genome(BaseGenome):
         stats = RenderStats()
         flam3_render(byref(frame), output_buffer, self.width, flam3_field_both, channels, transparent, byref(stats))
         return (output_buffer, stats)
-
-##    def to_str(self):
-##        return flam3_print_to_string(byref(self))
-##
-##    def to_file(self, filename, fd=None):
-##        if 'win32' in sys.platform:
-##            if fd:
-##                fd.write(self.to_str())
-##            else:
-##                with open(filename, 'wb') as fd:
-##                    fd.write(self.to_str())
-##        else:
-##            if fd:
-##                flam3_print(marshal.file_as_FILE(fd), byref(self), None, flam3_dont_print_edits)
-##            else:
-##                with open(filename, 'wb') as fd:
-##                    flam3_print(marshal.file_as_FILE(fd), byref(self), None, flam3_dont_print_edits)
 
     @classmethod
     def _initialize_genome_list(cls, genomes):
@@ -413,29 +197,3 @@ class Frame(BaseFrame):
 ##        if not self.nthreads:
 ##            self.nthreads = flam3_count_nthreads()
 
-
-
-
-### void write_jpeg(FILE *file, unsigned char *image, int width, int height, flam3_img_comments *fpc);
-### void write_png(FILE *file, unsigned char *image, int width, int height, flam3_img_comments *fpc);
-##def write_image(filename, buffer, size, comments=None):
-##    if 'win32' in sys.platform:
-##        raise NotImplementedError('write_image is not supported under windows'\
-##                ' at this time')
-##
-##    if not comments:
-##        comments = ImageComments()
-##        comments.genome = None
-##        comments.badvals = None
-##        comments.numiters = None
-##        comments.rtime = None
-##
-##    if filename.endswith('png'):
-##        write_func = write_png
-##    elif filename.endswith('jpg') or filename.endswith('jpeg'):
-##        write_func = write_jpeg
-##    else:
-##        assert False
-##
-##    with open(filename, 'wb') as fd:
-##        write_func(marshal.file_as_FILE(fd), buffer, size[0], size[1], comments)
