@@ -1,4 +1,4 @@
-import wx, time
+import wx, time, sys
 from threading import Thread
 
 from decorators import Catches, Threaded
@@ -32,8 +32,10 @@ class Renderer():
         self.exitflag = None
         self.previewflag = 0
         self.bgflag = 0
-        self.RenderLoop()
-        self.bgRenderLoop()
+        if "-debug" not in sys.argv:
+            # TODO: remove this.
+            self.RenderLoop()
+            self.bgRenderLoop()
 
 
     def ThumbnailRequest(self,callback,metadata,*args,**kwds):

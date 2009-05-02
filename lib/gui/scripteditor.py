@@ -137,8 +137,12 @@ class MyLog(wx.TextCtrl):
                              style = wx.TE_MULTILINE|wx.TE_READONLY|wx.HSCROLL)
         self.SetFont(wx.Font(8, wx.MODERN, wx.NORMAL, wx.NORMAL))
         self.oldstderr = sys.stderr   # For debugging purposes!
-        sys.stdout = self
-        sys.stderr = self
+        if "-debug" not in sys.argv:
+            # TODO: remove this, it's to supress the editor and get a
+            # decent traceback.        
+            sys.stdout = self
+            sys.stderr = self
+            
 ##        self._suppress = 0
 ##        self._syntax  = 0
 
