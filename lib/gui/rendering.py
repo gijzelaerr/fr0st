@@ -82,9 +82,15 @@ class Renderer():
             if queue:
                 callback,metadata,args,kwds = queue.pop(0)
                 self.previewflag = 0
-                self.bgflag = 2 # Pauses the other thread
-                output_buffer = render(*args,**kwds)
-                self.bgflag = 0
+                try:
+                    self.bgflag = 2 # Pauses the other thread
+                    output_buffer = render(*args,**kwds)
+                except Exception:
+                    # All exceptions are caught to make sure the render thread
+                    # never crashes because of malformed flames.
+                    continue
+                finally:
+                    self.bgflag = 0
                 evt = ThreadMessageEvent(callback,metadata,output_buffer)
                 wx.PostEvent(self.parent,evt)
             else:
