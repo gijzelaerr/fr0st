@@ -1,5 +1,5 @@
 <flames name="Fr0st Batch">
-<flame rotate="0.0" center="0 0" name="Apophysis-081203-1" brightness="4.0" oversample="1.0" version="Apophysis 2.08 beta 2" zoom="0.0" filter="0.2" scale="65.5" background="0 0 0" gamma_threshold="0.04" quality="5.0" gamma="4.0" size="172 129" >
+<flame rotate="0.0" center="0 0" name="Apophysis-081203-1" brightness="4.0" oversample="1" version="Apophysis 2.08 beta 2" zoom="0.0" filter="0.2" scale="65.5" background="0 0 0" gamma_threshold="0.04" quality="5.0" gamma="4.0" size="172 129" >
    <xform linear="1.0" weight="0.5" color="0.0" coefs="0.5 -0.0 -0.0 0.5 0.0 -0.0" />
    <xform linear="1.0" weight="0.5" color="0.0" coefs="0.5 -0.0 -0.0 0.5 0.0 -1.0" />
    <xform linear="1.0" weight="0.5" color="0.0" coefs="0.5 -0.0 -0.0 0.5 1.0 -0.0" />
