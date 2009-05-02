@@ -27,6 +27,7 @@ class MainWindow(wx.Frame):
     wildcard = "Flame file (*.flame)|*.flame|" \
                "All files (*.*)|*.*"
     filenames = ("Untitled%s.flame" % i for i in itertools.count(1))
+    scriptrunning = False
 
     @BindEvents    
     def __init__(self,parent,id):
@@ -439,6 +440,7 @@ class MainWindow(wx.Frame):
         
         try:
             self.editor.SetEditable(False)
+            self.scriptrunning = True
             # TODO: prevent file opening, etc
             exec(script,self.CreateNamespace())
         except SystemExit:
@@ -447,6 +449,7 @@ class MainWindow(wx.Frame):
             print("\n\nScript Interrupted")
         finally:
             self.editor.SetEditable(True)
+            self.scriptrunning = False
         self.PrintScriptStats(start) # Don't put this in the finally clause!
         
 

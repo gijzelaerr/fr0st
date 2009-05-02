@@ -55,6 +55,7 @@ class XformCanvas(FloatCanvas):
         # These mark different states of the canvas
         self.parent.ActiveXform = None
         self.SelectedXform = None
+        self._highlight = None
         self.axes_locked = True
         self.HasChanged = False
         self.StartMove = None
@@ -341,13 +342,17 @@ class XformCanvas(FloatCanvas):
         if  e.RightIsDown() and e.Dragging() and self.StartMove is not None:
             self.EndMove = N.array(e.GetPosition())
             self._right_drag = self.StartMove - self.EndMove
-            
+
+        elif self.parent.scriptrunning:
+            # Disable everything except canvas dragging.
+            return
+
         elif e.LeftIsDown() and e.Dragging():
             self._left_drag = coords
             
         else:
 ##            self.SetFocus() # Makes Canvas take focus under windows.
-
+            
             # First, test for vertices
             vertex, xform, cb = self.VertexHitTest(*coords)
             if cb:
@@ -364,7 +369,6 @@ class XformCanvas(FloatCanvas):
 
             # Finally, test for area
             xform = self.XformHitTest(*coords)
-            previous = self.SelectedXform
             if xform:
                 diff = coords - xform.o
                 def callback(coord):
@@ -372,16 +376,20 @@ class XformCanvas(FloatCanvas):
                 self.callback = callback
                 self.SelectXform(xform)
 
-            else:
+            elif self.SelectedXform is not None:
+                # Showflame is called here because SelectXform is not.
                 self.SelectedXform = None
                 self.callback = None
-
-            if previous != self.SelectedXform:
                 self.ShowFlame(rezoom=False)
 
 
     def SelectXform(self, xform, highlight=None):
+        if self.SelectedXform == xform and self._highlight == highlight:
+            return
+        
+        
         self.SelectedXform = xform
+        self._highlight = highlight
 
         varlist = [i for i in pyflam3.variation_list if getattr(xform,i)]
         color = ((255,255,255) if xform.isfinal()
@@ -398,6 +406,7 @@ class XformCanvas(FloatCanvas):
         if highlight:
             self.objects.append(self.AddLine(highlight, LineColor=color,
                                              LineWidth=2))
+        self.ShowFlame(rezoom=False)
 
 
     def _get_MidMove(self):
