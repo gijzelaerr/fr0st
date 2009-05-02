@@ -22,11 +22,11 @@ class XformTabs(wx.Notebook):
                              # | wx.NB_MULTILINE
                              )
 
-        self.Vars = VarPanel(self)
-        self.AddPage(self.Vars, "Vars")
-        
         self.Xform = XformPanel(self)
         self.AddPage(self.Xform, "Xform")
+
+        self.Vars = VarPanel(self)
+        self.AddPage(self.Vars, "Vars")
 
         win = wx.Panel(self, -1)
         self.AddPage(win, "Color")
@@ -81,7 +81,7 @@ class XformPanel(wx.Panel):
         fgs = wx.FlexGridSizer(3,3,1,1)
         fgs.AddMany(map(self.__getattribute__,"xadybeocf"))
 
-        reset = wx.Button(self,-1,"reset xform", style=wx.BU_EXACTFIT)
+        self.reset = wx.Button(self,-1,"reset xform", style=wx.BU_EXACTFIT)
         r1 = wx.RadioButton(self, -1, "triangle", style = wx.RB_GROUP )
         r2 = wx.RadioButton(self, -1, "xform" )
         r3 = wx.RadioButton(self, -1, "polar" )
@@ -93,8 +93,11 @@ class XformPanel(wx.Panel):
         hsizer = wx.BoxSizer(wx.HORIZONTAL)
         hsizer.AddMany((fgs,vsizer))
 
+##        fgs2 = wx.FlexGridSizer(5, 4, 1, 1)
+##        self.
+
         sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.AddMany((hsizer,reset))
+        sizer.AddMany((hsizer,self.reset))
         self.SetSizer(sizer)
         self.Layout()
 
@@ -109,12 +112,34 @@ class XformPanel(wx.Panel):
         self.view[0] = e.IsChecked()
         self.UpdateView()
 
+    @Bind(wx.EVT_BUTTON)
+    def OnButton(self, e):
+        xform, view = self.GetActive()
         
-    def UpdateView(self):
+        button = e.GetEventObject()
+        if button == self.x:
+            xform.a, xform.d = 1,0
+        elif button == self.y:
+            xform.b, xform.e = 0,1
+        elif button == self.o:
+            xform.c, xform.f = 0,0
+        elif button == self.reset:
+            xform.coefs = 1,0,0,1,0,0
+
+        else:
+            return
+        self.parent.TreePanel.TempSave()
+
+
+    def GetActive(self):
         post, view = self.view
         xform = self.parent.ActiveXform
         if post:
             xform = xform.post
+        return xform, view
+        
+    def UpdateView(self):
+        xform, view = self.GetActive()
             
         if view == "triangle":
             self.coefs = chain(*xform.points)
@@ -125,10 +150,7 @@ class XformPanel(wx.Panel):
 
 
     def UpdateXform(self,e=None):
-        post, view = self.view
-        xform = self.parent.ActiveXform
-        if post:
-            xform = xform.post
+        xform, view = self.GetActive()
 
         if view == "triangle":
             xform.points = zip(*[iter(self.coefs)]*2)

@@ -101,8 +101,9 @@ class MainWindow(wx.Frame):
             self.TreePanel.RecoverSession(paths)
         else:
             # Normal startup
-            item = self.OpenFlame(self.flamepath)
-            self.tree.SelectItem(self.tree.GetFirstChild(item)[0])
+            self.item = self.OpenFlame(self.flamepath)
+            
+        self.tree.SelectItem(self.tree.GetFirstChild(self.item)[0])
 
         self.Show(True)
     
@@ -246,6 +247,7 @@ class MainWindow(wx.Frame):
         self.previewframe.Raise()
         self.previewframe.RenderPreview()
 
+
     @Bind(wx.EVT_TOOL,id=ID.UNDO)
     @Bind(wx.EVT_MENU,id=ID.UNDO)
     def OnUndo(self,e):
@@ -382,6 +384,15 @@ class MainWindow(wx.Frame):
         This function can only be called from the main thread, because wx is
         not thread-safe under linux (wxgtk)."""
         self.flame = flame
+        if not self.ActiveXform:
+            self.ActiveXform = flame.xform[0]
+        elif self.ActiveXform._parent != flame:
+            index = min(self.ActiveXform.index, len(flame.xform)-1)
+            self.ActiveXform = flame.xform[index]
+            
+##        elif active._parent != flame:
+##            self.parent.ActiveXform = flame.xform[min(active.index,
+##                                                      len(flame.xform)-1)]
         self.image.RenderPreview(flame)
         self.large_preview()
         self.canvas.ShowFlame(flame,rezoom=rezoom)

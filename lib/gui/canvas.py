@@ -65,11 +65,6 @@ class XformCanvas(FloatCanvas):
         if flame is None:
             flame = self.parent.flame
 
-        # Checks if the active xform is None or belongs to a previous flame.
-        if (not self.parent.ActiveXform) or \
-                self.parent.ActiveXform._parent != flame:
-            self.parent.ActiveXform = flame.xform[0]
-            
         for t in self.triangles:
             self.RemoveObjects(itertools.chain((t,),t._text,t._circles))
         self.triangles = []
@@ -369,6 +364,7 @@ class XformCanvas(FloatCanvas):
 
             # Finally, test for area
             xform = self.XformHitTest(*coords)
+            previous = self.SelectedXform
             if xform:
                 diff = coords - xform.o
                 def callback(coord):
@@ -378,8 +374,10 @@ class XformCanvas(FloatCanvas):
 
             else:
                 self.SelectedXform = None
-                self.ShowFlame(rezoom=False)
                 self.callback = None
+
+            if previous != self.SelectedXform:
+                self.ShowFlame(rezoom=False)
 
 
     def SelectXform(self, xform, highlight=None):
@@ -400,8 +398,6 @@ class XformCanvas(FloatCanvas):
         if highlight:
             self.objects.append(self.AddLine(highlight, LineColor=color,
                                              LineWidth=2))
-
-        self.ShowFlame(rezoom=False)
 
 
     def _get_MidMove(self):
