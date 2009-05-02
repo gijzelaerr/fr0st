@@ -93,18 +93,19 @@ class MainWindow(wx.Frame):
         # Set up paths
         sys.path.append(os.path.join(sys.path[0],"scripts")) # imp in scripts
         self.flamepath = os.path.join(sys.path[0],"parameters","samples.flame")
-
+        
         if os.path.exists('paths.temp'):
             # TODO: check if another fr0st process is running.
             # Previous session was interrupted
             # TODO: display a message to user explaining situation.
             paths = [i.strip() for i in open('paths.temp')]
             self.TreePanel.RecoverSession(paths)
+
         else:
             # Normal startup
-            self.item = self.OpenFlame(self.flamepath)
+            self.TreePanel.item = self.OpenFlame(self.flamepath)
             
-        self.tree.SelectItem(self.tree.GetFirstChild(self.item)[0])
+        self.tree.SelectItem(self.tree.GetFirstChild(self.TreePanel.item)[0])
 
         self.Show(True)
     
