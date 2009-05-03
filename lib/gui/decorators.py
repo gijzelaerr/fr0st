@@ -2,9 +2,16 @@ from __future__ import with_statement
 from threading import Thread, Lock
 from functools import wraps
 
-from lib._exceptions import *
+try:
+    from lib._exceptions import ThreadInterrupt
+except ImportError:
+    raise ImportWarning("Couldn't import required exception.")
+    class ThreadInterrupt(BaseException): pass
 
-def Bind(event,*args,**kwds):
+
+def Bind(event, *args, **kwds):
+    """ Bind wx events to their respective handlers. Used in conjunction with
+    BindEvents."""
     def bind(f):
         f._bound = getattr(f,"_bound",[]) + [(event,args,kwds)]
         return f
@@ -12,56 +19,75 @@ def Bind(event,*args,**kwds):
 
 
 def BindEvents(__init__):
+    """ This needs to wrap a given class' __init__ method to enable that class
+    to use the Bind decorator."""
     @wraps(__init__)
-    def wrapper(self,*args,**kwds):
-        __init__(self,*args,**kwds)
-        for name in self.__class__.__dict__:
-            f = getattr(self,name)
-            if not hasattr(f,"_bound"): continue
-            for evt,args, kwargs in f._bound:
+    def wrapper(self, *args, **kwds):
+        __init__(self, *args, **kwds)
+        for name in vars(self.__class__):
+            f = getattr(self, name)
+            if not hasattr(f, "_bound"): continue
+            for evt, args, kwargs in f._bound:
                 self.Bind(evt, f, *args, **kwargs)
     return wrapper
 
 
 def Catches(exctype):
-    def catches(f):
+    """ Makes a function swallow a given exception type and return None
+    silently."""
+    def decorator(f):
         @wraps(f)
         def wrapper(*args,**kwds):
             try:
-                result = f(*args,**kwds)
+                result = f(*args, **kwds)
             except exctype:
                 result = None
             return result
         return wrapper
-    return catches
+    return decorator
 
 
-def Locked(f):
+def Locked(blocking=True):
+    """ Wraps the function in a lock to make sure no more than one thread is
+    executing inside it at any given time.
+
+    The blocking flag is passd on to the underlying lock, so it will
+    behave as documented in the threading module."""
     lock = Lock()
-    @wraps(f)
-    def wrapper(*args,**kwds):
-        result = None
-        with lock:
-            result = f(*args,**kwds)
-        return result
-    return wrapper
-
-
-def XLocked(f):
-    """A lock that rejects concurrent access, instead of delaying it."""
-    lock = Lock()
-    @wraps(f)
-    def wrapper(*args,**kwds):
-        result = None
-        if lock.locked(): return
-        with lock:
-            result = f(*args,**kwds)
-        return result
-    return wrapper
+    def decorator(f):
+        @wraps(f)
+        def wrapper(*args, **kwds):
+            if not lock.acquire(blocking):
+                return
+            result = f(*args, **kwds)
+            lock.release()
+            return result
+        return wrapper
+    return decorator
 
 
 def Threaded(f):
-    def threaded(*args,**kwds):
+    """ Splits off a different thread each time the wrapped function is called.
+    The thread's name is set to that of the function."""
+    @wraps(f)
+    def wrapper(*args,**kwds):
         Thread(target=Catches(ThreadInterrupt)(f),
-               args=args,kwargs=kwds,name=f.__name__).start()
-    return threaded
+               args=args, kwargs=kwds, name=f.__name__).start()
+    return wrapper
+
+
+def CallableFrom(name):
+    """ Only a thread having the given name will be able to call this function.
+    Used for defensive programming, to making sure thread boundaries aren't
+    being violated."""
+    def decorator(f):
+        @wraps(f)
+        def wrapper(*args, **kwds):
+            if threading.currentThread().getName() != name:
+                raise ThreadingError('Function %s may only be called from '
+                                     'thread %s'
+                                     %(f.__name__, name))
+            return f(*args, **kwds)
+        return wrapper
+    return decorator
+

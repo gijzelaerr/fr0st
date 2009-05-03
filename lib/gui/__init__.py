@@ -428,7 +428,7 @@ class MainWindow(wx.Frame):
               "Running time %.2f seconds\n" %(time.time()-start)      
 
     @Threaded
-    @XLocked
+    @Locked(blocking=False)
     @Catches(PyDeadObjectError)
     def Execute(self,string):
         print time.strftime("\n---------- %H:%M:%S ----------")
