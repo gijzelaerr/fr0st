@@ -1,4 +1,4 @@
-import wx, time, sys
+import wx, time, sys, traceback
 from threading import Thread
 
 from decorators import Catches, Threaded
@@ -8,13 +8,18 @@ from ..pyflam3 import Genome
 
 def render(string,size,quality,estimator=9,**kwds):
     """Passes render requests on to flam3."""
-    genome = Genome.from_string(string)[0]
+    try:
+        genome = Genome.from_string(string)[0]
+    except Exception:
+        raise ValueError("Error while parsing flame string.")
+        
     width,height = size
-    # HACK!
+
     try:
         genome.pixels_per_unit /= genome.width/float(width) # Adjusts scale
-    except:
-        pass
+    except ZeroDivisionError:
+        raise ZeroDivisionError("Size passed to render function is 0.")
+    
     genome.width = width
     genome.height = height
     genome.sample_density = quality
@@ -90,6 +95,7 @@ class Renderer():
                 except Exception:
                     # All exceptions are caught to make sure the render thread
                     # never crashes because of malformed flames.
+                    traceback.print_exc()
                     continue
                 finally:
                     self.bgflag = 0
