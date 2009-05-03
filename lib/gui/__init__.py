@@ -380,7 +380,8 @@ class MainWindow(wx.Frame):
         self.tb.EnableTool(ID.REDO,bool(flag))
         # TODO: same with the menu option
 
-        
+
+    @CallableFrom('MainThread')
     def SetFlame(self, flame, rezoom=True):
         """Changes the active flame and updates all relevant widgets.
         This function can only be called from the main thread, because wx is
@@ -392,9 +393,6 @@ class MainWindow(wx.Frame):
             index = min(self.ActiveXform.index, len(flame.xform)-1)
             self.ActiveXform = flame.xform[index]
             
-##        elif active._parent != flame:
-##            self.parent.ActiveXform = flame.xform[min(active.index,
-##                                                      len(flame.xform)-1)]
         self.image.RenderPreview(flame)
         self.large_preview()
         self.canvas.ShowFlame(flame,rezoom=rezoom)

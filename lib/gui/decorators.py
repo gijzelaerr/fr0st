@@ -1,5 +1,5 @@
 from __future__ import with_statement
-from threading import Thread, Lock
+from threading import Thread, Lock, currentThread
 from functools import wraps
 
 try:
@@ -7,6 +7,8 @@ try:
 except ImportError:
     raise ImportWarning("Couldn't import required exception.")
     class ThreadInterrupt(BaseException): pass
+
+class ThreadingError(Exception): pass
 
 
 def Bind(event, *args, **kwds):
@@ -83,9 +85,9 @@ def CallableFrom(name):
     def decorator(f):
         @wraps(f)
         def wrapper(*args, **kwds):
-            if threading.currentThread().getName() != name:
+            if currentThread().getName() != name:
                 raise ThreadingError('Function %s may only be called from '
-                                     'thread %s'
+                                     'thread "%s"'
                                      %(f.__name__, name))
             return f(*args, **kwds)
         return wrapper
