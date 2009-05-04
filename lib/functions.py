@@ -335,6 +335,47 @@ def vector3d(cps, n, i, **kwargs):
                ,clip(vector(bcps,n,i,**kwargs),0,255))
 #---end vector3d
 
+def spline(cps, times=40, **kwargs):
+    if type(times) == int:
+        times = [0, times*1, times*2, times*3]
+    elif type(times) == list:
+        if len(cps) <> 4 or len(cps)<>len(times):
+            string = "Must have 4 cps and times. Have %s:%s" % (len(cps), len(times))
+            raise ValueError(string)
+        tmp = sorted(times)
+        if times <> tmp:
+            raise ValueError("Times must be in order")
+        if times[1]-times[0]==0 or times[2]-times[1]==0 or times[3]-times[2]==0:
+            raise ValueError("Time between all 4 cps must be >0")
+    else:
+        raise ValueError("times must be int or list.")
+
+    t = kwargs.get('t', 0)
+    c = kwargs.get('c', 0)
+    b = kwargs.get('b', 0)
+
+    n = times[2] - times[1]
+
+    C = []
+    v = drange(0,1,times[2]-times[1],**kwargs)
+    for i in xrange(n):
+        tmp = []
+        for j in xrange(4):
+            tmp.append(v[i]**j)
+        C.append(tmp)
+    C = numpy.array(C)
+    h = numpy.array([[0,0,1,0],[2,-2,1,1],[-3,3,-2,-1],[1,0,0,0]])
+
+    ti = (1-t)*(1-c)*(1+b)*0.5*(cps[1]-cps[0])\
+       + (1-t)*(1+c)*(1-b)*0.5*(cps[2]-cps[1])
+
+    to = (1-t)*(1+c)*(1+b)*0.5*(cps[2]-cps[1])\
+       + (1-t)*(1-c)*(1-b)*0.5*(cps[3]-cps[2])
+
+    S = numpy.array([ti, cps[1], cps[2], to])
+    Cxh = numpy.dot(C,h)
+    return list(numpy.dot(Cxh,S))
+#---end spline
 
 def pix_swap(pal, i0, i1):
     tmp = pal[i0]
