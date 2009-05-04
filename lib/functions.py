@@ -334,3 +334,12 @@ def vector3d(cps, n, i, **kwargs):
                ,clip(vector(gcps,n,i,**kwargs),0,255)
                ,clip(vector(bcps,n,i,**kwargs),0,255))
 #---end vector3d
+
+
+def pix_swap():
+    pass
+
+
+def pix_diff(pix1, pix2):
+    return sum(map(lambda x,y: y-x, pix1, pix2))
+

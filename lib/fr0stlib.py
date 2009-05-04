@@ -9,6 +9,7 @@
 import re
 from functions import *
 from math import *
+import wx
     
 BLANKFLAME = """<flame name="Untitled" version="fr0st" size="512 384" center="0 0" scale="128" oversample="1" filter="0.2" quality="1" background="0 0 0" brightness="4" gamma="4" gamma_threshold="0.04" >
    <xform weight="0.5" color="0" linear="1" coefs="1 0 0 1 0 0" />
@@ -308,6 +309,7 @@ class Palette(list):
             
     def saturation(self, value):
 ##        for i in self:
+        value = value/100.0
         for i in xrange(256):
             h,l,s = rgb2hls(self[i])
             s += value
@@ -316,6 +318,7 @@ class Palette(list):
             
     def brightness(self, value):
 ##        for i in self:
+        value = value/100.0
         for i in xrange(256):
             h,l,s = rgb2hls(self[i])
             l += value
@@ -429,6 +432,81 @@ class Palette(list):
                 for i in xrange(b):
                     tmp.append(hls2rgb((h,l,s)))
         self[:] = tmp
+#---end
+
+    def from_image(self, filename):
+        img = wx.Image(filename)
+        tmp = []
+        for i in xrange(256):
+            x = random.randint(0, img.Width-1)
+            y = random.randint(0, img.Height-1)
+            idx = 3*(x + img.Width*y)
+            c = (map(ord,img.GetData()[idx:idx+3]))
+            tmp.append(tuple(c))
+
+        len_best = 255*3*265
+        num_tries = 50
+        try_size = 1000
+        best = tmp[:]
+        
+        for i in xrange(num_tries):
+            pal = tmp[:]
+            #scramble
+            for j in xrange(256):
+                rand = random.randint(0, 255)
+                holder = pal[rand]
+                pal[rand] = pal[j]
+                pal[j] = holder
+            #measure
+            pal_len = 0
+            for j in xrange(256):
+                pal_len += pix_diff(pal[j], pal[j-1])
+            #improve
+            for j in xrange(try_size):
+                i0 = 1 + random.randint(0, 253)
+                i1 = 1 + random.randint(0, 253)
+                if i0-i1==1:
+                    as_is = pix_diff(pal[i1-1], pal[i1]) +\
+                            pix_diff(pal[i0], pal[i0+1])
+                    swapd = pix_diff(pal[i1-1], pal[i0]) +\
+                            pix_diff(pal[i0], pal[i1+1])
+                elif i1-i0==1:
+                    as_is = pix_diff(pal[i0-1], pal[i0]) +\
+                            pix_diff(pal[i1], pal[i1+1])
+                    swapd = pix_diff(pal[i0-1], pal[i1]) +\
+                            pix_diff(pal[i1], pal[i0+1])
+                else:
+                    as_is = pix_diff(pal[i0], pal[i0+1]) +\
+                            pix_diff(pal[i0], pal[i0-1]) +\
+                            pix_diff(pal[i1], pal[i1+1]) +\
+                            pix_diff(pal[i1], pal[i1-1])
+                    swapd = pix_diff(pal[i1], pal[i0+1]) +\
+                            pix_diff(pal[i1], pal[i0-1]) +\
+                            pix_diff(pal[i0], pal[i1+1]) +\
+                            pix_diff(pal[i0], pal[i1-1])
+                if swapd < as_is:
+                    holder = pal[i1]
+                    pal[i1] = pal[i0]
+                    pal[i0] = holder
+                    pal_len += swapd - as_is
+            if pal_len < len_best:
+                best = pal[:]
+                len_best = pal_len
+        #---end
+        for i in xrange(256):
+            i0 = 1 + random.randint(0, 252)
+            i1 = i0 + 1
+            
+            as_is = pix_diff(best[i0-1], best[i0]) +\
+                    pix_diff(best[i1], best[i1+1])
+            swapd = pix_diff(best[i0-1], best[i1]) +\
+                    pix_diff(best[i0], best[i1+1])
+            if swapd < as_is:
+                holder = pal[i1]
+                best[i1] = best[i0]
+                best[i0] = holder
+                len_best += swapd - as_is
+        self[:] = best
 
 
 class Xform(object):
