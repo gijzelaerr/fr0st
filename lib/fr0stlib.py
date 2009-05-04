@@ -436,31 +436,26 @@ class Palette(list):
 
     def from_image(self, filename):
         img = wx.Image(filename)
-        tmp = []
+        orig = []
         for i in xrange(256):
             x = random.randint(0, img.Width-1)
             y = random.randint(0, img.Height-1)
             idx = 3*(x + img.Width*y)
-            c = (map(ord,img.GetData()[idx:idx+3]))
-            tmp.append(tuple(c))
+            c = map(ord,img.GetData()[idx:idx+3])
+            orig.append(tuple(c))
 
-        len_best = 255*3*265
         num_tries = 50
-        try_size = 1000
-        best = tmp[:]
+        try_size = 10000
+        best = orig[:]
+        len_best = sum(map(pix_diff, best[:-1], best[1:]))
         
         for i in xrange(num_tries):
-            pal = tmp[:]
+            pal = orig[:]
             #scramble
             for j in xrange(256):
-                rand = random.randint(0, 255)
-                holder = pal[rand]
-                pal[rand] = pal[j]
-                pal[j] = holder
+                pix_swap(pal, i, random.randint(0, 255))
             #measure
-            pal_len = 0
-            for j in xrange(256):
-                pal_len += pix_diff(pal[j], pal[j-1])
+            pal_len = sum(map(pix_diff, pal[:-1], pal[1:]))
             #improve
             for j in xrange(try_size):
                 i0 = 1 + random.randint(0, 253)
@@ -485,10 +480,8 @@ class Palette(list):
                             pix_diff(pal[i0], pal[i1+1]) +\
                             pix_diff(pal[i0], pal[i1-1])
                 if swapd < as_is:
-                    holder = pal[i1]
-                    pal[i1] = pal[i0]
-                    pal[i0] = holder
-                    pal_len += swapd - as_is
+                    pix_swap(pal, i0, i1)
+                    pal_len += (swapd - as_is)
             if pal_len < len_best:
                 best = pal[:]
                 len_best = pal_len

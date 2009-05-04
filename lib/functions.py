@@ -336,10 +336,11 @@ def vector3d(cps, n, i, **kwargs):
 #---end vector3d
 
 
-def pix_swap():
-    pass
-
+def pix_swap(pal, i0, i1):
+    tmp = pal[i0]
+    pal[i0] = pal[i1]
+    pal[i1] = tmp
 
 def pix_diff(pix1, pix2):
-    return sum(map(lambda x,y: y-x, pix1, pix2))
+    return sum(map(lambda x,y: (y-x)**2, pix1, pix2))
 
