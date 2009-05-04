@@ -434,7 +434,7 @@ class Palette(list):
         self[:] = tmp
 #---end
 
-    def from_image(self, filename):
+    def from_image(self, filename, num_tries=50, try_size=1000):
         img = wx.Image(filename)
         orig = []
         for i in xrange(256):
@@ -444,8 +444,6 @@ class Palette(list):
             c = map(ord,img.GetData()[idx:idx+3])
             orig.append(tuple(c))
 
-        num_tries = 50
-        try_size = 10000
         best = orig[:]
         len_best = sum(map(pix_diff, best[:-1], best[1:]))
         
