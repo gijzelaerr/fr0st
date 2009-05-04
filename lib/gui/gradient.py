@@ -36,8 +36,8 @@ class GradientPanel(wx.Panel):
         choicelist = [('rotate', (-128, 128)),
                       ('hue',(-180,180)),
                       ('saturation', (-100,100)),
-                      ('brightness', (-100,100)),
-                      ('blur', (0, 127))]
+                      ('brightness', (-100,100))]
+                      ##('blur', (0, 127))]
         self.choices = dict(choicelist)
         self.choice = 'rotate'
         self.func = lambda x: getattr(self.parent.flame.gradient,

@@ -313,7 +313,7 @@ class Palette(list):
         for i in xrange(256):
             h,l,s = rgb2hls(self[i])
             s += value
-            s = clip(s,0,1)
+            s = clip(s,0,0.999999)
             self[i] = hls2rgb((h,l,s))
             
     def brightness(self, value):
@@ -322,13 +322,13 @@ class Palette(list):
         for i in xrange(256):
             h,l,s = rgb2hls(self[i])
             l += value
-            l = clip(l,0,1)
+            l = clip(l,0,0.999999)
             self[i] = hls2rgb((h,l,s))
             
     def inverse(self):
         for i in self:
             i = (255 - i[0], 255 - i[1], 255 - i[2])
-    
+    """    
     def blur(self, value, space='rgb'):
         value = clip(value,0,127)
         tmp = []
@@ -351,7 +351,7 @@ class Palette(list):
             color = (r,g,b)
             tmp.append(color)
         self[:] = tmp
-
+    """
     def reverse(self):
         self.reverse()
         
