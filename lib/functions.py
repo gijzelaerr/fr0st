@@ -335,7 +335,7 @@ def vector3d(cps, n, i, **kwargs):
                ,clip(vector(bcps,n,i,**kwargs),0,255))
 #---end vector3d
 
-def spline(cps, times=40, **kwargs):
+def spline(cps, n=40, **kwargs):
     if type(times) == int:
         times = [0, times*1, times*2, times*3]
     elif type(times) == list:
@@ -350,32 +350,38 @@ def spline(cps, times=40, **kwargs):
     else:
         raise ValueError("times must be int or list.")
 
-    t = kwargs.get('t', 0)
-    c = kwargs.get('c', 0)
-    b = kwargs.get('b', 0)
-
-    n = times[2] - times[1]
-
-    C = []
-    v = drange(0,1,times[2]-times[1],**kwargs)
+    t = float(kwargs.get('t', 0))
+    c = float(kwargs.get('c', 0))
+    b = float(kwargs.get('b', 0))
+#    ta, tb, ca, cb, ba, bb = t, t, c, c, b, b
+#    n = times[2] - times[1]
+    v = []
     for i in xrange(n):
-        tmp = []
-        for j in xrange(4):
-            tmp.append(v[i]**j)
-        C.append(tmp)
-    C = numpy.array(C)
-    h = numpy.array([[0,0,1,0],[2,-2,1,1],[-3,3,-2,-1],[1,0,0,0]])
-
-    ti = (1-t)*(1-c)*(1+b)*0.5*(cps[1]-cps[0])\
-       + (1-t)*(1+c)*(1-b)*0.5*(cps[2]-cps[1])
-
-    to = (1-t)*(1+c)*(1+b)*0.5*(cps[2]-cps[1])\
-       + (1-t)*(1-c)*(1-b)*0.5*(cps[3]-cps[2])
-
-    S = numpy.array([ti, cps[1], cps[2], to])
-    Cxh = numpy.dot(C,h)
-    return list(numpy.dot(Cxh,S))
+        v.append(drange(0,1,n,i,**kwargs))
+    tmp = []
+    
+    fa = (1-t)*(1+c)*(1+b)
+    fb = (1-t)*(1-c)*(1-b)
+    fc = (1-t)*(1-c)*(1+b)
+    fd = (1-t)*(1+c)*(1-b)
+    M = numpy.array([[-fa,4+fa-fb-fc,-4+fb+fc-fd,fd]
+                    ,[2*fa,-6-2*fa+2*fb+fc,6-2*fb-fc+fd,-fd]
+                    ,[-fa,fa-fb,fb,0]
+                    ,[0,2,0,0]])
+    M = M/2.0
+    C = numpy.array(cps)
+    MxC = numpy.dot(M,C)
+    for t in v:
+        S = [t**3,t**2,t,1]
+        tmp.append(numpy.dot(MxC,S))
+    return tmp
 #---end spline
+
+def spline_check(cps, t=0, c=0, b=0):
+    tmp = []
+    for i in xrange(len(cps)-3):
+        tmp.extend(spline(cps[i:i+4], t=t, c=c, b=b))
+    return tmp
 
 def pix_swap(pal, i0, i1):
     tmp = pal[i0]
