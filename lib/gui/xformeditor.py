@@ -6,6 +6,7 @@ from collections import defaultdict
 from decorators import Bind,BindEvents
 from lib.fr0stlib import polar, rect
 from lib import pyflam3
+import config
 
 
 def LoadIcon(name):
@@ -290,7 +291,7 @@ class VarPanel(wx.Panel):
 
         self.root = self.tree.AddRoot("The Root Item")
 
-        for i in pyflam3.variation_list:
+        for i in config.ACTIVE_VARS:
             child = self.tree.AppendItem(self.root, i)
 
             for j in pyflam3.variables[i]:
