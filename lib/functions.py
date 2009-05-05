@@ -242,27 +242,6 @@ def prange(x, y, n, i, **kwargs):
         else:    return drange(y,x,n2,i-n1,curve='lin',a=a)
 #---end prange
 
-def spline(cps, n, **kwargs):
-    t      = kwargs.get('t', 0.5)
-    spline = kwargs.get('spline', 'Cardinal')
-    
-    v = []
-    for i in xrange(n): v.append(drange(0,1,n,i,**kwargs))
-    cps = numpy.array(cps)
-    M = numpy.array([[0,1,0,0]
-                   ,[-t,0,t,0]
-                   ,[2*t,t-3,3-2*t,-t]
-                   ,[-t,2-t,t-2,t]])
-    W = []
-    for i in xrange(len(v)):
-        tmp = []
-        for j in xrange(4): tmp.append(v[i]**j)
-        W.append(tmp)
-    W = numpy.array(W)
-    vp = numpy.dot(M,cps)
-    return list(numpy.dot(W,vp))
-#---end spline
-
 def vector(cps, n, i, **kwargs):
     #Set defaults
     t = kwargs.get('t', 0.5)
@@ -342,26 +321,69 @@ class cp():
         self.t=t
         self.c=c
         self.b=b
-        
-    def _get_spline(self):
-        return self.t, self.c, self.b
-    
-    def _set_spline(self, t, c, b):
-        self.t, self,c, self.b = t, c, b
-    
-    spline = property(_get_spline, _set_spline)
 #---end
 
-def spline(cps, **kwargs):
-    ta, ca, ba = cps[1].spline
-    tb, cb, bb = cps[2].spline
+def get_padded_cp(target, neighbor):
+    pad = cp(0, 0)
+    if neighbor.time > target.time:
+        pad.time = target.time-1
+        mod = 1
+    else:
+        pad.time = target.time+1
+        mod = -1
+    if type(target.val)==tuple:
+        count = len(target.val)
+    else:
+        count = 1
+    if count > 1:
+        tmp = []
+        for i in xrange(count):
+            slope = ((neighbor.val[i] - target.val[i]) /
+                     float(neighbor.time - target.time))
+            tmp.append(target.val[i]-(slope*mod))
+        pad.val = tuple(tmp)
+    else:
+        slope = ((neighbor.val - target.val) /
+                 float(neighbor.time - target.time))
+        pad.val = target.val-(slope*mod)
+    return pad
 
-    n = cps[2].time - cps[1].time
+
+def get_spline(cps, **kwargs):
+    if type(cps[0].val)==tuple:
+        count = len(cps[0].val)
+    else:
+        count = 1
+    if count > 1:
+        tmp = []
+        for i in xrange(count):
+            tmp.append(spline([cp.val[i] for cp in cps], [cp.time for cp in cps]
+                              ,(cps[1].t, cps[1].c, cps[1].b)
+                              ,(cps[2].t, cps[2].c, cps[2].b)
+                              ,**kwargs))
+        out = []
+        for i in xrange(len(tmp[0])):
+            tmp2 = []
+            for j in xrange(count):
+                tmp2.append(tmp[j][i])
+            out.append(tuple(tmp2))
+        return out
+    else:
+        return spline([cp.val for cp in cps], [cp.time for cp in cps]
+                     ,(cps[1].t, cps[1].c, cps[1].b)
+                     ,(cps[2].t, cps[2].c, cps[2].b)
+                     ,**kwargs)
+
+
+def spline(cps, times, splinea=(0,0,0), splineb=(0,0,0), curve='lin', a=1):
+    if times[0]<0:
+        for t in times: t -= times[0]
+    ta, ca, ba = splinea
+    tb, cb, bb = splineb
+    n = times[2] - times[1]
     v = []
     for i in xrange(n):
-        v.append(drange(0,1,n,i,**kwargs))
-    tmp = []
-    
+        v.append(drange(0,1,n,i,curve=curve, a=a))
     fa = (1-ta)*(1+ca)*(1+ba)
     fb = (1-ta)*(1-ca)*(1-ba)
     fc = (1-tb)*(1-cb)*(1+bb)
@@ -371,10 +393,10 @@ def spline(cps, **kwargs):
                     ,[-fa,fa-fb,fb,0]
                     ,[0,2,0,0]])
     M = M/2.0
-    vals = [cps[0].val * (2*cps[0].time)/(cps[0].time+cps[1].time)
-           ,cps[1].val
-           ,cps[2].val
-           ,cps[3].val * (2*cps[2].time)/(cps[2].time+cps[3].time)]
+    vals = [cps[0] * (2*times[0])/(times[0]+times[1])
+           ,cps[1]
+           ,cps[2]
+           ,cps[3] * (2*times[2])/(times[2]+times[3])]
     C = numpy.array(vals)
     MxC = numpy.dot(M,C)
     S = []
