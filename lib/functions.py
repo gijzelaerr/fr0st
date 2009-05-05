@@ -335,52 +335,58 @@ def vector3d(cps, n, i, **kwargs):
                ,clip(vector(bcps,n,i,**kwargs),0,255))
 #---end vector3d
 
-def spline(cps, n=40, **kwargs):
-    if type(times) == int:
-        times = [0, times*1, times*2, times*3]
-    elif type(times) == list:
-        if len(cps) <> 4 or len(cps)<>len(times):
-            string = "Must have 4 cps and times. Have %s:%s" % (len(cps), len(times))
-            raise ValueError(string)
-        tmp = sorted(times)
-        if times <> tmp:
-            raise ValueError("Times must be in order")
-        if times[1]-times[0]==0 or times[2]-times[1]==0 or times[3]-times[2]==0:
-            raise ValueError("Time between all 4 cps must be >0")
-    else:
-        raise ValueError("times must be int or list.")
+class cp():
+    def __init__(self, val, time, t=0, c=0, b=0):
+        self.val = val
+        self.time = time
+        self.t=t
+        self.c=c
+        self.b=b
+        
+    def _get_spline(self):
+        return self.t, self.c, self.b
+    
+    def _set_spline(self, t, c, b):
+        self.t, self,c, self.b = t, c, b
+    
+    spline = property(_get_spline, _set_spline)
+#---end
 
-    t = float(kwargs.get('t', 0))
-    c = float(kwargs.get('c', 0))
-    b = float(kwargs.get('b', 0))
-#    ta, tb, ca, cb, ba, bb = t, t, c, c, b, b
-#    n = times[2] - times[1]
+def spline(cps, **kwargs):
+    ta, ca, ba = cps[1].spline
+    tb, cb, bb = cps[2].spline
+
+    n = cps[2].time - cps[1].time
     v = []
     for i in xrange(n):
         v.append(drange(0,1,n,i,**kwargs))
     tmp = []
     
-    fa = (1-t)*(1+c)*(1+b)
-    fb = (1-t)*(1-c)*(1-b)
-    fc = (1-t)*(1-c)*(1+b)
-    fd = (1-t)*(1+c)*(1-b)
+    fa = (1-ta)*(1+ca)*(1+ba)
+    fb = (1-ta)*(1-ca)*(1-ba)
+    fc = (1-tb)*(1-cb)*(1+bb)
+    fd = (1-tb)*(1+cb)*(1-bb)
     M = numpy.array([[-fa,4+fa-fb-fc,-4+fb+fc-fd,fd]
                     ,[2*fa,-6-2*fa+2*fb+fc,6-2*fb-fc+fd,-fd]
                     ,[-fa,fa-fb,fb,0]
                     ,[0,2,0,0]])
     M = M/2.0
-    C = numpy.array(cps)
+    vals = [cps[0].val * (2*cps[0].time)/(cps[0].time+cps[1].time)
+           ,cps[1].val
+           ,cps[2].val
+           ,cps[3].val * (2*cps[2].time)/(cps[2].time+cps[3].time)]
+    C = numpy.array(vals)
     MxC = numpy.dot(M,C)
+    S = []
     for t in v:
-        S = [t**3,t**2,t,1]
-        tmp.append(numpy.dot(MxC,S))
-    return tmp
+        S.append(numpy.array([t**3,t**2,t,1]))
+    return numpy.dot(numpy.array(S), MxC)
 #---end spline
 
-def spline_check(cps, t=0, c=0, b=0):
+def spline_check(cps):
     tmp = []
     for i in xrange(len(cps)-3):
-        tmp.extend(spline(cps[i:i+4], t=t, c=c, b=b))
+        tmp.extend(spline(cps[i:i+4]))
     return tmp
 
 def pix_swap(pal, i0, i1):
