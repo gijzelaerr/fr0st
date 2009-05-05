@@ -396,7 +396,7 @@ class MainWindow(wx.Frame):
         self.image.RenderPreview(flame)
         self.large_preview()
         self.canvas.ShowFlame(flame,rezoom=rezoom)
-        self.grad.image.Update()
+        self.grad.OnUpdate()
         self.XformTabs.UpdateView()
         self.grad.ResetSlider()
 

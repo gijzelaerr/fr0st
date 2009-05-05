@@ -29,9 +29,9 @@ class GradientPanel(wx.Panel):
     def __init__(self,parent):
         wx.Panel.__init__(self,parent,-1)
         self.parent = parent.parent
-##        self._old = 0
         self._new = None
         self._changed = False
+        self._startval = None
         
         choicelist = [('rotate', (-128, 128)),
                       ('hue',(-180,180)),
@@ -54,8 +54,8 @@ class GradientPanel(wx.Panel):
                                 |wx.SL_AUTOTICKS
                                 |wx.SL_LABELS)
         self.slider.Bind(wx.EVT_SLIDER, self.OnSlider)
-        self.slider.Bind(wx.EVT_LEFT_DOWN, self.OnLeftDown)
-        self.slider.Bind(wx.EVT_LEFT_UP, self.OnLeftUp)
+        self.slider.Bind(wx.EVT_LEFT_DOWN, self.OnSliderDown)
+        self.slider.Bind(wx.EVT_LEFT_UP, self.OnSliderUp)
             
         sizer1 = wx.BoxSizer(wx.VERTICAL)
         sizer1.Add(self.image,0, wx.EXPAND)
@@ -65,19 +65,15 @@ class GradientPanel(wx.Panel):
         self.SetSizer(sizer1)
         self.Layout()
 
-        self._startval = None
-
 
     @Bind(EVT_THREAD_MESSAGE)
-    def OnUpdate(self, e):
+    def OnUpdate(self, e=None):
         self.image.Update()
 
 
     @Bind(wx.EVT_IDLE)
     def OnIdle(self, e):
         if self._new is not None:
-##            val = (self._new - self._old)
-##            self._old, self._new = self._new, None
 
             self.parent.flame.gradient[:] = self._grad_copy
             
@@ -87,7 +83,10 @@ class GradientPanel(wx.Panel):
 
             self.image.Update()
             self.parent.image.RenderPreview()
-        
+
+            # HACK: Updating the color tab without calling SetFlame.
+            self.parent.XformTabs.Color.UpdateView()
+            
 
     def OnChoice(self, e):
         self.choice = e.GetString()
@@ -99,13 +98,13 @@ class GradientPanel(wx.Panel):
         self.slider.SetRange(*self.choices[self.choice])
 
 
-    def OnLeftDown(self, e):
+    def OnSliderDown(self, e):
         self._grad_copy = self.parent.flame.gradient[:]
         self._startval = self.slider.GetValue()
         e.Skip()
         
 
-    def OnLeftUp(self, e):
+    def OnSliderUp(self, e):
         if self._changed:
             self.parent.TreePanel.TempSave()
             self._changed = False
@@ -156,7 +155,7 @@ class Gradient(wx.Panel):
         parent = self.GetParent()
         self._oldchoice = parent.choice
         parent.choice = 'rotate'
-        parent.OnLeftDown(e)
+        parent.OnSliderDown(e)
         
 
     @Bind(wx.EVT_LEFT_UP)
@@ -168,7 +167,7 @@ class Gradient(wx.Panel):
         # this is handled by e.Skip(), which passes the event on to
         # the slider handler. This hack simulates that behaviour.
         val = parent.slider.GetValue()
-        parent.OnLeftUp(e)
+        parent.OnSliderUp(e)
         parent.slider.SetValue(val)
 
 
