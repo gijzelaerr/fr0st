@@ -36,8 +36,8 @@ class XformTabs(wx.Notebook):
         self.Vars = VarPanel(self)
         self.AddPage(self.Vars, "Vars")
 
-        win = wx.Panel(self, -1)
-        self.AddPage(win, "Color")
+        self.Color = ColorPanel(self)
+        self.AddPage(self.Color, "Color")
 
         win = wx.Panel(self, -1)
         self.AddPage(win, "Xaos")
@@ -45,10 +45,13 @@ class XformTabs(wx.Notebook):
         self.Selector = wx.Choice(self.parent, -1)
         self.Selector.Bind(wx.EVT_CHOICE, self.OnChoice)
 
+        self.SetMinSize((262,100))
+
 
     def UpdateView(self):
-        for i in self.Xform, self.Vars:
+        for i in self.Xform, self.Vars, self.Color:
             i.UpdateView()
+            
         choices = map(repr, self.parent.flame.xform)
         final = self.parent.flame.final
         if final:
@@ -400,6 +403,8 @@ class VarPanel(wx.Panel):
             
 
 class NumberTextCtrl(wx.TextCtrl):
+    low = None
+    high = None
 
     @BindEvents
     def __init__(self,parent):
@@ -411,11 +416,16 @@ class NumberTextCtrl(wx.TextCtrl):
 
     def GetFloat(self):
         return float(self.GetValue() or "0")
-##
+
     def SetFloat(self,v):
         v = float(v) # Make sure pure ints don't make trouble
         self.SetValue(str(v))
         self._value = v
+
+
+    def SetAllowedRange(self, low, high):
+        self.low = low
+        self.high = high
 
 
     @Bind(wx.EVT_CHAR)
@@ -442,8 +452,122 @@ class NumberTextCtrl(wx.TextCtrl):
         # always compare equal (!)
         if str(self._value) != self.GetValue():
             try:
-                self._value = self.GetFloat()
+                v = self.GetFloat() # Can raise ValueError
+                if self.low is not None and v < self.low:
+                    raise ValueError
+                if self.high is not None and v > self.high:
+                    raise ValueError
+                self._value = v
                 self.parent.UpdateXform()
             except ValueError:
                 self.SetFloat(self._value)
+        
 
+#------------------------------------------------------------------------------
+
+
+class ColorPanel(wx.Panel):
+    _new = None
+
+    @BindEvents
+    def __init__(self, parent):
+        wx.Panel.__init__(self, parent, -1)
+        self.parent = parent.parent
+
+        self.bmp = wx.EmptyBitmap(128, 28)
+
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add((198,50))
+        sizer.AddMany((self.MakeSlider(*i), 0, wx.EXPAND) for i in
+                      (("Color",), ("Symmetry", 0, -100), ("Opacity", 100)))
+
+        self.SetSizer(sizer)
+
+
+    def MakeSlider(self, name, init=0, low=0, high=100):
+        """Programatically builds stuff."""
+        slider = wx.Slider(self, -1, init, low, high,
+                           style=wx.SL_HORIZONTAL
+                           |wx.SL_AUTOTICKS
+                           |wx.SL_LABELS)
+        tc = NumberTextCtrl(self)
+        tc.SetAllowedRange(low/100., high/100.)
+        setattr(self, "%sslider" %name, slider)
+        setattr(self, "%stc" %name, tc)
+
+        slider.Bind(wx.EVT_SLIDER, self.OnSlider)
+##        slider.Bind(wx.EVT_LEFT_DOWN, self.OnSliderDown)
+        slider.Bind(wx.EVT_LEFT_UP, self.OnSliderUp)
+
+        siz = wx.StaticBoxSizer(wx.StaticBox(self, -1, name), wx.HORIZONTAL)
+        siz.Add(tc)
+        siz.Add(slider, wx.EXPAND)
+
+        return siz
+        
+
+    def UpdateView(self):
+        flame = self.parent.flame
+        xform = self.parent.ActiveXform
+
+        for name in "Color", "Symmetry", "Opacity":
+            val = getattr(xform, name.lower())
+            getattr(self, "%sslider" %name).SetValue(val*100)
+            getattr(self, "%stc" %name).SetFloat(val)
+        
+        color = int(xform.color * 256)
+
+        if color:
+            grad = chain(*flame.gradient[:color])
+            buff = "%c" * 3 * color % tuple(grad)
+            img = wx.ImageFromBuffer(color, 1, buff)
+        else:
+            img = wx.ImageFromBuffer(1, 1, "%c%c%c" %flame.gradient[0])
+            
+        img.Rescale(192, 28) # Could be 128, 192 or 256
+        self.bmp = wx.BitmapFromImage(img)
+        self.Refresh()
+
+
+    def UpdateXform(self):
+        """This method is called by the tcs."""
+        for i in "Color", "Symmetry", "Opacity":
+            val = getattr(self, "%stc" %i).GetFloat()
+            setattr(self.parent.ActiveXform, i.lower(), val)        
+        self.UpdateView()
+        self.parent.image.RenderPreview() 
+
+
+    @Bind(wx.EVT_PAINT)
+    def OnPaint(self, evt):
+        dc = wx.PaintDC(self)
+        dc.DrawBitmap(self.bmp, 2, 2, True)
+
+
+    @Bind(wx.EVT_IDLE)
+    def OnIdle(self, e):
+        if self._new is not None:
+            self.UpdateXform()
+            self._new = None
+            self._changed = True       
+
+
+    def OnSlider(self, e):
+        for i in "Color", "Symmetry", "Opacity":
+            val = float(getattr(self, "%sslider" %i).GetValue())/100
+            getattr(self, "%stc" %i).SetFloat(str(val))
+        self._new = True
+        e.Skip()
+
+     
+##    def OnSliderDown(self, e):
+##        e.Skip()
+
+
+    def OnSliderUp(self, e):
+        if self._changed:
+            self.parent.TreePanel.TempSave()
+            self._changed = False
+        e.Skip()
+        
+  

@@ -522,7 +522,7 @@ class Xform(object):
 
     def __setattr__(self,name,v):
         """Deletes all attributes that are set to the default value"""
-        if v == 0 and name != "color":
+        if v == 0 and name not in ["color", "opacity"]:
             try:
                 delattr(self,name)
             except AttributeError:
@@ -550,7 +550,8 @@ class Xform(object):
             if not self.chaos:
                 self.chaos = Chaos(self,[1])
             if not self.post:
-                self._post = PostXform(self,("coefs",[1,0,0,1,0,0]))    
+                self._post = PostXform(self,("coefs",[1,0,0,1,0,0]))
+            self.opacity = 1.0
 
     def _get_chaos(self):
         return self._chaos
