@@ -1,6 +1,6 @@
 <flames name="Fr0st Batch">
 <flame name="linear" rotate="0" center="0 0" brightness="4" oversample="1" version="Apophysis 2.08 beta" zoom="0" filter="0.2" scale="160.0" background="0 0 0" quality="5" gamma="4" size="640 480" >
-   <xform linear="1.0" weight="0.5" color="0.117" coefs="0.55 -0.0 -0.0 0.55 -0.89479 -0.656737" />
+   <xform linear="1.0" weight="0.5" color="0.117" coefs="1.03761563371 -0.278028271106 -0.790307492931 -0.504671021973 0.104198559126 -0.39715729566" />
    <xform linear="1.0" weight="0.5" color="0.117" coefs="0.15 -0.0 -0.0 0.15 -0.31 -0.0" />
    <xform weight="1.0" symmetry="1.0" color="0.0" linear="1.0" coefs="1.0 -0.0 -0.0 -1.0 0.0 -0.0" />
    <palette count="256" format="RGB">
@@ -75,8 +75,7 @@
       C6A593C8A496CBA398CEA19BD1A09ED49EA1D79DA3D99CA6
       DC9AA9DF99ACE298AFE596B1E795B4EA94B7ED92BAF091BC
    </palette>
-</flame>
-<flame name="heart" rotate="0" center="-0.711014679977 0" brightness="4" oversample="1" version="Apophysis 2.08 beta 2" zoom="0" filter="0.2" scale="120.0" background="0 0 0" quality="5" gamma="4" size="600 450" >
+</flame><flame name="heart" rotate="0" center="-0.711014679977 0" brightness="4" oversample="1" version="Apophysis 2.08 beta 2" zoom="0" filter="0.2" scale="120.0" background="0 0 0" quality="5" gamma="4" size="600 450" >
    <xform heart="1.0" weight="0.333333333333" color="0.0" coefs="-0.622778 1.184189 -0.363673 0.075114 -0.612945 1.17149" />
    <xform linear="1.0" weight="0.5" color="0.117" coefs="0.962691 -0.270605 0.270605 0.962691 0.0 -0.0" />
    <palette count="256" format="RGB">
@@ -113,5 +112,4 @@
       576C845579934B7393426E93426C8F436A8B325A742D4D63
       2940522C3D512F3B512D3D582B405F284571314E723A5874
    </palette>
-</flame>
-</flames>
+</flame></flames>
