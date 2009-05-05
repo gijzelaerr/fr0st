@@ -1,4 +1,4 @@
-import wx
+import wx, os
 from wx import gizmos
 from itertools import chain
 from collections import defaultdict
@@ -6,6 +6,13 @@ from collections import defaultdict
 from decorators import Bind,BindEvents
 from lib.fr0stlib import polar, rect
 from lib import pyflam3
+
+
+def LoadIcon(name):
+    img = wx.Image(os.path.join('lib','gui','icons','xformtab',"%s.png" %name),
+                                type=wx.BITMAP_TYPE_PNG)
+    img.Rescale(16, 16)
+    return wx.BitmapFromImage(img)
 
 
 class XformTabs(wx.Notebook):
@@ -64,80 +71,165 @@ class XformTabs(wx.Notebook):
 
 
 class XformPanel(wx.Panel):
+    _rotate = 15
+    _translate = 0.1
+    _scale = 1.25
+
+    choices = {"rotate": map(str, (5, 15, 30, 45, 60, 90, 120, 180)),
+               "translate": map(str,(1.0, 0.5, 0.25, 0.1, 0.05, 0.025, 0.001)),
+               "scale": map(str, (1.1, 1.25, 1.5, 1.75, 2.0))}
 
     @BindEvents
     def __init__(self, parent):
         wx.Panel.__init__(self, parent, -1)
 
         # The view tells us what attributes need to be displayed
-        self.view = [False, "triangle"]
+        self._view = [False, "triangle"]
         self.parent = parent.parent
 
         # Add the number fields
-        map(lambda x: setattr(self,x,NumberTextCtrl(self)),"abcdef")
-        map(lambda x: setattr(self,x,wx.Button(self,-1,x,style=wx.BU_EXACTFIT)),
-            "xyo")
+        map(lambda x: setattr(self,x,NumberTextCtrl(self)), "adbecf")
+        btn = (wx.Button(self,-1,i,name=i,style=wx.BU_EXACTFIT) for i in "xyo")
 
         fgs = wx.FlexGridSizer(3,3,1,1)
-        fgs.AddMany(map(self.__getattribute__,"xadybeocf"))
+        itr = (getattr(self, i) for i in "adbecf")
+        fgs.AddMany(chain(*zip(btn, itr, itr)))
 
-        self.reset = wx.Button(self,-1,"reset xform", style=wx.BU_EXACTFIT)
+
+        # Add the view buttons
         r1 = wx.RadioButton(self, -1, "triangle", style = wx.RB_GROUP )
         r2 = wx.RadioButton(self, -1, "xform" )
         r3 = wx.RadioButton(self, -1, "polar" )
         postflag = wx.CheckBox(self,-1,"post")
-
         vsizer = wx.BoxSizer(wx.VERTICAL)
         vsizer.AddMany((r1,r2,r3,postflag))
 
+        # Put the view buttons to the right of the number fields
         hsizer = wx.BoxSizer(wx.HORIZONTAL)
-        hsizer.AddMany((fgs,vsizer))
+        hsizer.AddMany((fgs, vsizer))
 
-##        fgs2 = wx.FlexGridSizer(5, 4, 1, 1)
-##        self.
+        # Add the reset xform button
+        reset = wx.Button(self, -1, "reset xform", name="Reset",
+                          style=wx.BU_EXACTFIT)
 
+        # Add the rotation, translation and scale buttons
+        self.rotate = wx.ComboBox(self, -1, "15", name="rotate", size=(80,28),
+                                  choices=self.choices["rotate"])
+       
+        self.translate = wx.ComboBox(self, -1, "0.1", name="translate", size=(80,28),
+                                  choices=self.choices["translate"])
+         
+        self.scale = wx.ComboBox(self, -1, "1.25", name="scale", size=(80,28),
+                                  choices=self.choices["scale"])
+
+        btn = [wx.BitmapButton(self, -1, LoadIcon(i), name=i.replace("-",""))
+               for i in ('90-Left', 'Rotate-Left', 'Rotate-Right', '90-Right',
+                         'Move-Up', 'Move-Down', 'Move-Left', 'Move-Right',
+                         'Shrink', 'Grow')]
+        
+        btn.insert(2, self.rotate)
+        btn.insert(7, self.translate)
+        btn.insert(10, (0,0))
+        btn.insert(12, self.scale)
+        
+        fgs2 = wx.FlexGridSizer(4, 5, 1, 1)
+        fgs2.AddMany(btn)        
+        
+        # Finally, put everything together
         sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.AddMany((hsizer,self.reset))
+        sizer.AddMany((hsizer, reset, fgs2))
         self.SetSizer(sizer)
         self.Layout()
+        
 
     @Bind(wx.EVT_RADIOBUTTON)
     def OnRadioSelected(self,e):
-        self.view[1] = e.GetEventObject().GetLabel()
+        self._view[1] = e.GetEventObject().GetLabel()
         self.UpdateView()
 
 
     @Bind(wx.EVT_CHECKBOX)
     def OnPostCheckbox(self,e):
-        self.view[0] = e.IsChecked()
+        self._view[0] = e.IsChecked()
         self.UpdateView()
+
+
+    @Bind(wx.EVT_TEXT)
+    def OnComboChar(self, e):
+        combobox = e.GetEventObject()
+        if combobox not in (self.rotate, self.translate, self.scale):
+            # BUG: It's some other object raising this event (WHY?)
+            return
+        val = "".join(char for char in e.GetString() if char in "0123456789.-")
+        combobox.SetValue(val)
+        
 
     @Bind(wx.EVT_BUTTON)
     def OnButton(self, e):
         xform, view = self.GetActive()
-        
-        button = e.GetEventObject()
-        if button == self.x:
-            xform.a, xform.d = 1,0
-        elif button == self.y:
-            xform.b, xform.e = 0,1
-        elif button == self.o:
-            xform.c, xform.f = 0,0
-        elif button == self.reset:
-            xform.coefs = 1,0,0,1,0,0
-
-        else:
-            return
+        name = e.GetEventObject().GetName()
+        for i in "rotate", "translate", "scale":
+            combobox = getattr(self, i)
+            try:
+                setattr(self, "_%s" %i, float(combobox.GetValue()))
+            except:
+                combobox.SetValue(str(getattr(self, "_%s" %i)))
+                
+        getattr(self, "Func%s" %name)(xform)
         self.parent.TreePanel.TempSave()
 
 
+    def Funcx(self, xform):
+        xform.a, xform.d = 1,0
+
+    def Funcy(self, xform):
+        xform.b, xform.e = 0,1
+
+    def Funco(self, xform):
+        xform.c, xform.f = 0,0
+
+    def FuncReset(self, xform):
+        xform.coefs = 1,0,0,1,0,0
+
+    def Func90Left(self, xform):
+        xform.rotate(90)
+
+    def FuncRotateLeft(self, xform):
+        xform.rotate(self._rotate)
+
+    def FuncRotateRight(self, xform):
+        xform.rotate(-self._rotate)
+
+    def Func90Right(self, xform):
+        xform.rotate(-90)
+
+    def FuncMoveUp(self, xform):
+        xform.move_position(0, self._translate)
+
+    def FuncMoveDown(self, xform):
+        xform.move_position(0, -self._translate)
+
+    def FuncMoveLeft(self, xform):
+        xform.move_position(-self._translate, 0)
+
+    def FuncMoveRight(self, xform):
+        xform.move_position(self._translate, 0)
+
+    def FuncShrink(self, xform):
+        xform.scale(1.0/self._scale)
+
+    def FuncGrow(self, xform):
+        xform.scale(self._scale)
+
+
     def GetActive(self):
-        post, view = self.view
+        post, view = self._view
         xform = self.parent.ActiveXform
         if post:
             xform = xform.post
         return xform, view
-        
+
+
     def UpdateView(self):
         xform, view = self.GetActive()
             
@@ -157,7 +249,7 @@ class XformPanel(wx.Panel):
         elif view == "xform":
             xform.coefs = self.coefs
         elif view == "polar":
-            xform.coefs = chain(*map(rect, *[iter(self.coefs)]*2))
+            xform.coefs = chain(*map(rect, [iter(self.coefs)]*2))
 
         self.parent.TreePanel.TempSave()
                                           
@@ -170,6 +262,7 @@ class XformPanel(wx.Panel):
 
     coefs = property(_get_coefs, _set_coefs)
 
+#------------------------------------------------------------------------------
 
 class VarPanel(wx.Panel):
 
