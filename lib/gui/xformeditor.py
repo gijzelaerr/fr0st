@@ -1,4 +1,4 @@
-import wx, os
+import wx, os, functools
 from wx import gizmos
 from itertools import chain
 from collections import defaultdict
@@ -116,16 +116,11 @@ class XformPanel(wx.Panel):
         reset = wx.Button(self, -1, "reset xform", name="Reset",
                           style=wx.BU_EXACTFIT)
 
-        # Add the rotation, translation and scale buttons
-        self.rotate = wx.ComboBox(self, -1, "15", name="rotate", size=(80,28),
-                                  choices=self.choices["rotate"])
-       
-        self.translate = wx.ComboBox(self, -1, "0.1", name="translate", size=(80,28),
-                                  choices=self.choices["translate"])
-         
-        self.scale = wx.ComboBox(self, -1, "1.25", name="scale", size=(80,28),
-                                  choices=self.choices["scale"])
-
+        # Add the Comboboxes and buttons
+        map(self.MakeComboBox, *zip(("rotate", 15),
+                                    ("translate", 0.1),
+                                    ("scale", 1.25)))
+        
         btn = [wx.BitmapButton(self, -1, LoadIcon(i), name=i.replace("-",""))
                for i in ('90-Left', 'Rotate-Left', 'Rotate-Right', '90-Right',
                          'Move-Up', 'Move-Down', 'Move-Left', 'Move-Right',
@@ -144,6 +139,13 @@ class XformPanel(wx.Panel):
         sizer.AddMany((hsizer, reset, fgs2))
         self.SetSizer(sizer)
         self.Layout()
+
+        
+    def MakeComboBox(self, name, default):
+        cb = wx.ComboBox(self, -1, str(default), name=name, size=(80,28),
+                         choices=self.choices[name])
+        setattr(self, name, cb)
+        cb.Bind(wx.EVT_TEXT, functools.partial(self.OnComboChar, cb=cb))
         
 
     @Bind(wx.EVT_RADIOBUTTON)
@@ -153,33 +155,28 @@ class XformPanel(wx.Panel):
 
 
     @Bind(wx.EVT_CHECKBOX)
-    def OnPostCheckbox(self,e):
+    def OnCheckbox(self,e):
+        """Toggles post transform selection."""
         self._view[0] = e.IsChecked()
         self.UpdateView()
 
 
-    @Bind(wx.EVT_TEXT)
-    def OnComboChar(self, e):
-        combobox = e.GetEventObject()
-        if combobox not in (self.rotate, self.translate, self.scale):
-            # BUG: It's some other object raising this event (WHY?)
-            return
+    def OnComboChar(self, e, cb):
         val = "".join(char for char in e.GetString() if char in "0123456789.-")
-        combobox.SetValue(val)
-        
+        cb.SetValue(val)
+
 
     @Bind(wx.EVT_BUTTON)
     def OnButton(self, e):
-        xform, view = self.GetActive()
-        name = e.GetEventObject().GetName()
         for i in "rotate", "translate", "scale":
-            combobox = getattr(self, i)
+            cb = getattr(self, i)
             try:
-                setattr(self, "_%s" %i, float(combobox.GetValue()))
+                setattr(self, "_%s" %i, float(cb.GetValue()))
             except:
-                combobox.SetValue(str(getattr(self, "_%s" %i)))
+                cb.SetValue(str(getattr(self, "_%s" %i)))
                 
-        getattr(self, "Func%s" %name)(xform)
+        xform, view = self.GetActive()            
+        getattr(self, "Func%s" %e.GetEventObject().GetName())(xform)
         self.parent.TreePanel.TempSave()
 
 
@@ -495,7 +492,7 @@ class ColorPanel(wx.Panel):
         setattr(self, "%sslider" %name, slider)
         setattr(self, "%stc" %name, tc)
 
-        slider.Bind(wx.EVT_SLIDER, self.OnSlider)
+        slider.Bind(wx.EVT_SLIDER, functools.partial(self.OnSlider, name=name))
 ##        slider.Bind(wx.EVT_LEFT_DOWN, self.OnSliderDown)
         slider.Bind(wx.EVT_LEFT_UP, self.OnSliderUp)
 
@@ -519,7 +516,7 @@ class ColorPanel(wx.Panel):
 
         if color:
             grad = chain(*flame.gradient[:color])
-            buff = "%c" * 3 * color % tuple(grad)
+            buff = "%c%c%c" * color % tuple(grad)
             img = wx.ImageFromBuffer(color, 1, buff)
         else:
             img = wx.ImageFromBuffer(1, 1, "%c%c%c" %flame.gradient[0])
@@ -552,11 +549,13 @@ class ColorPanel(wx.Panel):
             self._changed = True       
 
 
-    def OnSlider(self, e):
-        for i in "Color", "Symmetry", "Opacity":
-            val = float(getattr(self, "%sslider" %i).GetValue())/100
-            getattr(self, "%stc" %i).SetFloat(str(val))
-        self._new = True
+    def OnSlider(self, e, name):
+        val = e.GetInt()/100.
+        tc = getattr(self, "%stc" %name)
+        # Make sure _new is only set when there are actual changes.
+        if val != tc._value:
+            self._new = True
+            tc.SetFloat(str(val))
         e.Skip()
 
      
@@ -570,4 +569,3 @@ class ColorPanel(wx.Panel):
             self._changed = False
         e.Skip()
         
-  

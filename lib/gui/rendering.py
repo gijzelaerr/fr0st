@@ -110,9 +110,10 @@ class Renderer():
     def bgRenderLoop(self):
         while not self.exitflag:
             if self.bgqueue:
+                self.previewflag = 0
                 callback,metadata,args,kwds = self.bgqueue.pop(0)
                 output_buffer = render(*args,**kwds)
-                evt = ImageReadyEvent(callback,metadata,output_buffer)
+                evt = ThreadMessageEvent(callback,metadata,output_buffer)
                 wx.PostEvent(self.parent,evt)
             else:
                 time.sleep(.01)
@@ -121,7 +122,7 @@ class Renderer():
     def prog_wrapper(self, f, flag):
         def prog_func(*args):
             res = f(*args)
-            return max(getattr(self,flag), res)
+            return max(getattr(self, flag), res)
         return prog_func
 
     
