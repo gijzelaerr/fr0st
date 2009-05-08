@@ -415,9 +415,21 @@ class NumberTextCtrl(wx.TextCtrl):
         return float(self.GetValue() or "0")
 
     def SetFloat(self,v):
-        v = float(v) # Make sure pure ints don't make trouble
-        self.SetValue(str(v))
+        # Make sure pure ints don't make trouble
+        v = float(v)
+
         self._value = v
+        
+        # Avoid exponent notation
+        if abs(v) < 1E-04:
+            if abs(v) < 1E-06:
+                string = "0.0"
+            else:
+                string = ("%f" %v).rstrip("0")
+        else:
+            string = str(v)
+        
+        self.SetValue(string)
 
 
     def SetAllowedRange(self, low, high):
