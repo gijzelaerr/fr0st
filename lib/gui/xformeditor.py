@@ -1,6 +1,5 @@
-import wx, os, functools
+import wx, os, functools, itertools
 from wx import gizmos
-from itertools import chain
 from collections import defaultdict
 
 from decorators import Bind,BindEvents
@@ -97,7 +96,7 @@ class XformPanel(wx.Panel):
 
         fgs = wx.FlexGridSizer(3,3,1,1)
         itr = (getattr(self, i) for i in "adbecf")
-        fgs.AddMany(chain(*zip(btn, itr, itr)))
+        fgs.AddMany(itertools.chain(*zip(btn, itr, itr)))
 
 
         # Add the view buttons
@@ -235,11 +234,11 @@ class XformPanel(wx.Panel):
         xform, view = self.GetActive()
             
         if view == "triangle":
-            self.coefs = chain(*xform.points)
+            self.coefs = itertools.chain(*xform.points)
         elif view == "xform":
             self.coefs = xform.coefs
         elif view == "polar":
-            self.coefs = chain(*map(polar, zip(*[iter(xform.coefs)]*2)))
+            self.coefs = itertools.chain(*xform.polars)
 
 
     def UpdateXform(self,e=None):
@@ -250,8 +249,8 @@ class XformPanel(wx.Panel):
         elif view == "xform":
             xform.coefs = self.coefs
         elif view == "polar":
-            xform.coefs = chain(*map(rect, [iter(self.coefs)]*2))
-
+            xform.polars = zip(*[iter(self.coefs)]*2)
+            
         self.parent.TreePanel.TempSave()
                                           
 
@@ -527,7 +526,7 @@ class ColorPanel(wx.Panel):
         color = int(xform.color * 256)
 
         if color:
-            grad = chain(*flame.gradient[:color])
+            grad = itertools.chain(*flame.gradient[:color])
             buff = "%c%c%c" * color % tuple(grad)
             img = wx.ImageFromBuffer(color, 1, buff)
         else:
