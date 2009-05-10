@@ -282,7 +282,6 @@ class Palette(list):
             self[i] = hls2rgb((h,l,s))
             
     def saturation(self, value):
-##        for i in self:
         value = value/100.0
         for i in xrange(256):
             h,l,s = rgb2hls(self[i])
@@ -291,7 +290,6 @@ class Palette(list):
             self[i] = hls2rgb((h,l,s))
             
     def brightness(self, value):
-##        for i in self:
         value = value/100.0
         for i in xrange(256):
             h,l,s = rgb2hls(self[i])
@@ -302,30 +300,30 @@ class Palette(list):
     def inverse(self):
         for i in self:
             i = (255 - i[0], 255 - i[1], 255 - i[2])
-    """    
-    def blur(self, value, space='rgb'):
-        value = clip(value,0,127)
-        tmp = []
-        for i in xrange(0, len(self)):
-            a = self[i-1]
-            b = self[i]
-            if i==len(self)-1: c = self[0]
-            else:            c = self[i+1]
-            if space=='hls':
-                a = rgb2hls(a)
-                b = rgb2hls(b)
-                c = rgb2hls(c)
-            v = value
-            w = 127 - value
-            r = (v*a[0] + 2*w*b[0] + v*c[0])/(4.0*127)
-            g = (v*a[1] + 2*w*b[1] + v*c[1])/(4.0*127)
-            b = (v*a[2] + 2*w*b[2] + v*c[2])/(4.0*127)
-            if space=='hls':
-                color = (hls2rgb((r,g,b)))
-            color = (r,g,b)
-            tmp.append(color)
-        self[:] = tmp
-    """
+  
+##    def blur(self, value, space='rgb'):
+##        value = clip(value,0,127)
+##        tmp = []
+##        for i in xrange(0, len(self)):
+##            a = self[i-1]
+##            b = self[i]
+##            if i==len(self)-1: c = self[0]
+##            else:            c = self[i+1]
+##            if space=='hls':
+##                a = rgb2hls(a)
+##                b = rgb2hls(b)
+##                c = rgb2hls(c)
+##            v = value
+##            w = 127 - value
+##            r = (v*a[0] + 2*w*b[0] + v*c[0])/(4.0*127)
+##            g = (v*a[1] + 2*w*b[1] + v*c[1])/(4.0*127)
+##            b = (v*a[2] + 2*w*b[2] + v*c[2])/(4.0*127)
+##            if space=='hls':
+##                color = (hls2rgb((r,g,b)))
+##            color = (r,g,b)
+##            tmp.append(color)
+##        self[:] = tmp
+
     def reverse(self):
         self.reverse()
         
