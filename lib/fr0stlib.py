@@ -551,7 +551,9 @@ class Xform(object):
                 self.chaos = Chaos(self,[1])
             if not self.post:
                 self._post = PostXform(self,("coefs",[1,0,0,1,0,0]))
-            self.opacity = 1.0
+            if "opacity" not in self.__dict__:
+                self.opacity = 1.0
+                
 
     def _get_chaos(self):
         return self._chaos
@@ -563,6 +565,7 @@ class Xform(object):
 
     chaos = property(_get_chaos,_set_chaos)    
 
+
     def _get_post(self):
         return self._post
 
@@ -573,13 +576,27 @@ class Xform(object):
 
     post = property(_get_post,_set_post)
 
+
     def _get_index(self):
         if self is self._parent.final:
             return None
         return self._parent.xform.index(self)
 
     index = property(_get_index)
-        
+
+
+    def _get_plotmode(self):
+        return "off" if self.opacity == 0.0 else None
+
+    def _set_plotmode(self, v):
+        if v.lower() == "off":
+            self.opacity = 0.0
+        else:
+            raise ValueError('Plotmode can only be set to "off"')
+
+    plotmode = property(_get_plotmode, _set_plotmode)
+    
+       
     def _get_coefs(self):
         return self.a,self.d,self.b,self.e,self.c,self.f
 
