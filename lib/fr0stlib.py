@@ -129,18 +129,16 @@ class Flame(object):
                 
         # Create the Xform objects
         for xform in self.re_xform.findall(string):
-            parameters = []
+            kwds = {}
             for string in self.re_attr.findall(xform):
                 name, val = string.split('="')
                 try:
-                    if " " in val: param = name, map(float,val.split())
-                    else:          param = name, float(val)
+                    if " " in val: kwds[name] = map(float,val.split())
+                    else:          kwds[name] = float(val)
                 except ValueError:
-                    param = name, val
-                    
-                parameters.append(param)
+                    kwds[name] = val
 
-            x = Xform(self,*parameters)              
+            x = Xform(self, **kwds)              
 
             # Assign the xform to the correct location, 
             if x.weight:
@@ -206,17 +204,12 @@ class Flame(object):
 
     def create_final(self):
         if self.final: return
-        self.final = Xform(self,
-                           ("coefs",[1,0,0,1,0,0]),
-                           ("linear",1),
-                           ("color",0))
+        self.final = Xform(self, coefs=[1,0,0,1,0,0], linear=1, color=0)
+
 
     def add_xform(self):
-        self.xform.append(Xform(self,
-                                ("coefs",[1,0,0,1,0,0]),
-                                ("linear",1),
-                                ("color",0),
-                                ("weight",1)))
+        self.xform.append(Xform(self, coefs=[1,0,0,1,0,0], linear=1,
+                                color=0, weight=0.5))
 
     def clear(self):
         self.xform = []
@@ -504,6 +497,10 @@ class Xform(object):
     """Container for transform parameters."""
 
     _default = ["_parent","a","b","c","d","e","f","_chaos","_post"]
+    # We need to specify attributes with a default value different than 0.0
+    # See __setattr__ for more details.
+    opacity = 1.0
+    color = 0.0
     
     def __repr__(self):
         index = self.index
@@ -522,7 +519,7 @@ class Xform(object):
 
     def __setattr__(self,name,v):
         """Deletes all attributes that are set to the default value"""
-        if v == 0 and name not in ["color", "opacity"]:
+        if v == 0 and not hasattr(self.__class__, name):
             try:
                 delattr(self,name)
             except AttributeError:
@@ -530,15 +527,11 @@ class Xform(object):
         else:
             object.__setattr__(self,name,v)
 
-    def __init__(self,parent,*args):
+
+    def __init__(self, parent, chaos=None, post=None, **kwds):
         self._parent = parent
-        for name,val in args:
-            if name == 'chaos':
-                self._chaos = Chaos(self,val)
-            elif name == 'post':
-                self._post = PostXform(self,("coefs",val))          
-            else:
-                setattr(self,name,val)
+
+        map(self.__setattr__, *zip(*kwds.iteritems()))
 
         # Convert from "screen" to "complex plane" format
         self.d = -self.d
@@ -547,13 +540,14 @@ class Xform(object):
         
         # Create default values. Subclasses ignore this.
         if type(self) is Xform:
-            if not self.chaos:
-                self.chaos = Chaos(self,[1])
-            if not self.post:
-                self._post = PostXform(self,("coefs",[1,0,0,1,0,0]))
-            if "opacity" not in self.__dict__:
-                self.opacity = 1.0
-                
+            if chaos is None:
+                chaos = [1]
+            self._chaos = Chaos(self, chaos)
+            
+            if post is None:
+                post = [1,0,0,1,0,0]
+            self._post = PostXform(self, coefs=post)
+            
 
     def _get_chaos(self):
         return self._chaos
@@ -796,7 +790,8 @@ class Xform(object):
 
 
 class PostXform(Xform):
-    _allowed = ['coefs','_parent','a','b','c','d','e','f','x','y','o']
+    _allowed = ['coefs', 'points', 'polars', '_parent',
+                'a','b','c','d','e','f','x','y','o']
     
     def __repr__(self):
         xform = repr(self._parent)
