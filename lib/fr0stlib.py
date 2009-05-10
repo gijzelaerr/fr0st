@@ -107,22 +107,6 @@ class Flame(object):
 
             
     def from_string(self,string):
-        # Record the header data
-        for attr in self.re_attr.findall(self.re_header.search(string).group()):
-            name, val = attr.split('="')
-                
-            # Convert value to the appropriate type
-            try:
-                if " " in val: val = map(float,val.split())
-                else:          val = float(val)
-            except ValueError:
-                pass   # Keep as string
-            
-            setattr(self,name,val)
-
-        # Scale needs to be converted to Apo notation. This is reversed in
-        # the to_string method
-        self.scale = self.scale * 100 / self.size[0]
             
         # Create the gradient
         self.gradient = Palette(string)
@@ -130,8 +114,8 @@ class Flame(object):
         # Create the Xform objects
         for xform in self.re_xform.findall(string):
             kwds = {}
-            for string in self.re_attr.findall(xform):
-                name, val = string.split('="')
+            for s in self.re_attr.findall(xform):
+                name, val = s.split('="')
                 try:
                     if " " in val: kwds[name] = map(float,val.split())
                     else:          kwds[name] = float(val)
@@ -148,6 +132,26 @@ class Flame(object):
             else:
                 raise ParsingError("More than one final xform found")
 
+            
+        # Record the header data. This is done after loading xforms so the
+        # soloxform fiasco can be safely defused.
+        for attr in self.re_attr.findall(self.re_header.search(string).group()):
+            name, val = attr.split('="')
+                
+            # Convert value to the appropriate type
+            try:
+                if " " in val: val = map(float,val.split())
+                else:          val = float(val)
+            except ValueError:
+                pass   # Keep as string
+            
+            setattr(self,name,val)
+
+        # Scale needs to be converted to Apo notation. This is reversed in
+        # the to_string method
+        self.scale = self.scale * 100 / self.size[0]
+
+        
     def to_string(self,include_details=True):
         """Extracts parameters from a Flame object and converts them into string format."""
 
@@ -182,6 +186,13 @@ class Flame(object):
 
         return "".join(lst)
 
+
+    def _set_soloxform(self, v):
+        for xform in self.xform:
+            xform.opacity = 1.0 if xform.index == v else 0.0
+
+    soloxform = property(None, _set_soloxform)
+    
 
     def create_final(self):
         if self.final: return
@@ -558,16 +569,13 @@ class Xform(object):
     index = property(_get_index)
 
 
-    def _get_plotmode(self):
-        return "off" if self.opacity == 0.0 else None
-
     def _set_plotmode(self, v):
         if v.lower() == "off":
             self.opacity = 0.0
         else:
             raise ValueError('Plotmode can only be set to "off"')
 
-    plotmode = property(_get_plotmode, _set_plotmode)
+    plotmode = property(None, _set_plotmode)
     
        
     def _get_coefs(self):
