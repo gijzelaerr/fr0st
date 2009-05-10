@@ -178,7 +178,7 @@ class Flame(object):
         if include_details:
             lst.append(self.gradient.to_string())
 
-        lst.append('</flame>\n')
+        lst.append('</flame>')
 
         return "".join(lst)
 
@@ -874,13 +874,13 @@ def save_flame(filename,flame):
 
 def save_flames(filename,*flames):
     lst = [f.to_string() if isinstance(f,Flame) else f for f in flames]
-    lst.insert(0, """<flames name="Fr0st Batch">\n""")
+    lst.insert(0, """<flames name="Fr0st Batch">""")
     lst.append("""</flames>""")
     head, ext = os.path.splitext(filename)
     if os.path.exists(filename) and ext == ".flame":
         shutil.copy(filename,head + ".bak")
     f = open(filename,"w")
-    f.write("".join(lst))
+    f.write("\n".join(lst))
     f.close()
 
 
