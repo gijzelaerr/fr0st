@@ -491,32 +491,6 @@ class Xform(object):
     # See __setattr__ for more details.
     opacity = 1.0
     color = 0.0
-    
-    def __repr__(self):
-        index = self.index
-        if index is None:
-            return "<finalxform>"
-        return "<xform %d>" % index
-      
-    def __getattr__(self,v):
-        "Returns a default value for non-existing attributes"
-        try:
-            return object.__getattribute__(self,v)
-        except AttributeError:
-            if v.startswith('__'):
-                raise
-            return 0.0
-
-    def __setattr__(self,name,v):
-        """Deletes all attributes that are set to the default value"""
-        if v == 0 and not hasattr(self.__class__, name):
-            try:
-                delattr(self,name)
-            except AttributeError:
-                pass
-        else:
-            object.__setattr__(self,name,v)
-
 
     def __init__(self, parent, chaos=None, post=None, **kwds):
         self._parent = parent
@@ -537,7 +511,35 @@ class Xform(object):
             if post is None:
                 post = [1,0,0,1,0,0]
             self._post = PostXform(self, coefs=post)
+
             
+    def __repr__(self):
+        index = self.index
+        if index is None:
+            return "<finalxform>"
+        return "<xform %d>" % index
+
+      
+    def __getattr__(self,v):
+        "Returns a default value for non-existing attributes"
+        try:
+            return object.__getattribute__(self,v)
+        except AttributeError:
+            if v.startswith('__'):
+                raise
+            return 0.0
+
+
+    def __setattr__(self,name,v):
+        """Deletes all attributes that are set to the default value"""
+        if v == 0 and not hasattr(self.__class__, name):
+            try:
+                delattr(self,name)
+            except AttributeError:
+                pass
+        else:
+            object.__setattr__(self,name,v)            
+
 
     def _get_chaos(self):
         return self._chaos
@@ -586,23 +588,25 @@ class Xform(object):
 
     coefs = property(_get_coefs,_set_coefs)
 
-    def _get_points(self):
-        return self.x,self.y,self.o
-
-    def _set_points(self,v):
-        self.x,self.y,self.o = v
-
-    points = property(_get_points,_set_points)
-
     def get_screen_coefs(self):
         """Creates a list of coefs in "screen" notation."""
         return self.a,-self.d,-self.b,self.e,self.c,-self.f
 
-    def isfinal(self):
-        return self.index is None
-        
+
+    def list_variations(self):
+        return [i for i in variations if i in self.__dict__]
+
+    def _get_attributes(self):
+        return [i for i in self.__dict__ if i not in self._default]
+    
+    attributes = property(_get_attributes)
+
+    def iter_attributes(self):
+        return ((k,v) for (k,v) in self.__dict__.iteritems()
+                if k not in self._default)
 
 #----------------------------------------------------------------------
+    
     def _set_position(self,v1,v2=None):
         if v2 is None: v1, v2 = v1
         self.c = v1
@@ -619,6 +623,7 @@ class Xform(object):
         self.f += v2
 
 #----------------------------------------------------------------------
+        
     def _set_x(self,v1,v2=None):
         if v2 is None: v1, v2 = v1
         self.a  = v1 - self.c
@@ -634,7 +639,7 @@ class Xform(object):
         self.a += v1
         self.d += v2
 
-#----------------------------------------------------------------------
+
     def _set_y(self,v1,v2=None):
         if v2 is None: v1, v2 = v1
         self.b  = v1 - self.c
@@ -650,7 +655,7 @@ class Xform(object):
         self.b += v1
         self.e += v2
 
-#----------------------------------------------------------------------
+
     def _set_o(self,v1,v2=None):
         if v2 is None: v1, v2 = v1
         self.a += self.c - v1
@@ -674,7 +679,17 @@ class Xform(object):
         self.c += v1
         self.f += v2
 
-#----------------------------------------------------------------------        
+        
+    def _get_points(self):
+        return self.x,self.y,self.o
+
+    def _set_points(self,v):
+        self.x,self.y,self.o = v
+
+    points = property(_get_points,_set_points)
+    
+#----------------------------------------------------------------------
+    
     def _get_xp(self):
         return polar((self.a, self.d))
         
@@ -728,9 +743,7 @@ class Xform(object):
         
     def rotate_y(self, deg):
         self.yp = (self.yp[0], self.yp[1] + deg)
-        
-    def move(self,v):
-        self.op = (self.op[0] + v, self.op[1])
+
 
     def rotate(self,deg,pivot="local"):
         if pivot == "local":
@@ -738,6 +751,11 @@ class Xform(object):
             self.rotate_y(deg)
         else:
             self.orbit(deg,pivot)
+            
+        
+    def move(self,v):
+        self.op = (self.op[0] + v, self.op[1])
+
 
     def orbit(self,deg,pivot=(0,0)):
         """Orbits the transform around a fixed point without rotating it."""
@@ -752,26 +770,21 @@ class Xform(object):
             self.c = pivot[0] + sin(angle) * vector
             self.f = pivot[1] + cos(angle) * vector
 
+#----------------------------------------------------------------------
+
+    def isfinal(self):
+        return self.index is None
+
+    
     def copy(self):
         self._parent.xform.append(copy.deepcopy(self))
+
 
     def delete(self):
         if self._parent.final is self:
             self._parent.final = None            
         else:
             self._parent.xform.remove(self)
-
-    def list_variations(self):
-        return [i for i in variations if i in self.__dict__]
-
-    def _get_attributes(self):
-        return [i for i in self.__dict__ if i not in self._default]
-    
-    attributes = property(_get_attributes)
-
-    def iter_attributes(self):
-        return ((k,v) for (k,v) in self.__dict__.iteritems()
-                if k not in self._default)
 
 
     def to_string(self):
