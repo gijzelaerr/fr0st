@@ -170,28 +170,9 @@ class Flame(object):
         else:
             lst.append('name="fr0st" >\n')
 
-        # Make each xform       
-        xformlist = self.xform[:]
-        if self.final:
-            xformlist.append(self.final)
-        for xform in xformlist:
-            lst.append('   <%sxform '%("final" if xform is self.final else ""))
-            for name,val in xform.iter_attributes():
-                lst.append('%s="%s" ' %(name,val))
-
-            lst.append('coefs="%s %s %s %s %s %s" ' % xform.get_screen_coefs())
-
-            # Write the post xform only if it isn't neutral.
-            post = xform.post.get_screen_coefs()
-            if post != (1,0,0,1,0,0):
-                lst.append('post="%s %s %s %s %s %s" ' % post)
-
-            # Write the chaos values.
-            xaos = xform.chaos.get_list()
-            if xaos:
-                lst.append('chaos="%s " />' % " ".join(map(str,xaos)))
-            else:
-                lst.append('/>\n')
+        # Make each xform
+        for xform in self.iter_xforms():
+            lst.append(xform.to_string())
         
         # Make the gradient
         if include_details:
@@ -787,6 +768,26 @@ class Xform(object):
                 if k not in self._default)
 
 
+    def to_string(self):
+        lst = []
+        lst.append('   <%sxform '%("final" if self.isfinal() else ""))
+        for name,val in self.iter_attributes():
+            lst.append('%s="%s" ' %(name,val))
+
+        lst.append('coefs="%s %s %s %s %s %s" ' % self.get_screen_coefs())
+
+        # Write the post xform.
+        lst.append(self.post.to_string())
+
+        # Write the chaos values.
+        xaos = self.chaos.get_list()
+        if xaos:
+            lst.append('chaos="%s " />' % " ".join(map(str,xaos)))
+        else:
+            lst.append('/>\n')
+
+        return "".join(lst)
+
 
 
 class PostXform(Xform):
@@ -806,7 +807,13 @@ class PostXform(Xform):
         raise TypeError, "Can't copy a post transform"
 
     def delete(self):
-        raise TypeError, "Can't delete a post transform"    
+        raise TypeError, "Can't delete a post transform"
+
+    def to_string(self):
+        coefs = self.get_screen_coefs()
+        if coefs != (1,0,0,1,0,0):
+            return 'post="%s %s %s %s %s %s" ' % coefs
+        return ""
 
 
 
