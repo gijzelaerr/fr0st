@@ -337,8 +337,6 @@ class XformCanvas(FloatCanvas):
         self.RemoveObjects(self.objects)
         self.objects = []
         
-        coords = self.PixelToWorld(e.GetPosition())
-        
         if  e.RightIsDown() and e.Dragging() and self.StartMove is not None:
             self.EndMove = N.array(e.GetPosition())
             self._right_drag = self.StartMove - self.EndMove
@@ -348,29 +346,29 @@ class XformCanvas(FloatCanvas):
             return
 
         elif e.LeftIsDown() and e.Dragging():
-            self._left_drag = coords
+            self._left_drag = e.Coords
             
         else:
 ##            self.SetFocus() # Makes Canvas take focus under windows.
             
             # First, test for vertices
-            vertex, xform, cb = self.VertexHitTest(*coords)
+            vertex, xform, cb = self.VertexHitTest(*e.Coords)
             if cb:
                 self.SelectXform(xform)
                 self.callback = cb
                 return
 
             # Then, test for sides
-            points, xform, cb = self.SideHitTest(*coords)
+            points, xform, cb = self.SideHitTest(*e.Coords)
             if cb:
                 self.SelectXform(xform, highlight=points)
                 self.callback = cb
                 return
 
             # Finally, test for area
-            xform = self.XformHitTest(*coords)
+            xform = self.XformHitTest(*e.Coords)
             if xform:
-                diff = coords - xform.o
+                diff = e.Coords - xform.o
                 def callback(coord):
                     xform._set_position(coord-diff)
                 self.callback = callback
