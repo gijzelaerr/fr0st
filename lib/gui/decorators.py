@@ -11,11 +11,11 @@ except ImportError:
 class ThreadingError(Exception): pass
 
 
-def Bind(event, *args, **kwds):
+def Bind(evt, *args, **kwds):
     """ Bind wx events to their respective handlers. Used in conjunction with
     BindEvents."""
     def bind(f):
-        f._bound = getattr(f,"_bound",[]) + [(event,args,kwds)]
+        f.__bound = getattr(f,"__bound",[]) + [(evt, args, kwds)]
         return f
     return bind
 
@@ -28,9 +28,9 @@ def BindEvents(__init__):
         __init__(self, *args, **kwds)
         for name in vars(self.__class__):
             f = getattr(self, name)
-            if not hasattr(f, "_bound"): continue
-            for evt, args, kwargs in f._bound:
-                self.Bind(evt, f, *args, **kwargs)
+            if not hasattr(f, "__bound"): continue
+            for evt, args, kwds in f.__bound:
+                self.Bind(evt, f, *args, **kwds)
     return wrapper
 
 

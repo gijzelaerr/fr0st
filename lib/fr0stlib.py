@@ -522,12 +522,13 @@ class Xform(object):
       
     def __getattr__(self,v):
         "Returns a default value for non-existing attributes"
-        try:
-            return object.__getattribute__(self,v)
-        except AttributeError:
-            if v.startswith('__'):
-                raise
-            return 0.0
+##        try:
+##            return object.__getattribute__(self,v)
+##        except AttributeError:
+##            if v.startswith('__'):
+##                raise #AttributeError
+##            return 0.0
+        return 0.0
 
 
     def __setattr__(self,name,v):
@@ -810,12 +811,11 @@ class Xform(object):
 
 
 class PostXform(Xform):
-    _allowed = ['coefs', 'points', 'polars', '_parent',
-                'a','b','c','d','e','f','x','y','o']
-    
+    _allowed = ('coefs', 'points', 'polars', '_parent',
+                'a','b','c','d','e','f','x','y','o')
+
     def __repr__(self):
-        xform = repr(self._parent)
-        return "<post-%s" % xform[1:]
+        return "<post-%s" % repr(self._parent)[1:]
 
     def __setattr__(self,name,v):
         if name not in self._allowed:
@@ -841,7 +841,7 @@ class Chaos(list):
     necessary to store values in their correct locations."""
 
     def __repr__(self):
-        return str(self[:])
+        return "Chaos(%s)" %self[:]
 
     def __init__(self,parent,lst):
         self._parent = parent
@@ -849,7 +849,7 @@ class Chaos(list):
         list.__init__(self,lst)
 
     def __len__(self):
-        if self._parent is self._parent._parent.final:
+        if self._parent.isfinal():
             return 0
         return len(self._parent._parent.xform)
 
