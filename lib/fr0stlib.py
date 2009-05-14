@@ -887,9 +887,6 @@ class Chaos(list):
 """
 File functions from functions to avoid circular import
 """
-def save_flame(filename,flame):
-    save_flames(filename,flame)
-
 
 def save_flames(filename,*flames):
     lst = [f.to_string() if isinstance(f,Flame) else f for f in flames]
