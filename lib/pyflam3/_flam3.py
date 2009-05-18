@@ -27,7 +27,7 @@ import sys
 
 if 'win32' not in sys.platform:
     libflam3 = CDLL('libflam3.so')
-    
+
 else:
     try:
         libflam3 = CDLL('libflam3.dll')
@@ -87,7 +87,7 @@ class BaseGenome(Structure):
                , ('num_xforms', c_int)
                , ('final_xform_index', c_int)
                , ('final_xform_enable', c_int)
-               , ('xform', POINTER(BaseXForm)) 
+               , ('xform', POINTER(BaseXForm))
                , ('chaos', POINTER(c_double)) # what to do with this?
                , ('chaos_enable', c_int)
                , ('genome_index', c_int)
@@ -144,12 +144,12 @@ class BaseFrame(Structure):
                , ('bytes_per_channel', c_int)
                , ('earlyclip', c_int)
                , ('time', c_double)
-               , ('progress', ProgressFunction) 
+               , ('progress', ProgressFunction)
                , ('progress_parameter', py_object) # or c_void_p?
-               , ('rc', RandomContext) 
+               , ('rc', RandomContext)
                , ('nthreads', c_int)
                ]
-    
+
 
 def allocate_output_buffer(size, channels):
     return (c_ubyte * (size[0] * size[1] * channels))()
@@ -187,8 +187,9 @@ flam3_parse_xml2 = libflam3.flam3_parse_xml2
 libflam3.flam3_count_nthreads.restype = c_int
 flam3_count_nthreads = libflam3.flam3_count_nthreads
 
-# void flam3_render(flam3_frame *f, unsigned char *out, int out_width, int field, int nchan, int transp, stat_struct *stats);
-libflam3.flam3_render.argtypes = [POINTER(BaseFrame), POINTER(c_ubyte), c_int, c_int, c_int, c_int, POINTER(RenderStats)]
+# void flam3_render(flam3_frame *f, unsigned char *out, int field, int nchan, int transp, stat_struct *stats);
+# void flam3_render(flam3_frame *f, void *out         , int field, int nchan, int transp, stat_struct *stats)
+libflam3.flam3_render.argtypes = [POINTER(BaseFrame), POINTER(c_ubyte), c_int, c_int, c_int, POINTER(RenderStats)]
 flam3_render = libflam3.flam3_render
 
 # double flam3_render_memory_required(flam3_frame *f);

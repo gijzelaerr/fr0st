@@ -41,7 +41,7 @@ class Genome(BaseGenome):
     def render(self, **kwargs):
         channels = kwargs.get('channels', 3)
         transparent = kwargs.get('transparent', False) and 1 or 0
-        
+
         frame = Frame(**kwargs)
         frame.genomes = cast(pointer(self), POINTER(BaseGenome))
         frame.ngenomes = 1
@@ -67,9 +67,9 @@ class Genome(BaseGenome):
 ##            output_buffer = allocate_output_buffer(self.size, channels)
 
         output_buffer = allocate_output_buffer(self.size, channels)
-        
+
         stats = RenderStats()
-        flam3_render(byref(frame), output_buffer, self.width, flam3_field_both, channels, transparent, byref(stats))
+        flam3_render(byref(frame), output_buffer, flam3_field_both, channels, transparent, byref(stats))
         return (output_buffer, stats)
 
     @classmethod
@@ -96,21 +96,21 @@ class Genome(BaseGenome):
             raise MemoryError('OH SHI-')
 
         memset(ptr, 0, string_len+1)
-  
+
         memmove(ptr, input_buffer, string_len)
 
         c_buffer = cast(ptr, c_char_p)
-        
+
         #print string_at(c_buffer)
 
-        result = flam3_parse_xml2(c_buffer, filename, 
+        result = flam3_parse_xml2(c_buffer, filename,
                 defaults and flam3_defaults_on or flam3_defaults_off, byref(ncps))
 
         genomes = []
         for i in xrange(0, ncps.value):
             genome = cls()
             memmove(byref(genome), byref(result[i]), sizeof(BaseGenome))
-            genomes.append(genome) 
+            genomes.append(genome)
 
         #Don't free the input, flam3 already does this.
         #flam3_free(c_buffer)
@@ -126,8 +126,8 @@ class Genome(BaseGenome):
         ncps = c_int()
 
         def open_file(handle):
-            return flam3_parse_from_file(marshal.file_as_FILE(handle), 
-                    os.path.basename(handle.name), 
+            return flam3_parse_from_file(marshal.file_as_FILE(handle),
+                    os.path.basename(handle.name),
                     defaults and flam3_defaults_on or flam3_defaults_off,
                     byref(ncps))
 
@@ -135,7 +135,7 @@ class Genome(BaseGenome):
             with open(filename, 'rb') as handle:
                 if 'win32' in sys.platform:
                     content = handle.read()
-                    return cls.from_string(content, 
+                    return cls.from_string(content,
                             filename=os.path.basename(filename))
                 else:
                     result = open_file(handle)
@@ -143,7 +143,7 @@ class Genome(BaseGenome):
             if 'win32' in sys.platform:
                 content = handle.read()
                 genomes = cls.from_string(content)
-                return cls.from_string(content, 
+                return cls.from_string(content,
                         filename=os.path.basename(filename))
             else:
                 result = open_file(handle)
@@ -159,7 +159,7 @@ class Genome(BaseGenome):
             genomes.append(genome) #result[i])
 
         flam3_free(result)
-    
+
         cls._initialize_genome_list(genomes)
 
         return genomes
