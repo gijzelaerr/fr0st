@@ -257,11 +257,13 @@ class XformCanvas(FloatCanvas):
 
     @Bind(wx.EVT_ENTER_WINDOW)
     def OnEnter(self,e):
-        self.CaptureMouse()
+##        self.CaptureMouse()
+        pass
 
     @Bind(wx.EVT_LEAVE_WINDOW)
     def OnLeave(self,e):
-        self.ReleaseMouse()
+##        self.ReleaseMouse()
+        pass
         
 
     @Bind(wx.EVT_IDLE)
@@ -294,7 +296,7 @@ class XformCanvas(FloatCanvas):
 
     @Bind(FC.EVT_LEFT_DOWN)
     def OnLeftDown(self,e):
-        self.CaptureMouse() 
+##        self.CaptureMouse() 
         if self.SelectedXform:
             self.parent.ActiveXform = self.SelectedXform
             self.ShowFlame(rezoom=False)
@@ -307,7 +309,7 @@ class XformCanvas(FloatCanvas):
 
     @Bind(FC.EVT_LEFT_UP)
     def OnLeftUp(self,e):
-        self.ReleaseMouse()
+##        self.ReleaseMouse()
 
         # EXPERIMENT!
         self.RemoveObjects(self.shadow)
@@ -321,14 +323,14 @@ class XformCanvas(FloatCanvas):
             
     @Bind(FC.EVT_RIGHT_DOWN)
     def OnRightDown(self,e):
-        self.CaptureMouse()
+##        self.CaptureMouse()
         self.StartMove = N.array(e.GetPosition())
         self.PrevMoveXY = (0,0)
 
 
     @Bind(FC.EVT_RIGHT_UP)
     def OnRightUp(self,e):
-        self.ReleaseMouse()
+##        self.ReleaseMouse()
         self.StartMove = None
 
 
