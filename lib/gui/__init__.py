@@ -398,7 +398,6 @@ class MainWindow(wx.Frame):
         self.canvas.ShowFlame(flame,rezoom=rezoom)
         self.grad.OnUpdate()
         self.XformTabs.UpdateView()
-        self.grad.ResetSlider()
 
         # Set Undo and redo buttons to the correct value:
         data = self.TreePanel.itemdata

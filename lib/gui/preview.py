@@ -4,9 +4,8 @@ from decorators import *
 from _events import EVT_THREAD_MESSAGE, ThreadMessageEvent
 
 
-
 class PreviewFrame(wx.Frame):
-    
+
     @BindEvents    
     def __init__(self,parent):
         self.title = "Flame Preview"
@@ -23,13 +22,14 @@ class PreviewFrame(wx.Frame):
         self.oldbmp = None
 
         self._lastsize = 1,1
-        self.SetSize((600,450))
+        self.SetSize((520,413))
         self.SetMinSize((128,119)) # This makes for a 120x90 bitmap
+
 
     def GetCorrectSize(self):
         """This method corrects platform dependency issues."""
-        if "linux" in sys.platform:
-            return self.GetSize()
+##        if "linux" in sys.platform:
+##            return self.GetSize()
         return self.GetSizer().GetSize()
 
 
@@ -39,17 +39,14 @@ class PreviewFrame(wx.Frame):
         self.Parent.Raise()
 
 
-##    @Bind(wx.EVT_SIZE if "linux" in sys.platform else wx.EVT_IDLE)
     @Bind(wx.EVT_SIZE)
     def OnResize(self, e):
-        size = self.GetCorrectSize() # e.GetSize()
-
         if not self.oldbmp:
             self.oldbmp = self.image.bmp
         image = wx.ImageFromBitmap(self.oldbmp)
 
-        pw, ph = map(float,size)
-        fw, fh = self.image.bmp.GetSize() # This used to be self.size (?)
+        pw, ph = map(float, self.GetCorrectSize())
+        fw, fh = self.parent.flame.size
 
         ratio = min(pw/fw, ph/fh)
         image.Rescale(int(fw * ratio), int(fh * ratio))
@@ -76,7 +73,6 @@ class PreviewFrame(wx.Frame):
         pw,ph = self.GetCorrectSize()
         ratio = min(pw/fw, ph/fh)
         size = int(fw * ratio), int(fh * ratio)
-        self.size = size
         
         req = self.parent.renderer.LargePreviewRequest
         req(self.UpdateBitmap,size,flame.to_string(),

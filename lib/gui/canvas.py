@@ -296,7 +296,7 @@ class XformCanvas(FloatCanvas):
 
     @Bind(FC.EVT_LEFT_DOWN)
     def OnLeftDown(self,e):
-##        self.CaptureMouse() 
+        self.CaptureMouse() 
         if self.SelectedXform:
             self.parent.ActiveXform = self.SelectedXform
             self.ShowFlame(rezoom=False)
@@ -309,6 +309,7 @@ class XformCanvas(FloatCanvas):
 
     @Bind(FC.EVT_LEFT_UP)
     def OnLeftUp(self,e):
+        # This release mouse causes a bug under windows.
 ##        self.ReleaseMouse()
 
         # EXPERIMENT!
@@ -323,14 +324,14 @@ class XformCanvas(FloatCanvas):
             
     @Bind(FC.EVT_RIGHT_DOWN)
     def OnRightDown(self,e):
-##        self.CaptureMouse()
+        self.CaptureMouse()
         self.StartMove = N.array(e.GetPosition())
         self.PrevMoveXY = (0,0)
 
 
     @Bind(FC.EVT_RIGHT_UP)
     def OnRightUp(self,e):
-##        self.ReleaseMouse()
+        self.ReleaseMouse()
         self.StartMove = None
 
 

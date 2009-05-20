@@ -32,6 +32,7 @@ class GradientPanel(wx.Panel):
         self._new = None
         self._changed = False
         self._startval = None
+        self._flame = None # Only used to check identity
         
         choicelist = [('rotate', (-128, 128)),
                       ('hue',(-180,180)),
@@ -69,6 +70,10 @@ class GradientPanel(wx.Panel):
     @Bind(EVT_THREAD_MESSAGE)
     def OnUpdate(self, e=None):
         self.image.Update()
+        if self.parent.flame != self._flame:
+            # Hack: only change the slider when the flame object id changes.
+            self.ResetSlider()
+            self._flame = self.parent.flame
 
 
     @Bind(wx.EVT_IDLE)
@@ -151,6 +156,7 @@ class Gradient(wx.Panel):
     
     @Bind(wx.EVT_LEFT_DOWN)
     def OnLeftDown(self, e):
+        self.CaptureMouse()
         self._startpos = e.GetPosition()
         parent = self.GetParent()
         self._oldchoice = parent.choice
@@ -160,6 +166,7 @@ class Gradient(wx.Panel):
 
     @Bind(wx.EVT_LEFT_UP)
     def OnLeftUp(self, e):
+        self.ReleaseMouse()
         self._startpos = None
         parent = self.GetParent()
         parent.choice = self._oldchoice
