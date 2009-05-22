@@ -21,7 +21,9 @@ class PreviewFrame(wx.Frame):
         self.SetDoubleBuffered(True)
         self.oldbmp = None
 
-        self._lastsize = 1,1
+        # This must be 0,0 so OnIdle doesn't render anything on startup.
+        self._lastsize = 0,0
+        
         self.SetSize((520,413))
         self.SetMinSize((128,119)) # This makes for a 120x90 bitmap
 
@@ -71,6 +73,7 @@ class PreviewFrame(wx.Frame):
 
         fw,fh = flame.size
         pw,ph = self.GetCorrectSize()
+
         ratio = min(pw/fw, ph/fh)
         size = int(fw * ratio), int(fh * ratio)
         
