@@ -1,14 +1,15 @@
 import re, os
-
-
-class ItemData(list):
-    re_name = re.compile(r'(?<= name=").*?(?=")') # This re is duplicated!
+        
     
-    def __init__(self, name, string):
+class ItemData(list):
+    re_name = re.compile(r'(?<= name=").*?(?=")')
+    
+    def __init__(self, string, name=None):
         self.append(string)
         self.redo = []
-        self._name = name
-        
+        self._name = name or self.re_name.findall(string)[0]
+        self.imgindex = -1
+
 
     def append(self,v):
         list.append(self,v)
@@ -20,7 +21,7 @@ class ItemData(list):
 
 
     def HasChanged(self):
-        return self.undo #or self.name
+        return self.undo
 
 
     def Reset(self):
@@ -57,4 +58,4 @@ class ItemData(list):
         self._name = v[1:] if v[:2] == '* ' else v
 
     name = property(_get_name, _set_name)
-        
+

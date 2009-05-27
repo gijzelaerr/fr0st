@@ -1,6 +1,7 @@
 from __future__ import with_statement
 import wx, sys, os, re, shutil, time, cPickle, itertools
 from wx import PyDeadObjectError
+from wx.lib.mixins import treemixin
 from threading import Thread
 import pickle as cPickle
 
@@ -17,75 +18,23 @@ class TreePanel(wx.Panel):
         # Use the WANTS_CHARS style so the panel doesn't eat the Return key.
         wx.Panel.__init__(self, parent, -1, style=wx.WANTS_CHARS)
         self.parent = parent
-        self.item = None
                        
         # Specify a size instead of using wx.DefaultSize
-        self.tree = wx.TreeCtrl(self, wx.NewId(), wx.DefaultPosition, (180,500),
-                               wx.TR_DEFAULT_STYLE
-                               #wx.TR_HAS_BUTTONS
-                               | wx.TR_EDIT_LABELS
-                               #| wx.TR_MULTIPLE
-                               | wx.TR_HIDE_ROOT
-                               )
-
-        # Change font size so that it fits nicely with images
-        font = self.GetFont()
-        font.SetPointSize(9)
-        self.tree.SetFont(font)
-
-        
-        isz = (28,21)
-        il = wx.ImageList(*isz)
-        il.Add(wx.ArtProvider_GetBitmap(wx.ART_FOLDER,      wx.ART_OTHER, isz))
-        il.Add(wx.ArtProvider_GetBitmap(wx.ART_FILE_OPEN,   wx.ART_OTHER, isz))
-        il.Add(wx.ArtProvider_GetBitmap(wx.ART_NORMAL_FILE, wx.ART_OTHER, isz))
-
-        self.tree.SetImageList(il)
-        self.il = il
-        self.isz = isz
-        self.imgcount = 2
-
-        self.root = self.tree.AddRoot("The Root Item")
+        self.tree = FlameTree(self, wx.NewId(), size=(180,500),
+                               style=wx.TR_DEFAULT_STYLE
+                                     #wx.TR_HAS_BUTTONS
+                                     | wx.TR_EDIT_LABELS
+                                     #| wx.TR_MULTIPLE
+                                     | wx.TR_HIDE_ROOT
+                                     )
 
 ##        self.Bind(wx.EVT_TREE_END_LABEL_EDIT, self.OnEndEdit, self.tree)
 ##        self.Bind(wx.EVT_TREE_BEGIN_LABEL_EDIT, self.OnBeginEdit, self.tree)
 ##        self.tree.Bind(wx.EVT_LEFT_DCLICK, self.OnLeftDClick)
 
 
-    def RenderThumbnails(self, item):
-        for child in self.iterchildren(item):
-            self.RenderThumbnail(child)
-            # Set item to default until thumbnail is ready.    
-            self.tree.SetItemImage(child, 2)           
-
-
-    def RenderThumbnail(self,child=None):
-        if child is None:
-            child = self.item
-        data = self.tree.GetPyData(child)
-        self.imgcount += 1
-        self.parent.renderer.ThumbnailRequest(self.UpdateThumbnail,
-                                     (child,self.imgcount,self.isz),
-                                     data[-1],self.isz,quality=25,estimator=3)
-
-            
-    def UpdateThumbnail(self, data, output_buffer):
-        """Callback function to process rendered thumbnails."""
-        child,num,(w,h) = data
-        self.il.Add(wx.BitmapFromBuffer(w, h, output_buffer))
-        self.tree.SetItemImage(child,num)
-
-
-    def iterchildren(self,item=None):
-        if item is None:
-            item = self.itemparent
-        child,cookie = self.tree.GetFirstChild(item)
-        while child.IsOk():
-            yield child
-            child,cookie = self.tree.GetNextChild(item,cookie)
-
-
     def NewItem(self, path):
+        raise DeprecationWarning()
         name = os.path.basename(path)
         item = self.tree.AppendItem(self.root, name)
         self.tree.SetPyData(item, ItemData(name, path))
@@ -99,18 +48,19 @@ class TreePanel(wx.Panel):
         which the session can be restored."""
         
         # Update the child
-        data = self.itemdata
+        data = self.tree.itemdata
         string = self.parent.flame.to_string()
         data.append(string)
-        self.tree.SetItemText(self.item, data.name)
-        self.RenderThumbnail()
+        self.tree.SetItemText(self.tree.item, data.name)
+        self.tree.RenderThumbnail()
         self.parent.SetFlame(self.parent.flame,rezoom=False)
 
-        data = self.tree.GetPyData(self.itemparent)
-##        self.tree.SetItemText(self.itemparent, '* ' + data.name)
+        data = self.tree.GetFlameData(self.tree.itemparent)
+##        self.tree.SetItemText(self.tree.itemparent, '* ' + data.name)
         
         # Create the temp file.
-        lst = [self.tree.GetPyData(i)[1:] for i in self.iterchildren()]
+        lst = [self.tree.GetFlameData(i)[1:]
+               for i in self.tree.GetItemChildren()]
         with open(data[-1] + '.temp',"wb") as f:
             cPickle.dump(lst,f,cPickle.HIGHEST_PROTOCOL)
 
@@ -148,22 +98,22 @@ class TreePanel(wx.Panel):
         # Finally, recover the actual session
         for path,undolist in zip(paths,undolists):
             if os.path.exists(path):
-                self.item = self.parent.OpenFlame(path)
+                self.tree.item = self.parent.OpenFlame(path)
             else:
-                self.item = self.parent.OnFlameNew(None)
+                self.tree.item = self.parent.OnFlameNew(None)
                 
             # This is an ad-hoc izip_longest (2.6 feature!)
-            itr = itertools.chain(self.iterchildren(), itertools.repeat(None))
+            itr = itertools.chain(self.tree.GetItemChildren(),
+                                  itertools.repeat(None))
             for child,lst in zip(itr, undolist):
                 if child is None:
                     child = self.parent.OnFlameNew2(None)
-                data = self.tree.GetPyData(child)
+                data = self.tree.GetFlameData(child)
                 data.extend(lst)
                 self.tree.SetItemText(child,data.name)
-                self.RenderThumbnail(child)
+                self.tree.RenderThumbnail(child)
 
 
-##    @Bind(wx.EVT_RIGHT_DOWN) # this bind doesn't work
     def OnRightDown(self, event):
         pt = event.GetPosition();
         item, flags = self.tree.HitTest(pt)
@@ -172,7 +122,7 @@ class TreePanel(wx.Panel):
                                (self.tree.GetItemText(item), type(item), item.__class__))
             self.tree.SelectItem(item)
 
-##    @Bind(wx.EVT_RIGHT_UP) # this bind doesn't work
+
     def OnRightUp(self, event):
         pt = event.GetPosition();
         item, flags = self.tree.HitTest(pt)
@@ -184,11 +134,10 @@ class TreePanel(wx.Panel):
 
     @Bind(wx.EVT_TREE_SEL_CHANGED)
     def OnSelChanged(self, event):
-        self.item = event.GetItem()
-        if self.item:
-            string = self.tree.GetPyData(self.item)[-1]
+        item = self.tree.item = event.GetItem()
+        if item:
+            string = self.tree.GetFlameData(item)[-1]
             if string.startswith('<flame'):
-##                self.parent.canvas.ActiveXform = None
                 self.parent.SetFlame(Flame(string=string))
             else:
                 self.parent.EnableUndo(False)
@@ -199,7 +148,7 @@ class TreePanel(wx.Panel):
     @Bind(wx.EVT_TREE_END_LABEL_EDIT)
     def OnEndEdit(self, e):
         item = e.GetItem()
-        data = self.tree.GetPyData(item)
+        data = self.tree.GetFlameData(item)
         newname = str(e.GetLabel())
         # Make sure edits don't change the name to an empty string
         if newname:
@@ -208,9 +157,129 @@ class TreePanel(wx.Panel):
         e.Veto()
 
 
+
+
+
+
+class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
+
+    newimgindex = itertools.count(3).next
+    
+    def __init__(self, parent, *args, **kwargs):
+        self.parent = parent
+        super(FlameTree, self).__init__(parent, *args, **kwargs)
+
+        # Change font size so it fits nicely with images
+        font = self.GetFont()
+        font.SetPointSize(9)
+        self.SetFont(font)
+
+        self.Indent = 8 # default is 15
+        self.Spacing = 12 # default is 18
+        
+        isz = (28,21)
+        il = wx.ImageList(*isz)
+        il.Add(wx.ArtProvider_GetBitmap(wx.ART_FOLDER,      wx.ART_OTHER, isz))
+        il.Add(wx.ArtProvider_GetBitmap(wx.ART_FILE_OPEN,   wx.ART_OTHER, isz))
+        il.Add(wx.ArtProvider_GetBitmap(wx.ART_NORMAL_FILE, wx.ART_OTHER, isz))
+
+        self.SetImageList(il)
+        self.il = il
+        self.isz = isz
+
+        self.root = self.AddRoot("The Root Item")
+        self.item = None
+        self.flamefiles = []        
+
+
+    def AddFlamefile(self, path, flamestrings):
+        lst = [(ItemData(s), []) for s in flamestrings]
+        name = os.path.basename(path)
+        self.flamefiles.append((ItemData(path, name=name),lst))
+
+        self.RefreshItems()
+        item = self.GetItemByIndex((-1,))
+        self.RefreshChildrenRecursively(item)
+        self.Expand(item)
+
+        for child in self.GetItemChildren(item):
+            self.RenderThumbnail(child)
+            # Set item to default until thumbnail is ready.    
+            self.SetItemImage(child, 2)
+
+        return item
+
+
+    def RenderThumbnail(self, child=None):
+        if child is None:
+            child = self.item
+        data = self.GetFlameData(child)
+        data.imgindex = self.newimgindex()
+        self.parent.parent.renderer.ThumbnailRequest(self.UpdateThumbnail,
+                                     (child, data, self.isz),
+                                     data[-1],self.isz,quality=25,estimator=3)
+
+
+    def UpdateThumbnail(self, data, output_buffer):
+        """Callback function to process rendered thumbnails."""
+        child,data,(w,h) = data
+        self.il.Add(wx.BitmapFromBuffer(w, h, output_buffer))
+        # HACK: need to set image in both normal and selected state, because
+        # VirtualTree glitches otherwise. It's not worth it to overrride the
+        # RefreshItemImage method over this.
+        self.SetItemImage(child, data.imgindex)
+        self.SetItemImage(child, data.imgindex, wx.TreeItemIcon_Selected)
+
+
+    def GetFlameData(self, item):
+        """Gets the ItemData instance corresponding to item."""
+        return self.GetItem(self.GetIndexOfItem(item))[0]
+
+
+    def OnDrop(self, *args):
+        """This method is used by the DragAndDrop mixin."""
+        dropindex, dragindex = map(self.GetIndexOfItem, args)
+        fromlist = self.GetChildren(dragindex[:1])
+        tolist = self.GetChildren(dropindex[:1])
+
+        # Makes the behaviour consistent even if flames move between files.
+        HACK = fromlist != tolist
+
+        fromindex = dragindex[1] if len(dragindex) > 1 else 0
+        toindex = dropindex[1] + HACK if len(dropindex) > 1 else 0
+
+        tolist.insert(toindex, fromlist.pop(fromindex))
+        self.RefreshItems()
+        
+        
+    def OnGetItemText(self, indices):
+        return self.GetItem(indices)[0].name
+
+    def OnGetChildrenCount(self, indices):
+        return len(self.GetChildren(indices))
+
+    def OnGetItemImage(self, index, *args):
+        return self.GetItem(index)[0].imgindex
+
+
+    def GetItem(self, indices):
+        data, children = " ", self.flamefiles
+        for index in indices:
+            data, children = children[index]
+        return data, children
+
+
+    def GetChildren(self, indices):
+        return self.GetItem(indices)[1]
+
+    def GetItemChildren(self, item=None):
+        if item is None:
+            item = self.itemparent
+        return treemixin.VirtualTree.GetItemChildren(self, item)
+
     def _get_itemparent(self):
         if self.item:
-            item = self.tree.GetItemParent(self.item)
+            item = self.GetItemParent(self.item)
             if item == self.root:
                 return self.item
             return item
@@ -220,7 +289,26 @@ class TreePanel(wx.Panel):
 
     def _get_itemdata(self):
         if self.item:
-            return self.tree.GetPyData(self.item)
+            return self.GetFlameData(self.item)
 
     itemdata = property(_get_itemdata)
 
+
+    #-------------------------------------------------------------------------
+    # These Methods override the DragAndDropMixin to produce desired behaviour
+
+    def OnDragging(self, e):
+        """HACK: Override buggy method: When you start to drag an item, the
+        panel will scroll up until the parent is visible, making it impossible
+        to drop on lower items."""
+        e.Skip()
+
+    def IsValidDragItem(self, dragItem):
+        """Make sure only flames can be dragged."""
+        return dragItem and len(self.GetIndexOfItem(dragItem)) == 2
+
+    def IsValidDropTarget(self, dropTarget):
+        """The original method vetoes the dragItem's parent, but we want to
+        allow that. Also, there's no need to check for children because our
+        tree is flat."""
+        return True 
