@@ -33,16 +33,6 @@ class TreePanel(wx.Panel):
 ##        self.tree.Bind(wx.EVT_LEFT_DCLICK, self.OnLeftDClick)
 
 
-    def NewItem(self, path):
-        raise DeprecationWarning()
-        name = os.path.basename(path)
-        item = self.tree.AppendItem(self.root, name)
-        self.tree.SetPyData(item, ItemData(name, path))
-        self.tree.SetItemImage(item, 0, wx.TreeItemIcon_Normal)
-        self.tree.SetItemImage(item, 1, wx.TreeItemIcon_Expanded)
-        return item
-
-
     def TempSave(self):
         """Updates the tree's undo list and saves a backup version from
         which the session can be restored."""
@@ -133,8 +123,14 @@ class TreePanel(wx.Panel):
 
 
     @Bind(wx.EVT_TREE_SEL_CHANGED)
-    def OnSelChanged(self, event):
+    def OnSelChanged(self, event):       
         item = self.tree.item = event.GetItem()
+        event.Skip()
+        
+        if self.tree._dragging:
+            # Don't reselect flames when a drop is happening.
+            return
+        
         if item:
             string = self.tree.GetFlameData(item)[-1]
             if string.startswith('<flame'):
@@ -142,7 +138,6 @@ class TreePanel(wx.Panel):
             else:
                 self.parent.EnableUndo(False)
                 self.parent.EnableRedo(False)
-        event.Skip()
 
         
     @Bind(wx.EVT_TREE_END_LABEL_EDIT)
@@ -158,13 +153,10 @@ class TreePanel(wx.Panel):
 
 
 
-
-
-
 class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
 
     newimgindex = itertools.count(3).next
-    
+
     def __init__(self, parent, *args, **kwargs):
         self.parent = parent
         super(FlameTree, self).__init__(parent, *args, **kwargs)
@@ -189,7 +181,8 @@ class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
 
         self.root = self.AddRoot("The Root Item")
         self.item = None
-        self.flamefiles = []        
+        self.flamefiles = []
+        self._dragging = False
 
 
     def AddFlamefile(self, path, flamestrings):
@@ -199,36 +192,32 @@ class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
 
         self.RefreshItems()
         item = self.GetItemByIndex((-1,))
-        self.RefreshChildrenRecursively(item)
         self.Expand(item)
 
-        for child in self.GetItemChildren(item):
-            self.RenderThumbnail(child)
+        for child, data in zip(self.GetItemChildren(item),
+                               (i[0] for i in lst)):
+            self.RenderThumbnail(child, data)
             # Set item to default until thumbnail is ready.    
             self.SetItemImage(child, 2)
 
         return item
 
 
-    def RenderThumbnail(self, child=None):
+    def RenderThumbnail(self, child=None, data=None):
         if child is None:
             child = self.item
-        data = self.GetFlameData(child)
+            data = self.GetFlameData(child)
         data.imgindex = self.newimgindex()
         self.parent.parent.renderer.ThumbnailRequest(self.UpdateThumbnail,
                                      (child, data, self.isz),
                                      data[-1],self.isz,quality=25,estimator=3)
-
+        
 
     def UpdateThumbnail(self, data, output_buffer):
         """Callback function to process rendered thumbnails."""
         child,data,(w,h) = data
         self.il.Add(wx.BitmapFromBuffer(w, h, output_buffer))
-        # HACK: need to set image in both normal and selected state, because
-        # VirtualTree glitches otherwise. It's not worth it to overrride the
-        # RefreshItemImage method over this.
         self.SetItemImage(child, data.imgindex)
-        self.SetItemImage(child, data.imgindex, wx.TreeItemIcon_Selected)
 
 
     def GetFlameData(self, item):
@@ -250,6 +239,11 @@ class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
 
         tolist.insert(toindex, fromlist.pop(fromindex))
         self.RefreshItems()
+
+        if HACK:
+            self.SelectItem(self.GetItemByIndex((dropindex[0],toindex)))
+
+        self._dragging = False
         
         
     def OnGetItemText(self, indices):
@@ -297,18 +291,53 @@ class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
     #-------------------------------------------------------------------------
     # These Methods override the DragAndDropMixin to produce desired behaviour
 
-    def OnDragging(self, e):
-        """HACK: Override buggy method: When you start to drag an item, the
-        panel will scroll up until the parent is visible, making it impossible
-        to drop on lower items."""
-        e.Skip()
+
+    def StartDragging(self):
+        """When you start to drag an item, the panel will scroll up until the
+        parent is visible, making it impossible to drop on lower items.
+        Therefore, we don't bind EVT_MOTION to avoid calling OnDragging.
+        Also, self._dragging is set to let OnSelChange know how to behave."""
+##        self.GetMainWindow().Bind(wx.EVT_MOTION, self.OnDragging)
+        self.Bind(wx.EVT_TREE_END_DRAG, self.OnEndDrag)
+        self.SetCursorToDragging()
+        self._dragging = True
+
 
     def IsValidDragItem(self, dragItem):
         """Make sure only flames can be dragged."""
         return dragItem and len(self.GetIndexOfItem(dragItem)) == 2
+
 
     def IsValidDropTarget(self, dropTarget):
         """The original method vetoes the dragItem's parent, but we want to
         allow that. Also, there's no need to check for children because our
         tree is flat."""
         return True 
+
+
+    #-------------------------------------------------------------------------
+    # These Methods override the VirtualTreeMixin for performance reasons.
+
+
+    def RefreshItemImage(self, item, index, hasChildren):
+        self.__refreshAttribute(item, index, 'ItemImage')
+
+
+    def __refreshAttribute(self, item, index, attribute, *args):
+        value = getattr(self, 'OnGet%s'%attribute)(index, *args)
+        if getattr(self, 'Get%s'%attribute)(item, *args) != value:
+            return getattr(self, 'Set%s'%attribute)(item, value, *args)
+        else:
+            return item
+
+
+    def DoRefreshItem(self, item, index, hasChildren):
+        item = self.RefreshItemType(item, index)
+        self.RefreshItemText(item, index)
+##        self.RefreshColumns(item, index)
+##        self.RefreshItemFont(item, index)
+##        self.RefreshTextColour(item, index)
+##        self.RefreshBackgroundColour(item, index)
+        self.RefreshItemImage(item, index, hasChildren)
+##        self.RefreshCheckedState(item, index)
+        return item

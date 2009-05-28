@@ -28,7 +28,8 @@ class MainWindow(wx.Frame):
     newfilename = ("Untitled%s.flame" % i for i in itertools.count(1)).next
     scriptrunning = False
 
-    @BindEvents    
+
+    @BindEvents
     def __init__(self,parent,id):
         self.title = "Fractal Fr0st"
         wx.Frame.__init__(self,parent,wx.ID_ANY, self.title)    
@@ -130,10 +131,10 @@ class MainWindow(wx.Frame):
             return
         
         # check for differences in flame file
-        for item in self.tree.GetItemChildren(self.tree.root):
-            if self.CheckForChanges(item) == wx.ID_CANCEL:
+        for itemdata,lst in self.tree.flamefiles:
+            if self.CheckForChanges(itemdata, lst) == wx.ID_CANCEL:
                 return
-            head,ext = os.path.splitext(self.tree.GetFlameData(item)[-1])
+            head,ext = os.path.splitext(itemdata[-1])
             path = os.path.join(head + '.temp')
             if os.path.exists(path):
                 os.remove(path)
@@ -204,14 +205,14 @@ class MainWindow(wx.Frame):
     @Bind(wx.EVT_MENU,id=ID.FSAVE)
     @Bind(wx.EVT_TOOL,id=ID.TBSAVE)
     def OnFlameSave(self,e):
-        self.flamepath = self.tree.GetPyData(self.tree.itemparent)[-1]
+        self.flamepath = self.tree.GetFlameData(self.tree.itemparent)[-1]
         self.SaveFlame(self.flamepath, confirm=False)
 
         
     @Bind(wx.EVT_MENU,id=ID.FSAVEAS)
     @Bind(wx.EVT_TOOL,id=ID.TBSAVEAS)
     def OnFlameSaveAs(self,e):
-        self.flamepath = self.tree.GetPyData(self.tree.itemparent)[-1]
+        self.flamepath = self.tree.GetFlameData(self.tree.itemparent)[-1]
         dDir,dFile = os.path.split(self.flamepath)
         dlg = wx.FileDialog(self, message="Save file as ...", defaultDir=dDir,
                             defaultFile=dFile, wildcard=self.wildcard,
@@ -352,15 +353,15 @@ class MainWindow(wx.Frame):
                 return child
 
 
-    def CheckForChanges(self,item):
-        if any(self.tree.GetFlameData(child).HasChanged()
-               for child in self.tree.GetItemChildren(item)):
-            path = self.tree.GetFlameData(item)[-1]
+    def CheckForChanges(self, itemdata, lst):
+        if any(data.HasChanged() for data,_ in lst):
+            path = itemdata[-1]
             dlg = wx.MessageDialog(self, 'Save changes to %s?' % path,
                                    'Fr0st',wx.YES_NO|wx.CANCEL)
             result = dlg.ShowModal()
             if result == wx.ID_YES:
-                self.SaveFlame(path, item, confirm=False)
+                fr0stlib.save_flames(path, *(data.GetSaveString()
+                                             for data,_ in lst))
             dlg.Destroy()
             return result
 
