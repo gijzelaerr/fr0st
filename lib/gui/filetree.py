@@ -124,7 +124,7 @@ class TreePanel(wx.Panel):
 
     @Bind(wx.EVT_TREE_SEL_CHANGED)
     def OnSelChanged(self, event):       
-        item = self.tree.item = event.GetItem()
+        item = event.GetItem()
         event.Skip()
         
         if self.tree._dragging:
@@ -134,6 +134,7 @@ class TreePanel(wx.Panel):
         if item:
             string = self.tree.GetFlameData(item)[-1]
             if string.startswith('<flame'):
+                self.tree.item = item
                 self.parent.SetFlame(Flame(string=string))
             else:
                 self.parent.EnableUndo(False)

@@ -114,6 +114,14 @@ class MainWindow(wx.Frame):
 #-----------------------------------------------------------------------------
 # Event handlers
 
+    @Bind(wx.EVT_CHAR_HOOK)
+    def OnChar(self, e):
+        # TODO: Implement keyboard shortcuts with this, or is there a better
+        # way?
+        print "onchar", e.KeyCode
+        e.Skip()
+        
+
     @Bind(wx.EVT_MENU,id=ID.ABOUT)
     def OnAbout(self,e):
         d= wx.MessageDialog(self,"......",
@@ -367,13 +375,13 @@ class MainWindow(wx.Frame):
 
 
     def EnableUndo(self,flag):        
-        self.tb.EnableTool(ID.UNDO,bool(flag))
-        # TODO: same with the menu option
+        self.tb.EnableTool(ID.UNDO, bool(flag))
+        self.menu.Enable(ID.UNDO, bool(flag))
 
 
     def EnableRedo(self,flag):
-        self.tb.EnableTool(ID.REDO,bool(flag))
-        # TODO: same with the menu option
+        self.tb.EnableTool(ID.REDO, bool(flag))
+        self.menu.Enable(ID.REDO, bool(flag))
 
 
     @CallableFrom('MainThread')
