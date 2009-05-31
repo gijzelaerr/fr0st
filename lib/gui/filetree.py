@@ -297,7 +297,7 @@ class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
         """When you start to drag an item, the panel will scroll up until the
         parent is visible, making it impossible to drop on lower items.
         Therefore, we don't bind EVT_MOTION to avoid calling OnDragging.
-        Also, self._dragging is set to let OnSelChange know how to behave."""
+        Also, self._dragging is set to let OnSelChanged know how to behave."""
 ##        self.GetMainWindow().Bind(wx.EVT_MOTION, self.OnDragging)
         self.Bind(wx.EVT_TREE_END_DRAG, self.OnEndDrag)
         self.SetCursorToDragging()
@@ -314,31 +314,3 @@ class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
         allow that. Also, there's no need to check for children because our
         tree is flat."""
         return True 
-
-
-    #-------------------------------------------------------------------------
-    # These Methods override the VirtualTreeMixin for performance reasons.
-
-
-    def RefreshItemImage(self, item, index, hasChildren):
-        self.__refreshAttribute(item, index, 'ItemImage')
-
-
-    def __refreshAttribute(self, item, index, attribute, *args):
-        value = getattr(self, 'OnGet%s'%attribute)(index, *args)
-        if getattr(self, 'Get%s'%attribute)(item, *args) != value:
-            return getattr(self, 'Set%s'%attribute)(item, value, *args)
-        else:
-            return item
-
-
-    def DoRefreshItem(self, item, index, hasChildren):
-        item = self.RefreshItemType(item, index)
-        self.RefreshItemText(item, index)
-##        self.RefreshColumns(item, index)
-##        self.RefreshItemFont(item, index)
-##        self.RefreshTextColour(item, index)
-##        self.RefreshBackgroundColour(item, index)
-        self.RefreshItemImage(item, index, hasChildren)
-##        self.RefreshCheckedState(item, index)
-        return item
