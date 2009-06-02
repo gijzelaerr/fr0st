@@ -169,7 +169,7 @@ class XformCanvas(FloatCanvas):
         # create a rotated triangle and (c,f)->(h,v) vector. This way, the
         # hypothenuse is guaranteed to be horizontal, which makes everything
         # easier.
-        xf = Xform(None, coefs=xform.get_screen_coefs())
+        xf = Xform(None, coefs=xform.coefs)
         xf.rotate(-angle)
         
         l, theta = polar(((h-c), (v-f)))

@@ -122,7 +122,9 @@ class Flame(object):
                 except ValueError:
                     kwds[name] = val
 
-            x = Xform(self, **kwds)              
+            x = Xform(self, **kwds)
+            # Convert from screen to complex plane orientation
+            x.coefs = x.screen_coefs
 
             # Assign the xform to the correct location, 
             if x.weight:
@@ -497,10 +499,10 @@ class Xform(object):
 
         map(self.__setattr__, *zip(*kwds.iteritems()))
 
-        # Convert from "screen" to "complex plane" format
-        self.d = -self.d
-        self.b = -self.b
-        self.f = -self.f
+##        # Convert from "screen" to "complex plane" format
+##        self.d = -self.d
+##        self.b = -self.b
+##        self.f = -self.f
         
         # Create default values. Subclasses ignore this.
         if type(self) is Xform:
@@ -521,13 +523,9 @@ class Xform(object):
 
       
     def __getattr__(self,v):
-        "Returns a default value for non-existing attributes"
-##        try:
-##            return object.__getattribute__(self,v)
-##        except AttributeError:
-##            if v.startswith('__'):
-##                raise #AttributeError
-##            return 0.0
+        """Returns a default value for non-existing attributes"""
+        # Note that the real lookup special method is __getattribute__, and
+        # __getattr__ is only called when it fails.
         return 0.0
 
 
@@ -589,9 +587,17 @@ class Xform(object):
 
     coefs = property(_get_coefs,_set_coefs)
 
-    def get_screen_coefs(self):
-        """Creates a list of coefs in "screen" notation."""
+
+    def _get_screen_coefs(self):
         return self.a,-self.d,-self.b,self.e,self.c,-self.f
+
+    def _set_screen_coefs(self, v):
+        self.coefs = v
+        self.d = -self.d
+        self.b = -self.b
+        self.f = -self.f
+
+    screen_coefs = property(_get_screen_coefs, _set_screen_coefs)
 
 
     def list_variations(self):
@@ -671,6 +677,7 @@ class Xform(object):
     
     o = property(fget=_get_o,fset=_set_o)
 
+
     def move_o(self,v1,v2=None):
         if v2 is None: v1, v2 = v1
         self.a -= v1
@@ -699,6 +706,7 @@ class Xform(object):
 
     xp = property(_get_xp,_set_xp)
 
+
     def _get_yp(self):
         return polar((self.b, self.e))
         
@@ -707,6 +715,7 @@ class Xform(object):
 
     yp = property(_get_yp,_set_yp)
 
+
     def _get_op(self):
         return polar((self.c, self.f))
         
@@ -714,6 +723,7 @@ class Xform(object):
         self.c, self.f = rect(coord)
 
     op = property(_get_op,_set_op)
+
     
     def _get_polars(self):
         return self.xp, self.yp, self.op
@@ -738,13 +748,13 @@ class Xform(object):
         self.d *= v
         self.b *= v
         self.e *= v
+
         
     def rotate_x(self, deg):
         self.xp = (self.xp[0], self.xp[1] + deg)
         
     def rotate_y(self, deg):
         self.yp = (self.yp[0], self.yp[1] + deg)
-
 
     def rotate(self,deg,pivot="local"):
         if pivot == "local":
@@ -794,7 +804,7 @@ class Xform(object):
         for name,val in self.iter_attributes():
             lst.append('%s="%s" ' %(name,val))
 
-        lst.append('coefs="%s %s %s %s %s %s" ' % self.get_screen_coefs())
+        lst.append('coefs="%s %s %s %s %s %s" ' % self.screen_coefs)
 
         # Write the post xform.
         lst.append(self.post.to_string())
@@ -829,7 +839,7 @@ class PostXform(Xform):
         raise TypeError, "Can't delete a post transform"
 
     def to_string(self):
-        coefs = self.get_screen_coefs()
+        coefs = self.screen_coefs
         if coefs != (1,0,0,1,0,0):
             return 'post="%s %s %s %s %s %s" ' % coefs
         return ""
