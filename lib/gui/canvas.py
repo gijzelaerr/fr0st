@@ -4,7 +4,7 @@ from wx.lib.floatcanvas.FloatCanvas import FloatCanvas, DotGrid
 
 from decorators import Bind, BindEvents
 from _events import EVT_THREAD_MESSAGE
-from lib.fr0stlib import polar
+from lib.fr0stlib import polar, rect, Xform
 from lib import pyflam3
 
 
@@ -159,15 +159,26 @@ class XformCanvas(FloatCanvas):
 
 
     def CalculateScale(self, xform, h, v):
+        """Returns the proportion by which the xform needs to be scaled to make
+        the hypot pass through the point."""
         a,d,b,e,c,f = xform.coefs
 
-        # The angle of the hypothenuse
-        ratio = (e - d) / (a - b)
-        diffv = (v - d - f) + (h - a - c) * ratio
+        # Get angle of the hypothenuse
+        angle = polar(((b-a), (e-d)))[1]
 
-        val = xform.d if abs(xform.d) > abs(xform.e) else xform.e
-        return (diffv+val) / val
+        # create a rotated triangle and (c,f)->(h,v) vector. This way, the
+        # hypothenuse is guaranteed to be horizontal, which makes everything
+        # easier.
+        xf = Xform(None, coefs=xform.get_screen_coefs())
+        xf.rotate(-angle)
+        
+        l, theta = polar(((h-c), (v-f)))
+        height = rect((l, theta - angle))[1]
 
+        # return the proportion of the vector height and the triangle height.
+        # Note that xf.d and xf.e are guaranteed to be equal.
+        return height / xf.d
+    
 
     def IterXforms(self):
         active = self.parent.ActiveXform
