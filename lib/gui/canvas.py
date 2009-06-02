@@ -158,10 +158,12 @@ class XformCanvas(FloatCanvas):
             self.HasChanged = True
 
 
-    def CalculateScale(self, xform, h, v):
+    def CalcScale(self, coefs, h, v, absolute=False):
         """Returns the proportion by which the xform needs to be scaled to make
-        the hypot pass through the point."""
-        a,d,b,e,c,f = xform.coefs
+        the hypot pass through the point.
+        If absolute is set to true, the distance is returned instead of the
+        proportion."""
+        a,d,b,e,c,f = coefs
 
         # Get angle of the hypothenuse
         angle = polar(((b-a), (e-d)))[1]
@@ -169,15 +171,25 @@ class XformCanvas(FloatCanvas):
         # create a rotated triangle and (c,f)->(h,v) vector. This way, the
         # hypothenuse is guaranteed to be horizontal, which makes everything
         # easier.
-        xf = Xform(None, coefs=xform.coefs)
+        xf = Xform(None, coefs=coefs)
         xf.rotate(-angle)
         
         l, theta = polar(((h-c), (v-f)))
         height = rect((l, theta - angle))[1]
 
-        # return the proportion of the vector height and the triangle height.
+        # return the proportion or difference of the vector height and the
+        # triangle height.
         # Note that xf.d and xf.e are guaranteed to be equal.
+
+        if absolute:
+            return height - xf.d
         return height / xf.d
+
+
+    def CalcRotate(self, coefs, h,v):
+        # TODO: need to implement this so it works with the sides and floating
+        # corners.
+        pass
     
 
     def IterXforms(self):
@@ -191,31 +203,34 @@ class XformCanvas(FloatCanvas):
 
 
     def SideHitTest(self, h, v):
+        """Checks if the given point is near one of the triangle sides."""
 
         for xform in self.IterXforms():
             a,d,b,e,c,f = xform.coefs
+            radius = self.circle_radius
 
-            if any((h < min(a, b) + c,
-                    h > max(a, b) + c,
-                    v < min(d, e) + f,
-                    v > max(d, e) + f)):
+            # see if we can exclude it based on bounding box.
+            if any((h + radius < min(a, b) + c,
+                    h - radius > max(a, b) + c,
+                    v + radius < min(d, e) + f,
+                    v - radius > max(d, e) + f)):
                 continue
-            
-            ratio = (e - d) / (a - b)
-            diffx = (v - d - f) + (h - a - c) * ratio
-            diffy = (v - e - f) + (h - b - c) * ratio
 
-            height = diffx * diffy / math.sqrt(diffx**2 + diffy**2)
-            if abs(height) < self.circle_radius:
+            if abs(self.CalcScale(xform.coefs, h, v, absolute=True)) < radius:
                 def callback(coord):
-                    xform.scale(self.CalculateScale(xform,*coord))
+                    xform.scale(self.CalcScale(xform.coefs,*coord))
                 return (xform.x, xform.y), xform, callback
 
+
+
         return None, None, None
+
+        return line, xform, callback
         
 
     
     def VertexHitTest(self,x,y):
+        """Checks if the given point is on top of a vertex."""
         for xform in self.IterXforms():
             a,d,b,e,c,f = xform.coefs
             if polar((x - c, y - f))[0] < self.circle_radius:
@@ -228,10 +243,11 @@ class XformCanvas(FloatCanvas):
         return None, None, None
                 
 
-    def XformHitTest(self,x,y):            
+    def XformHitTest(self,x,y):
+        """Checks if the given point is inside the area of the xform.
+        This is done by testing if it falls inside the angles projected from
+        at least 2 of its vertices."""
         for xform in self.IterXforms():
-            # check if the point is in an xform, by testing if it falls
-            # inside the angles projected from at least 2 of its vertices
             a,d,b,e,c,f = xform.coefs
                         
             phiox = polar((a, d))[1]
