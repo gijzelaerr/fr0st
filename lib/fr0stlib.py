@@ -216,6 +216,11 @@ class Flame(object):
         if self.final:
             yield self.final
 
+    def iter_posts(self):
+        for i in self.iter_xforms():
+            if i.post.is_active():
+                yield i.post
+
         
     def _get_angle(self):
         return radians(self.rotate)
@@ -822,7 +827,9 @@ class Xform(object):
 
 class PostXform(Xform):
     _allowed = ('coefs', 'points', 'polars', '_parent',
-                'a','b','c','d','e','f','x','y','o')
+                'a','b','c','d','e','f',
+                'x','y','o',
+                'xp','yp','op')
 
     def __repr__(self):
         return "<post-%s" % repr(self._parent)[1:]
@@ -838,10 +845,12 @@ class PostXform(Xform):
     def delete(self):
         raise TypeError, "Can't delete a post transform"
 
+    def is_active(self):
+        return self.coefs != (1,0,0,1,0,0)
+
     def to_string(self):
-        coefs = self.screen_coefs
-        if coefs != (1,0,0,1,0,0):
-            return 'post="%s %s %s %s %s %s" ' % coefs
+        if self.is_active():
+            return 'post="%s %s %s %s %s %s" ' % self.screen_coefs
         return ""
 
 

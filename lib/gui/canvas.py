@@ -70,16 +70,16 @@ class XformCanvas(FloatCanvas):
             self.RemoveObjects(itertools.chain((t,),t._text,t._circles))
         self.triangles = []
 
-        for i in flame.xform:
-            self.triangles.append(self.AddXform(i, solid=i==self.parent.ActiveXform,
-                                                fill=i==self.SelectedXform))
+        for i in flame.iter_xforms():
+            xf = self.AddXform(i, solid=i==self.parent.ActiveXform,
+                               fill=i==self.SelectedXform)
+            self.triangles.append(xf)
         
-        if flame.final:
-            self.triangles.append(self.AddXform(flame.final))
-        
-        self.triangles.append(self.AddXform(self.parent.ActiveXform, solid=True))
 
-        # TODO: add post xforms.  
+        # TODO: add post xforms.
+##        for i in flame.iter_posts():
+##            pass
+            
         
         if rezoom:
             self.ZoomToBB(DrawFlag=False)
