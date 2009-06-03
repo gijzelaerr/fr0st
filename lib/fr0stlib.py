@@ -517,11 +517,15 @@ class Xform(object):
             
             if post is None:
                 post = [1,0,0,1,0,0]
-            self._post = PostXform(self, coefs=post)
+            self._post = PostXform(self, screen_coefs=post)
 
             
     def __repr__(self):
-        index = self.index
+        try:
+            index = self.index
+        except ValueError:
+            # For some reason, the xform is not found inside the parent
+            return "<xform>"
         if index is None:
             return "<finalxform>"
         return "<xform %d>" % index
@@ -826,7 +830,7 @@ class Xform(object):
 
 
 class PostXform(Xform):
-    _allowed = ('coefs', 'points', 'polars', '_parent',
+    _allowed = ('coefs', 'points', 'polars', 'screen_coefs', '_parent',
                 'a','b','c','d','e','f',
                 'x','y','o',
                 'xp','yp','op')
