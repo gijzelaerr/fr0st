@@ -61,8 +61,10 @@ def Locked(blocking=True):
         def wrapper(*args, **kwds):
             if not lock.acquire(blocking):
                 return
-            result = f(*args, **kwds)
-            lock.release()
+            try:
+                result = f(*args, **kwds)
+            finally:
+                lock.release()
             return result
         return wrapper
     return decorator
@@ -80,7 +82,7 @@ def Threaded(f):
 
 def CallableFrom(name):
     """ Only a thread having the given name will be able to call this function.
-    Used for defensive programming, to making sure thread boundaries aren't
+    Used for defensive programming, to make sure thread boundaries aren't
     being violated."""
     def decorator(f):
         @wraps(f)
