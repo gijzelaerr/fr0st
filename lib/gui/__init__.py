@@ -412,10 +412,10 @@ class MainWindow(wx.Frame):
         """Recreates the namespace each time the script is run to reinitialise
         pygame, reassign the flame variable, etc."""
         namespace = dict(self = self, # for debugging only!
-                         wx = wx,     # for debugging only!
-                         ThreadInterrupt = ThreadInterrupt,
                          GetActiveFlame = self.GetActiveFlame,
                          SetActiveFlame = self.SetActiveFlame,
+                         GetFlames = self.tree.GetFlames,
+                         GetAllFlames = self.tree.GetAllFlames,
                          preview = self.preview,
                          large_preview = self.large_preview)
 

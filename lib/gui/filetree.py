@@ -245,16 +245,6 @@ class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
             self.SelectItem(self.GetItemByIndex((dropindex[0],toindex)))
 
         self._dragging = False
-        
-        
-    def OnGetItemText(self, indices):
-        return self.GetItem(indices)[0].name
-
-    def OnGetChildrenCount(self, indices):
-        return len(self.GetChildren(indices))
-
-    def OnGetItemImage(self, index, *args):
-        return self.GetItem(index)[0].imgindex
 
 
     def GetItem(self, indices):
@@ -267,10 +257,25 @@ class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
     def GetChildren(self, indices):
         return self.GetItem(indices)[1]
 
+
     def GetItemChildren(self, item=None):
         if item is None:
             item = self.itemparent
         return treemixin.VirtualTree.GetItemChildren(self, item)
+
+
+    def GetFlames(self):
+        """Returns all flames in the currently selected file as flame objects.
+        This is meant to be called from a script."""
+        indices = self.GetIndexOfItem(self.itemparent)
+        return [Flame(string=i[-1]) for i,_ in self.GetChildren(indices)]
+
+
+    def GetAllFlames(self):
+        """Returns a list of lists of flame objects of all open files."""
+        return [[Flame(string=i[-1]) for i,_ in lst]
+                for _,lst in self.flamefiles]
+
 
     def _get_itemparent(self):
         if self.item:
@@ -290,8 +295,23 @@ class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
 
 
     #-------------------------------------------------------------------------
-    # These Methods override the DragAndDropMixin to produce desired behaviour
+    # These Methods are used by the VirtualTreeMixin.
 
+    def OnGetItemText(self, indices):
+        return self.GetItem(indices)[0].name
+
+    def OnGetChildrenCount(self, indices):
+        return len(self.GetChildren(indices))
+
+    def OnGetItemImage(self, indices, *args):
+        if len(indices) == 1:
+            # It's a flamefile
+            return 0
+        return self.GetItem(indices)[0].imgindex
+
+
+    #-------------------------------------------------------------------------
+    # These Methods override the DragAndDropMixin to produce desired behaviour
 
     def StartDragging(self):
         """When you start to drag an item, the panel will scroll up until the
