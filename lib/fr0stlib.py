@@ -60,7 +60,6 @@ class Flame(object):
     re_header = re.compile(r'<flame .*?>')
     re_xform  = re.compile(r'<[a-zA-Z]*xform .*?/>')
     re_attr   = re.compile(r'[^ ]*?=".*?(?=")') # Works for xforms and header  
-##    re_grad   = re.compile(r'[0-9A-F]{6}(?=[0-9A-F]*.?$)',re.MULTILINE)
 
     _default = ["_scale","final","gradient","xform","pixels","name"]
 
@@ -494,20 +493,15 @@ class Xform(object):
     """Container for transform parameters."""
 
     _default = ["_parent","a","b","c","d","e","f","_chaos","_post"]
-    # We need to specify attributes with a default value different than 0.0
+    # We need to specify attributes with an explicit default value.
     # See __setattr__ for more details.
     opacity = 1.0
     color = 0.0
 
-    def __init__(self, parent, chaos=None, post=None, **kwds):
+    def __init__(self, parent=None, chaos=None, post=None, **kwds):
         self._parent = parent
 
         map(self.__setattr__, *zip(*kwds.iteritems()))
-
-##        # Convert from "screen" to "complex plane" format
-##        self.d = -self.d
-##        self.b = -self.b
-##        self.f = -self.f
         
         # Create default values. Subclasses ignore this.
         if type(self) is Xform:
@@ -766,10 +760,9 @@ class Xform(object):
         self.yp = (self.yp[0], self.yp[1] + deg)
 
     def rotate(self,deg,pivot="local"):
-        if pivot == "local":
-            self.rotate_x(deg)
-            self.rotate_y(deg)
-        else:
+        self.rotate_x(deg)
+        self.rotate_y(deg)
+        if pivot != "local":
             self.orbit(deg,pivot)
             
         
@@ -784,7 +777,7 @@ class Xform(object):
         else:
             hor = self.c - pivot[0]
             ver = self.f - pivot[1]   
-            angle  = atan2(hor,ver) + radians(deg)
+            angle  = atan2(hor,ver) - radians(deg)
             
             vector = hypot(hor,ver)
             self.c = pivot[0] + sin(angle) * vector
