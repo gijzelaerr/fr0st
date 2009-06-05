@@ -75,11 +75,9 @@ class XformCanvas(FloatCanvas):
                                fill=i==self.SelectedXform)
             self.triangles.append(xf)
         
-
         # TODO: add post xforms.
 ##        for i in flame.iter_posts():
 ##            pass
-            
         
         if rezoom:
             self.ZoomToBB(DrawFlag=False)
@@ -109,12 +107,43 @@ class XformCanvas(FloatCanvas):
         circles = [self.AddCircle(i, Diameter=diameter, LineColor=color)
                    for i in points]
         text = map(lambda x,y: self.AddText(x,y,Size=10,Color=color),
-                   "XYO",points)         
+                   "XYO",points)
+
+        if solid:
+            corners = [self.AddLine(i, LineColor=color)
+                       for i in self.GetCornerPoints(xform)]
+            text.extend(corners)
             
         triangle._circles = circles
         triangle._text = text
 
         return triangle
+
+
+    def GetCornerPoints(self, xform):
+        """Calculate the lines making up the corners of the triangle."""
+        a,d,b,e,c,f = xform.coefs
+
+        # Get the 4 corner points
+        p1 = c + a + b, f + d + e
+        p2 = c + a - b, f + d - e
+        p3 = c - a + b, f - d + e
+        p4 = c - a - b, f - d - e
+
+        # define towards which other corners the corner lines will point.
+        # p1 and p4 are opposing corners, as are p2 and p3.
+        combinations = ((p1,p2,p3),
+                        (p2,p1,p4),
+                        (p3,p1,p4),
+                        (p4,p2,p3))
+
+        # Make the length of the corner lines 1/8th of the distance to the
+        # respective corner. The lists of points returned will be drawn as
+        # multilines.
+        return [((x1+(x2-x1)/8, y1+(y2-y1)/8),
+                 (x1, y1),
+                 (x1+(x3-x1)/8, y1+(y3-y1)/8))
+                for (x1,y1),(x2,y2),(x3,y3) in combinations]
 
         
     def MakeGrid(self):
