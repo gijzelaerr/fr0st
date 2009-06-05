@@ -218,7 +218,7 @@ class Flame(object):
 
     def iter_posts(self):
         for i in self.iter_xforms():
-            if i.post.is_active():
+            if i.post.isactive():
                 yield i.post
 
         
@@ -792,6 +792,11 @@ class Xform(object):
 
 #----------------------------------------------------------------------
 
+
+    def ispost(self):
+        return type(self._parent) == Xform
+
+
     def isfinal(self):
         return self.index is None
 
@@ -849,11 +854,11 @@ class PostXform(Xform):
     def delete(self):
         raise TypeError, "Can't delete a post transform"
 
-    def is_active(self):
+    def isactive(self):
         return self.coefs != (1,0,0,1,0,0)
 
     def to_string(self):
-        if self.is_active():
+        if self.isactive():
             return 'post="%s %s %s %s %s %s" ' % self.screen_coefs
         return ""
 

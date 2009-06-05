@@ -103,9 +103,9 @@ class XformPanel(wx.Panel):
         r1 = wx.RadioButton(self, -1, "triangle", style = wx.RB_GROUP )
         r2 = wx.RadioButton(self, -1, "xform" )
         r3 = wx.RadioButton(self, -1, "polar" )
-        postflag = wx.CheckBox(self,-1,"post")
+        self.postflag = wx.CheckBox(self,-1,"post  ")
         vsizer = wx.BoxSizer(wx.VERTICAL)
-        vsizer.AddMany((r1,r2,r3,postflag))
+        vsizer.AddMany((r1,r2,r3,self.postflag))
 
         # Put the view buttons to the right of the number fields
         hsizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -239,6 +239,14 @@ class XformPanel(wx.Panel):
             self.coefs = xform.coefs
         elif view == "polar":
             self.coefs = itertools.chain(*xform.polars)
+
+        font = self.postflag.GetFont()
+        post = xform if xform.ispost() else xform.post
+        if post.isactive():
+            font.Weight = wx.FONTWEIGHT_BOLD
+        else:
+            font.Weight = wx.FONTWEIGHT_NORMAL
+        self.postflag.SetFont(font)
 
 
     def UpdateXform(self,e=None):
