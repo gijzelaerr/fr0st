@@ -1,5 +1,5 @@
 
 while True:
-    for x in GetActiveFlame().xform:
+    for x in flame.xform:
         x.rotate(5)
     preview()
