@@ -88,7 +88,7 @@ class MainWindow(wx.Frame):
 
 ##        self.SetSize((800,600))
 
-        self.flame = Flame(string=fr0stlib.BLANKFLAME)
+        self._namespace = self.CreateNamespace()
 
         # Set up paths
         sys.path.append(os.path.join(sys.path[0],"scripts")) # imp in scripts
@@ -409,11 +409,10 @@ class MainWindow(wx.Frame):
 
         
     def CreateNamespace(self):
-        """Recreates the namespace each time the script is run to reinitialise
-        pygame, reassign the flame variable, etc."""
+        """Recreates the namespace each time the script is run to reassign
+        the flame variable, etc."""
         namespace = dict(self = self, # for debugging only!
-                         GetActiveFlame = self.GetActiveFlame,
-                         SetActiveFlame = self.SetActiveFlame,
+                         flame = Flame(string=fr0stlib.BLANKFLAME),
                          GetFlames = self.tree.GetFlames,
                          GetAllFlames = self.tree.GetAllFlames,
                          preview = self.preview,
@@ -443,7 +442,7 @@ class MainWindow(wx.Frame):
             self.editor.SetEditable(False)
             self.scriptrunning = True
             # TODO: prevent file opening, etc
-            exec(script,self.CreateNamespace())
+            exec(script,self._namespace)
         except SystemExit:
             pass
         except ThreadInterrupt:
@@ -454,15 +453,15 @@ class MainWindow(wx.Frame):
         self.PrintScriptStats(start) # Don't put this in the finally clause!
         
 
-    def GetActiveFlame(self):
-        """Returns the flame currently loaded in the GUI. This can't be a
-        property because it needs to remain mutable"""
-        return self.flame
+    def _get_flame(self):
+        return self._namespace['flame']
 
-    def SetActiveFlame(self,flame):
+    def _set_flame(self,flame):
         if not isinstance(flame,Flame):
-            raise TypeError("Argument must be an isntance of the Flame class")
-        self.flame = flame
+            raise TypeError("Argument must be an instance of the Flame class")
+        self._namespace['flame'] = flame
+
+    flame = property(_get_flame, _set_flame)
 
 
     def preview(self):
