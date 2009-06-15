@@ -617,17 +617,17 @@ class Xform(object):
 
 #----------------------------------------------------------------------
     
-    def _set_position(self,v1,v2=None):
+    def _set_pos(self,v1,v2=None):
         if v2 is None: v1, v2 = v1
         self.c = v1
         self.f = v2
         
-    def _get_position(self):
+    def _get_pos(self):
         return self.c, self.f
     
-    position = property(_get_position,_set_position)
+    pos = property(_get_pos,_set_pos)
 
-    def move_position(self,v1,v2=None):
+    def move_pos(self,v1,v2=None):
         if v2 is None: v1, v2 = v1       
         self.c += v1
         self.f += v2

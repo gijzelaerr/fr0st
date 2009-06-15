@@ -56,7 +56,7 @@ class XformCanvas(FloatCanvas):
         self.parent.ActiveXform = None
         self.SelectedXform = None
         self._highlight = None
-        self.axes_locked = True
+        self.axes_locked = False # TODO: Move to config dict
         self.HasChanged = False
         self.StartMove = None
         self.callback = None
@@ -110,8 +110,9 @@ class XformCanvas(FloatCanvas):
                    "XYO",points)
 
         if solid:
+            self._cornerpoints = self.GetCornerPoints(xform)
             corners = [self.AddLine(i, LineColor=color)
-                       for i in self.GetCornerPoints(xform)]
+                       for i in self._cornerpoints]
             text.extend(corners)
             
         triangle._circles = circles
@@ -137,12 +138,12 @@ class XformCanvas(FloatCanvas):
                         (p3,p1,p4),
                         (p4,p2,p3))
 
-        # Make the length of the corner lines 1/8th of the distance to the
+        # Make the length of the corner lines 1/10th of the distance to the
         # respective corner. The lists of points returned will be drawn as
         # multilines.
-        return [((x1+(x2-x1)/8, y1+(y2-y1)/8),
+        return [((x1+(x2-x1)/10, y1+(y2-y1)/10),
                  (x1, y1),
-                 (x1+(x3-x1)/8, y1+(y3-y1)/8))
+                 (x1+(x3-x1)/10, y1+(y3-y1)/10))
                 for (x1,y1),(x2,y2),(x3,y3) in combinations]
 
         
@@ -178,6 +179,16 @@ class XformCanvas(FloatCanvas):
         self.Draw()      
 
 
+    def IterXforms(self):
+        active = self.parent.ActiveXform
+        lst = [i for i in self.parent.flame.xform if i != active]
+        if active:
+            lst.insert(0, active)
+        if self.parent.flame.final:
+            lst.append(self.parent.flame.final)
+        return lst
+
+
     def ActivateCallback(self,coords):
         if self.callback:
             self.callback(coords)
@@ -187,75 +198,67 @@ class XformCanvas(FloatCanvas):
             self.HasChanged = True
 
 
-    def CalcScale(self, coefs, h, v, absolute=False):
+    def CalcScale(self, points, h, v, hittest=False):
         """Returns the proportion by which the xform needs to be scaled to make
         the hypot pass through the point.
-        If absolute is set to true, the distance is returned instead of the
-        proportion."""
-        a,d,b,e,c,f = coefs
+        If hittest is set to true, this func doubles as a hittest, and checks
+        if the point is inside the line's hitbox."""
 
+        xf = Xform(points=points)
+        a,d,b,e,c,f = xf.coefs
+        
         # Get angle of the hypothenuse
         angle = polar(((b-a), (e-d)))[1]
 
         # create a rotated triangle and (c,f)->(h,v) vector. This way, the
         # hypothenuse is guaranteed to be horizontal, which makes everything
-        # easier.
-        xf = Xform(None, coefs=coefs)
+        # easier.     
         xf.rotate(-angle)
-        
         l, theta = polar(((h-c), (v-f)))
-        height = rect((l, theta - angle))[1]
+        width,height = rect((l, theta - angle))
 
-        # return the proportion or difference of the vector height and the
-        # triangle height.
+        # return the result.
         # Note that xf.d and xf.e are guaranteed to be equal.
-
-        if absolute:
-            return height - xf.d
+        if hittest:
+            return xf.a < width < xf.b and \
+                   abs(height - xf.d) < self.circle_radius
         return height / xf.d
 
 
-    def CalcRotate(self, coefs, h,v):
-        # TODO: need to implement this so it works with the sides and floating
-        # corners.
-        pass
+    def helper_scale(self, xform, h, v):
+        #TODO: CalcScale could be refactored.
+        return self.CalcScale(xform.points, h, v)  
+
+    def helper_rotate_x(self, xform, h, v):
+        return polar((h - xform.c, v - xform.f))[1] - xform.xp[1]
+
+    def helper_rotate_y(self, xform, h, v):
+        return polar((h - xform.c, v - xform.f))[1] - xform.yp[1]
+
+
+    def cbfactory(self, xform, funcname):
+        hlp = getattr(self, 'helper_%s' % funcname)
+        
+        if self.axes_locked and funcname.startswith('rotate'):
+            func = xform.rotate
+        else:
+            func = getattr(xform, funcname)
+
+        return lambda coord: func(hlp(xform, *coord))
+                
     
-
-    def IterXforms(self):
-        active = self.parent.ActiveXform
-        lst = [i for i in self.parent.flame.xform if i != active]
-        if active:
-            lst.insert(0, active)
-        if self.parent.flame.final:
-            lst.append(self.parent.flame.final)
-        return lst       
-
-
     def SideHitTest(self, h, v):
         """Checks if the given point is near one of the triangle sides."""
 
         for xform in self.IterXforms():
-            a,d,b,e,c,f = xform.coefs
-            radius = self.circle_radius
+            x,y,o = xform.points
+            for points,func in (((x,y,o), 'scale'),
+                                ((x,o,y), 'rotate_x'),
+                                ((y,o,x), 'rotate_y')):
+                if self.CalcScale(points, h, v, hittest=True):
+                    return points[:2], xform, self.cbfactory(xform, func)
 
-            # see if we can exclude it based on bounding box.
-            if any((h + radius < min(a, b) + c,
-                    h - radius > max(a, b) + c,
-                    v + radius < min(d, e) + f,
-                    v - radius > max(d, e) + f)):
-                continue
-
-            if abs(self.CalcScale(xform.coefs, h, v, absolute=True)) < radius:
-                def callback(coord):
-                    xform.scale(self.CalcScale(xform.coefs,*coord))
-                return (xform.x, xform.y), xform, callback
-
-
-
-        return None, None, None
-
-        return line, xform, callback
-        
+        return None, None, None     
 
     
     def VertexHitTest(self,x,y):
@@ -263,14 +266,27 @@ class XformCanvas(FloatCanvas):
         for xform in self.IterXforms():
             a,d,b,e,c,f = xform.coefs
             if polar((x - c, y - f))[0] < self.circle_radius:
-                return (xform.o, xform, xform._set_position if self.axes_locked
+                return (xform, xform._set_position if self.axes_locked
                             else xform._set_o)
             elif polar((x - a - c, y - d - f))[0] < self.circle_radius:
-                return xform.x, xform, xform._set_x
+                return xform, xform._set_x
             elif polar((x - b - c, y - e - f))[0] < self.circle_radius:
-                return xform.y, xform, xform._set_y
-        return None, None, None
-                
+                return xform, xform._set_y
+        return None, None
+
+
+    def angle_helper(self, *points):
+        """Given 3 vectors with the same origin, checks if the first falls
+        between the other 2."""
+        itr = (polar(i)[1] for i in points)
+        vect = itr.next() # vector being checked
+        low, high = sorted(itr) # the 2 triangle legs.
+        if high - low > 180:
+            low, high = high-360, low
+        if vect > high:
+            vect -= 360
+        return high > vect > low
+    
 
     def XformHitTest(self,x,y):
         """Checks if the given point is inside the area of the xform.
@@ -278,30 +294,11 @@ class XformCanvas(FloatCanvas):
         at least 2 of its vertices."""
         for xform in self.IterXforms():
             a,d,b,e,c,f = xform.coefs
-                        
-            phiox = polar((a, d))[1]
-            phioy = polar((b, e))[1]
-            phiop = polar((x - c, y - f))[1]
-
-            low,high = sorted((phiox,phioy))
-            if high - low > 180:
-                low, high = high-360, low
-            if phiop > high:
-                phiop -= 360
-            if high > phiop > low:
-
-                phixo = polar((-a, -d))[1]
-                phixy = polar((b - a, e - d))[1]
-                phixp = polar((x - a - c, y - d - f))[1]
-
-                low, high = sorted((phixo,phixy))
-                if high - low > 180:
-                    low, high = high-360, low
-                if phixp > high:
-                    phixp -= 360
-                        
-                if high > phixp > low:
-                    return xform
+            if self.angle_helper((x-c, y-f), (a, d), (b, e)) and \
+               self.angle_helper((x-a-c, y-d-f), (-a, -d), (b-a, e-d)):
+                diff = x - xform.c, y - xform.f
+                return xform, lambda coord: xform._set_pos(coord-diff)
+        return None, None
 
 
     # Currently not bound
@@ -411,27 +408,24 @@ class XformCanvas(FloatCanvas):
 ##            self.SetFocus() # Makes Canvas take focus under windows.
             
             # First, test for vertices
-            vertex, xform, cb = self.VertexHitTest(*e.Coords)
+            xform, cb = self.VertexHitTest(*e.Coords)
             if cb:
                 self.SelectXform(xform)
                 self.callback = cb
                 return
 
             # Then, test for sides
-            points, xform, cb = self.SideHitTest(*e.Coords)
+            line, xform, cb = self.SideHitTest(*e.Coords)
             if cb:
-                self.SelectXform(xform, highlight=points)
+                self.SelectXform(xform, highlight=line)
                 self.callback = cb
                 return
 
             # Finally, test for area
-            xform = self.XformHitTest(*e.Coords)
+            xform, cb = self.XformHitTest(*e.Coords)
             if xform:
-                diff = e.Coords - xform.o
-                def callback(coord):
-                    xform._set_position(coord-diff)
-                self.callback = callback
                 self.SelectXform(xform)
+                self.callback = cb
 
             elif self.SelectedXform is not None:
                 # Showflame is called here because SelectXform is not.
@@ -443,7 +437,6 @@ class XformCanvas(FloatCanvas):
     def SelectXform(self, xform, highlight=None):
         if self.SelectedXform == xform and self._highlight == highlight:
             return
-        
         
         self.SelectedXform = xform
         self._highlight = highlight
