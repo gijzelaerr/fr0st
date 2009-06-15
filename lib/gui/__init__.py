@@ -456,9 +456,9 @@ class MainWindow(wx.Frame):
     def _get_flame(self):
         return self._namespace['flame']
 
-    def _set_flame(self,flame):
+    def _set_flame(self, flame):
         if not isinstance(flame,Flame):
-            raise TypeError("Argument must be an instance of the Flame class")
+            raise TypeError("Argument must be a Flame object")
         self._namespace['flame'] = flame
 
     flame = property(_get_flame, _set_flame)
