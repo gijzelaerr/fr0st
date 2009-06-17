@@ -10,6 +10,8 @@ class Filemenu(wx.Menu):
         self.Append(ID.FOPEN, "&Open"," Open a flame file")
         self.Append(ID.FSAVE, "&Save"," Save a flame to a file")
         self.AppendSeparator()
+        self.Append(ID.FREND, "&Render"," Render a flame to an image")
+        self.AppendSeparator()
         self.Append(ID.ABOUT, "&About"," Information about this program")
         self.AppendSeparator()
         self.Append(ID.EXIT,"E&xit"," Terminate the program")

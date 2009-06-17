@@ -60,6 +60,9 @@ def CreateToolBar(parent):
 
     tb.AddSimpleTool(ID.TBPREVIEW, GetBMP(wx.ART_MISSING_IMAGE),
                      "Preview", "Open the preview frame")
+
+    tb.AddSimpleTool(ID.TBREND, GetBMP(wx.ART_FLOPPY),
+                     "Render", "Render flame to image file")
     
     tb.Realize()
 

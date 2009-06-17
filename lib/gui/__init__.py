@@ -20,6 +20,7 @@ from lib.gui.rendering import render, Renderer
 from lib.gui._events import EVT_THREAD_MESSAGE, ThreadMessageEvent
 from lib.fr0stlib import Flame, BLANKFLAME
 from itemdata import ItemData
+from lib.gui.renderdialog import renderDialog
 
 
 class MainWindow(wx.Frame):
@@ -283,6 +284,10 @@ class MainWindow(wx.Frame):
             self.tree.RenderThumbnail()
             self.tree.SetItemText(self.tree.item, data.name)
 
+    @Bind(wx.EVT_MENU,id=ID.FREND)
+    @Bind(wx.EVT_TOOL,id=ID.TBREND)
+    def OnRender(self,e):
+        RENDERDIALOG = renderDialog(self, ID.DREND)
 
 #------------------------------------------------------------------------------
 
