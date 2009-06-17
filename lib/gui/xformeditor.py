@@ -104,16 +104,24 @@ class XformPanel(wx.Panel):
         r2 = wx.RadioButton(self, -1, "xform" )
         r3 = wx.RadioButton(self, -1, "polar" )
         self.postflag = wx.CheckBox(self,-1,"post  ")
-        vsizer = wx.BoxSizer(wx.VERTICAL)
-        vsizer.AddMany((r1,r2,r3,self.postflag))
+        radiosizer = wx.BoxSizer(wx.VERTICAL)
+        radiosizer.AddMany((r1,r2,r3,self.postflag))
 
         # Put the view buttons to the right of the number fields
         hsizer = wx.BoxSizer(wx.HORIZONTAL)
-        hsizer.AddMany((fgs, vsizer))
+        hsizer.AddMany((fgs, radiosizer))
 
         # Add the reset xform button
         reset = wx.Button(self, -1, "reset xform", name="Reset",
                           style=wx.BU_EXACTFIT)
+
+        # Add weight box
+        weightsizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.weight = NumberTextCtrl(self)
+        self.weight.SetAllowedRange(low=0)
+        weightsizer.AddMany((wx.StaticText(self, -1, "weight"), self.weight))
+        
+        
 
         # Add the Comboboxes and buttons
         map(self.MakeComboBox, *zip(("rotate", 15),
@@ -135,7 +143,7 @@ class XformPanel(wx.Panel):
         
         # Finally, put everything together
         sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.AddMany((hsizer, reset, fgs2))
+        sizer.AddMany((hsizer, reset, weightsizer, fgs2))
         self.SetSizer(sizer)
         self.Layout()
 
@@ -232,6 +240,10 @@ class XformPanel(wx.Panel):
 
     def UpdateView(self):
         xform, view = self.GetActive()
+
+        # Update weight. If more values are ever needed here, write a
+        # get/setattr loop.
+        self.weight.SetFloat(xform.weight)
             
         if view == "triangle":
             self.coefs = itertools.chain(*xform.points)
@@ -252,6 +264,9 @@ class XformPanel(wx.Panel):
     def UpdateXform(self,e=None):
         xform, view = self.GetActive()
 
+        # Update weight.
+        xform.weight = self.weight.GetFloat()
+
         if view == "triangle":
             xform.points = zip(*[iter(self.coefs)]*2)
         elif view == "xform":
@@ -266,7 +281,7 @@ class XformPanel(wx.Panel):
         return (getattr(self,i).GetFloat() for i in "adbecf")
 
     def _set_coefs(self,v):
-        map(lambda x,y: getattr(self,x).SetFloat(y),"adbecf",v)
+        map(lambda x,y: getattr(self,x).SetFloat(y), "adbecf", v)
 
     coefs = property(_get_coefs, _set_coefs)
 
@@ -411,7 +426,7 @@ class NumberTextCtrl(wx.TextCtrl):
     high = None
 
     @BindEvents
-    def __init__(self,parent):
+    def __init__(self, parent):
         self.parent = parent
         # Size is set to ubuntu default (75,27), maybe make it 75x21 in win
         wx.TextCtrl.__init__(self,parent,-1, size=(75,27))
@@ -439,7 +454,7 @@ class NumberTextCtrl(wx.TextCtrl):
         self.SetValue(string)
 
 
-    def SetAllowedRange(self, low, high):
+    def SetAllowedRange(self, low=None, high=None):
         self.low = low
         self.high = high
 
