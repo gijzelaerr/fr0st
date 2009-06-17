@@ -246,21 +246,18 @@ def vector(cps, n, i, **kwargs):
     #Set defaults
     t = kwargs.get('t', 0.5)
         
-    if len(cps)>1 and len(cps)<4:
+    if 1 < len(cps) < 4:
         return drange(cps[0], cps[1], n, i, **kwargs)
     elif len(cps)==4:
 ##        if cache:
         v = drange(0, 1, n, i, **kwargs)
         cps = numpy.array(cps)
-        M = numpy.array([[0,1,0,0]
-                        ,[-t,0,t,0]
-                        ,[2*t,t-3,3-2*t,-t]
-                        ,[-t,2-t,t-2,t]])
-        W = []
-        for j in xrange(4):
-            W.append(v**j)
+        M = numpy.array(((0,1,0,0)
+                        ,(-t,0,t,0)
+                        ,(2*t,t-3,3-2*t,-t)
+                        ,(-t,2-t,t-2,t)))
 
-        W = numpy.array(W)
+        W = numpy.array(v*j for j in range(4))
         vp = numpy.dot(M,cps)
         return numpy.dot(W,vp)
     else:
@@ -277,11 +274,9 @@ def vector2d(cps, n, i, **kwargs):
         for c in cps:
             tmp.append(polar(c))
         cps = tmp
-    xcps = []
-    ycps = []
-    for c in cps:
-        xcps.append(c[0])
-        ycps.append(c[1])
+
+    xcps, ycps = zip(*cps)
+    
     if p_space=='polar':
         return rect((vector(xcps,n,i,**kwargs),vector(ycps,n,i,**kwargs)))
     else:
@@ -297,13 +292,9 @@ def vector3d(cps, n, i, **kwargs):
         for c in cps:
             tmp.append(rgb2hls(c))
         cps = tmp
-    rcps = []
-    gcps = []
-    bcps = []
-    for c in cps:
-        rcps.append(c[0])
-        gcps.append(c[1])
-        bcps.append(c[2])
+
+    rcps, gcps, bcps = zip(*cps)
+    
     if c_space=='hls':
         return hls2rgb((vector(rcps,n,i,**kwargs)
                        ,vector(gcps,n,i,**kwargs)
