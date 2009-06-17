@@ -284,10 +284,11 @@ class MainWindow(wx.Frame):
             self.tree.RenderThumbnail()
             self.tree.SetItemText(self.tree.item, data.name)
 
-    @Bind(wx.EVT_MENU,id=ID.FREND)
-    @Bind(wx.EVT_TOOL,id=ID.TBREND)
+
+    @Bind(wx.EVT_MENU,id=ID.RENDER)
+    @Bind(wx.EVT_TOOL,id=ID.RENDER)
     def OnRender(self,e):
-        RENDERDIALOG = renderDialog(self, ID.DREND)
+        renderDialog(self, ID.RENDER)
 
 #------------------------------------------------------------------------------
 
