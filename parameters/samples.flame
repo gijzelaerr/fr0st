@@ -1,6 +1,6 @@
 <flames name="Fr0st Batch">
 <flame name="linear" rotate="0" center="0 0" brightness="4" oversample="1" version="Apophysis 2.08 beta" zoom="0" filter="0.2" scale="160.0" background="0 0 0" quality="5" gamma="4" size="640 480" >
-   <xform opacity="1.0" linear="1.0" weight="0.5" color="0.25" coefs="1.03761563371 -0.278028271106 -0.790307492931 -0.504671021973 0.104198559126 -0.39715729566" />
+   <xform opacity="1.0" linear="1.0" weight="0.5" color="0.25" coefs="1.03761563371 -0.278028271106 -0.790307492931 -0.504671021973 0.223216885332 -0.506257428015" />
    <xform opacity="1.0" linear="1.0" weight="0.5" color="0.117" coefs="0.15 -0.0 -0.0 0.15 -0.31 -0.0" />
    <xform opacity="1.0" weight="1.0" symmetry="1.0" color="0.0" linear="1.0" coefs="1.0 -0.0 -0.0 -1.0 0.0 -0.0" />
    <palette count="256" format="RGB">
