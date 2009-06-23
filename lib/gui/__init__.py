@@ -115,14 +115,6 @@ class MainWindow(wx.Frame):
 #-----------------------------------------------------------------------------
 # Event handlers
 
-    @Bind(wx.EVT_CHAR_HOOK)
-    def OnChar(self, e):
-        # TODO: Implement keyboard shortcuts with this, or is there a better
-        # way?
-        print "onchar", e.KeyCode
-        e.Skip()
-        
-
     @Bind(wx.EVT_MENU,id=ID.ABOUT)
     def OnAbout(self,e):
         d= wx.MessageDialog(self,"......",
@@ -167,7 +159,7 @@ class MainWindow(wx.Frame):
 
 
     @Bind(wx.EVT_MENU,id=ID.FNEW)
-    @Bind(wx.EVT_TOOL,id=ID.TBNEW)
+    @Bind(wx.EVT_TOOL,id=ID.FNEW)
     def OnFlameNew(self,e):
         path = self.newfilename()
         item = self.tree.AddFlamefile(path, [])
@@ -180,7 +172,7 @@ class MainWindow(wx.Frame):
             
 
     @Bind(wx.EVT_MENU,id=ID.FNEW2)
-    @Bind(wx.EVT_TOOL,id=ID.TBNEW2)
+    @Bind(wx.EVT_TOOL,id=ID.FNEW2)
     def OnFlameNew2(self,e):
         data = ItemData(BLANKFLAME)
 
@@ -199,7 +191,7 @@ class MainWindow(wx.Frame):
 
 
     @Bind(wx.EVT_MENU,id=ID.FOPEN)
-    @Bind(wx.EVT_TOOL,id=ID.TBOPEN)
+    @Bind(wx.EVT_TOOL,id=ID.FOPEN)
     def OnFlameOpen(self,e):
         dDir,dFile = os.path.split(self.flamepath)
         dlg = wx.FileDialog(
@@ -212,14 +204,14 @@ class MainWindow(wx.Frame):
 
 
     @Bind(wx.EVT_MENU,id=ID.FSAVE)
-    @Bind(wx.EVT_TOOL,id=ID.TBSAVE)
+    @Bind(wx.EVT_TOOL,id=ID.FSAVE)
     def OnFlameSave(self,e):
         self.flamepath = self.tree.GetFlameData(self.tree.itemparent)[-1]
         self.SaveFlame(self.flamepath, confirm=False)
 
         
     @Bind(wx.EVT_MENU,id=ID.FSAVEAS)
-    @Bind(wx.EVT_TOOL,id=ID.TBSAVEAS)
+    @Bind(wx.EVT_TOOL,id=ID.FSAVEAS)
     def OnFlameSaveAs(self,e):
         self.flamepath = self.tree.GetFlameData(self.tree.itemparent)[-1]
         dDir,dFile = os.path.split(self.flamepath)
@@ -233,30 +225,31 @@ class MainWindow(wx.Frame):
         
 
     @Bind(wx.EVT_MENU,id=ID.SOPEN)
-    @Bind(wx.EVT_TOOL,id=ID.TBOPENSCRIPT)
+    @Bind(wx.EVT_TOOL,id=ID.SOPEN)
     def OnScriptOpen(self,e):
         # TODO: how can this ugly wrapper be avoided?
         self.editorframe.OnScriptOpen(e)
 
 
-    @Bind(wx.EVT_TOOL,id=ID.TBRUN)
+    @Bind(wx.EVT_MENU,id=ID.RUN)
+    @Bind(wx.EVT_TOOL,id=ID.RUN)
     def OnRunScript(self,e):
         self.Execute(self.editor.GetText())   
 
-
-    @Bind(wx.EVT_TOOL,id=ID.TBSTOP)
+    @Bind(wx.EVT_MENU,id=ID.STOP)
+    @Bind(wx.EVT_TOOL,id=ID.STOP)
     def OnStopScript(self,e=None):
         interruptall("Execute")
 
 
-    @Bind(wx.EVT_TOOL,id=ID.TBEDITOR)
+    @Bind(wx.EVT_TOOL,id=ID.EDITOR)
     def OnEditorOpen(self,e):
         self.editorframe.Show(True)
         self.editorframe.Raise()
         self.editorframe.SetFocus() # In case it's already open in background
 
 
-    @Bind(wx.EVT_TOOL, id=ID.TBPREVIEW)
+    @Bind(wx.EVT_TOOL, id=ID.PREVIEW)
     def OnPreviewOpen(self, e):
         self.previewframe.Show(True)
         self.previewframe.Raise()

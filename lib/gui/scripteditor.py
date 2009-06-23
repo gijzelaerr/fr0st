@@ -42,14 +42,14 @@ class EditorFrame(wx.Frame):
         self.Parent.Raise()
 
 
-    @Bind(wx.EVT_TOOL,id=ID.TBNEW)
+    @Bind(wx.EVT_TOOL,id=ID.SNEW)
     def OnScriptNew(self,e):
         if self.CheckForChanges() == wx.ID_CANCEL:
             return
         self.editor.SetValue("")
 
 
-    @Bind(wx.EVT_TOOL,id=ID.TBOPEN)    
+    @Bind(wx.EVT_TOOL,id=ID.SOPEN)    
     def OnScriptOpen(self,e):
         if self.CheckForChanges() == wx.ID_CANCEL:
             return
@@ -63,12 +63,12 @@ class EditorFrame(wx.Frame):
         dlg.Destroy()
 
 
-    @Bind(wx.EVT_TOOL,id=ID.TBSAVE)
+    @Bind(wx.EVT_TOOL,id=ID.SSAVE)
     def OnScriptSave(self, e):
         self.SaveScript(self.scriptpath, confirm=False)
 
 
-    @Bind(wx.EVT_TOOL,id=ID.TBSAVEAS)
+    @Bind(wx.EVT_TOOL,id=ID.SSAVEAS)
     def OnScriptSaveAs(self, e):
         dDir,dFile = os.path.split(self.scriptpath)
         dlg = wx.FileDialog(self, message="Save file as ...",
