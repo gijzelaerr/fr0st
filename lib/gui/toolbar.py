@@ -75,6 +75,7 @@ def CreateEditorToolBar(parent):
                 )
 
     tb = parent.CreateToolBar(TBFLAGS)
+    parent.tb = tb
     
     tb.AddSimpleTool(ID.SNEW, GetBMP(wx.ART_NEW),
                      "New", "Long help for 'New'")

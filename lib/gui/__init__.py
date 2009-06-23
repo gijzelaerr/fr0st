@@ -109,6 +109,7 @@ class MainWindow(wx.Frame):
 ##        self.tree.ExpandAll()
         self.tree.SelectItem(self.tree.GetItemByIndex((0,0)))
 
+        self.Enable(ID.STOP, False, editor=True)
         self.Show(True)
     
 
@@ -373,14 +374,14 @@ class MainWindow(wx.Frame):
             return result
 
 
-    def EnableUndo(self,flag):        
-        self.tb.EnableTool(ID.UNDO, bool(flag))
-        self.menu.Enable(ID.UNDO, bool(flag))
-
-
-    def EnableRedo(self,flag):
-        self.tb.EnableTool(ID.REDO, bool(flag))
-        self.menu.Enable(ID.REDO, bool(flag))
+    def Enable(self, id, flag, editor=False):
+        """Enables/Disables toolbar and menu items."""
+        flag = bool(flag)
+        self.tb.EnableTool(id, flag)
+        self.menu.Enable(id, flag)
+        if editor:
+            self.editorframe.tb.EnableTool(id, flag)
+            
 
 
     @CallableFrom('MainThread')
@@ -403,8 +404,8 @@ class MainWindow(wx.Frame):
 
         # Set Undo and redo buttons to the correct value:
         data = self.tree.itemdata
-        self.EnableUndo(data.undo)
-        self.EnableRedo(data.redo)
+        self.Enable(ID.UNDO, data.undo)
+        self.Enable(ID.REDO, data.redo)
 
         
     def CreateNamespace(self):
@@ -431,6 +432,9 @@ class MainWindow(wx.Frame):
     def Execute(self,string):
         print time.strftime("\n---------- %H:%M:%S ----------")
         start = time.time()
+        self.Enable(ID.RUN, False, editor=True)
+        self.Enable(ID.STOP, True, editor=True)
+        
 
         # split and join fixes linebreak issues between windows and linux
         text = string.splitlines()
@@ -449,6 +453,8 @@ class MainWindow(wx.Frame):
         finally:
             self.editor.SetEditable(True)
             self.scriptrunning = False
+            self.Enable(ID.RUN, True, editor=True)
+            self.Enable(ID.STOP, False, editor=True)
         self.PrintScriptStats(start) # Don't put this in the finally clause!
         
 
