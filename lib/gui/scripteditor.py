@@ -5,6 +5,7 @@ from wx import stc, PyDeadObjectError
 from StyledTextCtrl_2 import PythonSTC
 from decorators import *
 from toolbar import CreateEditorToolBar
+from menu import CreateEditorMenu
 from constants import ID
 from _events import EVT_THREAD_MESSAGE, ThreadMessageEvent
 
@@ -17,6 +18,7 @@ class EditorFrame(wx.Frame):
         self.parent = parent
         wx.Frame.__init__(self,parent,wx.ID_ANY, self.title)
 
+        CreateEditorMenu(self)
         CreateEditorToolBar(self)
         self.SetSize((865,500))
 
@@ -35,6 +37,7 @@ class EditorFrame(wx.Frame):
 
 
     @Bind(wx.EVT_CLOSE)
+    @Bind(wx.EVT_MENU,id=ID.EXIT)
     def OnExit(self,e):        
         if self.CheckForChanges() == wx.ID_CANCEL:
             return

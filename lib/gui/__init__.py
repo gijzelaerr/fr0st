@@ -47,7 +47,7 @@ class MainWindow(wx.Frame):
         self.renderer = Renderer(self)
         
         # Creating Frame Content
-        CreateMenu(self)
+        CreateMenu(parent=self)
         CreateToolBar(self)
         self.image = ImagePanel(self)
 ##        self.grad = GradientPanel(self)

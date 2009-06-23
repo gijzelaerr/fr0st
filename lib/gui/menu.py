@@ -1,4 +1,6 @@
 import wx
+from functools import partial
+
 from constants import ID
 
 
@@ -28,18 +30,32 @@ class Scriptmenu(wx.Menu):
         wx.Menu.__init__(self)
         self.Append(ID.RUN, "&Run\tF8"," Run currently open script")
         self.Append(ID.STOP, "&Stop\tF9"," Stop script execution")
+        self.AppendSeparator()
         self.Append(ID.SOPEN, "&Open\tCtrl-Shift-O"," Open a script file")
         self.Append(ID.EDITOR, "&Editor\tCtrl-E"," Open the script editor")
+
+class Editormenu(wx.Menu):
+     def __init__(self):
+        wx.Menu.__init__(self)
+        self.Append(ID.SNEW, "&New Script\tCtrl-N"," Create a new script")
+        self.Append(ID.SOPEN, "&Open\tCtrl-O"," Open a script file")
+        self.Append(ID.SSAVE, "&Save\tCtrl-S"," Save the current script")
+        self.Append(ID.SSAVEAS, "&Save as\tCtrl-Shift-S"," Save the current script to a new file")
         self.AppendSeparator()
+        self.Append(ID.RUN, "&Run\tF8"," Run currently open script")
+        self.Append(ID.STOP, "&Stop\tF9"," Stop script execution")
+        self.AppendSeparator()
+        self.Append(ID.EXIT,"E&xit\tCtrl-Q"," Close the editor")        
 
-
-def CreateMenu(parent):
+def Create(lst, parent):
     menu = wx.MenuBar()
-    lst = [(Filemenu(),   "&File"),
-           (Editmenu(),   "&Edit"),
-           (Scriptmenu(), "&Script")]
-    
-    map(menu.Append,*zip(*lst))
+    map(menu.Append,*zip(*((menu(), name) for menu, name in lst)))
     parent.SetMenuBar(menu)
     parent.menu = menu
+
+CreateMenu = partial(Create, [(Filemenu,   "&File"),
+                              (Editmenu,   "&Edit"),
+                              (Scriptmenu, "&Script")])
+CreateEditorMenu = partial(Create, [(Editormenu,"&File")])
+
 
