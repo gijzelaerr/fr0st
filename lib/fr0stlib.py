@@ -6,10 +6,14 @@
 #Pygame 1.8.1.win32-py2.5
 #-----------------------------------------------------------------
 
-import re
+import re, shutil, random, itertools
 from functions import *
 from math import *
-import wx
+
+try:
+    import wx
+except ImportError:
+    wx = False
     
 BLANKFLAME = """<flame name="Untitled" version="fr0st" size="512 384" center="0 0" scale="128" oversample="1" filter="0.2" quality="1" background="0 0 0" brightness="4" gamma="4" gamma_threshold="0.04" >
    <xform weight="0.5" color="0" linear="1" coefs="1 0 0 1 0 0" />
@@ -424,6 +428,8 @@ class Palette(list):
 #---end
 
     def from_image(self, filename, num_tries=50, try_size=1000):
+        if not wx:
+            raise ImportError('this method requires wx.')
         img = wx.Image(filename)
         orig = []
         for i in xrange(256):

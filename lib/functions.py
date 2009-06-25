@@ -8,11 +8,8 @@ from __future__ import generators
 #Pygame 1.8.1.win32-py2.5
 #-----------------------------------------------------------------
 
-# This code sets up the namespace in which fr0st scripts run
-
-import os, sys, marshal, copy, random, cmath, shutil, numpy, colorsys, itertools
+import os, sys, cmath, numpy, colorsys
 from math import *
-sys.dont_write_bytecode = False # Why is this line here?
 
 hues = {'red': 0,
         'orange': 1/12.0,
