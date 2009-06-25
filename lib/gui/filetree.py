@@ -8,7 +8,7 @@ import pickle as cPickle
 
 from lib.fr0stlib import Flame
 from lib.pyflam3 import Genome
-from decorators import *
+from lib.decorators import *
 from itemdata import ItemData
 
 class TreePanel(wx.Panel):

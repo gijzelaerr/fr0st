@@ -2,7 +2,7 @@ import wx, os, functools, itertools
 from wx import gizmos
 from collections import defaultdict
 
-from decorators import Bind,BindEvents
+from lib.decorators import Bind,BindEvents
 from lib.fr0stlib import polar, rect
 from lib import pyflam3
 from lib.gui.config import config

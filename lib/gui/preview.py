@@ -1,6 +1,6 @@
 import wx, sys
 
-from decorators import *
+from lib.decorators import *
 from _events import EVT_THREAD_MESSAGE, ThreadMessageEvent
 
 

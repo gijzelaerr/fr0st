@@ -1,6 +1,7 @@
 import ctypes, inspect, threading, sys
 
-from _exceptions import ThreadInterrupt
+
+class ThreadInterrupt(BaseException): pass
 
 
 def interrupt(thread, exctype=ThreadInterrupt):

@@ -8,10 +8,9 @@
 
 import wx, os
 from lib.fr0stlib import Flame
-from lib.gui import rendering
 from lib.pyflam3 import Genome
 from _events import EVT_THREAD_MESSAGE, ThreadMessageEvent
-from decorators import *
+from lib.decorators import *
 
 class renderDialog(wx.Dialog):
 

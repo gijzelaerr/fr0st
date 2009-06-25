@@ -1,6 +1,6 @@
 import wx, itertools
 
-from decorators import *
+from lib.decorators import *
 from lib.gui.canvas import XformCanvas
 from _events import EVT_THREAD_MESSAGE
 

@@ -7,21 +7,19 @@ from lib.gui.preview import PreviewFrame
 from lib.gui.filetree import TreePanel
 from lib.gui.menu import CreateMenu
 from lib.gui.toolbar import CreateToolBar
-from lib.gui.decorators import *
 from lib.gui.constants import ID
-##from lib.gui.canvas import XformCanvas
 from lib.gui.gradient import MainNotebook
 from lib.gui.xformeditor import XformTabs
-from lib.threadinterrupt import interruptall
-from lib._exceptions import ThreadInterrupt
-from lib import fr0stlib
-from lib.pyflam3 import Genome
-from lib.gui.rendering import render, Renderer
+from lib.gui.renderer import render, Renderer
 from lib.gui._events import EVT_THREAD_MESSAGE, ThreadMessageEvent
-from lib.fr0stlib import Flame, BLANKFLAME
-from itemdata import ItemData
+from lib.gui.itemdata import ItemData
 from lib.gui.renderdialog import renderDialog
 
+from lib import fr0stlib
+from lib.fr0stlib import Flame, BLANKFLAME
+from lib.pyflam3 import Genome
+from lib.decorators import *
+from lib.threadinterrupt import ThreadInterrupt, interruptall
 
 class MainWindow(wx.Frame):
     wildcard = "Flame file (*.flame)|*.flame|" \

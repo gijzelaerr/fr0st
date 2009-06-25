@@ -1,7 +1,7 @@
 import wx, time, sys, traceback
 from threading import Thread
 
-from decorators import Catches, Threaded
+from lib.decorators import Catches, Threaded
 from _events import ThreadMessageEvent
 from ..pyflam3 import Genome
 

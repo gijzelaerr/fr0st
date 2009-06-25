@@ -3,7 +3,7 @@ from threading import Thread, Lock, currentThread
 from functools import wraps
 
 try:
-    from lib._exceptions import ThreadInterrupt
+    from threadinterrupt import ThreadInterrupt
 except ImportError:
     raise ImportWarning("Couldn't import required exception.")
     class ThreadInterrupt(BaseException): pass

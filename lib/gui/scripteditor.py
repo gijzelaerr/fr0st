@@ -3,7 +3,7 @@ import wx, os, sys, re
 from wx import stc, PyDeadObjectError
 
 from StyledTextCtrl_2 import PythonSTC
-from decorators import *
+from lib.decorators import *
 from toolbar import CreateEditorToolBar
 from menu import CreateEditorMenu
 from constants import ID

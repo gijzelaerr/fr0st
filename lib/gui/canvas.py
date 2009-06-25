@@ -2,7 +2,7 @@ import itertools, numpy as N, time, wx, sys, math
 from wx.lib.floatcanvas import FloatCanvas as FC
 from wx.lib.floatcanvas.FloatCanvas import FloatCanvas, DotGrid
 
-from decorators import Bind, BindEvents
+from lib.decorators import Bind, BindEvents
 from _events import EVT_THREAD_MESSAGE
 from lib.fr0stlib import polar, rect, Xform
 from lib import pyflam3
