@@ -49,13 +49,14 @@ def Catches(exctype):
     return decorator
 
 
-def Locked(blocking=True):
+def Locked(lock=None, blocking=True):
     """ Wraps the function in a lock to make sure no more than one thread is
     executing inside it at any given time.
 
     The blocking flag is passd on to the underlying lock, so it will
     behave as documented in the threading module."""
-    lock = Lock()
+    if lock is None:
+        lock = Lock()
     def decorator(f):
         @wraps(f)
         def wrapper(*args, **kwds):
