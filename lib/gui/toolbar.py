@@ -1,5 +1,6 @@
 import wx
 from constants import ID
+from lib.gui.utils import LoadIcon
 
 def GetBMP(name,client=wx.ART_TOOLBAR,size=(16,16)):
     return wx.ArtProvider.GetBitmap(name, client, size)
@@ -47,7 +48,7 @@ def CreateToolBar(parent):
     tb.AddSimpleTool(ID.SOPEN, GetBMP(wx.ART_FILE_OPEN),
                      "Open Script", "")
 
-    tb.AddSimpleTool(ID.RUN, GetBMP(wx.ART_EXECUTABLE_FILE),
+    tb.AddSimpleTool(ID.RUN, LoadIcon('toolbar', 'Run'),
                      "Run Script", "Run the currently loaded script file")
     
     tb.AddSimpleTool(ID.STOP, GetBMP(wx.ART_ERROR),
@@ -61,7 +62,7 @@ def CreateToolBar(parent):
     tb.AddSimpleTool(ID.PREVIEW, GetBMP(wx.ART_MISSING_IMAGE),
                      "Preview", "Open the preview frame")
 
-    tb.AddSimpleTool(ID.RENDER, GetBMP(wx.ART_FLOPPY),
+    tb.AddSimpleTool(ID.RENDER, GetBMP(wx.ART_EXECUTABLE_FILE),
                      "Render", "Render flame to image file")
     
     tb.Realize()
@@ -91,7 +92,7 @@ def CreateEditorToolBar(parent):
 
     tb.AddSeparator()
 
-    tb.AddSimpleTool(ID.RUN, GetBMP(wx.ART_EXECUTABLE_FILE),
+    tb.AddSimpleTool(ID.RUN, LoadIcon('toolbar', 'Run'),
                      "Run Script", "Run the currently loaded script file")
     
     tb.AddSimpleTool(ID.STOP, GetBMP(wx.ART_ERROR),

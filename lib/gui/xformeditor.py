@@ -6,13 +6,7 @@ from lib.decorators import Bind,BindEvents
 from lib.fr0stlib import polar, rect
 from lib import pyflam3
 from lib.gui.config import config
-
-
-def LoadIcon(name):
-    img = wx.Image(os.path.join('lib','gui','icons','xformtab',"%s.png" %name),
-                                type=wx.BITMAP_TYPE_PNG)
-    img.Rescale(16, 16)
-    return wx.BitmapFromImage(img)
+from lib.gui.utils import LoadIcon
 
 
 class XformTabs(wx.Notebook):
@@ -128,7 +122,8 @@ class XformPanel(wx.Panel):
                                     ("translate", 0.1),
                                     ("scale", 1.25)))
         
-        btn = [wx.BitmapButton(self, -1, LoadIcon(i), name=i.replace("-",""))
+        btn = [wx.BitmapButton(self, -1, LoadIcon('xformtab',i),
+                               name=i.replace("-",""))
                for i in ('90-Left', 'Rotate-Left', 'Rotate-Right', '90-Right',
                          'Move-Up', 'Move-Down', 'Move-Left', 'Move-Right',
                          'Shrink', 'Grow')]

@@ -151,12 +151,6 @@ class MainWindow(wx.Frame):
         self.Destroy()
 
 
-    @Bind(EVT_THREAD_MESSAGE)
-    def OnImageReady(self,e):
-        callback, metadata, output_buffer = e.GetValue()
-        callback(metadata, output_buffer)
-
-
     @Bind(wx.EVT_MENU,id=ID.FNEW)
     @Bind(wx.EVT_TOOL,id=ID.FNEW)
     def OnFlameNew(self,e):
@@ -233,8 +227,10 @@ class MainWindow(wx.Frame):
     @Bind(wx.EVT_MENU,id=ID.RUN)
     @Bind(wx.EVT_TOOL,id=ID.RUN)
     def OnRunScript(self,e):
-        self.Execute(self.editor.GetText())   
+        self.BlockGUI(flag=True)
+        self.Execute(self.editor.GetText())
 
+            
     @Bind(wx.EVT_MENU,id=ID.STOP)
     @Bind(wx.EVT_TOOL,id=ID.STOP)
     def OnStopScript(self,e=None):
@@ -282,8 +278,7 @@ class MainWindow(wx.Frame):
     def OnRender(self,e):
         renderDialog(self, ID.RENDER)
 
-#------------------------------------------------------------------------------
-
+#------------------------------------------------------------------------------    
 
     def OpenFlame(self,path):
         # Check if file is already open
@@ -372,6 +367,17 @@ class MainWindow(wx.Frame):
             return result
 
 
+    @Bind(EVT_THREAD_MESSAGE)
+    def BlockGUI(self, e=None, flag=False):
+        """This is not only called with the event, but also directly before
+        the script starts running."""
+        # TODO: prevent file opening, etc
+        self.Enable(ID.RUN, not flag, editor=True)
+        self.Enable(ID.STOP, flag, editor=True)
+        self.editor.SetEditable(not flag)
+        self.scriptrunning = flag
+        
+
     def Enable(self, id, flag, editor=False):
         """Enables/Disables toolbar and menu items."""
         flag = bool(flag)
@@ -420,19 +426,12 @@ class MainWindow(wx.Frame):
         return namespace
 
 
-    def PrintScriptStats(self,start):
-        print "\nSCRIPT STATS:\n"\
-              "Running time %.2f seconds\n" %(time.time()-start)      
-
     @Threaded
     @Locked(blocking=False)
     @Catches(PyDeadObjectError)
     def Execute(self,string):
         print time.strftime("\n---------- %H:%M:%S ----------")
         start = time.time()
-        self.Enable(ID.RUN, False, editor=True)
-        self.Enable(ID.STOP, True, editor=True)
-        
 
         # split and join fixes linebreak issues between windows and linux
         text = string.splitlines()
@@ -440,20 +439,16 @@ class MainWindow(wx.Frame):
         self.log._script = text
         
         try:
-            self.editor.SetEditable(False)
-            self.scriptrunning = True
-            # TODO: prevent file opening, etc
             exec(script,self._namespace)
         except SystemExit:
             pass
         except ThreadInterrupt:
             print("\n\nScript Interrupted")
-        finally:
-            self.editor.SetEditable(True)
-            self.scriptrunning = False
-            self.Enable(ID.RUN, True, editor=True)
-            self.Enable(ID.STOP, False, editor=True)
-        self.PrintScriptStats(start) # Don't put this in the finally clause!
+
+        print "\nSCRIPT STATS:\n"\
+              "Running time %.2f seconds\n" %(time.time()-start)
+
+        wx.PostEvent(self,ThreadMessageEvent())
         
 
     def _get_flame(self):
@@ -488,6 +483,12 @@ class ImagePanel(wx.Panel):
         wx.Panel.__init__(self, parent, -1)
         self.bmp = wx.EmptyBitmap(160,120, 32)
         self.SetMinSize((256, 192))
+
+
+    @Bind(EVT_THREAD_MESSAGE)
+    def OnImageReady(self,e):
+        callback, metadata, output_buffer = e.GetValue()
+        callback(metadata, output_buffer)
 
 
     def RenderPreview(self, flame=None):

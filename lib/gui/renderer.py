@@ -100,7 +100,7 @@ class Renderer():
                 finally:
                     self.bgflag = 0
                 evt = ThreadMessageEvent(callback,metadata,output_buffer)
-                wx.PostEvent(self.parent,evt)
+                wx.PostEvent(self.parent.image,evt)
             else:
                 time.sleep(.01)  # Ideal interval needs to be tested
 
@@ -114,7 +114,7 @@ class Renderer():
                 callback,metadata,args,kwds = self.bgqueue.pop(0)
                 output_buffer = render(*args,**kwds)
                 evt = ThreadMessageEvent(callback,metadata,output_buffer)
-                wx.PostEvent(self.parent,evt)
+                wx.PostEvent(self.parent.image,evt)
             else:
                 time.sleep(.01)
         
