@@ -368,6 +368,7 @@ class MainWindow(wx.Frame):
 
 
     @Bind(EVT_THREAD_MESSAGE)
+    @CallableFrom('MainThread')
     def BlockGUI(self, e=None, flag=False):
         """This is not only called with the event, but also directly before
         the script starts running."""
@@ -376,8 +377,9 @@ class MainWindow(wx.Frame):
         self.Enable(ID.STOP, flag, editor=True)
         self.editor.SetEditable(not flag)
         self.scriptrunning = flag
-        
 
+
+    @CallableFrom('MainThread')
     def Enable(self, id, flag, editor=False):
         """Enables/Disables toolbar and menu items."""
         flag = bool(flag)
@@ -386,7 +388,6 @@ class MainWindow(wx.Frame):
         if editor:
             self.editorframe.tb.EnableTool(id, flag)
             
-
 
     @CallableFrom('MainThread')
     def SetFlame(self, flame, rezoom=True):
@@ -448,6 +449,8 @@ class MainWindow(wx.Frame):
         print "\nSCRIPT STATS:\n"\
               "Running time %.2f seconds\n" %(time.time()-start)
 
+        # This lets the GUI know that the script has finished, by calling the
+        # BlockGUI method (with False)
         wx.PostEvent(self,ThreadMessageEvent())
         
 
