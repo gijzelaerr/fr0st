@@ -19,29 +19,30 @@ def CreateToolBar(parent):
     parent.tb = tb
     
     tb.AddSimpleTool(ID.NEW, GetBMP(wx.ART_NEW),
-                     "New", "New flame file")
+                     "New", " New flame file")
 
     tb.AddSimpleTool(ID.NEW2, GetBMP(wx.ART_NEW),
-                     "New", "New flame")
+                     "New", " New flame")
 
     tb.AddSimpleTool(ID.FOPEN, GetBMP(wx.ART_FILE_OPEN),
-                     "Open", "Open a flame file")
+                     "Open", " Open a flame file")
 
     tb.AddSimpleTool(ID.FSAVE, GetBMP(wx.ART_FLOPPY),
-                     "Save", "Save the current flame file.")
+                     "Save", " Save the current flame file.")
     
     tb.AddSimpleTool(ID.FSAVEAS, GetBMP(wx.ART_FLOPPY),
-                     "Save as", "Save the current flame file to a different location.")
+                     "Save as", " Save the current flame file to a different location.")
     
     tb.AddSeparator()
 
     tb.AddSimpleTool(ID.UNDO, GetBMP(wx.ART_UNDO),
-                     "Undo", "Undo the last change on the curently selected flame.")
-    tb.EnableTool(ID.UNDO,False)
+                     "Undo", " Undo the last change to the current flame.")
+    
+    tb.AddSimpleTool(ID.UNDOALL, GetBMP(wx.ART_UNDO),
+                     "Undo All", " Revert current flame to saved status.")
     
     tb.AddSimpleTool(ID.REDO, GetBMP(wx.ART_REDO),
-                     "Redo", "Redo the last change on the curently selected flame.")
-    tb.EnableTool(ID.REDO,False)
+                     "Redo", " Redo the last change to the current flame.")
     
     tb.AddSeparator()
     
@@ -49,21 +50,21 @@ def CreateToolBar(parent):
                      "Open Script", "")
 
     tb.AddSimpleTool(ID.RUN, LoadIcon('toolbar', 'Run'),
-                     "Run Script", "Run the currently loaded script file")
+                     "Run Script", " Run the currently loaded script file")
     
     tb.AddSimpleTool(ID.STOP, GetBMP(wx.ART_ERROR),
-                     "Stop Script", "Stop script execution")
+                     "Stop Script", " Stop script execution")
 
     tb.AddSimpleTool(ID.EDITOR, GetBMP(wx.ART_MISSING_IMAGE),
-                     "Editor", "Open the script editor")
+                     "Editor", " Open the script editor")
 
     tb.AddSeparator()
 
     tb.AddSimpleTool(ID.PREVIEW, GetBMP(wx.ART_MISSING_IMAGE),
-                     "Preview", "Open the preview frame")
+                     "Preview", " Open the preview frame")
 
     tb.AddSimpleTool(ID.RENDER, GetBMP(wx.ART_EXECUTABLE_FILE),
-                     "Render", "Render flame to image file")
+                     "Render", " Render flame to image file")
     
     tb.Realize()
 
@@ -79,24 +80,24 @@ def CreateEditorToolBar(parent):
     parent.tb = tb
     
     tb.AddSimpleTool(ID.SNEW, GetBMP(wx.ART_NEW),
-                     "New", "Long help for 'New'")
+                     "New", " Long help for 'New'")
 
     tb.AddSimpleTool(ID.SOPEN, GetBMP(wx.ART_FILE_OPEN),
-                     "Open", "Long help for 'Open'")
+                     "Open", " Long help for 'Open'")
 
     tb.AddSimpleTool(ID.SSAVE, GetBMP(wx.ART_FLOPPY),
-                     "Save", "Long help for 'Save'")
+                     "Save", " Long help for 'Save'")
     
     tb.AddSimpleTool(ID.SSAVEAS, GetBMP(wx.ART_FLOPPY),
-                     "Save as", "Long help for 'Save as'")
+                     "Save as", " Long help for 'Save as'")
 
     tb.AddSeparator()
 
     tb.AddSimpleTool(ID.RUN, LoadIcon('toolbar', 'Run'),
-                     "Run Script", "Run the currently loaded script file")
+                     "Run Script", " Run the currently loaded script file")
     
     tb.AddSimpleTool(ID.STOP, GetBMP(wx.ART_ERROR),
-                     "Stop Script", "Stop script execution")
+                     "Stop Script", " Stop script execution")
 
     
     tb.Realize()

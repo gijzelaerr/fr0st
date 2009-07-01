@@ -248,7 +248,7 @@ class MainWindow(wx.Frame):
     def OnPreviewOpen(self, e):
         self.previewframe.Show(True)
         self.previewframe.Raise()
-        self.previewframe.RenderPreview()
+        self.previewframe.RenderPreview()      
 
 
     @Bind(wx.EVT_TOOL,id=ID.UNDO)
@@ -260,6 +260,17 @@ class MainWindow(wx.Frame):
             self.SetFlame(Flame(string=string), rezoom=False)
             self.tree.RenderThumbnail()
             self.tree.SetItemText(self.tree.item, data.name)
+
+            
+    @Bind(wx.EVT_TOOL,id=ID.UNDOALL)
+    @Bind(wx.EVT_MENU,id=ID.UNDOALL)
+    def OnUndoAll(self, e):
+        data = self.tree.itemdata
+        string = data.UndoAll()
+        if string:
+            self.SetFlame(Flame(string=string), rezoom=False)
+            self.tree.RenderThumbnail()
+            self.tree.SetItemText(self.tree.item, data.name)      
 
 
     @Bind(wx.EVT_TOOL,id=ID.REDO)
@@ -409,6 +420,7 @@ class MainWindow(wx.Frame):
 
         # Set Undo and redo buttons to the correct value:
         data = self.tree.itemdata
+        self.Enable(ID.UNDOALL, data.undo)
         self.Enable(ID.UNDO, data.undo)
         self.Enable(ID.REDO, data.redo)
 
@@ -445,13 +457,16 @@ class MainWindow(wx.Frame):
             pass
         except ThreadInterrupt:
             print("\n\nScript Interrupted")
+        finally:
+            # This lets the GUI know that the script has finished, by calling the
+            # BlockGUI method (with False)
+            wx.PostEvent(self,ThreadMessageEvent())
 
+        # Keep this out of the finally clause!
         print "\nSCRIPT STATS:\n"\
               "Running time %.2f seconds\n" %(time.time()-start)
 
-        # This lets the GUI know that the script has finished, by calling the
-        # BlockGUI method (with False)
-        wx.PostEvent(self,ThreadMessageEvent())
+
         
 
     def _get_flame(self):

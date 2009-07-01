@@ -82,8 +82,15 @@ class EditorFrame(wx.Frame):
             self.scriptpath = path = dlg.GetPath()   
             self.SaveScript(path)
         dlg.Destroy()
-        
 
+    @Bind(wx.EVT_MENU,id=ID.UNDO)
+    def OnUndo(self, e):
+        self.editor.Undo()
+
+    @Bind(wx.EVT_MENU,id=ID.REDO)
+    def OnRedo(self, e):
+        self.editor.Redo()
+        
     def CheckForChanges(self):
         if os.path.exists(self.scriptpath):
             filetext = open(self.scriptpath).read()

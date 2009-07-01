@@ -25,17 +25,25 @@ class ItemData(list):
 
 
     def Reset(self):
+        """Deletes the undo and redo lists, leaving the flame intact."""
         self[:] = self[-1:]
         self.redo = []
-##        self.name = None
 
-        
+
     def Undo(self):
         if self.undo:
             self.redo.append(self.pop())
             self._name = self.re_name.findall(self[-1])[0]
             return self[-1]
 
+
+    def UndoAll(self):
+        if self.undo:
+            self.redo.extend(self[1:])
+            self[:] = self[:1]
+            self._name = self.re_name.findall(self[-1])[0]
+            return self[-1]
+        
 
     def Redo(self):
         if self.redo:
