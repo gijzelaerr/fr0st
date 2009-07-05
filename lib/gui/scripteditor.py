@@ -2,7 +2,6 @@ from __future__ import with_statement
 import wx, os, sys, re
 from wx import stc, PyDeadObjectError
 
-from StyledTextCtrl_2 import PythonSTC
 from lib.decorators import *
 from toolbar import CreateEditorToolBar
 from menu import CreateEditorMenu
@@ -22,8 +21,8 @@ class EditorFrame(wx.Frame):
         CreateEditorToolBar(self)
         self.SetSize((865,500))
 
-        splitter = wx.SplitterWindow(self,-1)
-        self.editor = CodeEditor(splitter)
+        splitter = wx.SplitterWindow(self, -1)
+        self.editor = CodeEditor(splitter, self)
         self.log = MyLog(splitter)
         splitter.SplitVertically(self.editor, self.log, -264)
         splitter.SetSashGravity(1.0) # Keeps the log constant when resizing
@@ -34,6 +33,7 @@ class EditorFrame(wx.Frame):
         # Load the default script
         self.scriptpath = os.path.join(sys.path[0],"scripts", "default.py")
         self.OpenScript(self.scriptpath)
+        self._new = False
 
 
     @Bind(wx.EVT_CLOSE)
@@ -42,6 +42,9 @@ class EditorFrame(wx.Frame):
         if self.CheckForChanges() == wx.ID_CANCEL:
             return
         self.Show(False)
+        if self.editor._changed:
+            self.Title = self.Title[1:]
+            self.editor._changed = False
         self.Parent.Raise()
 
 
@@ -49,7 +52,11 @@ class EditorFrame(wx.Frame):
     def OnScriptNew(self,e):
         if self.CheckForChanges() == wx.ID_CANCEL:
             return
-        self.editor.SetValue("")
+        self.editor.Clear()
+        self._new = True
+        self.editor._changed = False
+        self.scriptpath = os.path.join(sys.path[0],"scripts", "untitled.py")
+        self.Title = "untitled - Script Editor"
 
 
     @Bind(wx.EVT_TOOL,id=ID.SOPEN)    
@@ -72,27 +79,32 @@ class EditorFrame(wx.Frame):
 
 
     @Bind(wx.EVT_TOOL,id=ID.SSAVEAS)
-    def OnScriptSaveAs(self, e):
+    def OnScriptSaveAs(self, e=None):
         dDir,dFile = os.path.split(self.scriptpath)
         dlg = wx.FileDialog(self, message="Save file as ...",
                             defaultDir=dDir, 
                             defaultFile=dFile,
                             wildcard=self.wildcard, style=wx.SAVE)
-        if dlg.ShowModal() == wx.ID_OK:
-            self.scriptpath = path = dlg.GetPath()   
-            self.SaveScript(path)
+        result = dlg.ShowModal()
+        if result == wx.ID_OK:
+            self.scriptpath = dlg.GetPath()   
+            self.SaveScript(self.scriptpath)
         dlg.Destroy()
+        return  result
+
 
     @Bind(wx.EVT_MENU,id=ID.UNDO)
     def OnUndo(self, e):
         self.editor.Undo()
 
+
     @Bind(wx.EVT_MENU,id=ID.REDO)
     def OnRedo(self, e):
         self.editor.Redo()
+
         
     def CheckForChanges(self):
-        if os.path.exists(self.scriptpath):
+        if (not self._new) and os.path.exists(self.scriptpath):
             filetext = open(self.scriptpath).read()
         else:
             filetext = ""
@@ -104,7 +116,16 @@ class EditorFrame(wx.Frame):
                                    'Fr0st',wx.YES_NO|wx.CANCEL)
             result = dlg.ShowModal()
             if result == wx.ID_YES:
-                self.SaveScript(self.scriptpath, confirm=False)
+                if self._new:
+                    # Dealing with a file that hasn't been saved.
+                    if self.OnScriptSaveAs() == wx.ID_OK:
+                        self._new = False
+                    else:
+                        # HACK: Makes the closing sequence abort. Otherwise the
+                        # return value comes from the outer dialog.
+                        return wx.ID_CANCEL
+                else:
+                    self.SaveScript(self.scriptpath, confirm=False)
             elif result == wx.ID_NO:
                 # Reset the script to the saved version, so that it looks like
                 # the editor was closed.
@@ -118,6 +139,7 @@ class EditorFrame(wx.Frame):
             with open(path) as f:
                 self.editor.SetValue(f.read())
         self.SetTitle("%s - Script Editor" % os.path.basename(path))
+        self.editor._changed = False
         
 
     def SaveScript(self, path, confirm=True):
@@ -126,10 +148,10 @@ class EditorFrame(wx.Frame):
                                    %path,'Fr0st',wx.YES_NO)
             if dlg.ShowModal() == wx.ID_NO: return
             dlg.Destroy()
-            
         with open(path,"w") as f:
             f.write(self.editor.GetText())
         self.SetTitle("%s - Script Editor" % os.path.basename(path))
+        self.editor._changed = False
 
 
 
@@ -221,10 +243,23 @@ class MyLog(wx.TextCtrl):
 
 
 
-class CodeEditor(PythonSTC):
-    def __init__(self, parent):
-        PythonSTC.__init__(self, parent, -1)
+class CodeEditor(stc.StyledTextCtrl):
+    @BindEvents
+    def __init__(self, parent, frame):
+        stc.StyledTextCtrl.__init__(self, parent, -1)
+        self.parent = frame
+        self._changed = False
         self.SetUpEditor()
+
+
+    @Bind(wx.stc.EVT_STC_CHANGE)
+    def OnChange(self, e):
+        """This method is here to make the editor show if there have been
+        changes to the script."""
+        if not self._changed:
+            self._changed = True
+            self.parent.Title = '*' + self.parent.Title
+            
 
     # Some methods to make it compatible with how the wxTextCtrl is used
     def SetValue(self, value):
@@ -287,7 +322,7 @@ class CodeEditor(PythonSTC):
         self.SetKeyWords(0, " ".join(keyword.kwlist))
 
         # Enable folding
-        self.SetProperty("fold", "1" ) 
+##        self.SetProperty("fold", "1" ) 
 
         # Highlight tab/space mixing (shouldn't be any)
         self.SetProperty("tab.timmy.whinge.level", "1")
@@ -399,5 +434,4 @@ class CodeEditor(PythonSTC):
 
     def RegisterModifiedEvent(self, eventHandler):
         self.Bind(wx.stc.EVT_STC_CHANGE, eventHandler)
-
 
