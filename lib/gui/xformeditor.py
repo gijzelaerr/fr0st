@@ -11,7 +11,6 @@ from lib.gui.utils import LoadIcon
 
 class XformTabs(wx.Notebook):
 
-
     def __init__(self, parent):
         self.parent = parent
         wx.Notebook.__init__(self, parent, -1, size=(21,21), style=
@@ -307,6 +306,7 @@ class VarPanel(wx.Panel):
         self.tree.SetColumnEditable(1,True)
 
         self.root = self.tree.AddRoot("The Root Item")
+        self.item = self.root
 
         for i in config["active_vars"]:
             child = self.tree.AppendItem(self.root, i)
@@ -318,8 +318,11 @@ class VarPanel(wx.Panel):
         sizer.Add(self.tree,1,wx.EXPAND)
         self.SetSizer(sizer)
 
-        self.tree.GetMainWindow().Bind(wx.EVT_MOUSEWHEEL, self.OnWheel)
-        self.parent.Bind(wx.EVT_KEY_UP, self.OnKeyUp)
+        window = self.tree.GetMainWindow()
+        window.Bind(wx.EVT_MOUSEWHEEL, self.OnWheel)
+        window.Bind(wx.EVT_KEY_UP, self.OnKeyUp)
+        window.Bind(wx.EVT_LEFT_DCLICK, self.OnLeftDClick)
+        window.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
         self.HasChanged = False
 
 
@@ -370,17 +373,44 @@ class VarPanel(wx.Panel):
         e.Veto()
 
 
-    # TODO: is it preferrable to have:
-    #   -SEL_CHANGED:    immediate edit of values
-    #   -ITEM_ACTIVATED: ability to search with letters.
-    @Bind(wx.EVT_TREE_ITEM_ACTIVATED)
-##    @Bind(wx.EVT_TREE_SEL_CHANGED)
-    def OnSelChanged(self,e):
-        item = e.GetItem()
-        if item != self.root:
-            self.tree.EditLabel(item,1)
-        e.Veto()
+##    # TODO: is it preferrable to have:
+##    #   -ITEM_ACTIVATED: ability to search with letters.
+##    #   -SEL_CHANGED:    immediate edit of values
+##    # TODO: Need to test this under win!
+####    @Bind(wx.EVT_TREE_ITEM_ACTIVATED)
 
+    
+    @Bind(wx.EVT_TREE_SEL_CHANGED)
+    def OnSelChanged(self,e):
+        """Makes sure the tree always knows what item is selected."""
+        self.item = e.GetItem()
+        
+
+    def OnKeyDown(self ,e):
+        key = e.GetKeyCode()
+        if key in (wx.WXK_NUMPAD_ENTER, wx.WXK_RETURN):
+            self.tree.EditLabel(self.item, 1)
+        else:
+            e.Skip()
+            
+
+    def OnLeftDClick(self, e):
+        # HACK: col is either -1 or 1. I don't know what the 2 param is.
+        item, _, col =  self.tree.HitTest(e.Position)
+        if col == 1:
+            self.tree.EditLabel(item, 1)
+        elif col == -1:
+            text = self.tree.GetItemText(item, 1)
+            if text == '0.0':
+                new = 1.0
+            else:
+                new = 0.0
+            self.SetFlameAttribute(item, new)
+            self.tree.SetItemText(item, str(new), 1)
+            self.parent.TreePanel.TempSave()
+##        print item, _, col
+        e.Skip()
+        
 
     def OnWheel(self,e):
         if e.ControlDown():
@@ -394,7 +424,7 @@ class VarPanel(wx.Panel):
             e.Skip()
             return
 
-        self.SetFocus() # Makes sure OKeyUp gets called.
+        self.SetFocus() # Makes sure OnKeyUp gets called.
         
         item = self.tree.HitTest(e.GetPosition())[0]
         name = self.tree.GetItemText(item)
@@ -414,7 +444,7 @@ class VarPanel(wx.Panel):
             if self.HasChanged:
                 self.parent.TreePanel.TempSave()
                 self.HasChanged = False
-            
+    
 
 class NumberTextCtrl(wx.TextCtrl):
     low = None
