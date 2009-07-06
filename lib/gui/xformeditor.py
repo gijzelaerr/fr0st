@@ -336,12 +336,15 @@ class VarPanel(wx.Panel):
             for i,_ in self.itervars(child):
                 yield (i, "%s_%s" % (name, self.tree.GetItemText(i)))
             child,cookie = self.tree.GetNextChild(item,cookie)
-            
+
 
     def UpdateView(self):
         xform = self.parent.ActiveXform
         for i,name in self.itervars():
-            self.tree.SetItemText(i, str(getattr(xform, name)), 1)
+            attr = str(getattr(xform, name))
+            if self.tree.GetItemText(i,1) == attr:
+                continue
+            self.tree.SetItemText(i, attr, 1)
 
 
     def SetFlameAttribute(self, item, value):
