@@ -123,8 +123,7 @@ class Renderer():
 
     def prog_wrapper(self, f, flag):
         def prog_func(*args):
-            res = f(*args)
-            return max(getattr(self, flag), res)
+            return max(getattr(self, flag), self.exitflag, f(*args))
         return prog_func
 
     

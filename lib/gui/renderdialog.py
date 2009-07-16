@@ -6,14 +6,15 @@
 #   Basic Operations completed April 10th -
 #     Currently supports PNG and JPG images, will support more.
 
-import wx, os
+import wx, os, time
 from lib.fr0stlib import Flame
 from lib.pyflam3 import Genome
 from _events import EVT_THREAD_MESSAGE, ThreadMessageEvent
 from lib.decorators import *
 
-class renderDialog(wx.Dialog):
+class renderDialog(wx.Frame):
 
+    @BindEvents
     def __init__(self, parent, id):
         #Accessible elements:
         #self.Format - The format as determined by the filename -
@@ -24,7 +25,7 @@ class renderDialog(wx.Dialog):
         #self.Quality - quality of flame file
 	self.parent = parent
 	
-	wx.Dialog.__init__(self, parent, id,
+	wx.Frame.__init__(self, parent, id,
                            title="Render Flame to Image File",
                            size=(400,210))#TODO:Change title to say name 
 					  #of current flame - self.parent.flame.name
@@ -60,15 +61,13 @@ class renderDialog(wx.Dialog):
         wx.Button(self, 1, "Begin Render", pos=(10,150))
         wx.Button(self, 2, "Close", pos=(300,150))
 
-        
-        self.Bind(wx.EVT_BUTTON, self.closeDialog, id=2)
-        self.Bind(wx.EVT_BUTTON, self.beginRender, id=1)
-        self.Bind(wx.EVT_BUTTON, self.chooseOutputFile, id=3)
+        self.exitflag = 0
+        self.rendering = False
         
         self.Centre()
-        self.ShowModal()
-        self.Destroy()
+        self.Show(1)
 
+    @Bind(wx.EVT_BUTTON, id=3)
     def chooseOutputFile(self, event):
         filters = 'All files (*.*)|*.*|PNG File (*.png)|*.png|JPG File (*.jpg)|*.jpg'
         dlg=wx.FileDialog(self, "Choose the Output File", os.getcwd(),
@@ -77,60 +76,69 @@ class renderDialog(wx.Dialog):
             path = dlg.GetPath()
             self.txtDestination.SetValue(path)         
         dlg.Destroy()
-    def closeDialog(self, event):
-        self.Close()
-    
-    def beginRender(self, event):
-        #Put in rendering processes here.
 
+
+    @Bind(wx.EVT_CLOSE)
+    @Bind(wx.EVT_BUTTON, id=2)
+    def closeDialog(self, e=None):
+        # TODO: dialog confirming exit (and cancelling render if yes)
+        if self.rendering:
+            self.SetFocus() # So the user sees where the dialog comes from.
+            dlg = wx.MessageDialog(self, 'Abort render?' ,
+                                   'Fr0st',wx.YES_NO)
+            res = dlg.ShowModal()
+            if res == wx.ID_NO:
+                return res
+        
+        self.exitflag = 1
+        while self.exitflag:
+            # waiting for prog func
+            time.sleep(0.1)
+            
+        self.parent.renderdialog = None
+        self.Destroy()
+
+
+    @Bind(wx.EVT_BUTTON, id=1)
+    def beginRender(self, event):
         destination = str(self.txtDestination.GetValue())
 	#GetValue() returns unicode, change to string
-	type = destination[-3:len(destination)+1] #get last 3 characters - filetype
-        sizeMatrix = [int(self.Width.GetValue()),int(self.Height.GetValue())]
+	type = os.path.splitext(destination)[1]
+        size = int(self.Width.GetValue()),int(self.Height.GetValue())
 	#GetValue() returns unicode, change to int
 	
-	#flame = Genome.from_file('snowflake.flam3')
-	intflame = self.parent.flame
-	#or maybe Genome.from_string(self.parent.flame)?
-	
-	self.utype = type.upper()#convert to uppercase for weird names
-	if self.utype == 'PNG': self.wxFormat = wx.BITMAP_TYPE_PNG
-        elif self.utype == 'JPG': self.wxFormat = wx.BITMAP_TYPE_JPG
-	elif self.utype == 'BMP': self.wxFormat = wx.BITMAP_TYPE_BMP
-	elif self.utype == 'GIF': self.wxFormat = wx.BITMAP_TYPE_GIF
-	elif self.utype == 'PNM': self.wxFormat = wx.BITMAP_TYPE_PNM
-	elif self.utype == 'XPM': self.wxFormat = wx.BITMAP_TYPE_XPM
-	elif self.utype == 'TIF': self.wxFormat = wx.BITMAP_TYPE_TIF
-        #else display format not supported
+	self.utype = type.upper()
+	if self.utype == '.PNG': self.wxFormat = wx.BITMAP_TYPE_PNG
+        elif self.utype == '.JPG': self.wxFormat = wx.BITMAP_TYPE_JPG
+	elif self.utype == '.BMP': self.wxFormat = wx.BITMAP_TYPE_BMP
+	elif self.utype == '.GIF': self.wxFormat = wx.BITMAP_TYPE_GIF
+	elif self.utype == '.PNM': self.wxFormat = wx.BITMAP_TYPE_PNM
+	elif self.utype == '.XPM': self.wxFormat = wx.BITMAP_TYPE_XPM
+	elif self.utype == '.TIF': self.wxFormat = wx.BITMAP_TYPE_TIF
+	else: raise ValueError(self.utype)
 
-	#intFlame = self.parent.flame #intermediary flame
-	flame = Flame.to_string(intflame)
+	flame = self.parent.flame.to_string()
         
 	req = self.parent.renderer.RenderRequest
-	#image = wx.ImageFromBuffer(sizeMatrix[0],sizeMatrix[1],
-                                   #req(flame,sizeMatrix,self.Quality.GetValue(),int(self.Estimator.GetValue()),progress_func=self.prog))
-	req(self.save,sizeMatrix,flame,sizeMatrix,self.Quality.GetValue(),
-            int(self.Estimator.GetValue()),filter=.2,progress_func=self.prog)
-	print 'render done'
-	
-	#image.SaveFile(destination, self.wxFormat)
-        #wx.Image.SaveFile(self.Destination,self.Format.upper(),wx.BitmapFromBuffer)
-        #img.save(self.Destination, self.Format.upper())
-    def msgNotImplemented(self,event):
-        dlg=wx.MessageDialog(self, "This feature is currently not implemented, but is coming soon",
-                         "Not Implemented", wx.OK|wx.ICON_INFORMATION)
-        #NOTE: dialog must be initialized to variable to allow for destroy call.
-        dlg.ShowModal()
-        dlg.Destroy()
-        
+	req(self.save, size, flame, size, self.Quality.GetValue(),
+            int(self.Estimator.GetValue()), filter=.2, progress_func=self.prog)
+
+        self.rendering = True
+
+
     def prog(self, py_object, fraction, stage, eta):
-	print 'rendering: %.2f%% ETA: %.0f seconds' % (fraction,eta)
-	return
+        print 'rendering: %.2f%% ETA: %.0f seconds' % (fraction,eta)
+        if self.exitflag:
+            self.exitflag = 0
+            return 1
+
 
     def save(self, size, output_buffer):
         w,h= size
 	image = wx.ImageFromBuffer(w, h, output_buffer)
 	destination = str(self.txtDestination.GetValue())
 	image.SaveFile(destination, self.wxFormat)
+
+	self.rendering = False
 
 

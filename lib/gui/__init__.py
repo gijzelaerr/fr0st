@@ -125,12 +125,16 @@ class MainWindow(wx.Frame):
     @Bind(wx.EVT_CLOSE)
     @Bind(wx.EVT_MENU,id=ID.EXIT)
     def OnExit(self,e):
-        # Give the script editor an opportunity to save.
+        # check for renders in progress
+        if self.renderdialog and self.renderdialog.closeDialog() == wx.ID_NO:
+            return
+            
+        # check for script diffs
         self.OnStopScript()
         if self.editorframe.CheckForChanges() == wx.ID_CANCEL:
             return
         
-        # check for differences in flame file
+        # check for flame diffs
         for itemdata,lst in self.tree.flamefiles:
             if self.CheckForChanges(itemdata, lst) == wx.ID_CANCEL:
                 return
@@ -140,6 +144,7 @@ class MainWindow(wx.Frame):
                 os.remove(path)
 
         self.renderer.exitflag = True
+
 
         # Remove all temp files
         if os.path.exists('paths.temp'):
@@ -287,7 +292,7 @@ class MainWindow(wx.Frame):
     @Bind(wx.EVT_MENU,id=ID.RENDER)
     @Bind(wx.EVT_TOOL,id=ID.RENDER)
     def OnRender(self,e):
-        renderDialog(self, ID.RENDER)
+        self.renderdialog = renderDialog(self, ID.RENDER)
 
 #------------------------------------------------------------------------------    
 
