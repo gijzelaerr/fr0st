@@ -46,13 +46,15 @@ class Renderer():
     def ThumbnailRequest(self,callback,metadata,*args,**kwds):
         """Schedules a genome to be rendered as soon as there are no previous
         or higher priority requests pending."""
+        kwds["nthreads"] = 1
         self.thumbqueue.append((callback,metadata,args,kwds))
 
 
     def PreviewRequest(self,callback,metadata,*args,**kwds):
         """Schedules a render immediately after the current render is done.
-        Cancels previous urgent requests (assuming they are obsolete), but
-        leaves the normal request queue intact."""
+        Cancels previous requests (assuming they are obsolete), but leaves the
+        normal request queue intact."""
+        kwds["nthreads"] = 1
         self.previewflag = 1
         self.previewqueue = [(callback,metadata,args,kwds)]
 

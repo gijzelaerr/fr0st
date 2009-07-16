@@ -192,8 +192,7 @@ class Frame(BaseFrame):
 ##            else:
 ##                self.progress_parameter = param
 
-
-        self.nthreads = kwargs.get('nthreads', 1)
-##        if not self.nthreads:
-##            self.nthreads = flam3_count_nthreads()
+        self.nthreads = kwargs.get('nthreads', 0)
+        if not self.nthreads:
+            self.nthreads = flam3_count_nthreads()
 
