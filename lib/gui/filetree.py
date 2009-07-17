@@ -5,7 +5,7 @@ from wx.lib.mixins import treemixin
 from threading import Thread
 import pickle as cPickle
 
-
+from lib.gui.constants import ID
 from lib.fr0stlib import Flame
 from lib.pyflam3 import Genome
 from lib.decorators import *
@@ -132,13 +132,13 @@ class TreePanel(wx.Panel):
             return
         
         if item:
+            self.tree.item = item
             string = self.tree.GetFlameData(item)[-1]
             if string.startswith('<flame'):
-                self.tree.item = item
                 self.parent.SetFlame(Flame(string=string))
             else:
-                self.parent.EnableUndo(False)
-                self.parent.EnableRedo(False)
+                self.parent.Enable(ID.UNDO, False)
+                self.parent.Enable(ID.REDO, False)
 
         
     @Bind(wx.EVT_TREE_END_LABEL_EDIT)
@@ -193,6 +193,7 @@ class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
 
         self.RefreshItems()
         item = self.GetItemByIndex((-1,))
+
         self.Expand(item)
 
         for child, data in zip(self.GetItemChildren(item),
@@ -262,7 +263,7 @@ class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
         if item is None:
             item = self.itemparent
         return treemixin.VirtualTree.GetItemChildren(self, item)
-
+            
 
     def GetFlames(self):
         """Returns all flames in the currently selected file as flame objects.
@@ -279,10 +280,10 @@ class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
 
     def _get_itemparent(self):
         if self.item:
-            item = self.GetItemParent(self.item)
-            if item == self.root:
+            parent = self.GetItemParent(self.item)
+            if parent == self.root:
                 return self.item
-            return item
+            return parent
 
     itemparent = property(_get_itemparent)
 
