@@ -1,5 +1,5 @@
 from __future__ import with_statement
-import cPickle, os, sys
+import cPickle, os, sys, atexit
 
 config = {"active_vars": ['linear',
                           'sinusoidal',
@@ -83,6 +83,7 @@ config = {"active_vars": ['linear',
                           'wedge_sph',
                           'whorl',
                           'waves2'],
+          "flamepath" : ("parameters","samples.flame"),
           }
 
 
@@ -90,3 +91,9 @@ if os.path.exists('config.conf'):
     with open('config.conf', 'rb') as f:
         saved = cPickle.load(f)
         config.update(saved)
+        
+def dump():
+    with open('config.conf', 'wb') as f:
+        cPickle.dump(config, f, cPickle.HIGHEST_PROTOCOL)
+
+atexit.register(dump)
