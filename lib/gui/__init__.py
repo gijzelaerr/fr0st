@@ -14,6 +14,7 @@ from lib.gui.renderer import render, Renderer
 from lib.gui._events import EVT_THREAD_MESSAGE, ThreadMessageEvent
 from lib.gui.itemdata import ItemData
 from lib.gui.renderdialog import renderDialog
+from lib.gui.config import config
 
 from lib import fr0stlib
 from lib.fr0stlib import Flame, BLANKFLAME
@@ -92,7 +93,7 @@ class MainWindow(wx.Frame):
 
         # Set up paths
         sys.path.append(os.path.join(sys.path[0],"scripts")) # imp in scripts
-        self.flamepath = os.path.join(sys.path[0],"parameters","samples.flame")
+        self.flamepath = os.path.join(sys.path[0],*config["flamepath"])
         
         if os.path.exists('paths.temp') and False:
             # TODO: check if another fr0st process is running.
@@ -103,7 +104,11 @@ class MainWindow(wx.Frame):
 
         else:
             # Normal startup
-            self.tree.item = self.OpenFlame(self.flamepath)
+            try:
+                self.tree.item = self.OpenFlame(self.flamepath)
+            except:
+                self.OnFlameNew(e=None)
+##                self.OnFlameNew2(e=None)
             
 ##        self.tree.ExpandAll()
         self.tree.SelectItem(self.tree.GetItemByIndex((0,0)))
@@ -158,15 +163,14 @@ class MainWindow(wx.Frame):
 
     @Bind(wx.EVT_MENU,id=ID.FNEW)
     @Bind(wx.EVT_TOOL,id=ID.FNEW)
-    def OnFlameNew(self,e):
+    def OnFlameNew(self, e):
         path = self.newfilename()
-        item = self.tree.AddFlamefile(path, [])
-        self.tree.SelectItem(item)
+        self.tree.item = self.tree.AddFlamefile(path, [])
         
         with open('paths.temp','a') as f:
             f.write(path + '\n')
             
-        return item
+        return self.tree.item
             
 
     @Bind(wx.EVT_MENU,id=ID.FNEW2)
@@ -175,10 +179,12 @@ class MainWindow(wx.Frame):
         data = ItemData(BLANKFLAME)
 
         index = self.tree.GetIndexOfItem(self.tree.itemparent)
-        self.tree.GetChildren(index).append((data,[]))
 
+        self.tree.GetChildren(index).append((data,[]))
+        
         self.tree.RefreshItems()
         child = self.tree.GetItemByIndex(index + (-1,))
+
         self.tree.SelectItem(child)
 
         # This adds the flame to the temp file, but without any actual changes.
