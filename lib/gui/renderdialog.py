@@ -16,13 +16,6 @@ class renderDialog(wx.Frame):
 
     @BindEvents
     def __init__(self, parent, id):
-        #Accessible elements:
-        #self.Format - The format as determined by the filename -
-        #ex. test.png - self.Format='png'
-        #self.Destination - output destination for image file
-        #self.Width - width of image file
-        #self.Height - Height of image file
-        #self.Quality - quality of flame file
 	self.parent = parent
 	
 	wx.Frame.__init__(self, parent, id,
@@ -67,6 +60,7 @@ class renderDialog(wx.Frame):
         self.Centre()
         self.Show(1)
 
+
     @Bind(wx.EVT_BUTTON, id=3)
     def chooseOutputFile(self, event):
         filters = 'All files (*.*)|*.*|PNG File (*.png)|*.png|JPG File (*.jpg)|*.jpg'
@@ -89,9 +83,9 @@ class renderDialog(wx.Frame):
             res = dlg.ShowModal()
             if res == wx.ID_NO:
                 return res
-        
+            
         self.exitflag = 1
-        while self.exitflag:
+        while self.rendering:
             # waiting for prog func
             time.sleep(0.1)
             
@@ -118,19 +112,21 @@ class renderDialog(wx.Frame):
 	else: raise ValueError(self.utype)
 
 	flame = self.parent.flame.to_string()
-        
+
+        # TODO: filter shouldn't be hardcoded.
 	req = self.parent.renderer.RenderRequest
 	req(self.save, size, flame, size, self.Quality.GetValue(),
             int(self.Estimator.GetValue()), filter=.2, progress_func=self.prog)
 
         self.rendering = True
+        self.t = time.time()
 
 
     def prog(self, py_object, fraction, stage, eta):
-        print 'rendering: %.2f%% ETA: %.0f seconds' % (fraction,eta)
+##        print 'rendering: %.2f%% ETA: %.0f seconds' % (fraction,eta)
         if self.exitflag:
-            self.exitflag = 0
-            return 1
+            self.rendering = False
+            return self.exitflag
 
 
     def save(self, size, output_buffer):
@@ -140,5 +136,6 @@ class renderDialog(wx.Frame):
 	image.SaveFile(destination, self.wxFormat)
 
 	self.rendering = False
+	print time.time() - self.t
 
 

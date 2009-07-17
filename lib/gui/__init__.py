@@ -43,6 +43,7 @@ class MainWindow(wx.Frame):
         
         # Launch the render thread
         self.renderer = Renderer(self)
+        self.renderdialog = None
         
         # Creating Frame Content
         CreateMenu(parent=self)
@@ -144,7 +145,6 @@ class MainWindow(wx.Frame):
                 os.remove(path)
 
         self.renderer.exitflag = True
-
 
         # Remove all temp files
         if os.path.exists('paths.temp'):
