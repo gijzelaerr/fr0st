@@ -73,6 +73,7 @@ class TransformPanel(wx.Panel):
     def MakeConfigFunc(self, i):
         def onbtn():
             config[i] = not config[i]
+            self.parent.canvas.ShowFlame(rezoom=False)
         setattr(self, "Func%s" %i.replace("-",""), onbtn)        
 
 

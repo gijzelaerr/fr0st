@@ -1,11 +1,32 @@
 import itertools, numpy as N, time, wx, sys, math
 from wx.lib.floatcanvas import FloatCanvas as FC
-from wx.lib.floatcanvas.FloatCanvas import FloatCanvas, DotGrid
+from wx.lib.floatcanvas.FloatCanvas import FloatCanvas, DotGrid, PointSet
 
 from lib.decorators import Bind, BindEvents
 from _events import EVT_THREAD_MESSAGE
 from lib.fr0stlib import polar, rect, Xform
 from lib import pyflam3
+from lib.pyflam3 import Genome, c_double, RandomContext, flam3_xform_preview
+from lib.gui.config import config
+
+
+class VarPreview(PointSet):   
+    BoundingBox = N.array(((0,0), (0,0)))
+    
+    def __init__(self, xform, Color):
+        lst = self.var_preview(xform, *config["Var-Preview-Settings"])
+        PointSet.__init__(self, lst, Color=Color)
+        
+    def var_preview(self, xform, range, numvals, depth):
+        result = (c_double * (2* (2*numvals+1)**2))()
+        genome = Genome.from_string(xform._parent.to_string(False))[0]
+        flam3_xform_preview(genome, xform.index, range, numvals, depth,
+                            result, RandomContext())
+        return [(x,-y) for x,y in zip(*[iter(result)]*2)]
+    
+    def CalcBoundingBox(self):
+        return
+    
 
 
 class XformCanvas(FloatCanvas):
@@ -78,7 +99,7 @@ class XformCanvas(FloatCanvas):
         # TODO: add post xforms.
 ##        for i in flame.iter_posts():
 ##            pass
-        
+                
         if rezoom:
             self.ZoomToBB(DrawFlag=False)
             self.AdjustZoom()
@@ -114,6 +135,10 @@ class XformCanvas(FloatCanvas):
             corners = [self.AddLine(i, LineColor=color)
                        for i in self._cornerpoints]
             text.extend(corners)
+            if config["Variation-Preview"]:
+                preview = VarPreview(xform, Color=color)
+                self.AddObject(preview)
+                circles.append(preview)
             
         triangle._circles = circles
         triangle._text = text

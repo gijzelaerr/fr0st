@@ -356,6 +356,8 @@ class VarPanel(wx.Panel):
             # it's a variable
             name = "_".join(map(self.tree.GetItemText,(parent,item)))
         setattr(self.parent.ActiveXform,name,value)
+        # TODO: This could be optimized to just redraw the var preview.
+        self.parent.canvas.ShowFlame(rezoom=False)
 
 
     @Bind(wx.EVT_TREE_END_LABEL_EDIT)
