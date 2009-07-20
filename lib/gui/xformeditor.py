@@ -262,6 +262,7 @@ class XformPanel(wx.Panel):
 
 
     def GetActive(self):
+        # TODO: this assumes that active xform can't be the post directly...
         post, view = self._view
         xform = self.parent.ActiveXform
         if post:

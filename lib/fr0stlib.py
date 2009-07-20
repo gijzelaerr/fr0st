@@ -115,19 +115,8 @@ class Flame(object):
         self.gradient = Palette(string)
                 
         # Create the Xform objects
-        for xform in self.re_xform.findall(string):
-            kwds = {}
-            for s in self.re_attr.findall(xform):
-                name, val = s.split('="')
-                try:
-                    if " " in val: kwds[name] = map(float,val.split())
-                    else:          kwds[name] = float(val)
-                except ValueError:
-                    kwds[name] = val
-
-            x = Xform(self, **kwds)
-            # Convert from screen to complex plane orientation
-            x.coefs = x.screen_coefs
+        for xfstr in self.re_xform.findall(string):
+            x = Xform.from_string(self, xfstr)
 
             # Assign the xform to the correct location, 
             if x.weight:
@@ -207,6 +196,7 @@ class Flame(object):
     def add_xform(self):
         self.xform.append(Xform(self, coefs=[1,0,0,1,0,0], linear=1,
                                 color=0, weight=0.5))
+        return self.xform[-1]
 
     def clear(self):
         self.xform = []
@@ -519,6 +509,23 @@ class Xform(object):
                 post = [1,0,0,1,0,0]
             self._post = PostXform(self, screen_coefs=post)
 
+
+    @classmethod
+    def from_string(cls, parent, string):
+        kwds = {}
+        for s in parent.re_attr.findall(string):
+            name, val = s.split('="')
+            try:
+                if " " in val: kwds[name] = map(float,val.split())
+                else:          kwds[name] = float(val)
+            except ValueError:
+                kwds[name] = val
+
+        x = Xform(parent, **kwds)
+        # Convert from screen to complex plane orientation
+        x.coefs = x.screen_coefs
+        return x
+
             
     def __repr__(self):
         try:
@@ -802,7 +809,10 @@ class Xform(object):
     
     def copy(self):
         if not self.isfinal():
-            self._parent.xform.append(copy.deepcopy(self))
+            xf = Xform.from_string(self._parent,
+                                   self.to_string())
+            self._parent.xform.append(xf)
+            return xf
 
 
     def delete(self):

@@ -84,29 +84,28 @@ class TransformPanel(wx.Panel):
     def modifyxform(f):
         """This decorator wraps away common code in the button functions."""
         def inner(self):
-            xform, view = self.parent.XformTabs.Xform.GetActive()
             # TODO: does this pass post-xforms correctly?
-            f(self, xform)
+            f(self, self.parent.ActiveXform)
             self.parent.TreePanel.TempSave()
         return inner
 
     @modifyxform
     def FuncClearFlame(self, xform):
-        return
         self.parent.flame.clear()
+        self.parent.ActiveXform = self.parent.flame.add_xform()
         
     @modifyxform        
     def FuncAddXform(self, xform):
-        self.parent.flame.add_xform()
+        self.parent.ActiveXform = self.parent.flame.add_xform()
         
     @modifyxform           
     def FuncDuplicateXform(self, xform):
-        xform.copy()
+        self.parent.ActiveXform = xform.copy()
         
     @modifyxform           
     def FuncDeleteXform(self, xform):
-        return
         xform.delete()
+        self.parent.ActiveXform = None
         
 
 class GradientPanel(wx.Panel):
