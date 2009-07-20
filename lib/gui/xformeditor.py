@@ -1,5 +1,6 @@
 import wx, os, functools, itertools
 from wx import gizmos
+from wx.lib import buttons
 from collections import defaultdict
 
 from lib.decorators import Bind,BindEvents
@@ -37,7 +38,7 @@ class XformTabs(wx.Notebook):
         self.Selector = wx.Choice(self.parent, -1)
         self.Selector.Bind(wx.EVT_CHOICE, self.OnChoice)
 
-        self.SetMinSize((262,100))
+        self.SetMinSize((262,300))
 
 
     def UpdateView(self):
@@ -125,15 +126,23 @@ class XformPanel(wx.Panel):
                                name=i.replace("-",""))
                for i in ('90-Left', 'Rotate-Left', 'Rotate-Right', '90-Right',
                          'Move-Up', 'Move-Down', 'Move-Left', 'Move-Right',
-                         'Shrink', 'Grow')]
+                         'Shrink', 'Grow',)]
         
         btn.insert(2, self.rotate)
         btn.insert(7, self.translate)
         btn.insert(10, (0,0))
         btn.insert(12, self.scale)
+        btn.append((0,0))
+
+        # Add toggle buttons
+        for i in ('Pivot-Mode','Lock-Axes'):
+            b = buttons.GenBitmapToggleButton(self, -1, name=i.replace("-",""),
+                                              bitmap=LoadIcon('xformtab',i))
+            b.SetToggle(config[i])
+            btn.append(b)
         
         fgs2 = wx.FlexGridSizer(4, 5, 1, 1)
-        fgs2.AddMany(btn)        
+        fgs2.AddMany(btn)
         
         # Finally, put everything together
         sizer = wx.BoxSizer(wx.VERTICAL)
@@ -175,53 +184,81 @@ class XformPanel(wx.Panel):
                 setattr(self, "_%s" %i, float(cb.GetValue()))
             except:
                 cb.SetValue(str(getattr(self, "_%s" %i)))
+
+        getattr(self, "Func%s" %e.GetEventObject().GetName())(e)
                 
-        xform, view = self.GetActive()            
-        getattr(self, "Func%s" %e.GetEventObject().GetName())(xform)
-        self.parent.TreePanel.TempSave()
+
+    def modifyxform(f):
+        """This decorator wraps away common code in the button functions."""
+        def inner(self, e):
+            xform, view = self.GetActive()
+            # TODO: does this pass post-xforms correctly?
+            f(self, xform)
+            self.parent.TreePanel.TempSave()
+        return inner
 
 
+    @modifyxform
     def Funcx(self, xform):
         xform.a, xform.d = 1,0
 
+    @modifyxform
     def Funcy(self, xform):
         xform.b, xform.e = 0,1
 
+    @modifyxform
     def Funco(self, xform):
         xform.c, xform.f = 0,0
 
+    @modifyxform
     def FuncReset(self, xform):
         xform.coefs = 1,0,0,1,0,0
 
+    @modifyxform
     def Func90Left(self, xform):
         xform.rotate(90)
 
+    @modifyxform
     def FuncRotateLeft(self, xform):
         xform.rotate(self._rotate)
 
+    @modifyxform
     def FuncRotateRight(self, xform):
         xform.rotate(-self._rotate)
 
+    @modifyxform
     def Func90Right(self, xform):
         xform.rotate(-90)
 
+    @modifyxform
     def FuncMoveUp(self, xform):
-        xform.move_position(0, self._translate)
+        xform.move_pos(0, self._translate)
 
+    @modifyxform
     def FuncMoveDown(self, xform):
-        xform.move_position(0, -self._translate)
+        xform.move_pos(0, -self._translate)
 
+    @modifyxform
     def FuncMoveLeft(self, xform):
-        xform.move_position(-self._translate, 0)
+        xform.move_pos(-self._translate, 0)
 
+    @modifyxform
     def FuncMoveRight(self, xform):
-        xform.move_position(self._translate, 0)
+        xform.move_pos(self._translate, 0)
 
+    @modifyxform
     def FuncShrink(self, xform):
         xform.scale(1.0/self._scale)
 
+    @modifyxform
     def FuncGrow(self, xform):
         xform.scale(self._scale)
+
+    def FuncPivotMode(self, e):
+        config['Pivot-Mode'] = not config['Pivot-Mode'] 
+
+    def FuncLockAxes(self, e):
+        config['Lock-Axes'] = not config['Lock-Axes'] 
 
 
     def GetActive(self):

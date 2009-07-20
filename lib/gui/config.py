@@ -84,6 +84,8 @@ config = {"active_vars": ['linear',
                           'whorl',
                           'waves2'],
           "flamepath" : ("parameters","samples.flame"),
+          "Lock-Axes" : True,
+          "Pivot-Mode": True,
           }
 
 
