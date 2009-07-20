@@ -801,11 +801,12 @@ class Xform(object):
 
     
     def copy(self):
-        self._parent.xform.append(copy.deepcopy(self))
+        if not self.isfinal():
+            self._parent.xform.append(copy.deepcopy(self))
 
 
     def delete(self):
-        if self._parent.final is self:
+        if self.isfinal():
             self._parent.final = None            
         else:
             self._parent.xform.remove(self)

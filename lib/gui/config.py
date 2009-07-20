@@ -86,6 +86,9 @@ config = {"active_vars": ['linear',
           "flamepath" : ("parameters","samples.flame"),
           "Lock-Axes" : True,
           "Pivot-Mode": True,
+          "Variation-Preview": False,
+          "Edit-Post-Xform": False,
+          "Edit-Final-Xform": False,
           }
 
 

@@ -1,7 +1,10 @@
 import wx, itertools
+from wx.lib import buttons
 
 from lib.decorators import *
 from lib.gui.canvas import XformCanvas
+from lib.gui.utils import LoadIcon
+from lib.gui.config import config
 from _events import EVT_THREAD_MESSAGE
 
 
@@ -15,13 +18,96 @@ class MainNotebook(wx.Notebook):
                              wx.BK_DEFAULT
                              )
 
-        self.canvas = XformCanvas(self)
-        self.AddPage(self.canvas, "Transform Editor")
+        transform = TransformPanel(self)
+        self.canvas = transform.canvas
+        self.AddPage(transform, "Transform Editor")
         
         self.grad = GradientPanel(self)
         self.AddPage(self.grad, "Gradient Editor")
 
 
+
+
+class TransformPanel(wx.Panel):
+    
+    @BindEvents
+    def __init__(self, parent):
+        self.parent = parent.parent
+        wx.Panel.__init__(self,parent,-1)
+        self.toolbar = self.AddFakeToolbar()
+        self.canvas = XformCanvas(self)
+        
+        szr = wx.BoxSizer(wx.VERTICAL)
+        szr.Add(self.toolbar)
+        szr.Add(self.canvas, 1, wx.EXPAND)
+        
+        self.SetSizer(szr)
+        self.Layout()
+
+        
+    def AddFakeToolbar(self):
+        btn = [wx.BitmapButton(self, -1, LoadIcon('toolbar',i),
+                                       name=i.replace("-",""),
+                                       style=wx.BORDER_NONE)
+               for i in ('Clear-Flame',
+                         'Add-Xform',
+                         'Duplicate-Xform',
+                         'Delete-Xform')]
+
+        # Add toggle buttons
+        # TODO: Isn't there a default Bitmap/Toggle button? Don't like these.
+        for i in ('Pivot-Mode','Lock-Axes','Variation-Preview',
+                  'Edit-Post-Xform', 'Edit-Final-Xform'):
+            b = buttons.GenBitmapToggleButton(self, -1, LoadIcon('toolbar',i),
+                                              name=i.replace("-",""),
+                                              style=wx.BORDER_NONE)
+            b.SetToggle(config[i])
+            self.MakeConfigFunc(i)
+            btn.append(b)
+
+        szr = wx.BoxSizer(wx.HORIZONTAL)
+        szr.AddMany(btn)
+        return szr
+
+
+    def MakeConfigFunc(self, i):
+        def onbtn():
+            config[i] = not config[i]
+        setattr(self, "Func%s" %i.replace("-",""), onbtn)        
+
+
+    @Bind(wx.EVT_BUTTON)
+    def OnButton(self, e):
+        getattr(self, "Func%s" %e.GetEventObject().GetName())()
+
+
+    def modifyxform(f):
+        """This decorator wraps away common code in the button functions."""
+        def inner(self):
+            xform, view = self.parent.XformTabs.Xform.GetActive()
+            # TODO: does this pass post-xforms correctly?
+            f(self, xform)
+            self.parent.TreePanel.TempSave()
+        return inner
+
+    @modifyxform
+    def FuncClearFlame(self, xform):
+        return
+        self.parent.flame.clear()
+        
+    @modifyxform        
+    def FuncAddXform(self, xform):
+        self.parent.flame.add_xform()
+        
+    @modifyxform           
+    def FuncDuplicateXform(self, xform):
+        xform.copy()
+        
+    @modifyxform           
+    def FuncDeleteXform(self, xform):
+        return
+        xform.delete()
+        
 
 class GradientPanel(wx.Panel):
 
