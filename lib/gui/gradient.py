@@ -51,13 +51,14 @@ class TransformPanel(wx.Panel):
                                        style=wx.BORDER_NONE)
                for i in ('Clear-Flame',
                          'Add-Xform',
+                         'Add-Final-Xform',
                          'Duplicate-Xform',
                          'Delete-Xform')]
 
         # Add toggle buttons
         # TODO: Isn't there a default Bitmap/Toggle button? Don't like these.
         for i in ('Pivot-Mode','Lock-Axes','Variation-Preview',
-                  'Edit-Post-Xform', 'Edit-Final-Xform'):
+                  'Edit-Post-Xform'):
             b = buttons.GenBitmapToggleButton(self, -1, LoadIcon('toolbar',i),
                                               name=i.replace("-",""),
                                               style=wx.BORDER_NONE)
@@ -98,6 +99,11 @@ class TransformPanel(wx.Panel):
     @modifyxform        
     def FuncAddXform(self, xform):
         self.parent.ActiveXform = self.parent.flame.add_xform()
+        
+    @modifyxform        
+    def FuncAddFinalXform(self, xform):
+        # This already checks if a final xform exists.
+        self.parent.ActiveXform = self.parent.flame.create_final()
         
     @modifyxform           
     def FuncDuplicateXform(self, xform):

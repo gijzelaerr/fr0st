@@ -88,7 +88,6 @@ config = {"active_vars": ['linear',
           "Pivot-Mode": True,
           "Variation-Preview": False,
           "Edit-Post-Xform": False,
-          "Edit-Final-Xform": False,
           "Var-Preview-Settings": (2, 20, 1),
           }
 
