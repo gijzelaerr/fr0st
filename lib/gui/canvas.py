@@ -77,7 +77,6 @@ class XformCanvas(FloatCanvas):
         self.parent.ActiveXform = None
         self.SelectedXform = None
         self._highlight = None
-        self.axes_locked = False # TODO: Move to config dict
         self.HasChanged = False
         self.StartMove = None
         self.callback = None
@@ -264,7 +263,7 @@ class XformCanvas(FloatCanvas):
     def cbfactory(self, xform, funcname):
         hlp = getattr(self, 'helper_%s' % funcname)
         
-        if self.axes_locked and funcname.startswith('rotate'):
+        if config["Lock-Axes"] and funcname.startswith('rotate'):
             func = xform.rotate
         else:
             func = getattr(xform, funcname)
@@ -291,8 +290,8 @@ class XformCanvas(FloatCanvas):
         for xform in self.IterXforms():
             a,d,b,e,c,f = xform.coefs
             if polar((x - c, y - f))[0] < self.circle_radius:
-                return (xform, xform._set_position if self.axes_locked
-                            else xform._set_o)
+                return (xform, xform._set_pos if config["Lock-Axes"]
+                               else xform._set_o)
             elif polar((x - a - c, y - d - f))[0] < self.circle_radius:
                 return xform, xform._set_x
             elif polar((x - b - c, y - e - f))[0] < self.circle_radius:
