@@ -159,7 +159,7 @@ class XformCanvas(FloatCanvas):
         p4 = c - a - b, f - d - e
 
         # define towards which other corners the corner lines will point.
-        # p1 and p4 are opposing corners, as are p2 and p3.
+        # (p1, p4) and (p2, p3) are opposing corners.
         combinations = ((p1,p2,p3),
                         (p2,p1,p4),
                         (p3,p1,p4),
@@ -264,19 +264,21 @@ class XformCanvas(FloatCanvas):
 
 
     def cbfactory(self, xform, funcname):
-        hlp = getattr(self, 'helper_%s' % funcname)
+        """Takes the result of SideHitTest and builds a proper callback using a
+        helper function to calculate the angle or percentage that needs to be
+        passed to func."""
+        helper = getattr(self, 'helper_%s' % funcname)
         
-        if config["Lock-Axes"] and funcname.startswith('rotate'):
+        if funcname.startswith('rotate') and config["Lock-Axes"]:
             func = xform.rotate
         else:
             func = getattr(xform, funcname)
 
-        return lambda coord: func(hlp(xform, *coord))
+        return lambda coord: func(helper(xform, *coord))
                 
     
     def SideHitTest(self, h, v):
         """Checks if the given point is near one of the triangle sides."""
-
         for xform in self.IterXforms():
             x,y,o = xform.points
             for points,func in (((x,y,o), 'scale'),
@@ -328,7 +330,7 @@ class XformCanvas(FloatCanvas):
         return None, None
 
 
-    # Currently not bound
+    # TODO: Currently not bound
     def OnZoomToFit(self,e):
         self.ZoomToBB(DrawFlag=False)
         self.AdjustZoom()
@@ -353,13 +355,13 @@ class XformCanvas(FloatCanvas):
             self._left_drag = None
             self.ActivateCallback(coords)
 
-        elif self._right_drag is not None:
+        if self._right_drag is not None:
             move = self._right_drag
             self._right_drag = None
             self.StartMove = self.EndMove
             self.MoveImage(move, 'Pixel')
 
-        elif self._resize_pending != 1:
+        if self._resize_pending != 1:
             # Don't use self.Zoom because it redraws unconditionally.
             self.Scale *= self._resize_pending
             self._resize_pending = 1
@@ -395,9 +397,13 @@ class XformCanvas(FloatCanvas):
         # EXPERIMENT!
         self.RemoveObjects(self.shadow)
         self.shadow = []
-        self.Draw()
         
         if self.HasChanged:
+            # Heisenbug, thou art no more! Since TempSave triggers a redraw,
+            # It was possible that an idle event was still pending afterwards,
+            # which could cause a different xform to change its position in
+            # a bizarre way. Calling OnIdle fixes this.
+            self.OnIdle(None)
             self.HasChanged = False
             self.parent.TreePanel.TempSave()
 
