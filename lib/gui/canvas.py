@@ -20,7 +20,10 @@ class VarPreview(PointSet):
     def var_preview(self, xform, range, numvals, depth):
         result = (c_double * (2* (2*numvals+1)**2))()
         genome = Genome.from_string(xform._parent.to_string(False))[0]
-        flam3_xform_preview(genome, xform.index, range, numvals, depth,
+        index = xform.index
+        if index is None:
+            index = genome.final_xform_index
+        flam3_xform_preview(genome, index, range, numvals, depth,
                             result, RandomContext())
         return [(x,-y) for x,y in zip(*[iter(result)]*2)]
     
