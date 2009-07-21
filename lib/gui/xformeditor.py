@@ -206,16 +206,16 @@ class XformPanel(wx.Panel):
         xform.rotate(-90)
 
     def FuncMoveUp(self, xform):
-        xform.move_position(0, self._translate)
+        xform.move_pos(0, self._translate)
 
     def FuncMoveDown(self, xform):
-        xform.move_position(0, -self._translate)
+        xform.move_pos(0, -self._translate)
 
     def FuncMoveLeft(self, xform):
-        xform.move_position(-self._translate, 0)
+        xform.move_pos(-self._translate, 0)
 
     def FuncMoveRight(self, xform):
-        xform.move_position(self._translate, 0)
+        xform.move_pos(self._translate, 0)
 
     def FuncShrink(self, xform):
         xform.scale(1.0/self._scale)
