@@ -420,8 +420,11 @@ class MainWindow(wx.Frame):
         if not self.ActiveXform:
             self.ActiveXform = flame.xform[0]
         elif self.ActiveXform._parent != flame:
-            index = min(self.ActiveXform.index, len(flame.xform)-1)
-            self.ActiveXform = flame.xform[index]
+            if self.ActiveXform.index == None:
+                self.ActiveXform = flame.final or flame.xform[0]
+            else:
+                index = min(self.ActiveXform.index, len(flame.xform)-1)
+                self.ActiveXform = flame.xform[index]
             
         self.image.RenderPreview(flame)
         self.large_preview()

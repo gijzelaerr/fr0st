@@ -102,7 +102,7 @@ class TransformPanel(wx.Panel):
         
     @modifyxform        
     def FuncAddFinalXform(self, xform):
-        # This already checks if a final xform exists.
+        # create_final already checks if a final xform exists.
         self.parent.ActiveXform = self.parent.flame.create_final()
         
     @modifyxform           
@@ -111,6 +111,9 @@ class TransformPanel(wx.Panel):
         
     @modifyxform           
     def FuncDeleteXform(self, xform):
+        if not xform.isfinal() and len(xform._parent.xform) == 1:
+            # Can't delete the last xform.
+            return
         xform.delete()
         self.parent.ActiveXform = None
         
