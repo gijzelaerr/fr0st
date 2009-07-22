@@ -179,12 +179,13 @@ class MainWindow(wx.Frame):
         data = ItemData(BLANKFLAME)
 
         index = self.tree.GetIndexOfItem(self.tree.itemparent)
-
         self.tree.GetChildren(index).append((data,[]))
-        
         self.tree.RefreshItems()
+        
+        # This is needed to avoid an indexerror when getting child.
+        self.tree.Expand(self.tree.itemparent)
+        
         child = self.tree.GetItemByIndex(index + (-1,))
-
         self.tree.SelectItem(child)
 
         # This adds the flame to the temp file, but without any actual changes.
