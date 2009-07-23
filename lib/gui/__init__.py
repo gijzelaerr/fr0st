@@ -391,10 +391,14 @@ class MainWindow(wx.Frame):
 
 
     @Bind(EVT_THREAD_MESSAGE)
+    def EndOfScript(self, e):
+        self.BlockGUI(False)
+        self.TreePanel.TempSave()
+
+        
     @CallableFrom('MainThread')
-    def BlockGUI(self, e=None, flag=False):
-        """This is not only called with the event, but also directly before
-        the script starts running."""
+    def BlockGUI(self, flag=False):
+        """Called before and after a script runs."""
         # TODO: prevent file opening, etc
         self.Enable(ID.RUN, not flag, editor=True)
         self.Enable(ID.STOP, flag, editor=True)
@@ -473,16 +477,13 @@ class MainWindow(wx.Frame):
         except ThreadInterrupt:
             print("\n\nScript Interrupted")
         finally:
-            # This lets the GUI know that the script has finished, by calling the
-            # BlockGUI method (with False)
-            wx.PostEvent(self,ThreadMessageEvent())
+            # This lets the GUI know that the script has finished.
+            wx.PostEvent(self, ThreadMessageEvent())
 
         # Keep this out of the finally clause!
         print "\nSCRIPT STATS:\n"\
               "Running time %.2f seconds\n" %(time.time()-start)
 
-
-        
 
     def _get_flame(self):
         return self._namespace['flame']
