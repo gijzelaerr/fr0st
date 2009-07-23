@@ -1,7 +1,7 @@
 from pyflam3 import Genome
 
 
-def render(string,size,quality,estimator=9,**kwds):
+def render(string, size, quality, estimator=9, fixed_seed=False, **kwds):
     """Passes render requests on to flam3."""
     try:
         genome = Genome.from_string(string)[0]
@@ -19,5 +19,5 @@ def render(string,size,quality,estimator=9,**kwds):
     genome.height = height
     genome.sample_density = quality
     genome.estimator = estimator
-    output_buffer, stats = genome.render(**kwds)
+    output_buffer, stats = genome.render(fixed_seed=fixed_seed, **kwds)
     return output_buffer

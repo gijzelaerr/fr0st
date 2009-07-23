@@ -168,8 +168,10 @@ class Genome(BaseGenome):
 
 class Frame(BaseFrame):
     def __init__(self, **kwargs):
-##        super(BaseFrame, self).__init__()
-        flam3_init_frame(byref(self))
+        if not kwargs["fixed_seed"]:
+            # Initializes the random seed based on system time.
+            # A fixed seed is used for preview renders with high noise levels.
+            flam3_init_frame(byref(self))
 
         self.pixel_aspect_ratio = kwargs.get('aspect', 1.0)
         self.temporal_filter_radius = kwargs.get('filter', 1.0)

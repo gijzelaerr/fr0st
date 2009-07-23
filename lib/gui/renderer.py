@@ -25,6 +25,7 @@ class Renderer():
         """Schedules a genome to be rendered as soon as there are no previous
         or higher priority requests pending."""
         kwds["nthreads"] = 1
+        kwds["fixed_seed"] = True
         self.thumbqueue.append((callback,metadata,args,kwds))
 
 
@@ -33,6 +34,7 @@ class Renderer():
         Cancels previous requests (assuming they are obsolete), but leaves the
         normal request queue intact."""
         kwds["nthreads"] = 1
+        kwds["fixed_seed"] = True
         self.previewflag = 1
         self.previewqueue = [(callback,metadata,args,kwds)]
 
