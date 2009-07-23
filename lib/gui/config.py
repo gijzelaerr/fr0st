@@ -1,7 +1,7 @@
 from __future__ import with_statement
 import cPickle, os, sys, atexit
 
-config = {"active_vars": ['linear',
+config = {"active-vars": ('linear',
                           'sinusoidal',
                           'spherical',
                           'swirl',
@@ -64,7 +64,7 @@ config = {"active_vars": ['linear',
                           'curve',
                           'edisc',
                           'elliptic',
-                          'escher',
+                         'escher',
                           'foci',
                           'lazysusan',
                           'loonie',
@@ -82,7 +82,7 @@ config = {"active_vars": ['linear',
                           'wedge_julia',
                           'wedge_sph',
                           'whorl',
-                          'waves2'],
+                          'waves2'),
           "flamepath" : ("parameters","samples.flame"),
           "Lock-Axes" : True,
           "Pivot-Mode": True,
@@ -90,15 +90,20 @@ config = {"active_vars": ['linear',
           "Edit-Post-Xform": False,
           "Var-Preview-Settings": (2, 20, 1),
           }
+ 
+
+def load():
+    with open('config.conf', 'rb') as f:
+##        return cPickle.load(f)
+        return eval("{%s}" % ",".join(i for i in f))
+
+def dump():
+    with open('config.conf', 'wb') as f:
+##        cPickle.dump(config, f, cPickle.HIGHEST_PROTOCOL)
+        f.write("\n".join("%r: %s" %i for i in config.iteritems()))
 
 
 if os.path.exists('config.conf'):
-    with open('config.conf', 'rb') as f:
-        saved = cPickle.load(f)
-        config.update(saved)
-        
-def dump():
-    with open('config.conf', 'wb') as f:
-        cPickle.dump(config, f, cPickle.HIGHEST_PROTOCOL)
-
+    config.update(load())
+    
 atexit.register(dump)
