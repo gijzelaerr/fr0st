@@ -64,7 +64,7 @@ class Renderer():
         
 
     @Threaded
-    @Catches(TypeError)
+    @Catches((TypeError, wx.PyDeadObjectError))
     def RenderLoop(self):
         while not self.exitflag:
             queue = self.previewqueue or self.thumbqueue
@@ -88,7 +88,7 @@ class Renderer():
 
 
     @Threaded
-    @Catches(TypeError)
+    @Catches((TypeError, wx.PyDeadObjectError))
     def bgRenderLoop(self):
         while not self.exitflag:
             if self.bgqueue:

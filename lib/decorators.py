@@ -36,7 +36,8 @@ def BindEvents(__init__):
 
 def Catches(exctype):
     """ Makes a function swallow a given exception type and return None
-    silently."""
+    silently.
+    Exctype can be a single exception type or a tuple."""
     def decorator(f):
         @wraps(f)
         def wrapper(*args,**kwds):
