@@ -537,8 +537,8 @@ class ImagePanel(wx.Panel):
         height = int(width / ratio)
         size = width,height
         req = self.parent.renderer.PreviewRequest
-        req(self.UpdateBitmap,size,flame.to_string(),
-            size,quality=2,estimator=0,filter=.2)
+        req(self.UpdateBitmap, size, flame.to_string(), size,
+            **config["Preview-Settings"])
 
 
     def UpdateBitmap(self,size,output_buffer):

@@ -86,9 +86,14 @@ config = {"active-vars": ('linear',
           "flamepath" : ("parameters","samples.flame"),
           "Lock-Axes" : True,
           "Pivot-Mode": True,
-          "Variation-Preview": False,
+          "Variation-Preview": True,
           "Edit-Post-Xform": False,
-          "Var-Preview-Settings": (2, 20, 1),
+          "Var-Preview-Settings": {"range": 2,
+                                   "numvals": 20,
+                                   "depth": 1},
+          "Preview-Settings": {"quality": 5,
+                               "estimator": 0,
+                               "filter": .2},
           }
  
 

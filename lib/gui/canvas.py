@@ -14,7 +14,7 @@ class VarPreview(PointSet):
     BoundingBox = N.array(((0,0), (0,0)))
     
     def __init__(self, xform, Color):
-        lst = self.var_preview(xform, *config["Var-Preview-Settings"])
+        lst = self.var_preview(xform, **config["Var-Preview-Settings"])
         PointSet.__init__(self, lst, Color=Color)
         
     def var_preview(self, xform, range, numvals, depth):
