@@ -1,6 +1,7 @@
 import itertools, numpy as N, time, wx, sys, math
 from wx.lib.floatcanvas import FloatCanvas as FC
 from wx.lib.floatcanvas.FloatCanvas import FloatCanvas, DotGrid, PointSet
+from wx.lib.floatcanvas.Utilities import BBox
 
 from lib.decorators import Bind, BindEvents
 from _events import EVT_THREAD_MESSAGE
@@ -11,7 +12,8 @@ from lib.gui.config import config
 
 
 class VarPreview(PointSet):   
-    BoundingBox = N.array(((0,0), (0,0)))
+##    BoundingBox = N.array(((0,0), (0,0)))
+    BoundingBox = BBox.fromPoints((0,0))
     
     def __init__(self, xform, Color):
         lst = self.var_preview(xform, **config["Var-Preview-Settings"])
