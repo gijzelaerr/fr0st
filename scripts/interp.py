@@ -1,4 +1,5 @@
 from runscript import *
+from utils import equalize_flame_attributes
 
 class Interpolation(list):
 
@@ -11,7 +12,7 @@ class Interpolation(list):
         self.t = 0.5
         self.smooth = False
         self.loop = True
-        self.kwargs['loop'] = True
+        kwargs['loop'] = True
         self.p_space = 'polar'
         self.c_space = 'rgb'
 
@@ -40,7 +41,7 @@ class Interpolation(list):
         for i in range(nf):
             #Make new, empty flame
             self.append(Flame())
-            self[i].name = flamename + str(offset+i)
+            self[i].name = self.flamename + str(self.offset+i)
 
             #Flame attrs
             interp_attrs = ['scale', 'rotate', 'brightness', 'gamma']
@@ -112,6 +113,8 @@ class Interpolation(list):
 """
 Erik's secret sauce added for better flava
 """
+# TODO: this is currently not included... perhaps it should be put into
+# equalize_flame_attributes in utils.
 def get_pad(xform, target):
     HOLES = ['spherical', 'ngon', 'julian', 'juliascope', 'polar', 'wedge_sph', 'wedge_julia']
     
@@ -158,76 +161,11 @@ def get_pad(xform, target):
     if 'rings' in t.attributes:
         t.rings = 1.0
     t.weight = 0
-#-----------------------------------------------------------------------------
-
-def equalize_flame_attributes(flame1,flame2):
-    """Make two flames have the same number of xforms and the same
-    attributes. Also moves the final xform (if any) to flame.xform"""
-    diff = len(flame1.xform) - len(flame2.xform)
-    if diff < 0:
-        for i in range(-diff):
-#            get_pad(flame2.xform[diff+i], flame1)
-            flame1.add_xform()
-            flame1.xform[-1].symmetry = 1
-    elif diff > 0:
-        for i in range(diff):
-#            get_pad(flame1.xform[diff+i], flame2)
-            flame2.add_xform()
-            flame2.xform[-1].symmetry = 1
-    if flame1.final or flame2.final:
-#        flame1.create_final()
-#        flame2.create_final()
-        for flame in flame1,flame2:
-            flame.create_final()
-            flame.xform.append(flame.final)
-            flame.final = None
-        
-    # Size can be interpolated correctly, but it's pointless to
-    # produce frames that can't be turned into an animation.
-    flame1.size = flame2.size     
-
-    for name in set(flame1.attributes).union(flame2.attributes):
-        if not hasattr(flame2,name):
-            val = getattr(flame1,name)
-            _type = type(val)
-            if _type is list or _type is tuple:
-                setattr(flame2,name,[0 for i in val])
-            elif _type is float:
-                setattr(flame2,name,0.0)
-            elif _type is str:
-                delattr(flame1,name)
-            else:
-                raise TypeError, "flame.%s can't be %s" %(name,_type)
-            
-        elif not hasattr(flame1,name):
-            val = getattr(flame2,name)
-            _type = type(val)
-            if _type is list or _type is tuple:
-                setattr(flame1,[0 for i in val])
-            elif _type is float:
-                setattr(flame1,name,0.0)
-            elif _type is str:
-                delattr(flame2,name)
-            else:
-                raise TypeError, "flame.%s can't be %s" %(name,_type)
 
 
-#------------------------------------------------
 if __name__ == '__main__':
-    f1 = Flame(file='samples.flame',name='linear')
-    f2 = Flame(file='samples.flame',name='julia')
-    f3 = Flame(file='samples.flame',name='heart')
-    f4 = Flame(file='test_interpolation.flame',name='A')
-    f5 = Flame(file='test_interpolation.flame',name='B')
-    from time import time
-    t = time()
-    i = Interpolation([f1,f2,f3,f4,f5,f2,f4,f3], smooth=True, curve='tanh')
-#    f = file('/home/jmil/Desktop/test.flame', 'w')
-#    for frame in i:
-#        f.write(frame.to_string())
-#    f.close()
-    print time()-t
+    i = Interpolation(GetFlames(), smooth=True, curve='tanh')
     while True:
         for f in i:
-            SetActiveFlame(f)
+            flame = f
             preview()
