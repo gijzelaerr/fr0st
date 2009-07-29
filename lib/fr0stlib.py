@@ -845,10 +845,10 @@ class Xform(object):
 
 
 class PostXform(Xform):
-    _allowed = ('coefs', 'points', 'polars', 'screen_coefs', '_parent',
+    _allowed = set(('coefs', 'points', 'polars', 'screen_coefs', '_parent',
                 'a','b','c','d','e','f',
                 'x','y','o',
-                'xp','yp','op')
+                'xp','yp','op'))
 
     def __repr__(self):
         return "<post-%s" % repr(self._parent)[1:]

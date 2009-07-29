@@ -235,9 +235,13 @@ class XformPanel(wx.Panel):
     def UpdateView(self):
         xform, view = self.GetActive()
 
-        # Update weight. If more values are ever needed here, write a
-        # get/setattr loop.
-        self.weight.SetFloat(xform.weight)
+        # Update weight tc.
+        if xform.ispost():
+            self.weight.Disable()
+            self.weight.SetValue("--")
+        else:
+            self.weight.Enable()
+            self.weight.SetFloat(xform.weight)
             
         if view == "triangle":
             self.coefs = itertools.chain(*xform.points)
@@ -259,7 +263,8 @@ class XformPanel(wx.Panel):
         xform, view = self.GetActive()
 
         # Update weight.
-        xform.weight = self.weight.GetFloat()
+        if not xform.ispost():
+            xform.weight = self.weight.GetFloat()
 
         if view == "triangle":
             xform.points = zip(*[iter(self.coefs)]*2)
