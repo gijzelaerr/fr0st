@@ -158,7 +158,7 @@ class EditorFrame(wx.Frame):
 class MyLog(wx.TextCtrl):
     re_exc = re.compile(r'^.*?(?=  File "<string>")',re.DOTALL)
     re_line = re.compile(r'(Script, line \d*, in .*?)$',re.MULTILINE)
-    re_linenum = re.compile(r'(?<=Script, line )\d*(?=,)')
+    re_linenum = re.compile(r'Script, line (\d*),')
     _script = None # This is set by the parent
 
 
@@ -192,9 +192,15 @@ class MyLog(wx.TextCtrl):
         if not message.startswith("Exception"):
             self.AppendText(message)
             return
+
+        # Strip junk from start of exception, and rename 'File "<string>"' to
+        # 'Script'
+        message = self.re_exc.sub('', message)
+        message = message.replace('File "<string>"', 'Script')
         
-        message = self.re_exc.sub('',message)
-        message = message.replace('File "<string>"','Script')
+        # prevent '%' occurring in code from screwing up string formatting
+        message = message.replace('%', '%%')
+        
         lines = (self._script[int(i)-1].strip()
                  for i in self.re_linenum.findall(message))
         message = self.re_line.sub('\g<1>\n    %s',message) %tuple(lines)
