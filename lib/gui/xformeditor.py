@@ -576,14 +576,11 @@ class ColorPanel(wx.Panel):
             getattr(self, "%sslider" %name).SetValue(val*100)
             getattr(self, "%stc" %name).SetFloat(val)
         
-        color = int(xform.color * 256)
+        color = int(xform.color * 256) or 1
 
-        if color:
-            grad = itertools.chain(*flame.gradient[:color])
-            buff = "%c%c%c" * color % tuple(grad)
-            img = wx.ImageFromBuffer(color, 1, buff)
-        else:
-            img = wx.ImageFromBuffer(1, 1, "%c%c%c" %flame.gradient[0])
+        grad = itertools.chain(*flame.gradient[:color])
+        buff = "%c%c%c" * color % tuple(map(int, grad))
+        img = wx.ImageFromBuffer(color, 1, buff)
             
         img.Rescale(192, 28) # Could be 128, 192 or 256
         self.bmp = wx.BitmapFromImage(img)

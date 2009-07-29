@@ -233,7 +233,7 @@ class Gradient(wx.Panel):
         flame = flame or self.parent.flame
 
         grad = itertools.chain(*flame.gradient)
-        buff = self.formatstr % tuple(grad)
+        buff = self.formatstr % tuple(map(int, grad))
         
 ##        self.bmp = wx.BitmapFromBuffer(256, 50, buff *50)
         img = wx.ImageFromBuffer(256, 1, buff)
