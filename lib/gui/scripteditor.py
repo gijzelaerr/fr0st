@@ -211,6 +211,8 @@ class MyLog(wx.TextCtrl):
     def OnPrint(self,e):
         self._write(e.GetValue()[0])
 
+    # On windows, wx is threadsafe. This code skips all event processing
+    # and sends prints directly to the tc, which is much faster.
     if "win32" in sys.platform:
         write = _write
 
