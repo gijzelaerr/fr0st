@@ -1,5 +1,6 @@
 from pyflam3 import Genome
-
+from lib.fr0stlib import Flame
+from ctypes import *
 
 def render(string, size, quality, estimator=9, fixed_seed=False, **kwds):
     """Passes render requests on to flam3."""
@@ -21,3 +22,8 @@ def render(string, size, quality, estimator=9, fixed_seed=False, **kwds):
     genome.estimator = estimator
     output_buffer, stats = genome.render(fixed_seed=fixed_seed, **kwds)
     return output_buffer
+
+
+def flam4_render(string, size, quality, estimator=9, fixed_seed=False, **kwds):
+    """Stub for future flam4 compatibility."""
+    flame = Flame(string=string)
