@@ -26,22 +26,22 @@ import itertools
 import sys
 
 if 'win32' not in sys.platform:
-    libflam3 = CDLL('libflam3.so')
+    libflam3 = CDLL('lib/pyflam3/linux_so/libflam3.so')
 
 else:
-    try:
-        libflam3 = CDLL('libflam3.dll')
-    except WindowsError:
-        # Assume file not found
-        import os.path
-        # Find the win32_dlls sub directory
-        this_dir = os.path.dirname(__file__)
-        dll_dir = os.path.join(this_dir, 'win32_dlls')
-        # Not add it to the PATH
-        sys_path = os.environ['PATH']
-        os.environ['PATH'] = ';'.join((sys_path, dll_dir))
-        # Try again
-        libflam3 = CDLL('libflam3.dll')
+##    try:
+        libflam3 = CDLL('lib/pyflam3/win32_dlls/libflam3.dll')
+##    except WindowsError:
+##        # Assume file not found
+##        import os.path
+##        # Find the win32_dlls sub directory
+##        this_dir = os.path.dirname(__file__)
+##        dll_dir = os.path.join(this_dir, 'win32_dlls')
+##        # Not add it to the PATH
+##        sys_path = os.environ['PATH']
+##        os.environ['PATH'] = ';'.join((sys_path, dll_dir))
+##        # Try again
+##        libflam3 = CDLL('libflam3.dll')
 
 IteratorFunction = CFUNCTYPE(None, c_void_p, c_double)
 SpatialFilterFunction = CFUNCTYPE(c_double, c_double)
