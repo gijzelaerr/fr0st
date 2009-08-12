@@ -123,7 +123,7 @@ class renderDialog(wx.Frame):
 
 
     def prog(self, py_object, fraction, stage, eta):
-##        print 'rendering: %.2f%% ETA: %.0f seconds' % (fraction,eta)
+        print 'rendering: %.2f%% ETA: %.0f seconds' % (fraction,eta)
         if self.exitflag:
             self.rendering = False
             return self.exitflag

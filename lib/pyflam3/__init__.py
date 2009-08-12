@@ -47,6 +47,12 @@ class Genome(BaseGenome):
         frame.ngenomes = 1
 
         self.ntemporal_samples = kwargs.get('ntemporal_samples', 1)
+        self.temporal_filter_width = kwargs.get('temporal_filter', 1.0)
+
+        # TODO: add:
+        # spatial_oversample,
+        # spatial_filter (why is there a radius/select?)
+
 
 ##        output_buffer = kwargs.get('buffer', None)
 ##        if output_buffer:
@@ -174,7 +180,6 @@ class Frame(BaseFrame):
             flam3_init_frame(byref(self))
 
         self.pixel_aspect_ratio = kwargs.get('aspect', 1.0)
-        self.temporal_filter_radius = kwargs.get('filter', 1.0)
         self.ngenomes = 0
         self.verbose = kwargs.get('verbose', False) and 1 or 0
         self.bits = kwargs.get('bits', 33)
@@ -184,15 +189,7 @@ class Frame(BaseFrame):
         progress = kwargs.get('progress_func', None)
         if callable(progress):
             self.progress = ProgressFunction(progress)
-##        else:
-##            self.progress = ProgressFunction()
-##
-##        param = kwargs.get('progress_param', None)
-##        if param:
-##            if not isinstance(param, py_object):
-##                self.progress_parameter = py_object(param)
-##            else:
-##                self.progress_parameter = param
+
 
         self.nthreads = kwargs.get('nthreads', 0)
         if not self.nthreads:
