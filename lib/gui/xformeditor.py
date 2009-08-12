@@ -31,8 +31,8 @@ class XformTabs(wx.Notebook):
         self.Color = ColorPanel(self)
         self.AddPage(self.Color, "Color")
 
-        win = wx.Panel(self, -1)
-        self.AddPage(win, "Xaos")
+        self.Chaos = ChaosPanel(self)
+        self.AddPage(self.Chaos, "Chaos")
 
         self.Selector = wx.Choice(self.parent, -1)
         self.Selector.Bind(wx.EVT_CHOICE, self.OnChoice)
@@ -635,3 +635,184 @@ class ColorPanel(wx.Panel):
             self._changed = False
         e.Skip()
         
+
+
+
+class ChaosPanel(wx.Panel):
+
+    @BindEvents
+    def __init__(self, parent):
+        wx.Panel.__init__(self, parent, -1)
+        self.parent = parent.parent
+
+        self.tree = gizmos.TreeListCtrl(self, -1, style =
+                                          wx.TR_DEFAULT_STYLE
+                                        | wx.TR_ROW_LINES
+                                        | wx.TR_COLUMN_LINES
+                                        | wx.TR_NO_LINES
+                                        | wx.TR_HIDE_ROOT
+                                        | wx.TR_FULL_ROW_HIGHLIGHT
+                                   )
+
+        self.tree.AddColumn("To")
+        self.tree.AddColumn("Value")
+        self.tree.AddColumn("From")
+        self.tree.AddColumn("Value")
+        
+        self.tree.SetMainColumn(0)
+        self.tree.SetColumnWidth(0, 50)
+        self.tree.SetColumnWidth(1, 60)
+        self.tree.SetColumnWidth(2, 50)
+        self.tree.SetColumnWidth(3, 60)
+        self.tree.SetColumnEditable(1,True)
+        self.tree.SetColumnEditable(3,True)
+
+        self.root = self.tree.AddRoot("The Root Item")
+        self.item = self.root
+##
+##        for i in config["active-vars"]:
+##            child = self.tree.AppendItem(self.root, i)
+##
+##            for j in pyflam3.variables[i]:
+##                item = self.tree.AppendItem(child,  j)
+
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(self.tree,1,wx.EXPAND)
+        self.SetSizer(sizer)
+
+        window = self.tree.GetMainWindow()
+        window.Bind(wx.EVT_MOUSEWHEEL, self.OnWheel)
+        window.Bind(wx.EVT_KEY_UP, self.OnKeyUp)
+        window.Bind(wx.EVT_LEFT_DCLICK, self.OnLeftDClick)
+        window.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
+        self.HasChanged = False
+
+
+    def itervars(self, item=None):
+        if not item:
+            item = self.root
+        child,cookie = self.tree.GetFirstChild(item)  
+        while child.IsOk():
+            name = self.tree.GetItemText(child)
+            yield (child, name)
+            for i,_ in self.itervars(child):
+                yield (i, "%s_%s" % (name, self.tree.GetItemText(i)))
+            child,cookie = self.tree.GetNextChild(item,cookie)
+
+
+    def UpdateView(self):
+        xform = self.parent.ActiveXform
+        index = xform.index
+        for i, val in enumerate(xform.chaos):
+            # TODO: need to rebuild the tree dynamically, maybe make it a
+            # virtual tree.
+            
+##            attr = str(getattr(xform, name))
+##        
+##        for i,name in self.itervars():
+##            attr = str(getattr(xform, name))
+            if self.tree.GetItemText(i,1) == attr:
+                continue
+            self.tree.SetItemText(i, attr, 1)
+
+
+    def SetFlameAttribute(self, item, value):
+        pass
+##        parent = self.tree.GetItemParent(item)
+##        if parent == self.root:
+##            # it's a variation
+##            name = self.tree.GetItemText(item, 0)
+##        else:
+##            # it's a variable
+##            name = "_".join(map(self.tree.GetItemText,(parent,item)))
+##        setattr(self.parent.ActiveXform,name,value)
+##        # TODO: This could be optimized to just redraw the var preview.
+##        self.parent.canvas.ShowFlame(rezoom=False)
+
+
+    @Bind(wx.EVT_TREE_END_LABEL_EDIT)
+    def OnEndEdit(self, e):
+        # TODO: Make this work for col 1 and 3.
+        item = e.GetItem()
+        oldvalue = self.tree.GetItemText(item, 1)
+        try:
+            value = float(e.GetLabel() or "0.0")
+            self.tree.SetItemText(item,str(value),1)
+        except ValueError:
+            e.Veto()
+            return
+
+        if value != oldvalue:
+            self.SetFlameAttribute(item, value)
+            self.parent.TreePanel.TempSave()
+
+        e.Veto()
+
+    
+    @Bind(wx.EVT_TREE_SEL_CHANGED)
+    def OnSelChanged(self,e):
+        """Makes sure the tree always knows what item is selected."""
+        # TODO: Make this work for col 1 and 3.
+        self.item = e.GetItem()
+        
+
+    def OnKeyDown(self ,e):
+        key = e.GetKeyCode()
+        if key in (wx.WXK_NUMPAD_ENTER, wx.WXK_RETURN):
+            self.tree.EditLabel(self.item, 1)
+        else:
+            e.Skip()
+            
+
+    def OnLeftDClick(self, e):
+        # HACK: col is either -1 or 1. I don't know what the 2 param is.
+        item, _, col =  self.tree.HitTest(e.Position)
+        if col > 0:
+            self.tree.EditLabel(item, col)
+        elif col == -1:
+            text = self.tree.GetItemText(item, 1)
+            if text == '0.0':
+                new = 1.0
+            else:
+                new = 0.0
+            # TODO!
+##            self.SetFlameAttribute(item, new)
+##            self.tree.SetItemText(item, str(new), 1)
+            self.parent.TreePanel.TempSave()
+##        print item, _, col
+        e.Skip()
+        
+
+    def OnWheel(self,e):
+        if e.ControlDown():
+            if e.AltDown():
+                diff = 0.01
+            else:
+                diff = 0.1
+        elif e.AltDown():
+            diff = 0.001
+        else:
+            e.Skip()
+            return
+
+        self.SetFocus() # Makes sure OnKeyUp gets called.
+        
+        item = self.tree.HitTest(e.GetPosition())[0]
+        name = self.tree.GetItemText(item)
+        val = self.tree.GetItemText(item, 1) or "0.0"
+        
+        val = float(val) + (diff if e.GetWheelRotation() > 0 else -diff)
+        self.SetFlameAttribute(item, val)
+        self.tree.SetItemText(item, str(val), 1)
+        self.parent.image.RenderPreview()
+        self.HasChanged = True
+        
+
+    def OnKeyUp(self, e):
+        key = e.GetKeyCode()
+        if (key == wx.WXK_CONTROL and not e.AltDown()) or (
+            key == wx.WXK_ALT and not e.ControlDown()):
+            if self.HasChanged:
+                self.parent.TreePanel.TempSave()
+                self.HasChanged = False
+    
