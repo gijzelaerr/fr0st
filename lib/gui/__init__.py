@@ -299,7 +299,10 @@ class MainWindow(wx.Frame):
     @Bind(wx.EVT_MENU,id=ID.RENDER)
     @Bind(wx.EVT_TOOL,id=ID.RENDER)
     def OnRender(self,e):
-        self.renderdialog = renderDialog(self, ID.RENDER)
+        if self.renderdialog:
+            self.renderdialog.Raise()
+        else:
+            self.renderdialog = renderDialog(self, ID.RENDER)
 
 #------------------------------------------------------------------------------    
 
