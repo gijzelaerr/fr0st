@@ -84,7 +84,8 @@ class Flame(object):
         self.gradient = Palette()
         
         if not string and file:
-            path = os.path.join(sys.path[0],"parameters",file)
+##            path = os.path.join(sys.path[0],"parameters",file)
+            path = os.path.join(sys.path[0],file)
             lst = Flame.load_file(path)
             if not name:
                 string = lst[0]
@@ -201,6 +202,9 @@ class Flame(object):
     def clear(self):
         self.xform = []
         self.final = None
+
+    def copy(self):
+        return Flame(string=self.to_string())
 
 
     def iter_xforms(self):

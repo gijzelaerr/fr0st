@@ -94,6 +94,7 @@ config = {"active-vars": ('linear',
           "Preview-Settings": {"quality": 5,
                                "estimator": 0,
                                "filter": .2},
+          "renderer": "flam3"
           }
  
 
@@ -105,7 +106,7 @@ def load():
 def dump():
     with open('config.conf', 'wb') as f:
 ##        cPickle.dump(config, f, cPickle.HIGHEST_PROTOCOL)
-        f.write("\n".join("%r: %s" %i for i in config.iteritems()))
+        f.write("\n".join("%r: %r" %i for i in config.iteritems()))
 
 
 if os.path.exists('config.conf'):

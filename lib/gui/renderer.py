@@ -3,6 +3,7 @@ from threading import Thread
 
 from lib.decorators import Catches, Threaded
 from lib.render import render
+from lib.gui.config import config
 from _events import ThreadMessageEvent
 
 
@@ -26,6 +27,8 @@ class Renderer():
         or higher priority requests pending."""
         kwds["nthreads"] = 1
         kwds["fixed_seed"] = True
+        kwds["renderer"] = "flam3"
+        
         self.thumbqueue.append((callback,metadata,args,kwds))
 
 
@@ -35,7 +38,9 @@ class Renderer():
         normal request queue intact."""
         kwds["nthreads"] = 1
         kwds["fixed_seed"] = True
+        kwds["renderer"] = config["renderer"]
         self.previewflag = 1
+        
         self.previewqueue = [(callback,metadata,args,kwds)]
 
         
@@ -45,10 +50,12 @@ class Renderer():
         if not prog_func:
             raise KeyError("You must specify a progress function")
         kwds["progress_func"] = self.prog_wrapper(prog_func, "previewflag")
+        kwds["renderer"] = config["renderer"]
         self.previewflag = 1
-##        self.previewqueue = [(callback,metadata,args,kwds)]
+
         # This is an append so that a simultaneous request for small and
         # large previews goes through.
+##        self.previewqueue = [(callback,metadata,args,kwds)]
         self.previewqueue.append((callback,metadata,args,kwds))
 
 
@@ -59,6 +66,7 @@ class Renderer():
         if not prog_func:
             raise KeyError("You must specify a progress function")
         kwds["progress_func"] = self.prog_wrapper(prog_func, "bgflag")
+        kwds["renderer"] = config["renderer"]
 
         self.bgqueue = [(callback,metadata,args,kwds)]
         
@@ -69,8 +77,9 @@ class Renderer():
         while not self.exitflag:
             queue = self.previewqueue or self.thumbqueue
             if queue:
-                callback,metadata,args,kwds = queue.pop(0)
                 self.previewflag = 0
+                callback,metadata,args,kwds = queue.pop(0)
+
                 try:
                     self.bgflag = 2 # Pauses the other thread
                     output_buffer = render(*args,**kwds)
