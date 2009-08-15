@@ -205,6 +205,10 @@ class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
         return item
 
 
+    def DeleteFlameFile(self, item):
+        del self.flamefiles[self.GetIndexOfItem(item)[0]]
+
+
     def RenderThumbnail(self, child=None, data=None):
         if child is None:
             child = self.item
@@ -263,19 +267,6 @@ class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
         if item is None:
             item = self.itemparent
         return treemixin.VirtualTree.GetItemChildren(self, item)
-            
-
-    def GetFlames(self):
-        """Returns all flames in the currently selected file as flame objects.
-        This is meant to be called from a script."""
-        indices = self.GetIndexOfItem(self.itemparent)
-        return [Flame(string=i[-1]) for i,_ in self.GetChildren(indices)]
-
-
-    def GetAllFlames(self):
-        """Returns a list of lists of flame objects of all open files."""
-        return [[Flame(string=i[-1]) for i,_ in lst]
-                for _,lst in self.flamefiles]
 
 
     def _get_itemparent(self):
@@ -293,6 +284,27 @@ class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
             return self.GetFlameData(self.item)
 
     itemdata = property(_get_itemdata)
+
+
+    def find_open_flame(self, path):
+        """Checks if a particular file is open. Returns the file if True,
+        None otherwise."""
+        for child in self.GetItemChildren(self.root):
+            if path == self.GetFlameData(child)[-1]:
+                return child
+
+
+    def GetFlames(self):
+        """Returns all flames in the currently selected file as flame objects.
+        This is meant to be called from a script."""
+        indices = self.GetIndexOfItem(self.itemparent)
+        return [Flame(string=i[-1]) for i,_ in self.GetChildren(indices)]
+
+
+    def GetAllFlames(self):
+        """Returns a list of lists of flame objects of all open files."""
+        return [[Flame(string=i[-1]) for i,_ in lst]
+                for _,lst in self.flamefiles]
 
 
     #-------------------------------------------------------------------------

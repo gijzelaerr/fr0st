@@ -308,13 +308,13 @@ class MainWindow(wx.Frame):
 
     def OpenFlame(self,path):
         # Check if file is already open
-        item = self.find_open_flame(path)
+        item = self.tree.find_open_flame(path)
         if item:
             dlg = wx.MessageDialog(self, "%s is already open. Do you want to revert to its saved status?" % path,
                                    'Fr0st',wx.YES_NO|wx.CANCEL)
             if dlg.ShowModal() != wx.ID_YES:
                 return
-            self.tree.Delete(item)
+            self.tree.DeleteFlameFile(item)
 
         # scan the file to see if it's valid
         flamestrings = Flame.load_file(path)
@@ -338,7 +338,7 @@ class MainWindow(wx.Frame):
     def SaveFlame(self, path, confirm=True):
         # Refuse to save if file is open
         data = self.tree.GetFlameData(self.tree.itemparent)
-        if data[-1] != path and self.find_open_flame(path):
+        if data[-1] != path and self.tree.find_open_flame(path):
             dlg = wx.MessageDialog(self, "%s is currently open. Please choose a different name." % path,
                                    'Fr0st',wx.OK)
             dlg.ShowModal()
@@ -370,14 +370,6 @@ class MainWindow(wx.Frame):
             os.remove(path+'.temp')
 
         self.tree.SelectItem(self.tree.itemparent)
-
-
-    def find_open_flame(self,path):
-        """Checks if a particular file is open. Returns the file if True,
-        None otherwise."""
-        for child in self.tree.GetItemChildren(self.tree.root):
-            if path == self.tree.GetFlameData(child)[-1]:
-                return child
 
 
     def CheckForChanges(self, itemdata, lst):
