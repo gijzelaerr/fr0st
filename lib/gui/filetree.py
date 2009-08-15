@@ -170,7 +170,7 @@ class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
         self.Indent = 8 # default is 15
         self.Spacing = 12 # default is 18
         
-        isz = (28,21)
+        isz = (24,24)
         il = wx.ImageList(*isz)
         il.Add(wx.ArtProvider_GetBitmap(wx.ART_FOLDER,      wx.ART_OTHER, isz))
         il.Add(wx.ArtProvider_GetBitmap(wx.ART_FILE_OPEN,   wx.ART_OTHER, isz))
