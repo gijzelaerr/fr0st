@@ -20,7 +20,7 @@ class TreePanel(wx.Panel):
         self.parent = parent
                        
         # Specify a size instead of using wx.DefaultSize
-        self.tree = FlameTree(self, wx.NewId(), size=(180,500),
+        self.tree = FlameTree(self, wx.NewId(), size=(180,520),
                                style=wx.TR_DEFAULT_STYLE
                                      #wx.TR_HAS_BUTTONS
                                      | wx.TR_EDIT_LABELS
