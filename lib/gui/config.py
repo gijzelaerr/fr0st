@@ -97,19 +97,20 @@ config = {"active-vars": ('linear',
           "renderer": "flam3"
           }
  
+_configpath = 'config.cfg'
 
 def load():
-    with open('config.conf', 'rb') as f:
+    with open(_configpath, 'rb') as f:
 ##        return cPickle.load(f)
         return eval("{%s}" % ",".join(i for i in f))
 
 def dump():
-    with open('config.conf', 'wb') as f:
+    with open(_configpath, 'wb') as f:
 ##        cPickle.dump(config, f, cPickle.HIGHEST_PROTOCOL)
         f.write("\n".join("%r: %r" %i for i in config.iteritems()))
 
 
-if os.path.exists('config.conf'):
+if os.path.exists(_configpath):
     config.update(load())
     
 atexit.register(dump)
