@@ -519,7 +519,7 @@ class ImagePanel(wx.Panel):
         self.parent = parent
         wx.Panel.__init__(self, parent, -1)
         self.bmp = wx.EmptyBitmap(160,120, 32)
-        self.SetMinSize((256, 192))
+        self.SetMinSize((256, 220))
 
 
     @Bind(EVT_THREAD_MESSAGE)
@@ -536,7 +536,7 @@ class ImagePanel(wx.Panel):
         flame = flame or self.parent.flame
 
         ratio = flame.size[0] / flame.size[1]
-        width = 160 if ratio > 1 else int(160*ratio)
+        width = 200 if ratio > 1 else int(200*ratio)
         height = int(width / ratio)
         size = width,height
         req = self.parent.renderer.PreviewRequest
@@ -559,5 +559,8 @@ class ImagePanel(wx.Panel):
     def OnPaint(self, evt):       
         w,h = self.bmp.GetSize()
         dc = wx.PaintDC(self)
-        dc.DrawBitmap(self.bmp, 128-w/2, 96-h/2, True)
+        dc.DrawBitmap(self.bmp,
+                      (self.Size[0] - w) / 2,
+                      (self.Size[1] - h) / 2,
+                      True)
 
