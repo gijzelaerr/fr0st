@@ -25,6 +25,8 @@ class Renderer():
     def ThumbnailRequest(self,callback,metadata,*args,**kwds):
         """Schedules a genome to be rendered as soon as there are no previous
         or higher priority requests pending."""
+        # These settings are hardcoded on purpose, they can't be overridden
+        # by the calling code.
         kwds["nthreads"] = 1
         kwds["fixed_seed"] = True
         kwds["renderer"] = "flam3"
@@ -38,7 +40,7 @@ class Renderer():
         normal request queue intact."""
         kwds["nthreads"] = 1
         kwds["fixed_seed"] = True
-        kwds["renderer"] = config["renderer"]
+        kwds["renderer"] = kwds.get("renderer", config["renderer"])
         self.previewflag = 1
         
         self.previewqueue = [(callback,metadata,args,kwds)]
@@ -50,7 +52,7 @@ class Renderer():
         if not prog_func:
             raise KeyError("You must specify a progress function")
         kwds["progress_func"] = self.prog_wrapper(prog_func, "previewflag")
-        kwds["renderer"] = config["renderer"]
+        kwds["renderer"] = kwds.get("renderer", config["renderer"])
         self.previewflag = 1
 
         # This is an append so that a simultaneous request for small and
@@ -66,7 +68,7 @@ class Renderer():
         if not prog_func:
             raise KeyError("You must specify a progress function")
         kwds["progress_func"] = self.prog_wrapper(prog_func, "bgflag")
-        kwds["renderer"] = config["renderer"]
+        kwds["renderer"] = kwds.get("renderer", config["renderer"])
 
         self.bgqueue = [(callback,metadata,args,kwds)]
         
