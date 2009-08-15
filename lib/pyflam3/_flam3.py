@@ -26,7 +26,10 @@ import itertools
 import sys, os
 
 if 'win32' not in sys.platform:
-    libflam3 = CDLL('lib/pyflam3/linux_so/libflam3.so')
+    try:
+        libflam3 = CDLL('lib/pyflam3/linux_so/libflam3.so')
+    except OSError:
+        libflam3 = CDLL('libflam3.so')
 
 else:
 ##    try:
