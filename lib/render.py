@@ -1,6 +1,11 @@
+import sys
+
 from pyflam3 import Genome
 from lib.fr0stlib import Flame
 from ctypes import *
+
+if 'win' in sys.platform:
+    from pyflam3 import _flam4
 
 
 def render(*a, **k):
@@ -38,3 +43,6 @@ def _flam3_render(string, size, quality, estimator=9, fixed_seed=False, **kwds):
 def _flam4_render(string, size, quality, estimator=9, fixed_seed=False, **kwds):
     """Stub for future flam4 compatibility."""
     flame = Flame(string=string)
+    flam4Flame = _flam4.loadFlam4(flame)
+    output_buffer = _flam4.renderFlam4(flam4Flame,size)
+    return output_buffer
