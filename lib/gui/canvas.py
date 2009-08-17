@@ -12,10 +12,9 @@ from lib.gui.config import config
 
 
 class VarPreview(PointSet):   
-##    BoundingBox = N.array(((0,0), (0,0)))
-    BoundingBox = BBox.fromPoints((0,0))
     
     def __init__(self, xform, Color):
+        self.xform = xform
         lst = self.var_preview(xform, **config["Var-Preview-Settings"])
         PointSet.__init__(self, lst, Color=Color)
         
@@ -30,7 +29,11 @@ class VarPreview(PointSet):
         return [(x,-y) for x,y in zip(*[iter(result)]*2)]
     
     def CalcBoundingBox(self):
-        return
+        # We don't want the BBox to be calculated from all points, as it messes
+        # with adjustzoom. Just triangle bounds are used, which causes a
+        # (slight) bug: when the triangle is dragged off-screen, the preview
+        # disappears, even if part of it would still be visible.
+        self.BoundingBox = BBox.fromPoints(self.xform.points)
     
 
 
@@ -227,6 +230,20 @@ class XformCanvas(FloatCanvas):
             self.HasChanged = True
 
 
+    def VertexHitTest(self,x,y):
+        """Checks if the given point is on top of a vertex."""
+        for xform in self.IterXforms():
+            a,d,b,e,c,f = xform.coefs
+            if polar((x - c, y - f))[0] < self.circle_radius:
+                return (xform, xform._set_pos if config["Lock-Axes"]
+                               else xform._set_o)
+            elif polar((x - a - c, y - d - f))[0] < self.circle_radius:
+                return xform, xform._set_x
+            elif polar((x - b - c, y - e - f))[0] < self.circle_radius:
+                return xform, xform._set_y
+        return None, None
+    
+
     def CalcScale(self, points, h, v, hittest=False):
         """Returns the proportion by which the xform needs to be scaled to make
         the hypot pass through the point.
@@ -254,58 +271,48 @@ class XformCanvas(FloatCanvas):
         return height / xf.d
 
 
-    def helper_scale(self, xform, h, v):
-        #TODO: CalcScale could be refactored.
-        return self.CalcScale(xform.points, h, v)  
+    def side_helper(self, xform, funcname, h, v):
+        """Takes the result of SideHitTest and builds a proper callback."""
+        if funcname == 'scale':
+            def cb((h,v)):
+                return xform.scale(self.CalcScale(xform.points, h, v))
+            return cb
 
-    def helper_rotate_x(self, xform, h, v):
-        return polar((h - xform.c, v - xform.f))[1] - xform.xp[1]
-
-    def helper_rotate_y(self, xform, h, v):
-        return polar((h - xform.c, v - xform.f))[1] - xform.yp[1]
-
-
-    def cbfactory(self, xform, funcname):
-        """Takes the result of SideHitTest and builds a proper callback using a
-        helper function to calculate the angle or percentage that needs to be
-        passed to func."""
-        helper = getattr(self, 'helper_%s' % funcname)
-        
-        if funcname.startswith('rotate') and config["Lock-Axes"]:
+        if config["Lock-Axes"]:
             func = xform.rotate
         else:
-            func = getattr(xform, funcname)
-
-        return lambda coord: func(helper(xform, *coord))
+            func = getattr(xform, funcname)            
+        def cb((h, v)):
+            angle = polar((h - xform.c, v - xform.f))[1]
+            func(angle - cb.prev_angle)
+            cb.prev_angle = angle
+        cb.prev_angle = polar((h - xform.c, v - xform.f))[1]
+        return cb
                 
     
     def SideHitTest(self, h, v):
-        """Checks if the given point is near one of the triangle sides."""
+        """Checks if the given point is near one of the triangle sides
+        or corners."""
         for xform in self.IterXforms():
             x,y,o = xform.points
             for points,func in (((x,y,o), 'scale'),
                                 ((x,o,y), 'rotate_x'),
                                 ((y,o,x), 'rotate_y')):
                 if self.CalcScale(points, h, v, hittest=True):
-                    return points[:2], xform, self.cbfactory(xform, func)
+                    return (points[:2], xform,
+                            self.side_helper(xform, func, h,v))
 
-        return None, None, None     
+        # TODO: detect the actual lines. Right now, it just checks a radius
+        # from the middle point.
+        radius = self.circle_radius * 3 # better too big than too small.
+        for i,j,k in self._cornerpoints:
+            if polar((h - j[0], v - j[1]))[0] < radius:
+                xform = self.parent.ActiveXform
+                return ((i,j,k), xform, self.side_helper(xform, 'rotate', h,v))
+
+        return None, None, None
 
     
-    def VertexHitTest(self,x,y):
-        """Checks if the given point is on top of a vertex."""
-        for xform in self.IterXforms():
-            a,d,b,e,c,f = xform.coefs
-            if polar((x - c, y - f))[0] < self.circle_radius:
-                return (xform, xform._set_pos if config["Lock-Axes"]
-                               else xform._set_o)
-            elif polar((x - a - c, y - d - f))[0] < self.circle_radius:
-                return xform, xform._set_x
-            elif polar((x - b - c, y - e - f))[0] < self.circle_radius:
-                return xform, xform._set_y
-        return None, None
-
-
     def angle_helper(self, *points):
         """Given 3 vectors with the same origin, checks if the first falls
         between the other 2."""
@@ -352,7 +359,6 @@ class XformCanvas(FloatCanvas):
 
     @Bind(wx.EVT_IDLE)
     def OnIdle(self,e):
-        time.sleep(0)
         if self._left_drag is not None:
             coords = self._left_drag
             self._left_drag = None
@@ -441,6 +447,8 @@ class XformCanvas(FloatCanvas):
             self._left_drag = e.Coords
             
         else:
+            # TODO: maybe uncomment this SetFocus, but activate it only
+            # when main frame has focus.
 ##            self.SetFocus() # Makes Canvas take focus under windows.
             
             # First, test for vertices
