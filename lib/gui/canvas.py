@@ -352,6 +352,7 @@ class XformCanvas(FloatCanvas):
 
     @Bind(wx.EVT_IDLE)
     def OnIdle(self,e):
+        time.sleep(0)
         if self._left_drag is not None:
             coords = self._left_drag
             self._left_drag = None
