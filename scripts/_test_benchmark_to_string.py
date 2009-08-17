@@ -1,13 +1,13 @@
-from lib.pyflam3 import Genome
+from time import time
 
-flame = Flame(file="samples.flame",name="julia")
-
-import time
-
-t = time.time()
+t = time()
 for i in range(1000):
-    Genome.from_string(flame.to_string())
+    flame.to_string()
+print "to string avg ms:  ", time() - t
 
-print time.time() - t
+s = flame.to_string()
 
-
+t = time()
+for i in range(1000):
+    Flame(string=s)
+print "from string avg ms:", time() - t
