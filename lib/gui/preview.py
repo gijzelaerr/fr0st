@@ -78,15 +78,13 @@ class PreviewFrame(wx.Frame):
         size = int(fw * ratio), int(fh * ratio)
         
         req = self.parent.renderer.LargePreviewRequest
-        req(self.UpdateBitmap, size, flame,
-            size, quality=10, estimator=0, filter=.2,
+        req(self.UpdateBitmap, flame, size, quality=10, estimator=0, filter=.2,
             progress_func = self.prog_func)
 
 
-    def UpdateBitmap(self,size,output_buffer):
+    def UpdateBitmap(self, bmp):
         """Callback function to process rendered preview images."""
-        width,height = size
-        self.image.bmp = wx.BitmapFromBuffer(width, height, output_buffer)
+        self.image.bmp = bmp
         self.SetTitle("%s - Flame Preview" % self.parent.flame.name)
         self.SetStatusText("rendering: 100.00 %")
         self.image.Refresh()

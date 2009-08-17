@@ -115,7 +115,7 @@ class renderDialog(wx.Frame):
 
         # TODO: filter shouldn't be hardcoded.
 	req = self.parent.renderer.RenderRequest
-	req(self.save, size, flame, size, self.Quality.GetValue(),
+	req(self.save, flame, size, self.Quality.GetValue(),
             int(self.Estimator.GetValue()), filter=.2, progress_func=self.prog)
 
         self.rendering = True
@@ -129,9 +129,8 @@ class renderDialog(wx.Frame):
             return self.exitflag
 
 
-    def save(self, size, output_buffer):
-        w,h= size
-	image = wx.ImageFromBuffer(w, h, output_buffer)
+    def save(self, bmp):
+	image = wx.ImageFromBitmap(bmp)
 	destination = str(self.txtDestination.GetValue())
 	image.SaveFile(destination, self.wxFormat)
 

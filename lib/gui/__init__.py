@@ -516,8 +516,10 @@ class ImagePanel(wx.Panel):
 
     @Bind(EVT_THREAD_MESSAGE)
     def OnImageReady(self,e):
-        callback, metadata, output_buffer = e.GetValue()
-        callback(metadata, output_buffer)
+        callback, size, output_buffer = e.GetValue()
+        w,h = size
+        bmp = wx.BitmapFromBuffer(w, h, output_buffer)
+        callback(bmp)
 
 
     def RenderPreview(self, flame=None):
@@ -531,20 +533,14 @@ class ImagePanel(wx.Panel):
         width = 200 if ratio > 1 else int(200*ratio)
         height = int(width / ratio)
         size = width,height
-        req = self.parent.renderer.PreviewRequest
-        req(self.UpdateBitmap, size, flame, size,
-            **config["Preview-Settings"])
+        self.parent.renderer.PreviewRequest(self.UpdateBitmap, flame, size,
+                                            **config["Preview-Settings"])
 
 
-    def UpdateBitmap(self,size,output_buffer):
+    def UpdateBitmap(self, bmp):
         """Callback function to process rendered preview images."""
-        width,height = size
-        self.bmp = wx.BitmapFromBuffer(width, height, output_buffer)
+        self.bmp = bmp
         self.Refresh()
-        # Removed the Yield call because it opened the door to infinite
-        # recursion. It seems to have been unneeded anyway.
-##        wx.SafeYield()
-##        wx.Yield()
 
 
     @Bind(wx.EVT_PAINT)

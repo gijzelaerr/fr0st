@@ -1,9 +1,9 @@
 from __future__ import with_statement
-import wx, sys, os, re, shutil, time, cPickle, itertools
+import wx, sys, os, re, shutil, time, cPickle, itertools, pickle as cPickle
+from threading import Thread
+from functools import partial
 from wx import PyDeadObjectError
 from wx.lib.mixins import treemixin
-from threading import Thread
-import pickle as cPickle
 
 from lib.gui.constants import ID
 from lib.fr0stlib import Flame
@@ -216,15 +216,14 @@ class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
         data.imgindex = self.newimgindex()
         # This is the only place where a request is made directly with a
         # string. The _flam3_render function checks for this special case.
-        self.parent.parent.renderer.ThumbnailRequest(self.UpdateThumbnail,
-                                     (child, data, self.isz),
-                                     data[-1],self.isz,quality=25,estimator=3)
-        
+        callback = partial(self.UpdateThumbnail, child=child, data=data)
+        self.parent.parent.renderer.ThumbnailRequest(callback,data[-1],
+                                            self.isz,quality=25,estimator=3)
 
-    def UpdateThumbnail(self, data, output_buffer):
+        
+    def UpdateThumbnail(self, bmp, child, data):
         """Callback function to process rendered thumbnails."""
-        child,data,(w,h) = data
-        self.il.Add(wx.BitmapFromBuffer(w, h, output_buffer))
+        self.il.Add(bmp)
         self.SetItemImage(child, data.imgindex)
 
 

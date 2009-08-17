@@ -22,7 +22,7 @@ class Renderer():
             self.bgRenderLoop()
 
 
-    def ThumbnailRequest(self,callback,metadata,*args,**kwds):
+    def ThumbnailRequest(self, callback, *args, **kwds):
         """Schedules a genome to be rendered as soon as there are no previous
         or higher priority requests pending."""
         # These settings are hardcoded on purpose, they can't be overridden
@@ -31,10 +31,10 @@ class Renderer():
         kwds["fixed_seed"] = True
         kwds["renderer"] = "flam3"
         
-        self.thumbqueue.append((callback,metadata,args,kwds))
+        self.thumbqueue.append((callback,args,kwds))
 
 
-    def PreviewRequest(self,callback,metadata,*args,**kwds):
+    def PreviewRequest(self, callback, *args, **kwds):
         """Schedules a render immediately after the current render is done.
         Cancels previous requests (assuming they are obsolete), but leaves the
         normal request queue intact."""
@@ -43,10 +43,10 @@ class Renderer():
         kwds["renderer"] = kwds.get("renderer", config["renderer"])
         self.previewflag = 1
         
-        self.previewqueue = [(callback,metadata,args,kwds)]
+        self.previewqueue = [(callback,args,kwds)]
 
         
-    def LargePreviewRequest(self,callback,metadata,*args,**kwds):
+    def LargePreviewRequest(self, callback, *args, **kwds):
         """Makes a preview request with a callback function."""
         prog_func = kwds.get("progress_func", None)
         if not prog_func:
@@ -57,11 +57,11 @@ class Renderer():
 
         # This is an append so that a simultaneous request for small and
         # large previews goes through.
-##        self.previewqueue = [(callback,metadata,args,kwds)]
-        self.previewqueue.append((callback,metadata,args,kwds))
+##        self.previewqueue = [(callback,args,kwds)]
+        self.previewqueue.append((callback,args,kwds))
 
 
-    def RenderRequest(self,callback,metadata,*args,**kwds):
+    def RenderRequest(self, callback, *args, **kwds):
         """Makes a render request run in a different thread than previews,
         so it can be paused."""
         prog_func = kwds.get("progress_func", None)
@@ -70,7 +70,7 @@ class Renderer():
         kwds["progress_func"] = self.prog_wrapper(prog_func, "bgflag")
         kwds["renderer"] = kwds.get("renderer", config["renderer"])
 
-        self.bgqueue = [(callback,metadata,args,kwds)]
+        self.bgqueue = [(callback,args,kwds)]
         
 
     @Threaded
@@ -79,21 +79,9 @@ class Renderer():
         while not self.exitflag:
             queue = self.previewqueue or self.thumbqueue
             if queue:
-                self.previewflag = 0
-                callback,metadata,args,kwds = queue.pop(0)
-
-                try:
-                    self.bgflag = 2 # Pauses the other thread
-                    output_buffer = render(*args,**kwds)
-                except Exception:
-                    # All exceptions are caught to make sure the render thread
-                    # never crashes because of malformed flames.
-                    traceback.print_exc()
-                    continue
-                finally:
-                    self.bgflag = 0
-                evt = ThreadMessageEvent(callback,metadata,output_buffer)
-                wx.PostEvent(self.parent.image,evt)
+                self.bgflag = 2 # Pauses the other thread
+                self.process(*queue.pop(0))
+                self.bgflag = 0
             else:
                 time.sleep(.01)  # Ideal interval needs to be tested
 
@@ -103,13 +91,22 @@ class Renderer():
     def bgRenderLoop(self):
         while not self.exitflag:
             if self.bgqueue:
-                self.previewflag = 0
-                callback,metadata,args,kwds = self.bgqueue.pop(0)
-                output_buffer = render(*args,**kwds)
-                evt = ThreadMessageEvent(callback,metadata,output_buffer)
-                wx.PostEvent(self.parent.image,evt)
+                self.process(*self.bgqueue.pop(0))
             else:
                 time.sleep(.01)
+
+
+    def process(self, callback, args, kwds):
+        self.previewflag = 0
+        try:
+            output_buffer = render(*args,**kwds)
+        except Exception:
+            # Make sure render thread never crashes due to malformed flames.
+            traceback.print_exc()
+            return
+        # HACK: args[1] is always size...
+        evt = ThreadMessageEvent(callback, args[1], output_buffer)
+        wx.PostEvent(self.parent.image, evt)
         
 
     def prog_wrapper(self, f, flag):
