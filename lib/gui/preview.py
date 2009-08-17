@@ -78,8 +78,8 @@ class PreviewFrame(wx.Frame):
         size = int(fw * ratio), int(fh * ratio)
         
         req = self.parent.renderer.LargePreviewRequest
-        req(self.UpdateBitmap,size,flame.to_string(),
-            size,quality=10,estimator=0,filter=.2,
+        req(self.UpdateBitmap, size, flame,
+            size, quality=10, estimator=0, filter=.2,
             progress_func = self.prog_func)
 
 

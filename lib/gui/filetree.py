@@ -214,6 +214,8 @@ class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
             child = self.item
             data = self.GetFlameData(child)
         data.imgindex = self.newimgindex()
+        # This is the only place where a request is made directly with a
+        # string. The _flam3_render function checks for this special case.
         self.parent.parent.renderer.ThumbnailRequest(self.UpdateThumbnail,
                                      (child, data, self.isz),
                                      data[-1],self.isz,quality=25,estimator=3)

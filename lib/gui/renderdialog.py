@@ -111,7 +111,7 @@ class renderDialog(wx.Frame):
 	elif self.utype == '.TIF': self.wxFormat = wx.BITMAP_TYPE_TIF
 	else: raise ValueError(self.utype)
 
-	flame = self.parent.flame.to_string()
+	flame = self.parent.flame
 
         # TODO: filter shouldn't be hardcoded.
 	req = self.parent.renderer.RenderRequest

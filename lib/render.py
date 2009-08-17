@@ -18,8 +18,13 @@ def render(*a, **k):
         raise ValueError("Invalid renderer: %s" % renderer)
     
 
-def _flam3_render(string, size, quality, estimator=9, fixed_seed=False, **kwds):
+def _flam3_render(flame, size, quality, estimator=9, fixed_seed=False, **kwds):
     """Passes render requests on to flam3."""
+    if type(flame) is str:
+        string = flame
+    else:
+        string = flame.to_string()
+        
     try:
         genome = Genome.from_string(string)[0]
     except Exception:
@@ -40,9 +45,9 @@ def _flam3_render(string, size, quality, estimator=9, fixed_seed=False, **kwds):
     return output_buffer
 
 
-def _flam4_render(string, size, quality, estimator=9, fixed_seed=False, **kwds):
-    """Stub for future flam4 compatibility."""
-    flame = Flame(string=string)
+def _flam4_render(flame, size, quality, estimator=9, fixed_seed=False, **kwds):
+    """Passes requests on to flam4. Works on windows only for now."""
+    kwds['channels'] = 4 # Needs to be forced.
     flam4Flame = _flam4.loadFlam4(flame)
     output_buffer = _flam4.renderFlam4(flam4Flame,size)
     return output_buffer
