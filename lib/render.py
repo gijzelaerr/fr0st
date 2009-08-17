@@ -47,7 +47,6 @@ def _flam3_render(flame, size, quality, estimator=9, fixed_seed=False, **kwds):
 
 def _flam4_render(flame, size, quality, estimator=9, fixed_seed=False, **kwds):
     """Passes requests on to flam4. Works on windows only for now."""
-    kwds['channels'] = 4 # Needs to be forced.
     flam4Flame = _flam4.loadFlam4(flame)
     output_buffer = _flam4.renderFlam4(flam4Flame,size)
     return output_buffer
