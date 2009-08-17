@@ -516,10 +516,16 @@ class ImagePanel(wx.Panel):
 
     @Bind(EVT_THREAD_MESSAGE)
     def OnImageReady(self,e):
-        callback, size, output_buffer = e.GetValue()
-        w,h = size
-        bmp = wx.BitmapFromBuffer(w, h, output_buffer)
-        callback(bmp)
+        # Hack: this method is here because we only want one function bound to
+        # EVT_THREAD_MESSAGE per class.
+        callback, (w,h), output_buffer, channels = e.GetValue()
+        if channels == 3:
+            fun = wx.BitmapFromBuffer
+        elif channels == 4:
+            fun = wx.BitmapFromBufferRGBA
+        else:
+            raise ValueError("need 3 or 4 channels, not %s" % channels)
+        callback(fun(w, h, output_buffer))
 
 
     def RenderPreview(self, flame=None):

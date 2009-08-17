@@ -104,8 +104,13 @@ class Renderer():
             # Make sure render thread never crashes due to malformed flames.
             traceback.print_exc()
             return
-        # HACK: args[1] is always size...
-        evt = ThreadMessageEvent(callback, args[1], output_buffer)
+        
+        if kwds["renderer"] == 'flam4':
+            channels = 4
+        else:
+            channels = kwds.get('channels', 3)
+        # args[1] is always size...
+        evt = ThreadMessageEvent(callback, args[1], output_buffer, channels)
         wx.PostEvent(self.parent.image, evt)
         
 
