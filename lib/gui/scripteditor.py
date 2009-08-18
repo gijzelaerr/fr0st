@@ -1,15 +1,19 @@
 from __future__ import with_statement
-import wx, os, sys, re
+import wx, os, sys, re, time
 from wx import stc, PyDeadObjectError
 
 from lib.decorators import *
 from toolbar import CreateEditorToolBar
 from menu import CreateEditorMenu
 from constants import ID
+from utils import DynamicDialog
 from _events import EVT_THREAD_MESSAGE, ThreadMessageEvent
 
 
 class EditorFrame(wx.Frame):
+
+    # attributes used to communicate from main to script thread.
+    dlg = False
     
     @BindEvents    
     def __init__(self,parent):
@@ -154,6 +158,40 @@ class EditorFrame(wx.Frame):
         self.editor._changed = False
 
 
+    def make_dialog(self, *a, **k):
+        """This method runs from the script thread, so it can't create the
+        dialog directly."""
+        lst = []
+        evt = ThreadMessageEvent(lst, a, k)
+        wx.PostEvent(self, evt)
+
+        while not self.dlg:
+            # Wait for dialog to be created.
+            time.sleep(0.1)
+
+        while self.dlg:
+            # Wait for dialog to return
+            time.sleep(0.1)
+
+        return lst
+
+
+    @Bind(EVT_THREAD_MESSAGE)
+    def OnDialogRequest(self, e):
+        """Callback which processes script dialogs in the main threads, then
+        arranges for results to be returned."""
+        self.dlg = True
+        d,a,k = e.GetValue()
+        # TODO: instead of isshown, need a method to determine if it's in front
+        # of the parent
+        if self.IsShown():
+            parent = self
+        else:
+            parent = self.parent
+        DynamicDialog(parent, d, *a, **k)
+        self.dlg = False
+
+        
 
 class MyLog(wx.TextCtrl):
     re_exc = re.compile(r'^.*?(?=  File "<string>")',re.DOTALL)
