@@ -116,7 +116,7 @@ class renderDialog(wx.Frame):
         # TODO: filter shouldn't be hardcoded.
 	req = self.parent.renderer.RenderRequest
 	req(self.save, flame, size, self.Quality.GetValue(),
-            int(self.Estimator.GetValue()), filter=.2, progress_func=self.progz)
+            int(self.Estimator.GetValue()), filter=.2, progress_func=self.prog)
 
         self.rendering = True
         self.t = time.time()
