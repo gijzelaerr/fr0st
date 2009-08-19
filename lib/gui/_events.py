@@ -7,19 +7,17 @@ class ThreadMessageEvent(wx.PyCommandEvent):
     """Notifies the main thread to update something controlled by wx, which is
     not thread-safe.
 
-    This event type can optionally carry arbitrary information which can be
-    retrieved through GetMessage().
+    Optionally carries arbitrary information accessible through GetArgs().
 
-    Should be used no more than once for each widget, to avoid multiple handlers
-    catching an event only meant for one of them."""
+    Should be used with an id if the receiving widget has more than 1 handler,
+    to make sure it goes to the correct one."""
     
     def __init__(self, id=wx.ID_ANY, *args):
         wx.PyCommandEvent.__init__(self, myEVT_THREAD_MESSAGE, id)
         self._args = args
 
-    def GetMessage(self):
+    def GetArgs(self):
         return self._args
 
     # For compatibility with existing code
-    GetArgs = GetValue = GetMessage
-    
+    GetValue = GetMessage = GetArgs
