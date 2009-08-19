@@ -12,8 +12,8 @@ from _events import EVT_THREAD_MESSAGE, ThreadMessageEvent
 
 class EditorFrame(wx.Frame):
 
-    # attributes used to communicate from main to script thread.
-    dlg = False
+    dlg = False # Signals when the script has a dialog active
+    _new = False # True when script doesn't have a saved version to revert to.
     
     @BindEvents    
     def __init__(self,parent):
@@ -37,7 +37,6 @@ class EditorFrame(wx.Frame):
         # Load the default script
         self.scriptpath = os.path.join(sys.path[0],"scripts", "default.py")
         self.OpenScript(self.scriptpath)
-        self._new = False
 
 
     @Bind(wx.EVT_CLOSE)
@@ -65,6 +64,7 @@ class EditorFrame(wx.Frame):
 
     @Bind(wx.EVT_TOOL,id=ID.SOPEN)    
     def OnScriptOpen(self,e):
+        self._new = False
         if self.CheckForChanges() == wx.ID_CANCEL:
             return
         dDir,dFile = os.path.split(self.scriptpath)
@@ -79,8 +79,9 @@ class EditorFrame(wx.Frame):
 
     @Bind(wx.EVT_TOOL,id=ID.SSAVE)
     def OnScriptSave(self, e):
+        self._new = False
         self.SaveScript(self.scriptpath, confirm=False)
-
+        
 
     @Bind(wx.EVT_TOOL,id=ID.SSAVEAS)
     def OnScriptSaveAs(self, e=None):
@@ -94,6 +95,7 @@ class EditorFrame(wx.Frame):
             self.scriptpath = dlg.GetPath()   
             self.SaveScript(self.scriptpath)
         dlg.Destroy()
+        self._new = False
         return  result
 
 
@@ -326,6 +328,7 @@ class CodeEditor(stc.StyledTextCtrl):
 
     def Clear(self):
         self.ClearAll()
+        self.EmptyUndoBuffer()
 
     def SetInsertionPoint(self, pos):
         self.SetCurrentPos(pos)
