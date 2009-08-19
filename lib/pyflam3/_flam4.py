@@ -2,6 +2,7 @@ from ctypes import *
 
 import itertools
 import sys
+##import time
 
 
 try:
@@ -182,10 +183,12 @@ libflam4.cuRunFuse.argtypes = [POINTER(Flame)]
 libflam4.cuStartFrame.argtypes = [POINTER(Flame)]
 libflam4.cuRenderBatch.argtypes = [POINTER(Flame)]
 libflam4.cuFinishFrame.argtypes = [POINTER(Flame), POINTER(c_ubyte), c_uint]
+libflam4.cuEzRenderFrame.argtypes= [POINTER(Flame), POINTER(c_ubyte), c_uint, c_int]
 
 def loadFlam4(flame):
 	flam4Flame = Flame()
-	flam4Flame.center = flame.center
+	flam4Flame.center[0] = flame.center[0]
+	flam4Flame.center[1] = flame.center[1]
 	flam4Flame.size[0] = 100./flame.scale
 	flam4Flame.size[1] = 100.*(flame.size[1]/flame.size[0])/flame.scale
 	flam4Flame.hue = 0								#LINKME
@@ -208,24 +211,21 @@ def loadFlam4(flame):
 	flam4Flame.trans = (xForm*flam4Flame.numTrans)()
 	uxf = (unAnimatedxForm*flam4Flame.numTrans)()
 	flam4Flame.transAff = uxf
-
-        for trans, transAff, xform in zip(flam4Flame.trans, flam4Flame.transAff,
-                                          flame.xform):
-                loadXform(xform, trans)
-                setTransAff(transAff, trans)
-		
-        sum_ = sum(i.weight for i in flam4Flame.trans)       
-		
-        sum2 = 0
-	for trans in flam4Flame.trans:
-                sum2 += trans.weight/sum_
-                trans.weight = sum2
-		
+	for x in range(len(flame.xform)):
+		loadXform(flame.xform[x],flam4Flame.trans[x])
+		setTransAff(flam4Flame.transAff[x],flam4Flame.trans[x])
+	sum = 0
+	for n in range(flam4Flame.numTrans):
+		sum = sum+flam4Flame.trans[n].weight
+	sum2 = 0
+	for n in range(flam4Flame.numTrans):
+		sum2 = sum2+flam4Flame.trans[n].weight/sum
+		flam4Flame.trans[n].weight = sum2
 	if flam4Flame.isFinalXform:
 		loadXform(flame.final, flam4Flame.finalXform)
 	return flam4Flame
 	
-def loadXform(inxform, xform):
+def loadXform(inxform, outxform):
 	xform = outxform
 	for x in xform._fields_:
 		try:
@@ -251,9 +251,9 @@ def setTransAff(transAff, xform):
 	transAff.e = xform.e
 	
 def renderFlam4(flame,size):
-##	global LastRenderWidth
-##	global LastRenderHeight
-##	global cudaRunning
+	global LastRenderWidth
+	global LastRenderHeight
+	global cudaRunning
 	outputBuffer = (c_ubyte*(size[0]*size[1]*4))()
 	if (LastRenderWidth != size[0]) or (LastRenderHeight != size[1]):
 		if cudaRunning:
@@ -261,8 +261,11 @@ def renderFlam4(flame,size):
 		cudaRunning = 1
 		libflam4.cuStartCuda(c_uint(0),c_int(size[0]),c_int(size[1]))
 		LastRenderWidth,LastRenderHeight = size
-	libflam4.cuStartFrame(pointer(flame))
+	"""libflam4.cuStartFrame(pointer(flame))
 	for x in range(10):
 		libflam4.cuRenderBatch(pointer(flame))
-	libflam4.cuFinishFrame(pointer(flame),outputBuffer,0)
+	libflam4.cuFinishFrame(pointer(flame),outputBuffer,0)"""
+	##oldTime = time.clock()
+	libflam4.cuEzRenderFrame(pointer(flame),outputBuffer,0,10)
+	##print oldTime-time.clock()
 	return outputBuffer
