@@ -92,7 +92,7 @@ class PreviewFrame(wx.Frame):
 
 
     def prog_func(self, *args):
-        wx.PostEvent(self, ThreadMessageEvent(*args))
+        wx.PostEvent(self, ThreadMessageEvent(-1, *args))
 
 
     @Bind(EVT_THREAD_MESSAGE)

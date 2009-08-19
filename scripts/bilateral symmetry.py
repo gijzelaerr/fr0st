@@ -1,7 +1,7 @@
 
 ver, hor = dialog("Symmetry", "Choose axis of Symmetry",
-                 ("vertical", True), 
-                 ("horizontal", True))
+                  ("vertical", True), 
+                  ("horizontal", True))
 
 totalweight = sum(i.weight for i in flame.xform)
 

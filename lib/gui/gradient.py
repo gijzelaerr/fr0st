@@ -5,7 +5,6 @@ from lib.decorators import *
 from lib.gui.canvas import XformCanvas
 from lib.gui.utils import LoadIcon
 from lib.gui.config import config
-from _events import EVT_THREAD_MESSAGE
 
 
 # TODO: this class doesn't belong here.
@@ -162,8 +161,7 @@ class GradientPanel(wx.Panel):
         self.Layout()
 
 
-    @Bind(EVT_THREAD_MESSAGE)
-    def OnUpdate(self, e=None):
+    def OnUpdate(self):
         self.image.Update()
         if self.parent.flame != self._flame:
             # Hack: only change the slider when the flame object id changes.

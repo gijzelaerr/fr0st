@@ -13,8 +13,8 @@ class ThreadMessageEvent(wx.PyCommandEvent):
     Should be used no more than once for each widget, to avoid multiple handlers
     catching an event only meant for one of them."""
     
-    def __init__(self,*args):
-        wx.PyCommandEvent.__init__(self, myEVT_THREAD_MESSAGE, wx.ID_ANY)
+    def __init__(self, id=wx.ID_ANY, *args):
+        wx.PyCommandEvent.__init__(self, myEVT_THREAD_MESSAGE, id)
         self._args = args
 
     def GetMessage(self):

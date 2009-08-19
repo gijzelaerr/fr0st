@@ -162,7 +162,7 @@ class EditorFrame(wx.Frame):
         """This method runs from the script thread, so it can't create the
         dialog directly."""
         lst = []
-        evt = ThreadMessageEvent(lst, a, k)
+        evt = ThreadMessageEvent(-1, lst, a, k)
         wx.PostEvent(self, evt)
 
         while not self.dlg:
@@ -220,7 +220,7 @@ class MyLog(wx.TextCtrl):
     @Catches(PyDeadObjectError)
     def write(self, message):
         """Notifies the main thread to print a message."""
-        wx.PostEvent(self, ThreadMessageEvent(message))
+        wx.PostEvent(self, ThreadMessageEvent(-1, message))
 
 
     @Catches(PyDeadObjectError)

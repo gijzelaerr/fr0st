@@ -385,7 +385,7 @@ class MainWindow(wx.Frame):
             return result
 
 
-    @Bind(EVT_THREAD_MESSAGE)
+    @Bind(EVT_THREAD_MESSAGE, id=ID.ENDOFSCRIPT)
     def EndOfScript(self, e):
         self.BlockGUI(False)
         self.TreePanel.TempSave()
@@ -475,7 +475,7 @@ class MainWindow(wx.Frame):
             print("\n\nScript Interrupted")
         finally:
             # This lets the GUI know that the script has finished.
-            wx.PostEvent(self, ThreadMessageEvent())
+            wx.PostEvent(self, ThreadMessageEvent(ID.ENDOFSCRIPT))
 
         # Keep this out of the finally clause!
         print "\nSCRIPT STATS:\n"\
@@ -497,13 +497,22 @@ class MainWindow(wx.Frame):
         # WARNING: This function is called from the script thread, so it's not
         # Allowed to change any shared state.
         self.image.RenderPreview()
-        wx.PostEvent(self.canvas, ThreadMessageEvent())
-        wx.PostEvent(self.grad, ThreadMessageEvent())
+        wx.PostEvent(self, ThreadMessageEvent(ID.PREVIEW))
         time.sleep(.05) # Avoids spamming too many requests.
+
 
     def large_preview(self):
         if self.previewframe.IsShown():
             self.previewframe.RenderPreview()
+
+
+    @Bind(EVT_THREAD_MESSAGE, id=ID.PREVIEW)
+    def OnPreview(self, e):
+        self.canvas.ShowFlame(rezoom=False)
+        self.grad.OnUpdate()
+        # This is not active as it makes GUI a bit slow.
+##        self.XformTabs.UpdateView()
+        
 
 
 class ImagePanel(wx.Panel):
@@ -520,6 +529,7 @@ class ImagePanel(wx.Panel):
     def OnImageReady(self,e):
         # Hack: this method is here because we only want one function bound to
         # EVT_THREAD_MESSAGE per class.
+        # TODO: this can safely be moved back.
         callback, (w,h), output_buffer, channels = e.GetValue()
         if channels == 3:
             fun = wx.BitmapFromBuffer

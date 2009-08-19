@@ -1,22 +1,20 @@
 import itertools, numpy as N, time, wx, sys, math
 from wx.lib.floatcanvas import FloatCanvas as FC
-from wx.lib.floatcanvas.FloatCanvas import FloatCanvas, DotGrid, PointSet
 from wx.lib.floatcanvas.Utilities import BBox
 
 from lib.decorators import Bind, BindEvents
-from _events import EVT_THREAD_MESSAGE
 from lib.fr0stlib import polar, rect, Xform
 from lib import pyflam3
 from lib.pyflam3 import Genome, c_double, RandomContext, flam3_xform_preview
 from lib.gui.config import config
 
 
-class VarPreview(PointSet):   
+class VarPreview(FC.PointSet):   
     
     def __init__(self, xform, Color):
         self.xform = xform
         lst = self.var_preview(xform, **config["Var-Preview-Settings"])
-        PointSet.__init__(self, lst, Color=Color)
+        FC.PointSet.__init__(self, lst, Color=Color)
         
     def var_preview(self, xform, range, numvals, depth):
         result = (c_double * (2* (2*numvals+1)**2))()
@@ -37,7 +35,7 @@ class VarPreview(PointSet):
     
 
 
-class XformCanvas(FloatCanvas):
+class XformCanvas(FC.FloatCanvas):
     colors = [( 255,   0,   0), # red
               ( 255, 255,   0), # yellow
               (   0, 255,   0), # green
@@ -53,10 +51,10 @@ class XformCanvas(FloatCanvas):
     @BindEvents
     def __init__(self, parent):
         self.parent = parent.parent
-        FloatCanvas.__init__(self, parent,
-                             size=(300,300),
-                             ProjectionFun=None,
-                             BackgroundColor="BLACK")
+        FC.FloatCanvas.__init__(self, parent,
+                                size=(300,300),
+                                ProjectionFun=None,
+                                BackgroundColor="BLACK")
 
         # Create the reference triangle
         points = ((0,0),(1,0),(0,1))
@@ -67,7 +65,7 @@ class XformCanvas(FloatCanvas):
             "OXY",points,("tr","tl","br"))
 
 
-        # List that hold draw objects
+        # Lists that hold draw objects
         self.triangles = []
         self.objects = []
         self.shadow = []
@@ -113,12 +111,6 @@ class XformCanvas(FloatCanvas):
         elif refresh:
             # This is an elif because AdjustZoom already forces a Draw.
             self.Draw()
-
-
-    @Bind(EVT_THREAD_MESSAGE)
-    def OnCanvasRefresh(self, e):
-        """Allows the script thread to ask the canvas to refresh."""
-        self.ShowFlame(rezoom=False)
 
 
     def AddXform(self, xform, solid=False, fill=False):
@@ -180,11 +172,11 @@ class XformCanvas(FloatCanvas):
 
         
     def MakeGrid(self):
-        self.GridUnder = DotGrid(Spacing=(.1, .1),
-                                 Size=150,
-                                 Color=(100,100,100),
-                                 Cross=True,
-                                 CrossThickness=1)
+        self.GridUnder = FC.DotGrid(Spacing=(.1, .1),
+                                    Size=150,
+                                    Color=(100,100,100),
+                                    Cross=True,
+                                    CrossThickness=1)
 
         
     def AdjustZoom(self):
@@ -224,10 +216,10 @@ class XformCanvas(FloatCanvas):
     def ActivateCallback(self,coords):
         if self.callback:
             self.callback(coords)
+            self.HasChanged = True
             self.ShowFlame(rezoom=False)
             self.parent.XformTabs.UpdateView()
             self.parent.image.RenderPreview()
-            self.HasChanged = True
 
 
     def VertexHitTest(self,x,y):

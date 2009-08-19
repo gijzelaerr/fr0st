@@ -1,7 +1,5 @@
 import wx, os
 
-from _events import ThreadMessageEvent
-
 
 def LoadIcon(*path):
     img = wx.Image(os.path.join('lib','gui','icons',*path) + '.png',

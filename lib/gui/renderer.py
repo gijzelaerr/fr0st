@@ -110,7 +110,7 @@ class Renderer():
         else:
             channels = kwds.get('channels', 3)
         # args[1] is always size...
-        evt = ThreadMessageEvent(callback, args[1], output_buffer, channels)
+        evt = ThreadMessageEvent(-1, callback, args[1], output_buffer, channels)
         wx.PostEvent(self.parent.image, evt)
         
 
