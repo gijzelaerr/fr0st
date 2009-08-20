@@ -1,12 +1,12 @@
-res = dialog("choose stuff", "please choose some stuff.",
-             ("a long string", str),
-             ("int", int),
+res = dialog("please choose some stuff.",
+             ("string", str),
+             ("integer", int),
              ("float", float),
-             ("bool", bool),
-             ("str_d", "hola"),
-             ("int_d", 42),
-             ("float_d", 7.1),
-             ("bool_d", True))
+             ("boolean", bool),
+             ("Including a default", 42),
+             ("choices", ["spam", "ham", "eggs"]),
+             ("Select between xforms.\nCool, isn't it?", flame.xform)
+             )
 
 
 for i in res:

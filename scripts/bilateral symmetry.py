@@ -1,5 +1,5 @@
 
-ver, hor = dialog("Symmetry", "Choose axis of Symmetry",
+ver, hor = dialog("Choose axis of Symmetry",
                   ("vertical", True), 
                   ("horizontal", True))
 

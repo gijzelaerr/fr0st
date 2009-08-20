@@ -172,6 +172,11 @@ class EditorFrame(wx.Frame):
             time.sleep(0.1)
 
         while self.dlg:
+            # If there was an error, propagate it.
+            if isinstance(self.dlg, Exception):
+                e = self.dlg
+                self.dlg = False
+                raise e
             # Wait for dialog to return
             time.sleep(0.1)
 
@@ -190,8 +195,13 @@ class EditorFrame(wx.Frame):
             parent = self
         else:
             parent = self.parent
-        DynamicDialog(parent, d, *a, **k)
-        self.dlg = False
+        try:
+            name = "%s asks" %os.path.basename(self.scriptpath)
+            DynamicDialog(parent, d, name, *a, **k)
+        except Exception as e:
+            self.dlg = e
+        else:
+            self.dlg = False
 
         
 
