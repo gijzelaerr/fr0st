@@ -510,7 +510,7 @@ class Xform(object):
         # Create default values. Subclasses ignore this.
         if type(self) is Xform:
             if chaos is None:
-                chaos = [1]
+                chaos = [1.0]
             self._chaos = Chaos(self, chaos)
             
             if post is None:
@@ -889,10 +889,11 @@ class Chaos(list):
     def __repr__(self):
         return "Chaos(%s)" %self[:]
 
-    def __init__(self,parent,lst):
+    def __init__(self, parent, lst):
         self._parent = parent
-        lst.extend(1 for i in range(100-len(lst)))
-        list.__init__(self,lst)
+        lst = map(float, lst)
+        lst.extend(1.0 for i in range(100-len(lst)))
+        list.__init__(self, lst)
 
     def __len__(self):
         if self._parent.isfinal():
@@ -914,11 +915,15 @@ class Chaos(list):
         return list.__getslice__(self,pos,pos2)
     
     def __setitem__(self,pos,val):
+        if val < 0:
+            raise ValueError(val)
         if abs(pos) > len(self)-1:
-            raise IndexError
+            raise IndexError(pos)
         list.__setitem__(self,pos,val)
       
     def __setslice__(self,pos,pos2,val):
+        if any(i < 0 for i in val):
+            raise ValueError(val)
         if (pos<0) or (pos2<0):
             raise NotImplementedError, "Negative slicing not supported"
         list.__setslice__(self,pos,pos2,val)
