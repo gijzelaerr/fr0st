@@ -97,13 +97,19 @@ class Renderer():
 
 
     def process(self, callback, args, kwds):
-        self.previewflag = 0
+        self.previewflag = 0     
         try:
             output_buffer = render(*args,**kwds)
         except Exception:
             # Make sure render thread never crashes due to malformed flames.
             traceback.print_exc()
             return
+
+        # HACK: If by the time the render finishes it has been obsoleted,
+        # don't return the buffer in case of a large preview.
+        if callback == self.parent.previewframe.UpdateBitmap and \
+                       self.previewflag:
+            return        
         
         if kwds["renderer"] == 'flam4':
             channels = 4
