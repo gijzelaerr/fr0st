@@ -12,7 +12,6 @@ from _events import EVT_THREAD_MESSAGE, ThreadMessageEvent
 
 class EditorFrame(wx.Frame):
 
-    dlg = False # Signals when the script has a dialog active
     _new = False # True when script doesn't have a saved version to revert to.
     
     @BindEvents    
@@ -160,26 +159,20 @@ class EditorFrame(wx.Frame):
         self.editor._changed = False
 
 
-    def make_dialog(self, *a, **k):
+    def make_dialog(self, *a):
         """This method runs from the script thread, so it can't create the
         dialog directly."""
+        self.dlgready = False
         lst = []
-        evt = ThreadMessageEvent(-1, lst, a, k)
+        evt = ThreadMessageEvent(-1, lst, a)
         wx.PostEvent(self, evt)
-
-        while not self.dlg:
-            # Wait for dialog to be created.
+        # Wait for dialog to return
+        while not self.dlgready:
             time.sleep(0.1)
-
-        while self.dlg:
-            # If there was an error, propagate it.
-            if isinstance(self.dlg, Exception):
-                e = self.dlg
-                self.dlg = False
-                raise e
-            # Wait for dialog to return
-            time.sleep(0.1)
-
+        # If there was an error, propagate it.
+        if isinstance(self.dlgready, Exception):
+            e = self.dlgready
+            raise e
         return lst
 
 
@@ -187,8 +180,7 @@ class EditorFrame(wx.Frame):
     def OnDialogRequest(self, e):
         """Callback which processes script dialogs in the main threads, then
         arranges for results to be returned."""
-        self.dlg = True
-        d,a,k = e.GetValue()
+        lst,a = e.GetValue()
         # TODO: instead of isshown, need a method to determine if it's in front
         # of the parent
         if self.IsShown():
@@ -197,11 +189,10 @@ class EditorFrame(wx.Frame):
             parent = self.parent
         try:
             name = "%s asks" %os.path.basename(self.scriptpath)
-            DynamicDialog(parent, d, name, *a, **k)
+            DynamicDialog(parent, lst, name, *a)
+            self.dlgready = True
         except Exception as e:
-            self.dlg = e
-        else:
-            self.dlg = False
+            self.dlgready = e
 
         
 
