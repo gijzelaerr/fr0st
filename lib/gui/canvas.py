@@ -218,7 +218,8 @@ class XformCanvas(FC.FloatCanvas):
             self.callback(coords)
             self.HasChanged = True
             self.ShowFlame(rezoom=False)
-            self.parent.XformTabs.UpdateView()
+            # Only update Xform, not all 4 tabs. makes updates somewhat faster.
+            self.parent.XformTabs.Xform.UpdateView()
             self.parent.image.RenderPreview()
 
 
