@@ -65,7 +65,7 @@ class Flame(object):
     re_xform  = re.compile(r'<[a-zA-Z]*xform .*?/>')
     re_attr   = re.compile(r'[^ ]*?=".*?(?=")') # Works for xforms and header  
 
-    _default = ["_scale","final","gradient","xform","pixels","name"]
+    _default = set(("final","gradient","xform","name"))
 
     
     def __init__(self,file="",string="",name=""):
@@ -181,6 +181,10 @@ class Flame(object):
 
         return "".join(lst)
 
+
+    def __repr__(self):
+        return '<flame "%s">' % self.name
+    
 
     def _set_soloxform(self, v):
         for xform in self.xform:

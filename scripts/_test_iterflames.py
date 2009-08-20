@@ -1,8 +1,8 @@
-for i in self.tree.GetFlames():
-    print i.name
+for i in GetFlames():
+    print i
 print "---------------------------"
 
-for i in self.tree.GetAllFlames():
+for i in GetAllFlames():
     for j in i:
         print j
     print
