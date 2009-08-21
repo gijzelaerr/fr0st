@@ -512,7 +512,19 @@ class MainWindow(wx.Frame):
         self.grad.OnUpdate()
         # This is not active as it makes GUI a bit slow.
 ##        self.XformTabs.UpdateView()
-        
+
+
+    @Bind(EVT_THREAD_MESSAGE, id=ID.RENDER)
+    def OnImageReady(self,e):
+        callback, (w,h), output_buffer, channels = e.GetValue()
+        if channels == 3:
+            fun = wx.BitmapFromBuffer
+        elif channels == 4:
+            fun = wx.BitmapFromBufferRGBA
+        else:
+            raise ValueError("need 3 or 4 channels, not %s" % channels)
+        callback(fun(w, h, output_buffer))        
+
 
 
 class ImagePanel(wx.Panel):
@@ -523,21 +535,6 @@ class ImagePanel(wx.Panel):
         wx.Panel.__init__(self, parent, -1)
         self.bmp = wx.EmptyBitmap(160,120, 32)
         self.SetMinSize((256, 220))
-
-
-    @Bind(EVT_THREAD_MESSAGE)
-    def OnImageReady(self,e):
-        # Hack: this method is here because we only want one function bound to
-        # EVT_THREAD_MESSAGE per class.
-        # TODO: this can safely be moved back.
-        callback, (w,h), output_buffer, channels = e.GetValue()
-        if channels == 3:
-            fun = wx.BitmapFromBuffer
-        elif channels == 4:
-            fun = wx.BitmapFromBufferRGBA
-        else:
-            raise ValueError("need 3 or 4 channels, not %s" % channels)
-        callback(fun(w, h, output_buffer))
 
 
     def RenderPreview(self, flame=None):
