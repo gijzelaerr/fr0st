@@ -228,7 +228,7 @@ class MyLog(wx.TextCtrl):
 
     @Catches(PyDeadObjectError)
     def _write(self,message):
-        self.oldstderr.write("[%s]" %message) # For debugging purposes!
+        self.oldstderr.write(message) # For debugging purposes!
 
         if not message.startswith("Exception"):
             self.AppendText(message)
