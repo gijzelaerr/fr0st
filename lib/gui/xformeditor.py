@@ -753,7 +753,6 @@ class ChaosPanel(wx.Panel):
 
     def OnSelChanged(self,e):
         """Makes sure the tree always knows what item is selected."""
-        # TODO: Make this work for col 1 and 3.
         self.item = e.GetItem()
         
 
@@ -772,7 +771,7 @@ class ChaosPanel(wx.Panel):
         else:
             text = tree.GetItemText(item, 1)
             new = 1.0 if text == '0.0' else 0.0
-            tree.SetItemText(item, str(new), col+1)
+            tree.SetItemText(item, str(new), 1)
             self.SetFlameAttribute(tree, item, new)
             self.parent.TreePanel.TempSave()
         e.Skip()
