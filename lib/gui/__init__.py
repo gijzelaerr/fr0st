@@ -3,7 +3,7 @@ import os, sys, wx, time, re, threading, itertools
 from wx import PyDeadObjectError
 
 from lib.gui.scripteditor import EditorFrame
-from lib.gui.preview import PreviewFrame
+from lib.gui.preview import PreviewFrame, PreviewBase
 from lib.gui.filetree import TreePanel
 from lib.gui.menu import CreateMenu
 from lib.gui.toolbar import CreateToolBar
@@ -527,14 +527,18 @@ class MainWindow(wx.Frame):
 
 
 
-class ImagePanel(wx.Panel):
+class ImagePanel(PreviewBase):
 
     @BindEvents
-    def __init__(self,parent):
+    def __init__(self, parent):
         self.parent = parent
-        wx.Panel.__init__(self, parent, -1)
-        self.bmp = wx.EmptyBitmap(160,120, 32)
+        # HACK: we change the class temorarily so the BindEvents decorator
+        # catches the methods in the base class.
+        self.__class__ = PreviewBase
+        PreviewBase.__init__(self, parent)
+        self.__class__ = ImagePanel
         self.SetMinSize((256, 220))
+        self.bmp = wx.EmptyBitmap(400,300, 32)
 
 
     def RenderPreview(self, flame=None):
