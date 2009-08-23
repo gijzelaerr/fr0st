@@ -232,6 +232,15 @@ class Flame(object):
     angle = property(_get_angle,_set_angle)
 
 
+    def move_center(self, diff):
+        """Moves center point, adjusting for any flame rotation."""
+        r, phi = polar(diff)
+        phi -= self.rotate
+        w, h = rect((r, phi))
+        self.center[0] += w
+        self.center[1] += h        
+
+
     def _get_attributes(self):
         return [i for i in self.__dict__ if i not in self._default]
 

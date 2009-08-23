@@ -133,8 +133,7 @@ class PreviewBase(wx.Panel):
             flame = self.parent.flame
             fw,fh = self.bmp.GetSize()
             pixel_per_unit = fw * flame.scale / 100.
-            flame.center[0] += diff[0] / pixel_per_unit
-            flame.center[1] += diff[1] / pixel_per_unit
+            flame.move_center([i / pixel_per_unit for i in diff])
             self.parent.image.RenderPreview()
 
 
