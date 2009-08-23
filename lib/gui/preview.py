@@ -206,7 +206,7 @@ class PreviewPanel(PreviewBase):
 
     def UpdateBitmap(self, bmp):
         self.bmp = bmp
-        self.oldbmp = None
+        self.oldbmp = bmp
         self._offset = N.array([0,0])
         self._zoomfactor = 1.0
         self.Refresh()
@@ -234,9 +234,6 @@ class PreviewPanel(PreviewBase):
         
 
     def MoveAndZoom(self):
-        if not self.oldbmp:
-            self.oldbmp = self.bmp
-
         fw,fh = self.bmp.GetSize()
         ow, oh = self._offset
         image = wx.ImageFromBitmap(self.oldbmp)
@@ -244,14 +241,15 @@ class PreviewPanel(PreviewBase):
         # Use fastest order of operations in each case (i.e. the order that
         # avoids huge images that will just be shrinked or cropped).
         # Both paths yield equivalent results.
-        if self._zoomfactor > 1:
-            iw, ih = int(fw/self._zoomfactor), int(fh/self._zoomfactor)
+        zoom = self._zoomfactor
+        if zoom > 1:
+            iw, ih = int(fw/zoom), int(fh/zoom)
             newimg = wx.EmptyImage(iw, ih, 32)
-            newimg.Paste(image, (iw-fw)/2 - ow/self._zoomfactor,
-                                (ih-fh)/2 - oh/self._zoomfactor)
+            newimg.Paste(image, (iw-fw)/2 - ow/zoom,
+                                (ih-fh)/2 - oh/zoom)
             newimg.Rescale(fw,fh)
         else:
-            iw, ih = int(fw*self._zoomfactor), int(fh*self._zoomfactor)
+            iw, ih = int(fw*zoom), int(fh*zoom)
             image.Rescale(iw, ih)
             newimg = wx.EmptyImage(fw, fh, 32)
             newimg.Paste(image, (fw-iw)/2 - ow, (fh-ih)/2 - oh)
