@@ -28,7 +28,7 @@ class PreviewFrame(wx.Frame):
         self.SetMinSize((128,119)) # This makes for a 120x90 bitmap
 
 
-    def GetCorrectSize(self):
+    def GetPanelSize(self):
         """This method corrects platform dependency issues."""
 ##        if "linux" in sys.platform:
 ##            return self.GetSize()
@@ -47,7 +47,7 @@ class PreviewFrame(wx.Frame):
             self.oldbmp = self.image.bmp
         image = wx.ImageFromBitmap(self.oldbmp)
 
-        pw, ph = map(float, self.GetCorrectSize())
+        pw, ph = map(float, self.GetPanelSize())
         fw, fh = self.parent.flame.size
 
         ratio = min(pw/fw, ph/fh)
@@ -60,7 +60,7 @@ class PreviewFrame(wx.Frame):
 
     @Bind(wx.EVT_IDLE)
     def OnIdle(self, e):
-        size = self.GetCorrectSize()
+        size = self.GetPanelSize()
         if size == self._lastsize:
             return
 
@@ -72,7 +72,7 @@ class PreviewFrame(wx.Frame):
         flame = flame or self.parent.flame
 
         fw,fh = flame.size
-        pw,ph = self.GetCorrectSize()
+        pw,ph = self.GetPanelSize()
 
         ratio = min(pw/fw, ph/fh)
         size = int(fw * ratio), int(fh * ratio)
@@ -133,7 +133,6 @@ class PreviewBase(wx.Panel):
             flame = self.parent.flame
             fw,fh = self.bmp.GetSize()
             pixel_per_unit = fw * flame.scale / 100.
-            print diff, pixel_per_unit
             flame.center[0] += diff[0] / pixel_per_unit
             flame.center[1] += diff[1] / pixel_per_unit
             self.parent.image.RenderPreview()
@@ -191,7 +190,7 @@ class PreviewBase(wx.Panel):
             if self.HasChanged:
                 self.parent.TreePanel.TempSave()
                 self.HasChanged = False
-   
+
 
 
 class PreviewPanel(PreviewBase):
@@ -202,16 +201,17 @@ class PreviewPanel(PreviewBase):
         PreviewBase.__init__(self, parent)
         self.__class__ = PreviewPanel
         self.parent = parent.parent
-        self.GetCorrectSize = parent.GetCorrectSize       
-        
+        self.GetPanelSize = parent.GetPanelSize       
+
+
 
     @Bind(wx.EVT_PAINT)
     def OnPaint(self, evt):       
         fw,fh = self.bmp.GetSize()
+        pw,ph = self.GetPanelSize()
         dc = wx.PaintDC(self)
-        pw,ph = self.GetCorrectSize()
         dc.DrawBitmap(self.bmp, (pw-fw)/2, (ph-fh)/2, True)
-
+        
 
     def Move(self, diff):
         PreviewBase.Move(self, diff)

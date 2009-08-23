@@ -541,6 +541,10 @@ class ImagePanel(PreviewBase):
         self.bmp = wx.EmptyBitmap(400,300, 32)
 
 
+    def GetPanelSize(self):
+        return self.Size
+    
+
     def RenderPreview(self, flame=None):
         """Renders a preview version of the flame and displays it in the gui.
 
@@ -564,10 +568,11 @@ class ImagePanel(PreviewBase):
 
     @Bind(wx.EVT_PAINT)
     def OnPaint(self, evt):       
-        w,h = self.bmp.GetSize()
+        fw,fh = self.bmp.GetSize()
+        pw,ph = self.GetPanelSize()
         dc = wx.PaintDC(self)
         dc.DrawBitmap(self.bmp,
-                      (self.Size[0] - w) / 2,
-                      (self.Size[1] - h) / 2,
+                      (pw-fw) / 2,
+                      (ph-fh) / 2,
                       True)
 
