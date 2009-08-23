@@ -303,10 +303,12 @@ class VarPanel(wx.Panel):
                                         | wx.TR_FULL_ROW_HIGHLIGHT
                                    )
 
+        _ = gizmos.TreeListCtrl(self, -1)
+
         self.tree.AddColumn("Var")
         self.tree.AddColumn("Value")
 
-        self.tree.SetMainColumn(0)
+##        self.tree.SetMainColumn(0)
         self.tree.SetColumnWidth(0, 160)
         self.tree.SetColumnWidth(1, 60)
         self.tree.SetColumnEditable(1,True)
@@ -640,13 +642,15 @@ class ColorPanel(wx.Panel):
 
 
 class ChaosPanel(wx.Panel):
-    
+
+    @BindEvents
     def __init__(self, parent):
         wx.Panel.__init__(self, parent, -1)
         self.parent = parent.parent
 
         self.tree1 = self.init_tree("To")
         self.tree2 = self.init_tree("From")
+        _ = gizmos.TreeListCtrl(self, -1)
 
         sizer = wx.BoxSizer(wx.HORIZONTAL)
         sizer.Add(self.tree1, 1, wx.EXPAND)
@@ -751,6 +755,7 @@ class ChaosPanel(wx.Panel):
         e.Veto()
 
 
+    @Bind(wx.EVT_TREE_SEL_CHANGED)
     def OnSelChanged(self,e):
         """Makes sure the tree always knows what item is selected."""
         self.item = e.GetItem()
