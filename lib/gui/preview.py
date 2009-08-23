@@ -191,7 +191,7 @@ class PreviewBase(wx.Panel):
 
 
 class PreviewPanel(PreviewBase):
-    _offset = [0,0]
+    _offset = N.array([0,0])
     _zoomfactor = 1.0
     oldbmp = None
 
@@ -207,7 +207,7 @@ class PreviewPanel(PreviewBase):
     def UpdateBitmap(self, bmp):
         self.bmp = bmp
         self.oldbmp = None
-        self._offset = [0,0]
+        self._offset = N.array([0,0])
         self._zoomfactor = 1.0
         self.Refresh()
 
@@ -216,59 +216,45 @@ class PreviewPanel(PreviewBase):
     def OnPaint(self, evt):       
         fw,fh = self.bmp.GetSize()
         pw,ph = self.GetPanelSize()
-##        offw, offh = self._offset
         dc = wx.PaintDC(self)
         dc.DrawBitmap(self.bmp, (pw-fw)/2, (ph-fh)/2, True)
         
 
     def Move(self, diff):
         PreviewBase.Move(self, diff)
-        if not self.oldbmp:
-            self.oldbmp = self.bmp
-
-        w,h = self.bmp.GetSize()
-        image = wx.EmptyImage(w, h, 32)
-
-        self._offset[0] += diff[0]
-        self._offset[1] += diff[1]
-
-        ow, oh = self._offset
-        image.Paste(wx.ImageFromBitmap(self.oldbmp), -ow, -oh)
-
-##        fw, fh = image.GetSize()
-##        ow, oh = self._offset
-##        image.Resize((fw,fh), (fw-ow, fh-oh), 0,0,0)
-##        
-        self.bmp = wx.BitmapFromImage(image)
-        self.Refresh()
-
+        self._offset += diff
+        self.MoveAndZoom()
+        
 
     def Zoom(self, val):
         PreviewBase.Zoom(self, val)
+        self._zoomfactor *= val        
+        self._offset *= val
+        self.MoveAndZoom()
+        
+
+    def MoveAndZoom(self):
         if not self.oldbmp:
             self.oldbmp = self.bmp
-##        elif self._offset != [0,0]:
-##            self.oldbmp = self.bmp
+
+        fw,fh = self.bmp.GetSize()
+        ow, oh = self._offset
         image = wx.ImageFromBitmap(self.oldbmp)
 
-        self._zoomfactor *= val        
-        self._offset[0] *= val
-        self._offset[1] *= val
-        
-        fw,fh = self.bmp.GetSize()
-
-        # Use fastest order of operations in each case (i.e., the order which
+        # Use fastest order of operations in each case (i.e. the order that
         # avoids huge images that will just be shrinked or cropped).
         # Both paths yield equivalent results.
         if self._zoomfactor > 1:
             iw, ih = int(fw/self._zoomfactor), int(fh/self._zoomfactor)
-            image.Resize((iw,ih), ((iw-fw)/2,(ih-fh)/2), 0,0,0)
-            image.Rescale(fw,fh)
+            newimg = wx.EmptyImage(iw, ih, 32)
+            newimg.Paste(image, (iw-fw)/2 - ow/self._zoomfactor,
+                                (ih-fh)/2 - oh/self._zoomfactor)
+            newimg.Rescale(fw,fh)
         else:
-            image.Rescale(int(fw*self._zoomfactor), int(fh*self._zoomfactor))
-            iw, ih = image.GetSize()
-            image.Resize((fw,fh), ((fw-iw)/2,(fh-ih)/2), 0,0,0)
+            iw, ih = int(fw*self._zoomfactor), int(fh*self._zoomfactor)
+            image.Rescale(iw, ih)
+            newimg = wx.EmptyImage(fw, fh, 32)
+            newimg.Paste(image, (fw-iw)/2 - ow, (fh-ih)/2 - oh)
 
-        self.bmp = wx.BitmapFromImage(image)
-        self.Refresh()
-
+        self.bmp = wx.BitmapFromImage(newimg)
+        self.Refresh()        
