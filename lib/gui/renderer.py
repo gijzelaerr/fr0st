@@ -108,8 +108,7 @@ class Renderer():
 
         # HACK: If by the time the render finishes it has been obsoleted,
         # don't return the buffer in case of a large preview.
-        if callback == self.parent.previewframe.UpdateBitmap and \
-                       self.previewflag:
+        if hasattr(callback, "_can_cancel") and self.previewflag:
             return        
         
         if kwds["renderer"] == 'flam4':

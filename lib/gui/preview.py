@@ -19,7 +19,6 @@ class PreviewFrame(wx.Frame):
         sizer.Add(self.image, 1, wx.EXPAND)
         self.SetSizer(sizer)
         self.SetDoubleBuffered(True)
-        self.oldbmp = None
 
         # This must be 0,0 so OnIdle doesn't render anything on startup.
         self._lastsize = 0,0
@@ -43,9 +42,9 @@ class PreviewFrame(wx.Frame):
 
     @Bind(wx.EVT_SIZE)
     def OnResize(self, e):
-        if not self.oldbmp:
-            self.oldbmp = self.image.bmp
-        image = wx.ImageFromBitmap(self.oldbmp)
+        if not self.image.oldbmp:
+            self.image.oldbmp = self.image.bmp
+        image = wx.ImageFromBitmap(self.image.oldbmp)
 
         pw, ph = map(float, self.GetPanelSize())
         fw, fh = self.parent.flame.size
@@ -78,17 +77,16 @@ class PreviewFrame(wx.Frame):
         size = int(fw * ratio), int(fh * ratio)
         
         req = self.parent.renderer.LargePreviewRequest
-        req(self.UpdateBitmap, flame, size, quality=10, estimator=0, filter=.2,
+        req(self.RenderCallback, flame, size, quality=10, estimator=0, filter=.2,
             progress_func = self.prog_func)
 
 
-    def UpdateBitmap(self, bmp):
-        """Callback function to process rendered preview images."""
-        self.image.bmp = bmp
+    def RenderCallback(self, bmp):
+        self.image.UpdateBitmap(bmp)
         self.SetTitle("%s - Flame Preview" % self.parent.flame.name)
         self.SetStatusText("rendering: 100.00 %")
-        self.image.Refresh()
-        self.oldbmp = None
+
+    RenderCallback._can_cancel = True
 
 
     def prog_func(self, *args):
@@ -130,11 +128,11 @@ class PreviewBase(wx.Panel):
             
 
     def Move(self, diff):
-            flame = self.parent.flame
-            fw,fh = self.bmp.GetSize()
-            pixel_per_unit = fw * flame.scale / 100.
-            flame.move_center([i / pixel_per_unit for i in diff])
-            self.parent.image.RenderPreview()
+        flame = self.parent.flame
+        fw,fh = self.bmp.GetSize()
+        pixel_per_unit = fw * flame.scale / 100.
+        flame.move_center([i / pixel_per_unit for i in diff])
+        self.parent.image.RenderPreview()
 
 
     def Zoom(self, diff):
@@ -193,6 +191,9 @@ class PreviewBase(wx.Panel):
 
 
 class PreviewPanel(PreviewBase):
+    _offset = [0,0]
+    _zoomfactor = 1.0
+    oldbmp = None
 
     @BindEvents
     def __init__(self, parent):
@@ -203,20 +204,71 @@ class PreviewPanel(PreviewBase):
         self.GetPanelSize = parent.GetPanelSize       
 
 
+    def UpdateBitmap(self, bmp):
+        self.bmp = bmp
+        self.oldbmp = None
+        self._offset = [0,0]
+        self._zoomfactor = 1.0
+        self.Refresh()
+
 
     @Bind(wx.EVT_PAINT)
     def OnPaint(self, evt):       
         fw,fh = self.bmp.GetSize()
         pw,ph = self.GetPanelSize()
+##        offw, offh = self._offset
         dc = wx.PaintDC(self)
         dc.DrawBitmap(self.bmp, (pw-fw)/2, (ph-fh)/2, True)
         
 
     def Move(self, diff):
         PreviewBase.Move(self, diff)
-        # TODO: Move bitmap
+        if not self.oldbmp:
+            self.oldbmp = self.bmp
+
+        w,h = self.bmp.GetSize()
+        image = wx.EmptyImage(w, h, 32)
+
+        self._offset[0] += diff[0]
+        self._offset[1] += diff[1]
+
+        ow, oh = self._offset
+        image.Paste(wx.ImageFromBitmap(self.oldbmp), -ow, -oh)
+
+##        fw, fh = image.GetSize()
+##        ow, oh = self._offset
+##        image.Resize((fw,fh), (fw-ow, fh-oh), 0,0,0)
+##        
+        self.bmp = wx.BitmapFromImage(image)
+        self.Refresh()
 
 
     def Zoom(self, val):
         PreviewBase.Zoom(self, val)
-        # TODO: Zoom bmp
+        if not self.oldbmp:
+            self.oldbmp = self.bmp
+##        elif self._offset != [0,0]:
+##            self.oldbmp = self.bmp
+        image = wx.ImageFromBitmap(self.oldbmp)
+
+        self._zoomfactor *= val        
+        self._offset[0] *= val
+        self._offset[1] *= val
+        
+        fw,fh = self.bmp.GetSize()
+
+        # Use fastest order of operations in each case (i.e., the order which
+        # avoids huge images that will just be shrinked or cropped).
+        # Both paths yield equivalent results.
+        if self._zoomfactor > 1:
+            iw, ih = int(fw/self._zoomfactor), int(fh/self._zoomfactor)
+            image.Resize((iw,ih), ((iw-fw)/2,(ih-fh)/2), 0,0,0)
+            image.Rescale(fw,fh)
+        else:
+            image.Rescale(int(fw*self._zoomfactor), int(fh*self._zoomfactor))
+            iw, ih = image.GetSize()
+            image.Resize((fw,fh), ((fw-iw)/2,(fh-ih)/2), 0,0,0)
+
+        self.bmp = wx.BitmapFromImage(image)
+        self.Refresh()
+
