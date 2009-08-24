@@ -66,6 +66,12 @@ class ValidTextCtrl(wx.TextCtrl):
         else:
             default = type_()
         self.default = default
+        if type_ is str:
+            minwidth = 200
+        else:
+            minwidth = 100
+        self.SetMinSize((minwidth, 27))
+
         
     def GetValue(self):
         try:

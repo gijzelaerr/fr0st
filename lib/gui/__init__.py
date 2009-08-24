@@ -388,7 +388,12 @@ class MainWindow(wx.Frame):
     @Bind(EVT_THREAD_MESSAGE, id=ID.ENDOFSCRIPT)
     def EndOfScript(self, e):
         self.BlockGUI(False)
-        self.TreePanel.TempSave()
+        # Check if flame has changed to see if tempsave is needed. to_string
+        # is necessary to detect identical flames saved in different apps.
+        # all conversions together might take about 5ms.
+        string = self.tree.itemdata[-1]
+        if Flame(string=string).to_string() != self.flame.to_string():
+            self.TreePanel.TempSave()
 
         
     @CallableFrom('MainThread')
