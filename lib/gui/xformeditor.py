@@ -421,7 +421,6 @@ class VarPanel(wx.Panel):
             self.SetFlameAttribute(item, new)
             self.tree.SetItemText(item, str(new), 1)
             self.parent.TreePanel.TempSave()
-##        print item, _, col
         e.Skip()
         
 
@@ -557,7 +556,7 @@ class ColorPanel(wx.Panel):
         """Programatically builds stuff."""
         slider = wx.Slider(self, -1, init, low, high,
                            style=wx.SL_HORIZONTAL
-                           |wx.SL_AUTOTICKS
+##                           |wx.SL_AUTOTICKS
                            |wx.SL_LABELS)
         tc = NumberTextCtrl(self)
         tc.SetAllowedRange(low/100., high/100.)

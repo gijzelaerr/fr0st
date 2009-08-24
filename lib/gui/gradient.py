@@ -146,7 +146,7 @@ class GradientPanel(wx.Panel):
         
         self.slider = wx.Slider(self, -1, 0, -180, 180,
                                 style=wx.SL_HORIZONTAL
-                                |wx.SL_AUTOTICKS
+##                                |wx.SL_AUTOTICKS
                                 |wx.SL_LABELS)
         self.slider.Bind(wx.EVT_SLIDER, self.OnSlider)
         self.slider.Bind(wx.EVT_LEFT_DOWN, self.OnSliderDown)

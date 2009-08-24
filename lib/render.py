@@ -1,10 +1,12 @@
 import sys
+from ctypes import *
 
 from pyflam3 import Genome
 from lib.fr0stlib import Flame
-from ctypes import *
+from lib.gui.config import config
 
-if 'win' in sys.platform:
+
+if config["renderer"] == "flam4":
     from pyflam3 import _flam4
 
 
