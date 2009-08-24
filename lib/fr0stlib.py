@@ -262,10 +262,10 @@ class Flame(object):
 
 
     def _get_height(self):
-        return self.size[0]
+        return self.size[1]
 
     def _set_height(self,v):
-        self.size[0] = v
+        self.size[1] = v
 
     height = property(_get_height,_set_height)
 
