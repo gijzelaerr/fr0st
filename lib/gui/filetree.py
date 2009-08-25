@@ -235,6 +235,8 @@ class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
     def OnDrop(self, *args):
         """This method is used by the DragAndDrop mixin."""
         dropindex, dragindex = map(self.GetIndexOfItem, args)
+        if not dropindex:
+            return
         fromlist = self.GetChildren(dragindex[:1])
         tolist = self.GetChildren(dropindex[:1])
 
