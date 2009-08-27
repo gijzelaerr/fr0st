@@ -6,7 +6,7 @@ from lib.decorators import *
 from toolbar import CreateEditorToolBar
 from menu import CreateEditorMenu
 from constants import ID
-from utils import DynamicDialog
+from scriptutils import DynamicDialog
 from _events import EVT_THREAD_MESSAGE, ThreadMessageEvent
 
 
