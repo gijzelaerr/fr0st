@@ -7,7 +7,6 @@ from lib.gui.utils import LoadIcon
 from lib.gui.config import config
 
 
-# TODO: this class doesn't belong here.
 class MainNotebook(wx.Notebook):
 
     def __init__(self, parent):

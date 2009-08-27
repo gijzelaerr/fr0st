@@ -8,7 +8,7 @@ from lib.gui.filetree import TreePanel
 from lib.gui.menu import CreateMenu
 from lib.gui.toolbar import CreateToolBar
 from lib.gui.constants import ID
-from lib.gui.gradient import MainNotebook
+from lib.gui.maineditor import MainNotebook
 from lib.gui.xformeditor import XformTabs
 from lib.gui.renderer import render, Renderer
 from lib.gui._events import EVT_THREAD_MESSAGE, ThreadMessageEvent
