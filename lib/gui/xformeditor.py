@@ -473,7 +473,7 @@ class ColorPanel(MultiSliderMixin, wx.Panel):
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add((198,50))
         sizer.AddMany((self.MakeSlider(*i), 0, wx.EXPAND) for i in
-                      (("Color",), ("Symmetry", 0, -100), ("Opacity", 100)))
+                      (("color",), ("symmetry", 0, -100), ("opacity", 100)))
 
         self.SetSizer(sizer)
 
@@ -482,27 +482,23 @@ class ColorPanel(MultiSliderMixin, wx.Panel):
         flame = self.parent.flame
         xform = self.parent.ActiveXform
 
-        for name in "Color", "Symmetry", "Opacity":
-            val = getattr(xform, name.lower())
-            getattr(self, "%sslider" %name).SetValue(val*100)
-            getattr(self, "%stc" %name).SetFloat(val)
+        for name in self.sliders:
+            val = getattr(xform, name)
+            self.UpdateSlider(name, val)         
         
         color = int(xform.color * 256) or 1
-
         grad = itertools.chain(*flame.gradient[:color])
         buff = "%c%c%c" * color % tuple(map(int, grad))
         img = wx.ImageFromBuffer(color, 1, buff)
-            
         img.Rescale(192, 28) # Could be 128, 192 or 256
         self.bmp = wx.BitmapFromImage(img)
         self.Refresh()
 
 
     def UpdateXform(self):
-        """This method is called by OnIdle."""
-        for i in "Color", "Symmetry", "Opacity":
-            val = getattr(self, "%stc" %i).GetFloat()
-            setattr(self.parent.ActiveXform, i.lower(), val)        
+        # Note: This method is also called by OnIdle.
+        for name, val in self.IterSliders():
+            setattr(self.parent.ActiveXform, name, val)
         self.UpdateView()
         self.parent.image.RenderPreview() 
 

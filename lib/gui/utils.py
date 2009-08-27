@@ -29,10 +29,11 @@ class NumberTextCtrl(wx.TextCtrl):
         # Make sure pure ints don't make trouble
         v = float(v)
         self._value = v
-        if abs(v) < 1E-06:
-            string = "0.0" # Avoids a value of "0." 
-        else:
-            string = ("%.6f" %v).rstrip("0")
+
+        string = ("%.6f" %v).rstrip("0")
+        if string.endswith("."):
+            # Avoids values like '0.' or '1.'
+            string += "0" 
             
         self.SetValue(string)
 
@@ -79,9 +80,10 @@ class MultiSliderMixin(object):
 
     def __init__(self, *a, **k):
         super(MultiSliderMixin, self).__init__(*a, **k)
+        self.sliders = {}
         self.Bind(wx.EVT_IDLE, self.OnIdle)
 
-    
+
     def MakeSlider(self, name, init=0, low=0, high=100):
         """Programatically builds stuff."""
         slider = wx.Slider(self, -1, init, low, high,
@@ -89,23 +91,34 @@ class MultiSliderMixin(object):
                            |wx.SL_LABELS)
         tc = NumberTextCtrl(self)
         tc.SetAllowedRange(low/100., high/100.)
-        setattr(self, "%sslider" %name, slider)
-        setattr(self, "%stc" %name, tc)
+        self.sliders[name] = slider, tc
 
         slider.Bind(wx.EVT_SLIDER, functools.partial(self.OnSlider, name=name))
 ##        slider.Bind(wx.EVT_LEFT_DOWN, self.OnSliderDown)
         slider.Bind(wx.EVT_LEFT_UP, self.OnSliderUp)
 
-        siz = wx.StaticBoxSizer(wx.StaticBox(self, -1, name), wx.HORIZONTAL)
+        siz = wx.StaticBoxSizer(wx.StaticBox(self, -1, name.title()),
+                                wx.HORIZONTAL)
         siz.Add(tc)
         siz.Add(slider, wx.EXPAND)
 
         return siz
 
 
+    def UpdateSlider(name, val):
+        slider, tc= self.sliders[name]
+        slider.SetValue(val*100)
+        tc.SetFloat(val)         
+
+
+    def IterSliders(self):
+        for name, (_, tc) in self.sliders,iteritems():
+            yield name, tc.GetFloat()
+
+    
     def OnSlider(self, e, name):
         val = e.GetInt()/100.
-        tc = getattr(self, "%stc" %name)
+        tc = self.sliders[name][1]
         # Make sure _new is only set when there are actual changes.
         if val != tc._value:
             self._new = True
