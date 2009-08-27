@@ -105,14 +105,14 @@ class MultiSliderMixin(object):
         return siz
 
 
-    def UpdateSlider(name, val):
+    def UpdateSlider(self, name, val):
         slider, tc= self.sliders[name]
         slider.SetValue(val*100)
         tc.SetFloat(val)         
 
 
     def IterSliders(self):
-        for name, (_, tc) in self.sliders,iteritems():
+        for name, (_, tc) in self.sliders.iteritems():
             yield name, tc.GetFloat()
 
     
