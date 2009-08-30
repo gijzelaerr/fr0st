@@ -111,7 +111,7 @@ class XformCanvas(FC.FloatCanvas):
         elif refresh:
             # This is an elif because AdjustZoom already forces a Draw.
             self.Draw()
-
+    
 
     def AddXform(self, xform, solid=False, fill=False):
         color = ((255,255,255) if xform.isfinal()

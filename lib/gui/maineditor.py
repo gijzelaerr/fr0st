@@ -3,7 +3,7 @@ from wx.lib import buttons
 
 from lib.decorators import *
 from lib.gui.canvas import XformCanvas
-from lib.gui.utils import LoadIcon
+from lib.gui.utils import LoadIcon, MultiSliderMixin
 from lib.gui.config import config
 
 
@@ -23,6 +23,14 @@ class MainNotebook(wx.Notebook):
         self.grad = GradientPanel(self)
         self.AddPage(self.grad, "Gradient Editor")
 
+        self.adjust = AdjustPanel(self)
+        self.AddPage(self.adjust, "Adjust")
+
+
+    def UpdateView(self, rezoom=False):
+        for i in self.grad, self.adjust:
+            i.UpdateView()
+        self.canvas.ShowFlame(rezoom=rezoom)
 
 
 
@@ -160,7 +168,7 @@ class GradientPanel(wx.Panel):
         self.Layout()
 
 
-    def OnUpdate(self):
+    def UpdateView(self):
         self.image.Update()
         if self.parent.flame != self._flame:
             # Hack: only change the slider when the flame object id changes.
@@ -276,4 +284,34 @@ class Gradient(wx.Panel):
             offset = int((e.GetPosition()[0] - self._startpos[0])/1.5)
             self.GetParent()._new = offset
             
-            
+
+
+class AdjustPanel(MultiSliderMixin, wx.Panel):
+
+    @BindEvents
+    def __init__(self, parent):
+        self.parent = parent.parent
+        super(AdjustPanel, self).__init__(parent, -1)
+
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.AddMany((self.MakeSlider(*i), 0, wx.EXPAND) for i in
+                      (("scale", 25, 1, 100, False),
+                       ("x_offset", 0, -5, 5, False),
+                       ("y_offset", 0, -5, 5, False),
+                       ("rotate", 0, -360, 360, True)))
+        self.SetSizer(sizer)
+
+
+    def UpdateView(self):
+        flame = self.parent.flame
+        for name in self.sliders:
+            self.UpdateSlider(name, getattr(flame, name))         
+
+
+    def UpdateXform(self):
+        for name, val in self.IterSliders():
+            setattr(self.parent.flame, name, val)
+        self.UpdateView()
+        self.parent.image.RenderPreview()
+
+        

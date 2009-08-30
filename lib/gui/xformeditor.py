@@ -403,6 +403,7 @@ class VarPanel(wx.Panel):
         key = e.GetKeyCode()
         if key in (wx.WXK_NUMPAD_ENTER, wx.WXK_RETURN):
             self.tree.EditLabel(self.item, 1)
+            self._editing = True
         else:
             e.Skip()
             
@@ -439,7 +440,11 @@ class VarPanel(wx.Panel):
         self.SetFocus() # Makes sure OnKeyUp gets called.
         
         item = self.tree.HitTest(e.GetPosition())[0]
-        name = self.tree.GetItemText(item)
+        try:
+            name = self.tree.GetItemText(item)
+        except wx.PyAssertionError:
+            # Widget may have focus when mouse is elsewhere.
+            return
         val = self.tree.GetItemText(item, 1) or "0.0"
         
         val = float(val) + (diff if e.GetWheelRotation() > 0 else -diff)
@@ -456,9 +461,7 @@ class VarPanel(wx.Panel):
             if self.HasChanged:
                 self.parent.TreePanel.TempSave()
                 self.HasChanged = False
-    
 
-#------------------------------------------------------------------------------
 
 
 class ColorPanel(MultiSliderMixin, wx.Panel):
@@ -473,7 +476,9 @@ class ColorPanel(MultiSliderMixin, wx.Panel):
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add((198,50))
         sizer.AddMany((self.MakeSlider(*i), 0, wx.EXPAND) for i in
-                      (("color",), ("symmetry", 0, -100), ("opacity", 100)))
+                      (("color", 0, 0, 1),
+                       ("symmetry", 0, -1, 1),
+                       ("opacity", 1, 0, 1)))
 
         self.SetSizer(sizer)
 
@@ -483,8 +488,7 @@ class ColorPanel(MultiSliderMixin, wx.Panel):
         xform = self.parent.ActiveXform
 
         for name in self.sliders:
-            val = getattr(xform, name)
-            self.UpdateSlider(name, val)         
+            self.UpdateSlider(name, getattr(xform, name))         
         
         color = int(xform.color * 256) or 1
         grad = itertools.chain(*flame.gradient[:color])
@@ -538,6 +542,7 @@ class ChaosPanel(wx.Panel):
                                         | wx.TR_NO_LINES
                                         | wx.TR_HIDE_ROOT
                                         | wx.TR_FULL_ROW_HIGHLIGHT
+                                        | wx.NO_BORDER
                                    )
         
         tree.AddColumn(label)

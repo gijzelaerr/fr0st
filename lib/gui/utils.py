@@ -84,16 +84,18 @@ class MultiSliderMixin(object):
         self.Bind(wx.EVT_IDLE, self.OnIdle)
 
 
-    def MakeSlider(self, name, init=0, low=0, high=100):
+    def MakeSlider(self, name, init, low, high, strictrange=True):
         """Programatically builds stuff."""
-        slider = wx.Slider(self, -1, init, low, high,
+        slider = wx.Slider(self, -1, init*100, low*100, high*100,
                            style=wx.SL_HORIZONTAL
-                           |wx.SL_LABELS)
+                           | wx.SL_SELRANGE
+                           )
         tc = NumberTextCtrl(self)
-        tc.SetAllowedRange(low/100., high/100.)
+        if strictrange:
+            tc.SetAllowedRange(low, high)
         self.sliders[name] = slider, tc
 
-        slider.Bind(wx.EVT_SLIDER, functools.partial(self.OnSlider, name=name))
+        slider.Bind(wx.EVT_SLIDER, functools.partial(self.OnSlider, tc=tc))
 ##        slider.Bind(wx.EVT_LEFT_DOWN, self.OnSliderDown)
         slider.Bind(wx.EVT_LEFT_UP, self.OnSliderUp)
 
@@ -106,8 +108,8 @@ class MultiSliderMixin(object):
 
 
     def UpdateSlider(self, name, val):
-        slider, tc= self.sliders[name]
-        slider.SetValue(val*100)
+        slider, tc = self.sliders[name]
+        slider.SetValue(int(val*100))
         tc.SetFloat(val)         
 
 
@@ -116,9 +118,8 @@ class MultiSliderMixin(object):
             yield name, tc.GetFloat()
 
     
-    def OnSlider(self, e, name):
+    def OnSlider(self, e, tc):
         val = e.GetInt()/100.
-        tc = self.sliders[name][1]
         # Make sure _new is only set when there are actual changes.
         if val != tc._value:
             self._new = True

@@ -433,9 +433,8 @@ class MainWindow(wx.Frame):
             
         self.image.RenderPreview(flame)
         self.large_preview()
-        self.canvas.ShowFlame(flame,rezoom=rezoom)
-        self.grad.OnUpdate()
         self.XformTabs.UpdateView()
+        self.notebook.UpdateView(rezoom=rezoom)
 
         # Set Undo and redo buttons to the correct value:
         data = self.tree.itemdata
@@ -513,10 +512,12 @@ class MainWindow(wx.Frame):
 
     @Bind(EVT_THREAD_MESSAGE, id=ID.PREVIEW)
     def OnPreview(self, e):
-        self.canvas.ShowFlame(rezoom=False)
-        self.grad.OnUpdate()
-        # This is not active as it makes GUI a bit slow.
+        # only update a select few of all the panels.
+        # TODO: need to test if this is really necessary.
 ##        self.XformTabs.UpdateView()
+##        self.notebook.UpdateView()
+        self.canvas.ShowFlame(rezoom=False)
+        self.grad.UpdateView()
 
 
     @Bind(EVT_THREAD_MESSAGE, id=ID.RENDER)

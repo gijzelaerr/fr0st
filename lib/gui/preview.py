@@ -1,6 +1,7 @@
 import wx, sys, numpy as N
 
 from lib.decorators import *
+from config import config
 from _events import EVT_THREAD_MESSAGE, ThreadMessageEvent
 
 
@@ -77,8 +78,8 @@ class PreviewFrame(wx.Frame):
         size = int(fw * ratio), int(fh * ratio)
         
         req = self.parent.renderer.LargePreviewRequest
-        req(self.RenderCallback, flame, size, quality=10, estimator=0, filter=.2,
-            progress_func = self.prog_func)
+        req(self.RenderCallback, flame, size, progress_func=self.prog_func,
+            **config["Large-Preview-Settings"])
 
 
     def RenderCallback(self, bmp):
@@ -143,6 +144,7 @@ class PreviewBase(wx.Panel):
 
     @Bind(wx.EVT_LEFT_DOWN)
     def OnLeftDown(self, e):
+        self.SetFocus()
         self.StartMove = N.array(e.GetPosition())
 
 

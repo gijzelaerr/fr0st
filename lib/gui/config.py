@@ -94,6 +94,9 @@ config = {"active-vars": ('linear',
           "Preview-Settings": {"quality": 5,
                                "estimator": 0,
                                "filter": .2},
+          "Large-Preview-Settings": {"quality": 25,
+                                     "estimator": 0,
+                                     "filter": .2},
           "renderer": "flam3"
           }
  

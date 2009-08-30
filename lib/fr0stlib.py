@@ -270,6 +270,24 @@ class Flame(object):
     height = property(_get_height,_set_height)
 
 
+    def _get_x_offset(self):
+        return self.center[0]
+
+    def _set_x_offset(self, v):
+        self.center[0] = v
+
+    x_offset = property(_get_x_offset,_set_x_offset)
+
+
+    def _get_y_offset(self):
+        return self.center[1]
+
+    def _set_y_offset(self, v):
+        self.center[1] = v
+
+    y_offset = property(_get_y_offset,_set_y_offset)
+    
+
 
 class Palette(list):
     re_grad = re.compile(r'[0-9A-F]{6}(?=[0-9A-F]*.?$)',re.MULTILINE)
