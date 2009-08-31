@@ -14,7 +14,7 @@ class XformTabs(wx.Notebook):
 
     def __init__(self, parent):
         self.parent = parent
-        wx.Notebook.__init__(self, parent, -1, size=(21,21), style=
+        wx.Notebook.__init__(self, parent, -1, size=(262,100), style=
                              wx.BK_DEFAULT
                              #wx.BK_TOP 
                              #wx.BK_BOTTOM
@@ -37,8 +37,6 @@ class XformTabs(wx.Notebook):
 
         self.Selector = wx.Choice(self.parent, -1)
         self.Selector.Bind(wx.EVT_CHOICE, self.OnChoice)
-
-        self.SetMinSize((262,100))
 
 
     def UpdateView(self):

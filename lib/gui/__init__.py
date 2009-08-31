@@ -39,7 +39,6 @@ class MainWindow(wx.Frame):
 ##        ib.AddIconFromFile("Icon.ico",wx.BITMAP_TYPE_ANY)
 ##        self.SetIcons(ib)
         self.CreateStatusBar()
-        self.SetMinSize((750,500))
         self.SetDoubleBuffered(True)
         
         # Launch the render thread
@@ -50,9 +49,7 @@ class MainWindow(wx.Frame):
         CreateMenu(parent=self)
         CreateToolBar(self)
         self.image = ImagePanel(self)
-##        self.grad = GradientPanel(self)
         self.XformTabs = XformTabs(self)
-##        self.canvas = XformCanvas(self)
         self.notebook = MainNotebook(self)
         self.grad = self.notebook.grad
         self.canvas = self.notebook.canvas
@@ -67,8 +64,6 @@ class MainWindow(wx.Frame):
         self.tree = self.TreePanel.tree
 
         sizer3 = wx.BoxSizer(wx.VERTICAL)
-##        sizer3.Add(self.grad,0,wx.ALIGN_CENTER_HORIZONTAL)
-##        sizer3.Add(self.canvas,1,wx.EXPAND)
         sizer3.Add(self.notebook,1,wx.EXPAND)
 
         sizer2 = wx.BoxSizer(wx.VERTICAL)
@@ -79,15 +74,21 @@ class MainWindow(wx.Frame):
         sizer = wx.BoxSizer(wx.HORIZONTAL)
         sizer.Add(self.TreePanel,0,wx.EXPAND)
         sizer.Add(sizer3,1,wx.EXPAND)
-##        sizer.Add(self.canvas,1,wx.EXPAND)
         sizer.Add(sizer2,0,wx.EXPAND)
         
         self.SetSizer(sizer)
         self.SetAutoLayout(1)
 
+        # Calculate the correct minimum size dynamically.
         sizer.Fit(self)
-
-##        self.SetSize((800,600))
+        self.SetMinSize(self.GetSize())
+        
+        # Load frame positions from file
+        for window, k in ((self, "Dim-Main"),
+                          (self.editor, "Dim-Editor"),
+                          (self.previewframe, "Dim-Preview")):
+            if k in config:
+                window.SetDimensions(*config[k])
 
         self._namespace = self.CreateNamespace()
 
@@ -158,6 +159,19 @@ class MainWindow(wx.Frame):
                 if os.path.exists(i):
                     os.remove(i)
             os.remove('paths.temp')
+
+        # Save size and pos of each window
+        display_width = wx.GetDisplaySize()[0]
+        for window, k in ((self, "Dim-Main"),
+                          (self.editor, "Dim-Editor"),
+                          (self.previewframe, "Dim-Preview")):
+            x,y = window.GetPosition()
+            w,h = window.GetSize()
+            if w == display_width:
+                # We don't want to save fullscreen status.
+                # TODO: how can I figure out the height of a mazimized widget?
+                continue
+            config[k] = (x,y,w,h)
         self.Destroy()
 
 
@@ -543,7 +557,7 @@ class ImagePanel(PreviewBase):
         self.__class__ = PreviewBase
         PreviewBase.__init__(self, parent)
         self.__class__ = ImagePanel
-        self.SetMinSize((256, 220))
+        self.SetSize((256, 220))
         self.bmp = wx.EmptyBitmap(400,300, 32)
 
 
