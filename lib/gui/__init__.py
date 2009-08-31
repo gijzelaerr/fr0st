@@ -10,7 +10,7 @@ from lib.gui.toolbar import CreateToolBar
 from lib.gui.constants import ID
 from lib.gui.maineditor import MainNotebook
 from lib.gui.xformeditor import XformTabs
-from lib.gui.renderer import render, Renderer
+from lib.gui.renderer import Renderer
 from lib.gui._events import EVT_THREAD_MESSAGE, ThreadMessageEvent
 from lib.gui.itemdata import ItemData
 from lib.gui.renderdialog import renderDialog

@@ -2,7 +2,7 @@ import wx, time, sys, traceback
 from threading import Thread
 
 from lib.decorators import Catches, Threaded
-from lib.render import render
+from lib.render import flam3_render, flam4_render
 from lib.gui.config import config
 from lib.gui.constants import ID
 from _events import ThreadMessageEvent
@@ -98,7 +98,15 @@ class Renderer():
 
 
     def process(self, callback, args, kwds):
-        self.previewflag = 0     
+        self.previewflag = 0
+
+        renderer = kwds["renderer"]
+        if renderer == "flam3":
+            render = flam3_render
+        elif renderer == "flam4":
+            render = flam4_render
+        else:
+            raise ValueError("Invalid renderer: %s" % renderer)
         try:
             output_buffer = render(*args,**kwds)
         except Exception:

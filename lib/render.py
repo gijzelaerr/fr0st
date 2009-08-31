@@ -3,24 +3,9 @@ from ctypes import *
 
 from pyflam3 import Genome
 from lib.fr0stlib import Flame
-from lib.gui.config import config
 
 
-if config["renderer"] == "flam4":
-    from pyflam3 import _flam4
-
-
-def render(*a, **k):
-    renderer = k["renderer"]
-    if renderer == "flam3":
-        return _flam3_render(*a, **k)
-    elif renderer == "flam4":
-        return _flam4_render(*a, **k)
-    else:
-        raise ValueError("Invalid renderer: %s" % renderer)
-    
-
-def _flam3_render(flame, size, quality, estimator=9, fixed_seed=False, **kwds):
+def flam3_render(flame, size, quality, estimator=9, fixed_seed=False, **kwds):
     """Passes render requests on to flam3."""
     if type(flame) is str:
         string = flame
@@ -47,8 +32,9 @@ def _flam3_render(flame, size, quality, estimator=9, fixed_seed=False, **kwds):
     return output_buffer
 
 
-def _flam4_render(flame, size, quality, estimator=9, fixed_seed=False, **kwds):
+def flam4_render(flame, size, quality, estimator=9, fixed_seed=False, **kwds):
     """Passes requests on to flam4. Works on windows only for now."""
+    from pyflam3 import _flam4
     flam4Flame = _flam4.loadFlam4(flame)
     output_buffer = _flam4.renderFlam4(flam4Flame,size)
     return output_buffer
