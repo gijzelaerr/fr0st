@@ -101,7 +101,7 @@ class BaseGenome(Structure):
                , ('brightness', c_double)
                , ('contrast', c_double)
                , ('gamma', c_double)
-               , ('hihglight_power', c_double)
+               , ('highlight_power', c_double)
                , ('width', c_int )                  # wrapped
                , ('height', c_int )                 # wrapped
                , ('spatial_oversample', c_int )

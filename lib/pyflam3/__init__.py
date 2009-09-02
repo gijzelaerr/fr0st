@@ -181,7 +181,6 @@ class Frame(BaseFrame):
 
         self.pixel_aspect_ratio = kwargs.get('aspect', 1.0)
         self.ngenomes = 0
-        self.verbose = kwargs.get('verbose', False) and 1 or 0
         self.bits = kwargs.get('bits', 33)
         self.time = kwargs.get('time', 0)
         self.bytes_per_channel = kwargs.get('bytes_per_channel',1)

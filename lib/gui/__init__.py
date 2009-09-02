@@ -161,16 +161,11 @@ class MainWindow(wx.Frame):
             os.remove('paths.temp')
 
         # Save size and pos of each window
-        display_width = wx.GetDisplaySize()[0]
         for window, k in ((self, "Dim-Main"),
                           (self.editor, "Dim-Editor"),
                           (self.previewframe, "Dim-Preview")):
             x,y = window.GetPosition()
             w,h = window.GetSize()
-            if w == display_width:
-                # We don't want to save fullscreen status.
-                # TODO: how can I figure out the height of a mazimized widget?
-                continue
             config[k] = (x,y,w,h)
         self.Destroy()
 
