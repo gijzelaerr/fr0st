@@ -15,10 +15,6 @@ class ItemData(list):
         list.append(self,v)
         self.redo = []
 
-        
-    def GetSaveString(self):
-        return self[-1]
-
 
     def HasChanged(self):
         return self.undo

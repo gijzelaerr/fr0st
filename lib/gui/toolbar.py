@@ -38,8 +38,8 @@ def CreateToolBar(parent):
     tb.AddSimpleTool(ID.UNDO, GetBMP(wx.ART_UNDO),
                      "Undo", " Undo the last change to the current flame.")
     
-    tb.AddSimpleTool(ID.UNDOALL, GetBMP(wx.ART_UNDO),
-                     "Undo All", " Revert current flame to saved status.")
+##    tb.AddSimpleTool(ID.UNDOALL, GetBMP(wx.ART_UNDO),
+##                     "Undo All", " Revert current flame to saved status.")
     
     tb.AddSimpleTool(ID.REDO, GetBMP(wx.ART_REDO),
                      "Redo", " Redo the last change to the current flame.")

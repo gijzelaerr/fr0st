@@ -170,8 +170,7 @@ class MainWindow(wx.Frame):
         self.Destroy()
 
 
-    @Bind(wx.EVT_MENU,id=ID.FNEW)
-    @Bind(wx.EVT_TOOL,id=ID.FNEW)
+    @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=ID.FNEW)
     def OnFlameNew(self, e):
         path = self.newfilename()
         self.tree.item = self.tree.AddFlamefile(path, [])
@@ -182,8 +181,7 @@ class MainWindow(wx.Frame):
         return self.tree.item
             
 
-    @Bind(wx.EVT_MENU,id=ID.FNEW2)
-    @Bind(wx.EVT_TOOL,id=ID.FNEW2)
+    @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=ID.FNEW2)
     def OnFlameNew2(self,e):
         data = ItemData(BLANKFLAME)
 
@@ -204,8 +202,7 @@ class MainWindow(wx.Frame):
         return child
 
 
-    @Bind(wx.EVT_MENU,id=ID.FOPEN)
-    @Bind(wx.EVT_TOOL,id=ID.FOPEN)
+    @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=ID.FOPEN)
     def OnFlameOpen(self,e):
         dDir,dFile = os.path.split(self.flamepath)
         dlg = wx.FileDialog(
@@ -217,15 +214,13 @@ class MainWindow(wx.Frame):
         dlg.Destroy()
 
 
-    @Bind(wx.EVT_MENU,id=ID.FSAVE)
-    @Bind(wx.EVT_TOOL,id=ID.FSAVE)
+    @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=ID.FSAVE)
     def OnFlameSave(self,e):
         self.flamepath = self.tree.GetFlameData(self.tree.itemparent)[-1]
         self.SaveFlame(self.flamepath, confirm=False)
 
         
-    @Bind(wx.EVT_MENU,id=ID.FSAVEAS)
-    @Bind(wx.EVT_TOOL,id=ID.FSAVEAS)
+    @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=ID.FSAVEAS)
     def OnFlameSaveAs(self,e):
         self.flamepath = self.tree.GetFlameData(self.tree.itemparent)[-1]
         dDir,dFile = os.path.split(self.flamepath)
@@ -238,22 +233,19 @@ class MainWindow(wx.Frame):
         dlg.Destroy()
         
 
-    @Bind(wx.EVT_MENU,id=ID.SOPEN)
-    @Bind(wx.EVT_TOOL,id=ID.SOPEN)
+    @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=ID.SOPEN)
     def OnScriptOpen(self,e):
         # TODO: how can this ugly wrapper be avoided?
         self.editorframe.OnScriptOpen(e)
 
 
-    @Bind(wx.EVT_MENU,id=ID.RUN)
-    @Bind(wx.EVT_TOOL,id=ID.RUN)
+    @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=ID.RUN)
     def OnRunScript(self,e):
         self.BlockGUI(flag=True)
         self.Execute(self.editor.GetText())
 
-            
-    @Bind(wx.EVT_MENU,id=ID.STOP)
-    @Bind(wx.EVT_TOOL,id=ID.STOP)
+
+    @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=ID.STOP)
     def OnStopScript(self,e=None):
         interruptall("Execute")
 
@@ -272,8 +264,7 @@ class MainWindow(wx.Frame):
         self.previewframe.RenderPreview()      
 
 
-    @Bind(wx.EVT_TOOL,id=ID.UNDO)
-    @Bind(wx.EVT_MENU,id=ID.UNDO)
+    @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=ID.UNDO)
     def OnUndo(self,e):
         data = self.tree.itemdata
         string = data.Undo()
@@ -283,8 +274,7 @@ class MainWindow(wx.Frame):
             self.tree.SetItemText(self.tree.item, data.name)
 
             
-    @Bind(wx.EVT_TOOL,id=ID.UNDOALL)
-    @Bind(wx.EVT_MENU,id=ID.UNDOALL)
+    @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=ID.UNDOALL)
     def OnUndoAll(self, e):
         data = self.tree.itemdata
         string = data.UndoAll()
@@ -294,8 +284,7 @@ class MainWindow(wx.Frame):
             self.tree.SetItemText(self.tree.item, data.name)      
 
 
-    @Bind(wx.EVT_TOOL,id=ID.REDO)
-    @Bind(wx.EVT_MENU,id=ID.REDO)
+    @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=ID.REDO)
     def OnRedo(self,e):
         data = self.tree.itemdata
         string = data.Redo()
@@ -305,8 +294,7 @@ class MainWindow(wx.Frame):
             self.tree.SetItemText(self.tree.item, data.name)
 
 
-    @Bind(wx.EVT_MENU,id=ID.RENDER)
-    @Bind(wx.EVT_TOOL,id=ID.RENDER)
+    @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=ID.RENDER)
     def OnRender(self,e):
         if self.renderdialog:
             self.renderdialog.Raise()
@@ -367,7 +355,7 @@ class MainWindow(wx.Frame):
         lst = []
         for i in self.tree.GetItemChildren():
             data = self.tree.GetFlameData(i)
-            lst.append(data.GetSaveString())
+            lst.append(data[-1])
 
             # Reset the history of all data, to allow correct comparisons.
             data.Reset()
@@ -381,6 +369,22 @@ class MainWindow(wx.Frame):
         self.tree.SelectItem(self.tree.itemparent)
 
 
+##    def SaveFlame(self, path, confirm=True):
+##
+##        lst = []
+##        for i in self.tree.GetItemChildren():               
+##            data = self.tree.GetFlameData(i)
+##            if i == self.tree.item:
+##                lst.append(data[-1])
+##                # Reset history of all data to allow correct comparisons.
+##                data.Reset()
+##                self.tree.SetItemText(i, data.name)
+##            else:
+##                # Use unmodified string
+##                lst.append(data[0])
+##        fr0stlib.save_flames(path,*lst)
+        
+
     def CheckForChanges(self, itemdata, lst):
         if any(data.HasChanged() for data,_ in lst):
             path = itemdata[-1]
@@ -388,8 +392,7 @@ class MainWindow(wx.Frame):
                                    'Fr0st',wx.YES_NO|wx.CANCEL)
             result = dlg.ShowModal()
             if result == wx.ID_YES:
-                fr0stlib.save_flames(path, *(data.GetSaveString()
-                                             for data,_ in lst))
+                fr0stlib.save_flames(path, *(data[-1] for data,_ in lst))
             dlg.Destroy()
             return result
 

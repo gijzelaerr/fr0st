@@ -131,14 +131,15 @@ class TreePanel(wx.Panel):
             # Don't reselect flames when a drop is happening.
             return
         
-        if item:
+        if item and len(self.tree.GetIndexOfItem(item)) == 2:
+            # Item is a flame
             self.tree.item = item
             string = self.tree.GetFlameData(item)[-1]
-            if string.startswith('<flame'):
-                self.parent.SetFlame(Flame(string=string))
-            else:
-                self.parent.Enable(ID.UNDO, False)
-                self.parent.Enable(ID.REDO, False)
+            self.parent.SetFlame(Flame(string=string))
+        else:
+            # Item is a flamefile
+            self.parent.Enable(ID.UNDO, False)
+            self.parent.Enable(ID.REDO, False)
 
         
     @Bind(wx.EVT_TREE_END_LABEL_EDIT)
@@ -240,17 +241,19 @@ class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
         fromlist = self.GetChildren(dragindex[:1])
         tolist = self.GetChildren(dropindex[:1])
 
-        # Makes the behaviour consistent even if flames move between files.
-        HACK = fromlist != tolist
-
         fromindex = dragindex[1] if len(dragindex) > 1 else 0
-        toindex = dropindex[1] + HACK if len(dropindex) > 1 else 0
+        toindex = dropindex[1] +1 if len(dropindex) > 1 else 0
 
-        tolist.insert(toindex, fromlist.pop(fromindex))
+        if fromlist != tolist:
+            # Copy flame
+            tolist.insert(toindex, fromlist[fromindex])
+        else:
+            # Move flame
+            tolist.insert(toindex, fromlist.pop(fromindex))
+            
         self.RefreshItems()
-
-        if HACK:
-            self.SelectItem(self.GetItemByIndex((dropindex[0],toindex)))
+        index = (dropindex[0], min(toindex, len(tolist) - 1))
+        self.SelectItem(self.GetItemByIndex(index))            
 
         self._dragging = False
 

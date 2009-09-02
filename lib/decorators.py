@@ -29,8 +29,12 @@ def BindEvents(__init__):
         for name in vars(self.__class__):
             f = getattr(self, name)
             if not hasattr(f, "__bound"): continue
-            for evt, args, kwds in f.__bound:
-                self.Bind(evt, f, *args, **kwds)
+            for evt, a, k in f.__bound:
+                if type(evt) is tuple:
+                    for e in evt:
+                        self.Bind(e, f, *a, **k)
+                else:
+                    self.Bind(evt, f, *a, **k)
     return wrapper
 
 
