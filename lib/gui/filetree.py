@@ -28,14 +28,15 @@ class TreePanel(wx.Panel):
                                      | wx.TR_HIDE_ROOT
                                      )
 
-##        self.Bind(wx.EVT_TREE_END_LABEL_EDIT, self.OnEndEdit, self.tree)
-##        self.Bind(wx.EVT_TREE_BEGIN_LABEL_EDIT, self.OnBeginEdit, self.tree)
-##        self.tree.Bind(wx.EVT_LEFT_DCLICK, self.OnLeftDClick)
-
 
     def TempSave(self):
         """Updates the tree's undo list and saves a backup version from
         which the session can be restored."""
+        # HACK: this prevents loads of useless tempsaves when running a script.
+        # the GUI can still be manipulated. This also prevents some weird
+        # segfaults.
+        if self.parent.scriptrunning:
+            return
         
         # Update the child
         data = self.tree.itemdata
