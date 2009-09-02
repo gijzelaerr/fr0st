@@ -35,7 +35,7 @@ class ItemData(list):
 
     def UndoAll(self):
         if self.undo:
-            self.redo.extend(self[1:])
+            self.redo.extend(reversed(self[1:]))
             self[:] = self[:1]
             self._name = self.re_name.findall(self[-1])[0]
             return self[-1]
@@ -48,18 +48,24 @@ class ItemData(list):
             return self[-1]
 
 
-    def _get_undo(self):
+    def RedoAll(self):
+        if self.redo:
+            self.extend(reversed(self.redo))
+            del self.redo[:]
+            self._name = self.re_name.findall(self[-1])[0]
+            return self[-1]
+
+
+    @property
+    def undo(self):
         return len(self) - 1
 
-    undo = property(_get_undo)
 
-
-    def _get_name(self):
+    @property
+    def name(self):
         return ('* ' if self.undo else '') + self._name
-
-    def _set_name(self,v):
+    
+    @name.setter
+    def name(self,v):
         self.append(self.re_name.sub(v, self[-1]))
         self._name = v[1:] if v[:2] == '* ' else v
-
-    name = property(_get_name, _set_name)
-

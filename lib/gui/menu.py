@@ -5,6 +5,7 @@ from constants import ID
 
 
 class Filemenu(wx.Menu):
+    name = "&File"
     def __init__(self):
         wx.Menu.__init__(self)
         self.Append(ID.FNEW2, "&New Flame\tCtrl-N"," Create a new flame")        
@@ -20,13 +21,22 @@ class Filemenu(wx.Menu):
         self.Append(ID.EXIT,"E&xit\tCtrl-Q"," Terminate the program")
 
 class Editmenu(wx.Menu):
+    name = "&Edit"
     def __init__(self):
         wx.Menu.__init__(self)
-        self.Append(ID.UNDO, "&Undo\tCtrl-Z", " Undo the last change to the current flame.")
-        self.Append(ID.UNDOALL, "Undo &All\tCtrl-Alt-Z", " Undo all changes to the selected flame.")
-        self.Append(ID.REDO, "&Redo\tCtrl-Shift-Z", " Redo the last change to the current flame.")
+        self.Append(ID.UNDO, "&Undo\tCtrl-Z", " Undo last change to the current flame.")
+        self.Append(ID.UNDOALL, "U&ndo All\tCtrl-Shift-Z", " Undo all changes to the current flame.")
+        self.Append(ID.REDO, "&Redo\tCtrl-Y", " Redo last change to the current flame.")
+        self.Append(ID.REDOALL, "R&edo All\tCtrl-Shift-Y", "Redo all changes to the current flame.")
+
+class Viewmenu(wx.Menu):
+    name = "&View"
+    def __init__(self):
+        wx.Menu.__init__(self)
+        self.Append(ID.PREVIEW, "&Preview\tCtrl-P", " Open the preview window.")
 
 class Scriptmenu(wx.Menu):
+    name = "&Script"
     def __init__(self):
         wx.Menu.__init__(self)
         self.Append(ID.RUN, "&Run\tF8"," Run currently open script")
@@ -36,6 +46,7 @@ class Scriptmenu(wx.Menu):
         self.Append(ID.EDITOR, "&Editor\tCtrl-E"," Open the script editor")
 
 class EditorFilemenu(wx.Menu):
+    name = "&File"
     def __init__(self):
         wx.Menu.__init__(self)
         self.Append(ID.SNEW, "&New Script\tCtrl-N"," Create a new script")
@@ -49,6 +60,7 @@ class EditorFilemenu(wx.Menu):
         self.Append(ID.EXIT,"E&xit\tCtrl-Q"," Close the editor")        
 
 class EditorEditmenu(wx.Menu):
+    name = "&Edit"
     def __init__(self):
         wx.Menu.__init__(self)
         self.Append(ID.UNDO, "&Undo\tCtrl-Z", "")
@@ -57,14 +69,9 @@ class EditorEditmenu(wx.Menu):
 
 def Create(lst, parent):
     menu = wx.MenuBar()
-    map(menu.Append,*zip(*((menu(), name) for menu, name in lst)))
+    map(menu.Append,*zip(*((menu(), menu.name) for menu in lst)))
     parent.SetMenuBar(menu)
     parent.menu = menu
 
-CreateMenu = partial(Create, [(Filemenu,   "&File"),
-                              (Editmenu,   "&Edit"),
-                              (Scriptmenu, "&Script")])
-CreateEditorMenu = partial(Create, [(EditorFilemenu, "&File"),
-                                    (EditorEditmenu, "&Edit")])
-
-
+CreateMenu = partial(Create, (Filemenu, Editmenu, Viewmenu, Scriptmenu))
+CreateEditorMenu = partial(Create, (EditorFilemenu, EditorEditmenu))

@@ -250,7 +250,7 @@ class MainWindow(wx.Frame):
         interruptall("Execute")
 
 
-    @Bind(wx.EVT_TOOL,id=ID.EDITOR)
+    @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=ID.EDITOR)
     def OnEditorOpen(self,e):
         self.editorframe.Show(True)
         self.editorframe.Raise()
@@ -288,6 +288,16 @@ class MainWindow(wx.Frame):
     def OnRedo(self,e):
         data = self.tree.itemdata
         string = data.Redo()
+        if string:
+            self.SetFlame(Flame(string=string), rezoom=False)
+            self.tree.RenderThumbnail()
+            self.tree.SetItemText(self.tree.item, data.name)
+
+            
+    @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=ID.REDOALL)
+    def OnRedoAll(self,e):
+        data = self.tree.itemdata
+        string = data.RedoAll()
         if string:
             self.SetFlame(Flame(string=string), rezoom=False)
             self.tree.RenderThumbnail()
