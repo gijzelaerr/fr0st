@@ -332,57 +332,55 @@ class MainWindow(wx.Frame):
         return item
         
 
+##    def SaveFlame(self, path, confirm=True):
+##        # Refuse to save if file is open
+##        data = self.tree.GetFlameData(self.tree.itemparent)
+##        if data[-1] != path and self.tree.find_open_flame(path):
+##            dlg = wx.MessageDialog(self, "%s is currently open. Please choose a different name." % path,
+##                                   'Fr0st',wx.OK)
+##            dlg.ShowModal()
+##            return
+##
+##        # Check if we're overwriting anything
+##        if os.path.exists(path) and confirm:
+##            dlg = wx.MessageDialog(self, '%s already exists.\nDo You want to replace it?'
+##                                   %path, 'Fr0st', wx.YES_NO)
+##            if dlg.ShowModal() == wx.ID_NO: return
+##            dlg.Destroy()
+##
+##        # Now update the tree items
+##        self.tree.SetItemText(self.tree.itemparent, os.path.basename(path))
+##        data[-1] = path
+##                      
+##        lst = []
+##        for i in self.tree.GetItemChildren():
+##            data = self.tree.GetFlameData(i)
+##            lst.append(data[-1])
+##
+##            # Reset the history of all data, to allow correct comparisons.
+##            data.Reset()
+##            self.tree.SetItemText(i, data.name)
+##        
+##        # Finally, save the flame and clear the temp file.
+##        fr0stlib.save_flames(path,*lst)
+##        if os.path.exists(path+'.temp'):
+##            os.remove(path+'.temp')
+##
+##        self.tree.SelectItem(self.tree.itemparent)
+
+
     def SaveFlame(self, path, confirm=True):
-        # Refuse to save if file is open
-        data = self.tree.GetFlameData(self.tree.itemparent)
-        if data[-1] != path and self.tree.find_open_flame(path):
-            dlg = wx.MessageDialog(self, "%s is currently open. Please choose a different name." % path,
-                                   'Fr0st',wx.OK)
-            dlg.ShowModal()
-            return
-
-        # Check if we're overwriting anything
-        if os.path.exists(path) and confirm:
-            dlg = wx.MessageDialog(self, '%s already exists.\nDo You want to replace it?'
-                                   %path, 'Fr0st', wx.YES_NO)
-            if dlg.ShowModal() == wx.ID_NO: return
-            dlg.Destroy()
-
-        # Now update the tree items
-        self.tree.SetItemText(self.tree.itemparent, os.path.basename(path))
-        data[-1] = path
-                      
-        lst = []
-        for i in self.tree.GetItemChildren():
-            data = self.tree.GetFlameData(i)
+        lst = Flame.load_file(path)
+        data = self.tree.itemdata
+        if data[0] in lst:
+            lst[lst.index(data[0])] = data[-1]
+        else:
             lst.append(data[-1])
 
-            # Reset the history of all data, to allow correct comparisons.
-            data.Reset()
-            self.tree.SetItemText(i, data.name)
-        
-        # Finally, save the flame and clear the temp file.
         fr0stlib.save_flames(path,*lst)
-        if os.path.exists(path+'.temp'):
-            os.remove(path+'.temp')
-
-        self.tree.SelectItem(self.tree.itemparent)
-
-
-##    def SaveFlame(self, path, confirm=True):
-##
-##        lst = []
-##        for i in self.tree.GetItemChildren():               
-##            data = self.tree.GetFlameData(i)
-##            if i == self.tree.item:
-##                lst.append(data[-1])
-##                # Reset history of all data to allow correct comparisons.
-##                data.Reset()
-##                self.tree.SetItemText(i, data.name)
-##            else:
-##                # Use unmodified string
-##                lst.append(data[0])
-##        fr0stlib.save_flames(path,*lst)
+            
+        data.Reset()
+        self.tree.SetItemText(self.tree.item, data.name)
         
 
     def CheckForChanges(self, itemdata, lst):
@@ -589,8 +587,5 @@ class ImagePanel(PreviewBase):
         fw,fh = self.bmp.GetSize()
         pw,ph = self.GetPanelSize()
         dc = wx.PaintDC(self)
-        dc.DrawBitmap(self.bmp,
-                      (pw-fw) / 2,
-                      (ph-fh) / 2,
-                      True)
+        dc.DrawBitmap(self.bmp, (pw-fw) / 2, (ph-fh) / 2, True)
 
