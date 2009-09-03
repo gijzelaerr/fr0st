@@ -48,6 +48,8 @@ class PreviewFrame(wx.Frame):
         image = wx.ImageFromBitmap(self.image.oldbmp)
 
         pw, ph = map(float, self.GetPanelSize())
+        if self._lastsize == (0,0):
+            return
         fw, fh = self.parent.flame.size
 
         ratio = min(pw/fw, ph/fh)

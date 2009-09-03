@@ -41,7 +41,8 @@ class Renderer():
         normal request queue intact."""
         kwds["nthreads"] = 1
         kwds["fixed_seed"] = True
-        kwds["renderer"] = kwds.get("renderer", config["renderer"])
+##        kwds["renderer"] = kwds.get("renderer", config["renderer"])
+        kwds["renderer"] = "flam3"
         self.previewflag = 1
         
         self.previewqueue = [(callback,args,kwds)]
