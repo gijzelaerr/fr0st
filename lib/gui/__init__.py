@@ -267,41 +267,33 @@ class MainWindow(wx.Frame):
     @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=ID.UNDO)
     def OnUndo(self,e):
         data = self.tree.itemdata
-        string = data.Undo()
-        if string:
-            self.SetFlame(Flame(string=string), rezoom=False)
-            self.tree.RenderThumbnail()
-            self.tree.SetItemText(self.tree.item, data.name)
+        self.SetFlame(Flame(string=data.Undo()), rezoom=False)
+        self.tree.RenderThumbnail()
+        self.tree.SetItemText(self.tree.item, data.name)
 
             
     @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=ID.UNDOALL)
     def OnUndoAll(self, e):
         data = self.tree.itemdata
-        string = data.UndoAll()
-        if string:
-            self.SetFlame(Flame(string=string), rezoom=False)
-            self.tree.RenderThumbnail()
-            self.tree.SetItemText(self.tree.item, data.name)      
+        self.SetFlame(Flame(string=data.UndoAll()), rezoom=False)
+        self.tree.RenderThumbnail()
+        self.tree.SetItemText(self.tree.item, data.name)    
 
 
     @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=ID.REDO)
     def OnRedo(self,e):
         data = self.tree.itemdata
-        string = data.Redo()
-        if string:
-            self.SetFlame(Flame(string=string), rezoom=False)
-            self.tree.RenderThumbnail()
-            self.tree.SetItemText(self.tree.item, data.name)
+        self.SetFlame(Flame(string=data.Redo()), rezoom=False)
+        self.tree.RenderThumbnail()
+        self.tree.SetItemText(self.tree.item, data.name)
 
             
     @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=ID.REDOALL)
     def OnRedoAll(self,e):
         data = self.tree.itemdata
-        string = data.RedoAll()
-        if string:
-            self.SetFlame(Flame(string=string), rezoom=False)
-            self.tree.RenderThumbnail()
-            self.tree.SetItemText(self.tree.item, data.name)
+        self.SetFlame(Flame(string=data.RedoAll()), rezoom=False)
+        self.tree.RenderThumbnail()
+        self.tree.SetItemText(self.tree.item, data.name)
 
 
     @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=ID.RENDER)

@@ -807,10 +807,10 @@ class Xform(object):
     def rotate_y(self, deg):
         self.yp = (self.yp[0], self.yp[1] + deg)
 
-    def rotate(self,deg,pivot="local"):
+    def rotate(self, deg, pivot=None):
         self.rotate_x(deg)
         self.rotate_y(deg)
-        if pivot != "local":
+        if pivot is not None:
             self.orbit(deg,pivot)
             
         

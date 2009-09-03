@@ -1,4 +1,5 @@
 import itertools, numpy as N, time, wx, sys, math
+from functools import partial
 from wx.lib.floatcanvas import FloatCanvas as FC
 from wx.lib.floatcanvas.Utilities import BBox
 
@@ -271,15 +272,18 @@ class XformCanvas(FC.FloatCanvas):
                 return xform.scale(self.CalcScale(xform.points, h, v))
             return cb
 
-        if config["Lock-Axes"]:
-            func = xform.rotate
+        if funcname == "rotate" or config["Lock-Axes"]:
+            pivot = (0,0) if config["World-Pivot"] else xform.o
+            func = partial(xform.rotate, pivot=pivot)
         else:
-            func = getattr(xform, funcname)            
+            pivot = xform.o
+            func = getattr(xform, funcname)
+
         def cb((h, v)):
-            angle = polar((h - xform.c, v - xform.f))[1]
+            angle = polar((h - pivot[0], v - pivot[1]))[1]
             func(angle - cb.prev_angle)
             cb.prev_angle = angle
-        cb.prev_angle = polar((h - xform.c, v - xform.f))[1]
+        cb.prev_angle = polar((h - pivot[0], v - pivot[1]))[1]
         return cb
                 
     

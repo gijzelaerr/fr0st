@@ -63,7 +63,7 @@ class TransformPanel(wx.Panel):
 
         # Add toggle buttons
         # TODO: Isn't there a default Bitmap/Toggle button? Don't like these.
-        for i in ('Pivot-Mode','Lock-Axes','Variation-Preview',
+        for i in ('World-Pivot','Lock-Axes','Variation-Preview',
                   'Edit-Post-Xform'):
             b = buttons.GenBitmapToggleButton(self, -1, LoadIcon('toolbar',i),
                                               name=i.replace("-",""),
