@@ -47,9 +47,13 @@ class PreviewFrame(wx.Frame):
             self.image.oldbmp = self.image.bmp
         image = wx.ImageFromBitmap(self.image.oldbmp)
 
+
+        # TODO: This was here for windows. Need to find a clean way to make
+        # resize work nice and consistent cross-platform.
+##        if self._lastsize == (0,0):
+##            return
+        
         pw, ph = map(float, self.GetPanelSize())
-        if self._lastsize == (0,0):
-            return
         fw, fh = self.parent.flame.size
 
         ratio = min(pw/fw, ph/fh)
