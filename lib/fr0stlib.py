@@ -1,11 +1,3 @@
-#Copyright (c) 2008 Vitor Bosshard
-#This program licensed under the GPL. See license.txt for details.
-#
-#Tested under:
-#Python 2.6.1
-#Pygame 1.8.1.win32-py2.5
-#-----------------------------------------------------------------
-
 import re, shutil, random, itertools
 from functions import *
 from math import *
@@ -18,7 +10,7 @@ except ImportError:
 BLANKFLAME = """<flame name="Untitled" version="fr0st" size="512 384" center="0 0" scale="128" oversample="1" filter="0.2" quality="1" background="0 0 0" brightness="4" gamma="4" gamma_threshold="0.04" >
    <xform weight="0.5" color="0" linear="1" coefs="1 0 0 1 0 0" />
    <palette count="256" format="RGB">
-      100000000000000000000000000000000000000000000000
+      000000000000000000000000000000000000000000000000
       000000000000000000000000000000000000000000000000
       000000000000000000000000000000000000000000000000
       000000000000000000000000000000000000000000000000
@@ -65,8 +57,7 @@ class Flame(object):
     re_xform  = re.compile(r'<[a-zA-Z]*xform .*?/>')
     re_attr   = re.compile(r'[^ ]*?=".*?(?=")') # Works for xforms and header  
 
-    _default = set(("final","gradient","xform","name"))
-
+    _default = set(("final","gradient","xform","name", "version"))
     
     def __init__(self,file="",string="",name=""):
         """A new flame object can be created by passing it a filename or
@@ -84,7 +75,6 @@ class Flame(object):
         self.gradient = Palette()
         
         if not string and file:
-##            path = os.path.join(sys.path[0],"parameters",file)
             path = os.path.join(sys.path[0],file)
             lst = Flame.load_file(path)
             if not name:
@@ -147,34 +137,32 @@ class Flame(object):
         self.scale = self.scale * 100 / self.size[0]
 
         
-    def to_string(self,include_details=True):
-        """Extracts parameters from a Flame object and converts them into string format."""
+    def to_string(self, omit_details=False):
+        """Extracts parameters from a Flame object and converts them into
+        string format."""
 
+        # Make the flame header
         lst =  ['<flame ']
-        # Write the flame header
-        if include_details:
-            for name,val in self.iter_attributes():
-                _type = type(val)
-                if   _type is list or _type is tuple:
-                    # Remember to convert round numbers to integer.
-                    param = name," ".join(str(i if i%1 else int(i)) for i in val)
-                elif _type is str:
-                    param = name, val
-                elif name == "scale":
-                    param = name, val * self.size[0] / 100
-                else:
-                    param = name, val if val%1 else int(val)
-                lst.append('%s="%s" ' %param)
-            lst.append('>\n')
-        else:
+        if omit_details:
             lst.append('name="fr0st" >\n')
+        else:
+            for name,val in self.iter_attributes():
+                ty = type(val)
+                if ty in (list, tuple):
+                    # Remember to convert round numbers to integer.
+                    val = " ".join(str(i if i%1 else int(i)) for i in val)
+                elif name == "scale":
+                    val = val * self.size[0] / 100
+                elif ty in (int, float):
+                    val = val if val%1 else int(val)
+                lst.append('%s="%s" ' %(name, val))
+            lst.append('>\n')           
 
         # Make each xform
-        for xform in self.iter_xforms():
-            lst.append(xform.to_string())
+        lst.extend(xform.to_string() for xform in self.iter_xforms())
         
         # Make the gradient
-        if include_details:
+        if not omit_details:
             lst.append(self.gradient.to_string())
 
         lst.append('</flame>')
@@ -222,14 +210,13 @@ class Flame(object):
             if i.post.isactive():
                 yield i.post
 
-        
-    def _get_angle(self):
+
+    @property
+    def angle(self):
         return radians(self.rotate)
-
-    def _set_angle(self,v):
+    @angle.setter
+    def angle(self,v):
         self.rotate = degrees(v)
-
-    angle = property(_get_angle,_set_angle)
 
 
     def move_center(self, diff):
@@ -241,51 +228,42 @@ class Flame(object):
         self.center[1] += h        
 
 
-    def _get_attributes(self):
-        return [i for i in self.__dict__ if i not in self._default]
-
-    attributes = property(_get_attributes)
-
     def iter_attributes(self):
-        return itertools.chain((("name",self.name),),
+        return itertools.chain((("name",self.name), ("version","fr0st")),
                                ((k,v) for (k,v) in self.__dict__.iteritems()
                                 if k not in self._default))
 
 
-    def _get_width(self):
+    @property
+    def width(self):
         return self.size[0]
-
-    def _set_width(self,v):
+    @width.setter
+    def width(self,v):
         self.size[0] = v
 
-    width = property(_get_width,_set_width)
 
-
-    def _get_height(self):
+    @property
+    def height(self):
         return self.size[1]
-
-    def _set_height(self,v):
+    @height.setter
+    def height(self,v):
         self.size[1] = v
 
-    height = property(_get_height,_set_height)
 
-
-    def _get_x_offset(self):
+    @property
+    def x_offset(self):
         return self.center[0]
-
-    def _set_x_offset(self, v):
+    @x_offset.setter
+    def x_offset(self, v):
         self.center[0] = v
 
-    x_offset = property(_get_x_offset,_set_x_offset)
 
-
-    def _get_y_offset(self):
+    @property
+    def y_offset(self):
         return self.center[1]
-
-    def _set_y_offset(self, v):
+    @y_offset.setter
+    def y_offset(self, v):
         self.center[1] = v
-
-    y_offset = property(_get_y_offset,_set_y_offset)
     
 
 
@@ -312,12 +290,15 @@ class Palette(list):
         else:
             for i in xrange(0, 256): self.append((0, 0, 0))
 
+
     def to_string(self, newformat=True):
-        format = self.formatstr if newformat else self.old_formatstr
-        return format % tuple(itertools.chain(*self))
+        s = self.formatstr if newformat else self.old_formatstr
+        return s % tuple(itertools.chain(*self))
+
 
     def rotate(self, index):
         self[:] = self[-index:] + self[:-index]
+
     
     def hue(self, value):
         value = value/360.0
@@ -326,6 +307,7 @@ class Palette(list):
             h += value
             h = clip(h,0,1,True)
             self[i] = hls2rgb((h,l,s))
+
             
     def saturation(self, value):
         value = value/100.0
@@ -334,6 +316,7 @@ class Palette(list):
             s += value
             s = clip(s,0,0.999999)
             self[i] = hls2rgb((h,l,s))
+
             
     def brightness(self, value):
         value = value/100.0
@@ -342,10 +325,12 @@ class Palette(list):
             l += value
             l = clip(l,0,0.999999)
             self[i] = hls2rgb((h,l,s))
+
             
     def inverse(self):
         for i in self:
             i = (255 - i[0], 255 - i[1], 255 - i[2])
+
   
 ##    def blur(self, value, space='rgb'):
 ##        value = clip(value,0,127)
@@ -370,8 +355,10 @@ class Palette(list):
 ##            tmp.append(color)
 ##        self[:] = tmp
 
+
     def reverse(self):
         self.reverse()
+
         
     def from_seed(self, seed, csplit=0, split=30,  dist=64, curve='lin'):
         (h,l,s) = rgb2hls(seed)
@@ -396,6 +383,7 @@ class Palette(list):
             g.append(tuple(map(int,interp([rspl, comp], dist, i, curve=curve))))
         
         self[:] = g
+
 
     def from_seeds(self, seeds, curve='cos', space='rgb'):
         ns = len(seeds)
@@ -450,7 +438,7 @@ class Palette(list):
                 for i in xrange(b):
                     tmp.append(hls2rgb((h,l,s)))
         self[:] = tmp
-#---end
+
 
     def from_image(self, filename, num_tries=50, try_size=1000):
         if not wx:
@@ -523,9 +511,9 @@ class Palette(list):
 class Xform(object):
     """Container for transform parameters."""
 
-    _default = ["_parent","a","b","c","d","e","f","_chaos","_post"]
+    _default = set(("_parent","a","b","c","d","e","f","_chaos","_post"))
     # We need to specify attributes with an explicit default value.
-    # See __setattr__ for more details.
+    # See iter_attributes for more details.
     opacity = 1.0
     color = 0.0
 
@@ -561,6 +549,24 @@ class Xform(object):
         x.coefs = x.screen_coefs
         return x
 
+    
+    def to_string(self):
+        lst = ['   <%sxform '%("final" if self.isfinal() else "")]
+        lst.extend('%s="%s" ' %i for i in self.iter_attributes())
+        lst.append('coefs="%s %s %s %s %s %s" ' % self.screen_coefs)
+
+        # Write the post xform.
+        lst.append(self.post.to_string())
+
+        # Write the chaos values.
+        xaos = self.chaos.get_list()
+        if xaos:
+            lst.append('chaos="%s " />' % " ".join(map(str,xaos)))
+        else:
+            lst.append('/>\n')
+
+        return "".join(lst)
+    
             
     def __repr__(self):
         try:
@@ -575,50 +581,36 @@ class Xform(object):
       
     def __getattr__(self,v):
         """Returns a default value for non-existing attributes"""
-        # Note that the real lookup special method is __getattribute__, and
-        # __getattr__ is only called when it fails.
+        # __getattribute__ is the real lookup special method,  __getattr__ is
+        # only called when it fails.
         return 0.0
 
 
-    def __setattr__(self,name,v):
-        """Deletes all attributes that are set to the default value"""
-        if v == 0 and not hasattr(self.__class__, name):
-            try:
-                delattr(self,name)
-            except AttributeError:
-                pass
-        else:
-            object.__setattr__(self,name,v)            
-
-
-    def _get_chaos(self):
+    @property
+    def chaos(self):
         return self._chaos
-
-    def _set_chaos(self,v):
+    @chaos.setter
+    def chaos(self,v):
         if type(v) is not Chaos:
             raise TypeError, "The chaos attribute requires a Chaos object"
         self._chaos = v
 
-    chaos = property(_get_chaos,_set_chaos)    
 
-
-    def _get_post(self):
+    @property
+    def post(self):
         return self._post
-
-    def _set_post(self,v):
+    @post.setter
+    def post(self,v):
         if type(v) is not PostXform:
             raise TypeError, "The post attribute requires a PostXform object"
         self._post = v
 
-    post = property(_get_post,_set_post)
 
-
-    def _get_index(self):
+    @property
+    def index(self):
         if self is self._parent.final:
             return None
         return self._parent.xform.index(self)
-
-    index = property(_get_index)
 
 
     def _set_plotmode(self, v):
@@ -626,54 +618,46 @@ class Xform(object):
             self.opacity = 0.0
         else:
             raise ValueError('Plotmode can only be set to "off"')
-
     plotmode = property(None, _set_plotmode)
     
        
-    def _get_coefs(self):
+    @property
+    def coefs(self):
         return self.a,self.d,self.b,self.e,self.c,self.f
-
-    def _set_coefs(self,v):
+    @coefs.setter
+    def coefs(self,v):
         self.a,self.d,self.b,self.e,self.c,self.f = v
 
-    coefs = property(_get_coefs,_set_coefs)
-
-
-    def _get_screen_coefs(self):
+       
+    @property
+    def screen_coefs(self):
         return self.a,-self.d,-self.b,self.e,self.c,-self.f
-
-    def _set_screen_coefs(self, v):
+    @screen_coefs.setter
+    def screen_coefs(self, v):
         self.coefs = v
         self.d = -self.d
         self.b = -self.b
         self.f = -self.f
 
-    screen_coefs = property(_get_screen_coefs, _set_screen_coefs)
-
 
     def list_variations(self):
         return [i for i in variations if i in self.__dict__]
 
-    def _get_attributes(self):
-        return [i for i in self.__dict__ if i not in self._default]
-    
-    attributes = property(_get_attributes)
 
     def iter_attributes(self):
         return ((k,v) for (k,v) in self.__dict__.iteritems()
-                if k not in self._default)
+                if k not in self._default and v or hasattr(self.__class__, k))
 
 #----------------------------------------------------------------------
-    
-    def _set_pos(self,v1,v2=None):
+
+    @property
+    def pos(self):
+        return self.c, self.f
+    @pos.setter
+    def pos(self, v1, v2=None):
         if v2 is None: v1, v2 = v1
         self.c = v1
         self.f = v2
-        
-    def _get_pos(self):
-        return self.c, self.f
-    
-    pos = property(_get_pos,_set_pos)
 
     def move_pos(self,v1,v2=None):
         if v2 is None: v1, v2 = v1       
@@ -681,40 +665,42 @@ class Xform(object):
         self.f += v2
 
 #----------------------------------------------------------------------
-        
-    def _set_x(self,v1,v2=None):
+       
+    @property        
+    def x(self):
+        return self.a + self.c, self.d + self.f
+    @x.setter
+    def x(self,v1,v2=None):
         if v2 is None: v1, v2 = v1
         self.a  = v1 - self.c
         self.d  = v2 - self.f
-        
-    def _get_x(self):
-        return self.a + self.c, self.d + self.f
-    
-    x = property(fget=_get_x,fset=_set_x)
 
     def move_x(self,v1,v2=None):     
         if v2 is None: v1, v2 = v1  
         self.a += v1
         self.d += v2
 
-
-    def _set_y(self,v1,v2=None):
+       
+    @property
+    def y(self):
+        return self.b + self.c, self.e + self.f
+    @y.setter
+    def y(self, v1, v2=None):
         if v2 is None: v1, v2 = v1
         self.b  = v1 - self.c
         self.e  = v2 - self.f
-        
-    def _get_y(self):
-        return self.b + self.c, self.e + self.f
 
-    y = property(fget=_get_y,fset=_set_y)
-
-    def move_y(self,v1,v2=None):     
+    def move_y(self, v1, v2=None):     
         if v2 is None: v1, v2 = v1 
         self.b += v1
         self.e += v2
 
-
-    def _set_o(self,v1,v2=None):
+       
+    @property
+    def o(self):
+        return self.c, self.f
+    @o.setter
+    def o(self, v1, v2=None):
         if v2 is None: v1, v2 = v1
         self.a += self.c - v1
         self.d += self.f - v2
@@ -722,11 +708,6 @@ class Xform(object):
         self.e += self.f - v2
         self.c  = v1
         self.f  = v2
-
-    def _get_o(self):
-        return self.c, self.f
-    
-    o = property(fget=_get_o,fset=_set_o)
 
 
     def move_o(self,v1,v2=None):
@@ -738,51 +719,45 @@ class Xform(object):
         self.c += v1
         self.f += v2
 
-        
-    def _get_points(self):
+    @property
+    def points(self):
         return self.x,self.y,self.o
-
-    def _set_points(self,v):
+    @points.setter
+    def points(self, v):
         self.x,self.y,self.o = v
 
-    points = property(_get_points,_set_points)
-    
 #----------------------------------------------------------------------
-    
-    def _get_xp(self):
+       
+    @property    
+    def xp(self):
         return polar((self.a, self.d))
-        
-    def _set_xp(self, coord):
+    @xp.setter
+    def xp(self, coord):
         self.a, self.d = rect(coord)
 
-    xp = property(_get_xp,_set_xp)
-
-
-    def _get_yp(self):
+       
+    @property
+    def yp(self):
         return polar((self.b, self.e))
-        
-    def _set_yp(self, coord):
+    @yp.setter
+    def yp(self, coord):
         self.b, self.e = rect(coord)
 
-    yp = property(_get_yp,_set_yp)
-
-
-    def _get_op(self):
+       
+    @property
+    def op(self):
         return polar((self.c, self.f))
-        
-    def _set_op(self, coord):
+    @op.setter
+    def op(self, coord):
         self.c, self.f = rect(coord)
 
-    op = property(_get_op,_set_op)
-
-    
-    def _get_polars(self):
+       
+    @property
+    def polars(self):
         return self.xp, self.yp, self.op
-    
-    def _set_polars(self, coord):
+    @polars.setter
+    def polars(self, coord):
         self.xp, self.yp, self.op = coord
-        
-    polars = property(_get_polars,_set_polars)
 
 #----------------------------------------------------------------------
 
@@ -833,7 +808,6 @@ class Xform(object):
 
 #----------------------------------------------------------------------
 
-
     def ispost(self):
         return type(self._parent) == Xform
 
@@ -855,27 +829,6 @@ class Xform(object):
             self._parent.final = None            
         else:
             self._parent.xform.remove(self)
-
-
-    def to_string(self):
-        lst = []
-        lst.append('   <%sxform '%("final" if self.isfinal() else ""))
-        for name,val in self.iter_attributes():
-            lst.append('%s="%s" ' %(name,val))
-
-        lst.append('coefs="%s %s %s %s %s %s" ' % self.screen_coefs)
-
-        # Write the post xform.
-        lst.append(self.post.to_string())
-
-        # Write the chaos values.
-        xaos = self.chaos.get_list()
-        if xaos:
-            lst.append('chaos="%s " />' % " ".join(map(str,xaos)))
-        else:
-            lst.append('/>\n')
-
-        return "".join(lst)
 
 
 
@@ -961,6 +914,7 @@ class Chaos(list):
             if i != 1: break
             lst.pop()
         return lst
+
 #-------------------------------------------------------------------------------
 """
 File functions from functions to avoid circular import

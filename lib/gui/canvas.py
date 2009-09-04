@@ -19,7 +19,7 @@ class VarPreview(FC.PointSet):
         
     def var_preview(self, xform, range, numvals, depth):
         result = (c_double * (2* (2*numvals+1)**2))()
-        genome = Genome.from_string(xform._parent.to_string(False))[0]
+        genome = Genome.from_string(xform._parent.to_string(True))[0]
         index = xform.index
         if index is None:
             index = genome.final_xform_index
@@ -229,12 +229,13 @@ class XformCanvas(FC.FloatCanvas):
         for xform in self.IterXforms():
             a,d,b,e,c,f = xform.coefs
             if polar((x - c, y - f))[0] < self.circle_radius:
-                return (xform, xform._set_pos if config["Lock-Axes"]
-                               else xform._set_o)
+                return (xform, partial(setattr, xform, "pos")
+                               if config["Lock-Axes"]
+                               else partial(setattr, xform, "o"))
             elif polar((x - a - c, y - d - f))[0] < self.circle_radius:
-                return xform, xform._set_x
+                return xform, partial(setattr, xform, "x")
             elif polar((x - b - c, y - e - f))[0] < self.circle_radius:
-                return xform, xform._set_y
+                return xform, partial(setattr, xform, "y")
         return None, None
     
 
@@ -332,7 +333,7 @@ class XformCanvas(FC.FloatCanvas):
             if self.angle_helper((x-c, y-f), (a, d), (b, e)) and \
                self.angle_helper((x-a-c, y-d-f), (-a, -d), (b-a, e-d)):
                 diff = x - xform.c, y - xform.f
-                return xform, lambda coord: xform._set_pos(coord-diff)
+                return xform, lambda coord: setattr(xform, "pos", coord-diff)
         return None, None
 
 
