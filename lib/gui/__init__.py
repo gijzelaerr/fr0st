@@ -84,11 +84,13 @@ class MainWindow(wx.Frame):
         self.SetMinSize(self.GetSize())
         
         # Load frame positions from file
-        for window, k in ((self, "Dim-Main"),
-                          (self.editor, "Dim-Editor"),
-                          (self.previewframe, "Dim-Preview")):
+        for window, k in ((self, "Rect-Main"),
+                          (self.editorframe, "Rect-Editor"),
+                          (self.previewframe, "Rect-Preview")):
             if k in config:
-                window.SetDimensions(*config[k])
+                rect, maximize = config[k]
+                window.SetDimensions(*rect)
+                window.Maximize(maximize)
 
         self._namespace = self.CreateNamespace()
 
@@ -161,12 +163,20 @@ class MainWindow(wx.Frame):
             os.remove('paths.temp')
 
         # Save size and pos of each window
-        for window, k in ((self, "Dim-Main"),
-                          (self.editor, "Dim-Editor"),
-                          (self.previewframe, "Dim-Preview")):
-            x,y = window.GetPosition()
-            w,h = window.GetSize()
-            config[k] = (x,y,w,h)
+        for window, k in ((self, "Rect-Main"),
+                          (self.editorframe, "Rect-Editor"),
+                          (self.previewframe, "Rect-Preview")):
+            maximize = window.IsMaximized()
+            # HACK: unmaximizing doesn't seem to work properly in this context,
+            # so we just use the previous config settings, even if it's not
+            # ideal.
+##            window.Maximize(False)
+            if maximize:
+                (x,y,w,h), _ = config[k]
+            else:
+                x,y = window.GetPosition()
+                w,h = window.GetSize()
+            config[k] = (x,y,w,h), maximize
         self.Destroy()
 
 
