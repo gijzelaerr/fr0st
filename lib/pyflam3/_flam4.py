@@ -146,7 +146,8 @@ class xForm(Structure):
 			
 				, ('color', c_float)
 				, ('symmetry', c_float)
-				, ('weight', c_float) ]
+				, ('weight', c_float)
+				, ('opacity', c_float)]
 
 ######################################################
 #Should be unused in fr0st - included for completeness
@@ -184,6 +185,7 @@ libflam4.cuStartFrame.argtypes = [POINTER(Flame)]
 libflam4.cuRenderBatch.argtypes = [POINTER(Flame)]
 libflam4.cuFinishFrame.argtypes = [POINTER(Flame), POINTER(c_ubyte), c_uint]
 libflam4.cuEzRenderFrame.argtypes= [POINTER(Flame), POINTER(c_ubyte), c_uint, c_int]
+libflam4.cuCalcNumBatches.argtypes= [c_int, c_int, c_int]
 
 def loadFlam4(flame):
 	flam4Flame = Flame()
@@ -250,7 +252,7 @@ def setTransAff(transAff, xform):
 	transAff.d = xform.d
 	transAff.e = xform.e
 	
-def renderFlam4(flame,size):
+def renderFlam4(flame,size, quality):
 	global LastRenderWidth
 	global LastRenderHeight
 	global cudaRunning
@@ -266,6 +268,13 @@ def renderFlam4(flame,size):
 		libflam4.cuRenderBatch(pointer(flame))
 	libflam4.cuFinishFrame(pointer(flame),outputBuffer,0)"""
 	##oldTime = time.clock()
-	libflam4.cuEzRenderFrame(pointer(flame),outputBuffer,0,10)
+	numBatches = libflam4.cuCalcNumBatches(size[0],size[1],int(quality))
+	#print quality
+	#print numBatches
+	if numBatches < 3:
+		numBatches = 3
+	#print "Rendering flame with " + str(numBatches) + " batches"
+	libflam4.cuEzRenderFrame(pointer(flame),outputBuffer,0,numBatches)
+	#print "Render complete!"
 	##print oldTime-time.clock()
 	return outputBuffer

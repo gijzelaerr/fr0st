@@ -36,5 +36,5 @@ def flam4_render(flame, size, quality, estimator=9, fixed_seed=False, **kwds):
     """Passes requests on to flam4. Works on windows only for now."""
     from pyflam3 import _flam4
     flam4Flame = _flam4.loadFlam4(flame)
-    output_buffer = _flam4.renderFlam4(flam4Flame,size)
+    output_buffer = _flam4.renderFlam4(flam4Flame,size,quality)
     return output_buffer
