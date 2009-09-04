@@ -131,6 +131,7 @@ class Renderer():
         
 
     def prog_wrapper(self, f, flag):
+        @Catches(TypeError)
         def prog_func(*args):
             return max(getattr(self, flag), self.exitflag, f(*args))
         return prog_func
