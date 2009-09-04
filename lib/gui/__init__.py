@@ -453,6 +453,7 @@ class MainWindow(wx.Frame):
         self.Enable(ID.UNDOALL, data.undo)
         self.Enable(ID.UNDO, data.undo)
         self.Enable(ID.REDO, data.redo)
+        self.Enable(ID.REDOALL, data.redo)
 
         
     def CreateNamespace(self):

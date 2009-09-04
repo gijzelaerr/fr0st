@@ -183,17 +183,21 @@ class Flame(object):
 
     def create_final(self):
         if not self.final:
-            self.final = Xform(self, coefs=[1,0,0,1,0,0], linear=1, color=0)
+            self.final = Xform(self, coefs=[1.0, 0.0, 0.0, 1.0, 0.0, 0.0],
+                               linear=1, color=0)
         return self.final
 
+
     def add_xform(self):
-        self.xform.append(Xform(self, coefs=[1,0,0,1,0,0], linear=1,
-                                color=0, weight=0.5))
+        self.xform.append(Xform(self, coefs=[1.0, 0.0, 0.0, 1.0, 0.0, 0.0],
+                                linear=1, color=0, weight=0.5))
         return self.xform[-1]
+
 
     def clear(self):
         self.xform = []
         self.final = None
+
 
     def copy(self):
         return Flame(string=self.to_string())
@@ -576,7 +580,7 @@ class Xform(object):
             return "<xform>"
         if index is None:
             return "<finalxform>"
-        return "<xform %d>" % index
+        return "<xform %d>" %(index + 1)
 
       
     def __getattr__(self,v):

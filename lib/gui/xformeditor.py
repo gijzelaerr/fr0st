@@ -569,29 +569,32 @@ class ChaosPanel(wx.Panel):
             child, cookie = tree.GetNextChild(root, cookie)        
 
 
-    def BuildTree(self, tree, count):
-        i = 1
-        for child in self.IterTree(tree):
-            if i > count:
-                tree.Delete(child)
-            i += 1
-        while i <= count:
-            item = tree.AppendItem(tree.GetRootItem(), str(i))
-            i += 1
+    def BuildTrees(self, count):
+        for tree in (self.tree1, self.tree2):
+            i = 1
+            for child in list(self.IterTree(tree)):
+                if i > count:
+                    tree.Delete(child)
+                i += 1
+            while i <= count:
+                item = tree.AppendItem(tree.GetRootItem(), str(i))
+                i += 1
 
 
     def UpdateView(self):
         tree1, tree2 = self.tree1, self.tree2
-        self.BuildTree(tree1,len(self.parent.flame.xform))
-        self.BuildTree(tree2,len(self.parent.flame.xform))
-        
         xform = self.parent.ActiveXform
+        if xform.isfinal():
+            self.BuildTrees(0)
+            return
+        self.BuildTrees(len(self.parent.flame.xform))
+
+        index = xform.index        
         for i, val in zip(self.IterTree(tree1), xform.chaos):
             new = str(val)
             if self.tree1.GetItemText(i,1) != new:
                 self.tree1.SetItemText(i, new, 1)
                 
-        index = xform.index
         for i, xf in zip(self.IterTree(tree2), self.parent.flame.xform):
             new = str(xf.chaos[index])
             if self.tree2.GetItemText(i,1) != new:
