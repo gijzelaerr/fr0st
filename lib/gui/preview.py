@@ -140,11 +140,13 @@ class PreviewBase(wx.Panel):
         pixel_per_unit = fw * flame.scale / 100.
         flame.move_center([i / pixel_per_unit for i in diff])
         self.parent.image.RenderPreview()
+        self.parent.adjust.UpdateView()
 
 
     def Zoom(self, diff):
         self.parent.flame.scale *= diff
         self.parent.image.RenderPreview()
+        self.parent.adjust.UpdateView()
         self.HasChanged = True       
 
 

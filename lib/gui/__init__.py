@@ -53,6 +53,7 @@ class MainWindow(wx.Frame):
         self.notebook = MainNotebook(self)
         self.grad = self.notebook.grad
         self.canvas = self.notebook.canvas
+        self.adjust = self.notebook.adjust
 
         self.previewframe = PreviewFrame(self)
 
