@@ -261,6 +261,9 @@ def renderFlam4(flame, size, quality, progress_func, **kwds):
 
     numBatches = max(3, libflam4.cuCalcNumBatches(w, h, quality))
     libflam4.cuStartFrame(pointer(flame))
+    # HACK: if we're only doing 3 batches, assume preview and don't run fuse
+    if numBatches > 3:
+        libflam4.cuRunFuse(pointer(flame))
     for x in range(numBatches):
         libflam4.cuRenderBatch(pointer(flame))
         flag = progress_func(None, float(x+1)*100/numBatches, None, None)
