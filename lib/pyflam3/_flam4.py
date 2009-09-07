@@ -1,9 +1,5 @@
+import itertools, sys
 from ctypes import *
-
-import itertools
-import sys
-##import time
-
 
 try:
     libflam4 = CDLL('Flam4CUDA_LIB.dll')
@@ -28,7 +24,7 @@ cudaRunning = 0
 
 
 class rgba(Structure):
-    _fields_ = [ ('r' , c_float)
+    _fields_ = [  ('r', c_float)
                 , ('g', c_float)
                 , ('b', c_float)
                 , ('a', c_float) ]
@@ -253,23 +249,21 @@ def setTransAff(transAff, xform):
     transAff.e = xform.e
     
 def renderFlam4(flame, size, quality, progress_func, **kwds):
-    global LastRenderWidth
-    global LastRenderHeight
-    global cudaRunning
-    outputBuffer = (c_ubyte*(size[0]*size[1]*4))()
-    if (LastRenderWidth != size[0]) or (LastRenderHeight != size[1]):
+    global LastRenderWidth, LastRenderHeight, cudaRunning
+    w,h = size
+    outputBuffer = (c_ubyte*(w*h*4))()
+    if LastRenderWidth != w or LastRenderHeight != h:
         if cudaRunning:
             libflam4.cuStopCuda()
         cudaRunning = 1
-        libflam4.cuStartCuda(c_uint(0),c_int(size[0]),c_int(size[1]))
+        libflam4.cuStartCuda(c_uint(0),c_int(w),c_int(h))
         LastRenderWidth,LastRenderHeight = size
 
-    numBatches = min(3, libflam4.cuCalcNumBatches(size[0],size[1],quality))
-    print numBatches
+    numBatches = max(3, libflam4.cuCalcNumBatches(w, h, quality))
     libflam4.cuStartFrame(pointer(flame))
     for x in range(numBatches):
         libflam4.cuRenderBatch(pointer(flame))
-        flag = progress(None, float(x+1)*100/numBatches, None, None)
+        flag = progress_func(None, float(x+1)*100/numBatches, None, None)
         # HACK: the print forces a refresh. Without it, the prog func will
         # never have time to run.
         sys.stdout.write("")
