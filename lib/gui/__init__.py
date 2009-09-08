@@ -13,7 +13,7 @@ from lib.gui.xformeditor import XformTabs
 from lib.gui.renderer import Renderer
 from lib.gui._events import EVT_THREAD_MESSAGE, ThreadMessageEvent
 from lib.gui.itemdata import ItemData
-from lib.gui.renderdialog import renderDialog
+from lib.gui.renderdialog import RenderDialog
 from lib.gui.config import config
 
 from lib import fr0stlib
@@ -78,7 +78,7 @@ class MainWindow(wx.Frame):
         sizer.Add(sizer2,0,wx.EXPAND)
         
         self.SetSizer(sizer)
-        self.SetAutoLayout(1)
+##        self.SetAutoLayout(1)
 
         # Calculate the correct minimum size dynamically.
         sizer.Fit(self)
@@ -312,7 +312,7 @@ class MainWindow(wx.Frame):
         if self.renderdialog:
             self.renderdialog.Raise()
         else:
-            self.renderdialog = renderDialog(self, ID.RENDER)
+            self.renderdialog = RenderDialog(self, ID.RENDER)
 
 #------------------------------------------------------------------------------    
 
@@ -472,8 +472,8 @@ class MainWindow(wx.Frame):
         the flame variable, etc."""
         namespace = dict(self = self, # for debugging only!
                          flame = Flame(string=fr0stlib.BLANKFLAME),
-                         GetFlames = self.tree.GetFlames,
-                         GetAllFlames = self.tree.GetAllFlames,
+                         get_flames = self.tree.GetFlames,
+                         get_all_flames = self.tree.GetAllFlames,
                          preview = self.preview,
                          large_preview = self.large_preview,
                          dialog = self.editorframe.make_dialog,

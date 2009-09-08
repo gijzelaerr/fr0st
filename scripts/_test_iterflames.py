@@ -1,9 +1,9 @@
-for i in GetFlames():
+for i in get_flames():
     print i
+
 print "---------------------------"
 
-for i in GetAllFlames():
+for i in get_all_flames():
     for j in i:
         print j
     print
-

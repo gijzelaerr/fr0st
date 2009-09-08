@@ -59,7 +59,7 @@ class Flame(object):
 
     _default = set(("final","gradient","xform","name", "version"))
     
-    def __init__(self,file="",string="",name=""):
+    def __init__(self, string="", file="", name=""):
         """A new flame object can be created by passing it a filename or
         a string. If name is not specified, the first flame will be taken."""
 

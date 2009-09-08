@@ -301,17 +301,20 @@ class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
                 return child
 
 
-    def GetFlames(self):
-        """Returns all flames in the currently selected file as flame objects.
-        This is meant to be called from a script."""
+    def _GetFlames(self):
         indices = self.GetIndexOfItem(self.itemparent)
-        return [Flame(string=i[-1]) for i,_ in self.GetChildren(indices)]
+        return (i for i,_ in self.GetChildren(indices))       
 
 
-    def GetAllFlames(self):
-        """Returns a list of lists of flame objects of all open files."""
-        return [[Flame(string=i[-1]) for i,_ in lst]
-                for _,lst in self.flamefiles]
+    def GetFlames(self, type=Flame):
+        """Returns all flames in the currently selected file. Type can be Flame
+        (default) or str. Meant to be called from a script."""
+        return [type(i[-1]) for i in self._GetFlames()]
+
+
+    def GetAllFlames(self, type=Flame):
+        """Same as GetFlames, but returns list of lists of all open files."""
+        return [[type(i[-1]) for i,_ in lst] for _,lst in self.flamefiles]
 
 
     #-------------------------------------------------------------------------

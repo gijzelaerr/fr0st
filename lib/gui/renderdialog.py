@@ -7,12 +7,15 @@
 #     Currently supports PNG and JPG images, will support more.
 
 import wx, os, time
+from  wx.lib.filebrowsebutton import FileBrowseButton
+
 from lib.fr0stlib import Flame
 from lib.pyflam3 import Genome
+from utils import NumberTextCtrl
 from _events import EVT_THREAD_MESSAGE, ThreadMessageEvent
 from lib.decorators import *
 
-class renderDialog(wx.Frame):
+class RenderDialog(wx.Frame):
 
     @BindEvents
     def __init__(self, parent, id):
@@ -138,3 +141,132 @@ class renderDialog(wx.Frame):
 	print time.time() - self.t
 
 
+
+class FreeMemoryPanel(wx.Panel):
+    
+    def __init__(self, parent):
+        wx.Panel.__init__(self, parent, -1)
+        self.OnUpdate(None)
+
+    def OnUpdate(self, e):
+        fgs = wx.FlexGridSizer(2, 2, 1, 1)
+        lst = "Free: ", "n/a", "Required: ", "n/a"
+        fgs.AddMany(wx.StaticText(self, -1, i) for i in lst)
+        self.SetSizer(fgs)
+        fgs.Fit(self)
+        
+        
+
+class RenderDialogUnderConstruction(wx.Frame):
+    keepratio = True
+
+    @BindEvents
+    def __init__(self, parent, id):
+	self.parent = parent
+	self.dict = {}
+	
+	wx.Frame.__init__(self, parent, id,
+                           title="Render Flames to Disk",)
+##                           size=(400,210))
+
+        fbb = FileBrowseButton(self, -1, changeCallback=self.fbbCallback)
+
+        self.gauge = wx.Gauge(self, -1)
+
+        flame = self.MakeFlameSelector()
+        size = self.MakeSizeSelector()
+        opts = self.MakeTCs("quality", "filter", "spatial_oversample",
+                            "estimator", "estimator_curve",
+                            "estimator_minimum", "highlight_power")
+        opts = self.Box("Settings", opts)
+
+
+        mem = self.Box("Memory", FreeMemoryPanel(self))
+        
+        szr0 = wx.BoxSizer(wx.VERTICAL)
+        szr0.AddMany((size, (mem, 0, wx.EXPAND)))
+	szr1 = wx.BoxSizer(wx.HORIZONTAL)
+	szr1.AddMany((opts, szr0))
+	szr2 = wx.BoxSizer(wx.VERTICAL)
+	szr2.AddMany(((fbb, 0, wx.EXPAND), szr1))
+	szr3 = wx.BoxSizer(wx.HORIZONTAL)
+	szr3.AddMany((flame, szr2))
+	szr4 = wx.BoxSizer(wx.VERTICAL)
+	szr4.AddMany((szr3, (self.gauge, 0, wx.EXPAND)))
+	
+	self.SetSizer(szr4)
+	szr4.Fit(self)
+	self.Show(True)
+
+
+    def MakeFlameSelector(self):
+	data = self.parent.tree.itemdata
+	choices = list(self.parent.tree._GetFlames())
+	lb = wx.ListBox(self, -1, size=(180,300),
+                         choices=[f.name for f in choices],
+                         style=wx.LB_EXTENDED)
+	lb.SetSelection(choices.index(data))
+        btn = wx.Button(self, -1, "All")
+        btn.Bind(wx.EVT_BUTTON, lambda e: map(lb.Select, range(len(choices))))
+        btn2 = wx.Button(self, -1, "None")
+        btn2.Bind(wx.EVT_BUTTON, lambda e: lb.DeselectAll())
+
+	boxhor = wx.BoxSizer(wx.HORIZONTAL)
+	boxhor.AddMany((btn, btn2))
+	return self.Box("Select Flame(s) to render", boxhor, lb)
+
+
+    def MakeSizeSelector(self):
+        fgs = self.MakeTCs("width", "height",
+                           low=0, callback=self.SizeCallback)
+        w,h = 1024., 768.
+        self.ratio = w/h
+        self.dict["width"].SetInt(w)
+        self.dict["height"].SetInt(h)
+        
+        ratio = wx.CheckBox(self, -1, "Keep Ratio")
+        ratio.SetValue(True)
+        ratio.Bind(wx.EVT_CHECKBOX, self.OnCheckBox)
+
+	return self.Box("Size", fgs, ratio)
+
+
+    def MakeTCs(self, *a, **k):
+        fgs = wx.FlexGridSizer(99, 2, 1, 1)
+        for i in a:
+            tc = NumberTextCtrl(self, **k)
+            self.dict[i] = tc
+            fgs.Add(wx.StaticText(self, -1, i.replace("_", " ").title()),
+                    0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
+            fgs.Add(tc, 0, wx.ALIGN_LEFT, 5)
+
+	return fgs
+      
+
+    def Box(self, name, *a):
+	box = wx.StaticBoxSizer(wx.StaticBox(self, -1, name),
+                                wx.VERTICAL)
+	box.AddMany(a)
+	return box
+    
+
+    def OnCheckBox(self, e):
+        self.keepratio = e.GetInt()
+
+
+    def SizeCallback(self, tc):
+        if self.keepratio:
+            v = tc.GetFloat()
+            tc.SetInt(v)
+            if tc == self.wtc:
+                self.htc.SetInt(v / self.ratio)
+            else:
+                self.wtc.SetInt(v * self.ratio)
+        else:
+            self.ratio = self.wtc.GetFloat() / self.htc.GetFloat()
+
+
+    def fbbCallback(self, e):
+        self.path = e.GetString()
+         
+        

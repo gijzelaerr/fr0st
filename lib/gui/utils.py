@@ -1,4 +1,5 @@
-import wx, os, functools
+import wx, os
+from functools import partial
 
 from lib.decorators import *
 
@@ -15,27 +16,41 @@ class NumberTextCtrl(wx.TextCtrl):
     high = None
 
     @BindEvents
-    def __init__(self, parent):
+    def __init__(self, parent, low=None, high=None, callback=None):
         self.parent = parent
         # Size is set to ubuntu default (75,27), maybe make it 75x21 in win
         wx.TextCtrl.__init__(self,parent,-1, size=(75,27))
         self.SetValue("0.0")
         self._value = 0.0
+        
+        if (low,high) != (None,None):
+            self.SetAllowedRange(low, high)
+
+        if callback:
+            self.callback = partial(callback, self)
+        else:
+            self.callback = lambda: None
+            
 
     def GetFloat(self):
         return float(self.GetValue() or "0")
 
-    def SetFloat(self,v):
-        # Make sure pure ints don't make trouble
+    def SetFloat(self, v):
         v = float(v)
         self._value = v
-
         string = ("%.6f" %v).rstrip("0")
         if string.endswith("."):
-            # Avoids values like '0.' or '1.'
-            string += "0" 
-            
+            string += "0" # Avoid values like '0.' or '1.'
         self.SetValue(string)
+
+
+    def GetInt(self):
+        return int(self.GetValue() or "0")
+
+    def SetInt(self, v):
+        v  = int(v)
+        self._value = v
+        self.SetValue(str(v))
 
 
     def SetAllowedRange(self, low=None, high=None):
@@ -68,7 +83,7 @@ class NumberTextCtrl(wx.TextCtrl):
                 if self.high is not None and v > self.high:
                     raise ValueError
                 self._value = v
-                self.parent.UpdateXform()
+                self.callback()
             except ValueError:
                 self.SetFloat(self._value)
         
@@ -90,17 +105,17 @@ class MultiSliderMixin(object):
                            style=wx.SL_HORIZONTAL
                            | wx.SL_SELRANGE
                            )
-        tc = NumberTextCtrl(self)
+        tc = NumberTextCtrl(self, callback=lambda tc: self.UpdateXform())
         if strictrange:
             tc.SetAllowedRange(low, high)
         self.sliders[name] = slider, tc
 
-        slider.Bind(wx.EVT_SLIDER, functools.partial(self.OnSlider, tc=tc))
+        slider.Bind(wx.EVT_SLIDER, partial(self.OnSlider, tc=tc))
 ##        slider.Bind(wx.EVT_LEFT_DOWN, self.OnSliderDown)
         slider.Bind(wx.EVT_LEFT_UP, self.OnSliderUp)
 
-        siz = wx.StaticBoxSizer(wx.StaticBox(self, -1, name.title()),
-                                wx.HORIZONTAL)
+        name = name.replace("_", " ").title()
+        siz = wx.StaticBoxSizer(wx.StaticBox(self, -1, name), wx.HORIZONTAL)
         siz.Add(tc)
         siz.Add(slider, wx.EXPAND)
 
