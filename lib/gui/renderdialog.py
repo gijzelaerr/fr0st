@@ -23,7 +23,7 @@ class RenderDialog(wx.Frame):
 	
 	wx.Frame.__init__(self, parent, id,
                            title="Render Flame to Image File",
-                           size=(400,210))#TODO:Change title to say name 
+                           size=(416,210))#TODO:Change title to say name 
 					  #of current flame - self.parent.flame.name
              
         #Destination Box
