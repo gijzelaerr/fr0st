@@ -191,7 +191,7 @@ def loadFlam4(flame):
     flam4Flame.size[1] = 100.*(flame.size[1]/flame.size[0])/flame.scale
     flam4Flame.hue = 0                              #LINKME
     flam4Flame.quality = 10
-    flam4Flame.rotation = flame.angle
+    flam4Flame.rotation = flame.angle # flam4 uses radians for rotate!
     flam4Flame.symmetry = 0                         #LINKME
     flam4Flame.background = rgba(0,0,0,0)           #LINKME
     flam4Flame.brightness = flame.brightness
