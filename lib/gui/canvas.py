@@ -27,12 +27,12 @@ class VarPreview(FC.PointSet):
                             result, RandomContext())
         return [(x,-y) for x,y in zip(*[iter(result)]*2)]
     
-    def CalcBoundingBox(self):
-        # We don't want the BBox to be calculated from all points, as it messes
-        # with adjustzoom. Just triangle bounds are used, which causes a
-        # (slight) bug: when the triangle is dragged off-screen, the preview
-        # disappears, even if part of it would still be visible.
-        self.BoundingBox = BBox.fromPoints(self.xform.points)
+##    def CalcBoundingBox(self):
+##        # We don't want the BBox to be calculated from all points, as it messes
+##        # with adjustzoom. Just triangle bounds are used, which causes a
+##        # (slight) bug: when the triangle is dragged off-screen, the preview
+##        # disappears, even if part of it would still be visible.
+##        self.BoundingBox = BBox.fromPoints(self.xform.points)
     
 
 
@@ -48,6 +48,7 @@ class XformCanvas(FC.FloatCanvas):
               ] # TODO: extend the color list.
     
     style = "ShortDash" if "linux" in sys.platform else "Dot"
+    preview = None
     
     @BindEvents
     def __init__(self, parent):
@@ -96,7 +97,11 @@ class XformCanvas(FC.FloatCanvas):
         for t in self.triangles:
             self.RemoveObjects(itertools.chain((t,),t._text,t._circles))
         self.triangles = []
-
+        
+        if self.preview is not None:
+            self.RemoveObject(self.preview)
+            self.preview = None
+            
         for i in flame.iter_xforms():
             xf = self.AddXform(i, solid=i==self.parent.ActiveXform,
                                fill=i==self.SelectedXform)
@@ -107,7 +112,14 @@ class XformCanvas(FC.FloatCanvas):
 ##            pass
                 
         if rezoom:
-            self.ZoomToBB(DrawFlag=False)
+            if self.preview is not None:
+                # The preview spread is ignored, as it tends to zoom the flame
+                # too far out.
+                self.RemoveObject(self.preview)
+                self.ZoomToBB(DrawFlag=False)
+                self.AddObject(self.preview)
+            else:
+                self.ZoomToBB(DrawFlag=False)
             self.AdjustZoom()
         elif refresh:
             # This is an elif because AdjustZoom already forces a Draw.
@@ -136,9 +148,8 @@ class XformCanvas(FC.FloatCanvas):
                        for i in self._cornerpoints]
             text.extend(corners)
             if config["Variation-Preview"]:
-                preview = VarPreview(xform, Color=color)
-                self.AddObject(preview)
-                circles.append(preview)
+                self.preview = VarPreview(xform, Color=color)
+                self.AddObject(self.preview)
             
         triangle._circles = circles
         triangle._text = text
