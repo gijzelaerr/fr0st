@@ -83,7 +83,9 @@ class XformPanel(wx.Panel):
         self.parent = parent.parent
 
         # Add the number fields
-        map(lambda x: setattr(self,x,NumberTextCtrl(self)), "adbecf")
+        cb = lambda tc: self.UpdateXform()
+        for i in "adbecf":
+            setattr(self, i, NumberTextCtrl(self, callback=cb))
         btn = (wx.Button(self,-1,i,name=i,style=wx.BU_EXACTFIT) for i in "xyo")
 
         fgs = wx.FlexGridSizer(3,3,1,1)
