@@ -136,6 +136,10 @@ class Flame(object):
         # the to_string method
         self.scale = self.scale * 100 / self.size[0]
 
+        # zoom is deprecated, so scale is adjusted by the zoom value
+        self.scale *= 2**self.zoom
+        del self.zoom
+
         
     def to_string(self, omit_details=False):
         """Extracts parameters from a Flame object and converts them into
