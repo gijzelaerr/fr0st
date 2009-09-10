@@ -134,10 +134,12 @@ class TreePanel(wx.Panel):
         if item and len(self.tree.GetIndexOfItem(item)) == 2:
             # Item is a flame
             self.tree.item = item
+            self.tree.parentselected = False
             string = self.tree.GetFlameData(item)[-1]
             self.parent.SetFlame(Flame(string=string))
         else:
             # Item is a flamefile
+            self.tree.parentselected = True
             self.parent.Enable(ID.UNDO, False)
             self.parent.Enable(ID.REDO, False)
 
@@ -156,7 +158,6 @@ class TreePanel(wx.Panel):
 
 
 class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
-
     newimgindex = itertools.count(3).next
 
     def __init__(self, parent, *args, **kwargs):

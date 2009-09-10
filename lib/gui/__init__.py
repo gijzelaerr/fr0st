@@ -78,7 +78,6 @@ class MainWindow(wx.Frame):
         sizer.Add(sizer2,0,wx.EXPAND)
         
         self.SetSizer(sizer)
-##        self.SetAutoLayout(1)
 
         # Calculate the correct minimum size dynamically.
         sizer.Fit(self)
@@ -183,7 +182,6 @@ class MainWindow(wx.Frame):
 
 ##    @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=ID.FNEW)
     def OnFlameNew(self, e):
-##        raise NotImplementedError
         path = self.newfilename()
         self.tree.item = self.tree.AddFlamefile(path, [])
         
@@ -326,7 +324,7 @@ class MainWindow(wx.Frame):
                 if dlg.ShowModal() != wx.ID_YES:
                     return
             elif self.CheckForChanges(filedata, lst) == wx.ID_CANCEL:
-                # User canceled when prompted to save changes.
+                # User cancelled when prompted to save changes.
                 return
 
         # scan the file to see if it's valid
@@ -345,62 +343,24 @@ class MainWindow(wx.Frame):
         with open('paths.temp','a') as f:
             f.write(path + '\n')
 
-##        return item
-        
-
-##    def SaveFlame(self, path, confirm=True):
-##        # Refuse to save if file is open
-##        data = self.tree.GetFlameData(self.tree.itemparent)
-##        if data[-1] != path and self.tree.find_open_flame(path):
-##            dlg = wx.MessageDialog(self, "%s is currently open. Please choose a different name." % path,
-##                                   'Fr0st',wx.OK)
-##            dlg.ShowModal()
-##            return
-##
-##        # Check if we're overwriting anything
-##        if os.path.exists(path) and confirm:
-##            dlg = wx.MessageDialog(self, '%s already exists.\nDo You want to replace it?'
-##                                   %path, 'Fr0st', wx.YES_NO)
-##            if dlg.ShowModal() == wx.ID_NO: return
-##            dlg.Destroy()
-##
-##        # Now update the tree items
-##        self.tree.SetItemText(self.tree.itemparent, os.path.basename(path))
-##        data[-1] = path
-##                      
-##        lst = []
-##        for i in self.tree.GetItemChildren():
-##            data = self.tree.GetFlameData(i)
-##            lst.append(data[-1])
-##
-##            # Reset the history of all data, to allow correct comparisons.
-##            data.Reset()
-##            self.tree.SetItemText(i, data.name)
-##        
-##        # Finally, save the flame and clear the temp file.
-##        fr0stlib.save_flames(path,*lst)
-##        if os.path.exists(path+'.temp'):
-##            os.remove(path+'.temp')
-##
-##        self.tree.SelectItem(self.tree.itemparent)
-
 
     def SaveFlame(self, path, confirm=True):
-        data = self.tree.itemdata
-
-        if os.path.exists(path):
-            lst = Flame.load_file(path)
+        lst = Flame.load_file(path) if os.path.exists(path) else []
+            
+        if self.tree.parentselected:
+            itr = (i for i,_ in self.tree.flamefiles[0][1])
+        else:
+            itr = (self.tree.itemdata,)
+        for i, data in enumerate(itr):
             if data[0] in lst:
                 lst[lst.index(data[0])] = data[-1]
             else:
                 lst.append(data[-1])
-        else:
-            lst = [data[-1]]
+
+            data.Reset()
+            self.tree.SetItemText(self.tree.GetItemByIndex((0,i)), data.name)
 
         fr0stlib.save_flames(path,*lst)
-            
-        data.Reset()
-        self.tree.SetItemText(self.tree.item, data.name)
         
 
     def CheckForChanges(self, itemdata, lst):
@@ -480,7 +440,6 @@ class MainWindow(wx.Frame):
         namespace = dict(self = self, # for debugging only!
                          flame = Flame(string=fr0stlib.BLANKFLAME),
                          get_flames = self.tree.GetFlames,
-##                         get_all_flames = self.tree.GetAllFlames,
                          preview = self.preview,
                          large_preview = self.large_preview,
                          dialog = self.editorframe.make_dialog,
@@ -517,15 +476,14 @@ class MainWindow(wx.Frame):
               "Running time %.2f seconds\n" %(time.time()-start)
 
 
-    def _get_flame(self):
+    @property
+    def flame(self):
         return self._namespace['flame']
-
-    def _set_flame(self, flame):
+    @flame.setter
+    def flame(self, flame):
         if not isinstance(flame,Flame):
             raise TypeError("Argument must be a Flame object")
         self._namespace['flame'] = flame
-
-    flame = property(_get_flame, _set_flame)
 
 
     def preview(self):
