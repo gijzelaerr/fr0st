@@ -201,7 +201,7 @@ class RenderDialogUnderConstruction(wx.Frame):
 
     def MakeFlameSelector(self):
 	data = self.parent.tree.itemdata
-	choices = list(self.parent.tree._GetFlames())
+	choices = list(self.parent.tree.GetFlames(type=str))
 	lb = wx.ListBox(self, -1, size=(180,300),
                          choices=[f.name for f in choices],
                          style=wx.LB_EXTENDED)

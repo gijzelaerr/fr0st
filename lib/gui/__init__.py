@@ -181,8 +181,9 @@ class MainWindow(wx.Frame):
         self.Destroy()
 
 
-    @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=ID.FNEW)
+##    @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=ID.FNEW)
     def OnFlameNew(self, e):
+##        raise NotImplementedError
         path = self.newfilename()
         self.tree.item = self.tree.AddFlamefile(path, [])
         
@@ -196,14 +197,13 @@ class MainWindow(wx.Frame):
     def OnFlameNew2(self,e):
         data = ItemData(BLANKFLAME)
 
-        index = self.tree.GetIndexOfItem(self.tree.itemparent)
-        self.tree.GetChildren(index).append((data,[]))
+        self.tree.GetChildren((0,)).append((data,[]))
         self.tree.RefreshItems()
         
         # This is needed to avoid an indexerror when getting child.
         self.tree.Expand(self.tree.itemparent)
         
-        child = self.tree.GetItemByIndex(index + (-1,))
+        child = self.tree.GetItemByIndex((0, -1))
         self.tree.SelectItem(child)
 
         # This adds the flame to the temp file, but without any actual changes.
@@ -316,15 +316,18 @@ class MainWindow(wx.Frame):
 
 #------------------------------------------------------------------------------    
 
-    def OpenFlame(self,path):
-        # Check if file is already open
-        item = self.tree.find_open_flame(path)
-        if item:
-            dlg = wx.MessageDialog(self, "%s is already open. Do you want to revert to its saved status?" % path,
-                                   'Fr0st',wx.YES_NO|wx.CANCEL)
-            if dlg.ShowModal() != wx.ID_YES:
+    def OpenFlame(self, path):
+        if self.tree.flamefiles:
+            filedata, lst = self.tree.flamefiles[0]
+            if path == filedata[-1]:
+                # File is already open
+                dlg = wx.MessageDialog(self, "%s is already open. Do you want to revert to its saved status?" % path,
+                                       'Fr0st',wx.YES_NO|wx.CANCEL)
+                if dlg.ShowModal() != wx.ID_YES:
+                    return
+            elif self.CheckForChanges(filedata, lst) == wx.ID_CANCEL:
+                # User canceled when prompted to save changes.
                 return
-            self.tree.DeleteFlameFile(item)
 
         # scan the file to see if it's valid
         flamestrings = Flame.load_file(path)
@@ -342,7 +345,7 @@ class MainWindow(wx.Frame):
         with open('paths.temp','a') as f:
             f.write(path + '\n')
 
-        return item
+##        return item
         
 
 ##    def SaveFlame(self, path, confirm=True):
@@ -477,7 +480,7 @@ class MainWindow(wx.Frame):
         namespace = dict(self = self, # for debugging only!
                          flame = Flame(string=fr0stlib.BLANKFLAME),
                          get_flames = self.tree.GetFlames,
-                         get_all_flames = self.tree.GetAllFlames,
+##                         get_all_flames = self.tree.GetAllFlames,
                          preview = self.preview,
                          large_preview = self.large_preview,
                          dialog = self.editorframe.make_dialog,

@@ -25,8 +25,7 @@ class TreePanel(wx.Panel):
                                      #wx.TR_HAS_BUTTONS
                                      | wx.TR_EDIT_LABELS
                                      #| wx.TR_MULTIPLE
-                                     | wx.TR_HIDE_ROOT
-                                     )
+                                     | wx.TR_HIDE_ROOT)
 
 
     def TempSave(self):
@@ -191,10 +190,10 @@ class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
     def AddFlamefile(self, path, flamestrings):
         lst = [(ItemData(s), []) for s in flamestrings]
         name = os.path.basename(path)
-        self.flamefiles.append((ItemData(path, name=name),lst))
+        self.flamefiles = [(ItemData(path, name=name),lst),]
 
         self.RefreshItems()
-        item = self.GetItemByIndex((-1,))
+        item = self.itemparent
 
         self.Expand(item)
 
@@ -205,10 +204,6 @@ class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
             self.SetItemImage(child, 2)
 
         return item
-
-
-    def DeleteFlameFile(self, item):
-        del self.flamefiles[self.GetIndexOfItem(item)[0]]
 
 
     def RenderThumbnail(self, child=None, data=None):
@@ -239,21 +234,16 @@ class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
         dropindex, dragindex = map(self.GetIndexOfItem, args)
         if not dropindex:
             return
-        fromlist = self.GetChildren(dragindex[:1])
-        tolist = self.GetChildren(dropindex[:1])
+
+        lst = self.GetChildren((0,))
 
         fromindex = dragindex[1] if len(dragindex) > 1 else 0
         toindex = dropindex[1] +1 if len(dropindex) > 1 else 0
 
-        if fromlist != tolist:
-            # Copy flame
-            tolist.insert(toindex, fromlist[fromindex])
-        else:
-            # Move flame
-            tolist.insert(toindex, fromlist.pop(fromindex))
+        lst.insert(toindex, lst.pop(fromindex))
             
         self.RefreshItems()
-        index = (dropindex[0], min(toindex, len(tolist) - 1))
+        index = (0, min(toindex, len(lst)-1))
         self.SelectItem(self.GetItemByIndex(index))            
 
         self._dragging = False
@@ -278,11 +268,7 @@ class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
 
     @property
     def itemparent(self):
-        if self.item:
-            parent = self.GetItemParent(self.item)
-            if parent == self.root:
-                return self.item
-            return parent
+        return self.GetItemByIndex((-1,))
 
 
     @property
@@ -291,28 +277,11 @@ class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
             return self.GetFlameData(self.item)
 
 
-    def find_open_flame(self, path):
-        """Checks if a particular file is open. Returns the file if True,
-        None otherwise."""
-        for child in self.GetItemChildren(self.root):
-            if path == self.GetFlameData(child)[-1]:
-                return child
-
-
-    def _GetFlames(self):
-        indices = self.GetIndexOfItem(self.itemparent)
-        return (i for i,_ in self.GetChildren(indices))       
-
-
     def GetFlames(self, type=Flame):
         """Returns all flames in the currently selected file. Type can be Flame
         (default) or str. Meant to be called from a script."""
-        return [type(i[-1]) for i in self._GetFlames()]
-
-
-    def GetAllFlames(self, type=Flame):
-        """Same as GetFlames, but returns list of lists of all open files."""
-        return [[type(i[-1]) for i,_ in lst] for _,lst in self.flamefiles]
+        indices = self.GetIndexOfItem(self.itemparent)
+        return [type(i[-1]) for i,_ in self.GetChildren(indices)]
 
 
     #-------------------------------------------------------------------------
@@ -347,7 +316,7 @@ class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
 
     def IsValidDragItem(self, dragItem):
         """Make sure only flames can be dragged."""
-        return dragItem and len(self.GetIndexOfItem(dragItem)) == 2
+        return dragItem and dragItem != self.itemparent
 
 
     def IsValidDropTarget(self, dropTarget):

@@ -12,8 +12,8 @@ def CreateToolBar(parent):
     parent.tb = tb
     add = tb.AddSimpleTool
     
-    add(ID.FNEW, GetBMP(wx.ART_NEW),
-        "New", " New flame file")
+##    add(ID.FNEW, GetBMP(wx.ART_NEW),
+##        "New", " New flame file")
     add(ID.FNEW2, GetBMP(wx.ART_NEW),
         "New", " New flame")
     add(ID.FOPEN, GetBMP(wx.ART_FILE_OPEN),
