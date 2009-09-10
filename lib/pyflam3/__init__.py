@@ -38,21 +38,19 @@ class Genome(BaseGenome):
 
     size = property(_get_size, _set_size)
 
-    def render(self, **kwargs):
-        channels = kwargs.get('channels', 3)
-        transparent = kwargs.get('transparent', False) and 1 or 0
-
-        frame = Frame(**kwargs)
-        frame.genomes = cast(pointer(self), POINTER(BaseGenome))
-        frame.ngenomes = 1
-
-        self.ntemporal_samples = kwargs.get('ntemporal_samples', 1)
-        self.temporal_filter_width = kwargs.get('temporal_filter', 1.0)
-
+    def render(self, channels=3, transparent=False, ntemporal_samples=1,
+               temporal_filter=1.0, estimator=9, **kwargs):
+        
+        self.ntemporal_samples = ntemporal_samples
+        self.temporal_filter_width = temporal_filter
+        self.estimator = estimator
         # TODO: add:
         # spatial_oversample,
         # spatial_filter (why is there a radius/select?)
-
+        
+        frame = Frame(**kwargs)
+        frame.genomes = cast(pointer(self), POINTER(BaseGenome))
+        frame.ngenomes = 1
 
 ##        output_buffer = kwargs.get('buffer', None)
 ##        if output_buffer:
@@ -66,7 +64,6 @@ class Genome(BaseGenome):
 ##                if len < (self.width * self.height * channels):
 ##                    raise BufferTooSmallError("buffer isn't large enough")
 ##                output_buffer = cast(ptr, POINTER(c_ubyte))
-##
 ##            # otherwise...
 ##            # try and pass it in, ctypes will tell us if it won't work
 ##        else:
@@ -89,13 +86,9 @@ class Genome(BaseGenome):
     def from_string(cls, input_buffer, filename='<unknown>', defaults=True):
         ncps = c_int()
 
-        #print 'Buffer = ', input_buffer
-
         # so, flam3_parse_xml2 actually free's the buffer passed in...
         # this hackery sucks but...meh
 
-        # VBT: The next line is replaced by the below block
-##        c_buffer = marshal.from_string(input_buffer)
         string_len = len(input_buffer)
         ptr = flam3_malloc(string_len + 1)
         if not ptr:
@@ -106,8 +99,6 @@ class Genome(BaseGenome):
         memmove(ptr, input_buffer, string_len)
 
         c_buffer = cast(ptr, c_char_p)
-
-        #print string_at(c_buffer)
 
         result = flam3_parse_xml2(c_buffer, filename,
                 defaults and flam3_defaults_on or flam3_defaults_off, byref(ncps))
@@ -173,24 +164,25 @@ class Genome(BaseGenome):
 
 
 class Frame(BaseFrame):
-    def __init__(self, **kwargs):
-        if not kwargs["fixed_seed"]:
+    def __init__(self, fixed_seed=False, aspect=1.0, bits=33, time=0,
+                 bytes_per_channel=1, progress_func=None, nthreads=0,
+                 **kwargs):
+        if not fixed_seed:
             # Initializes the random seed based on system time.
             # A fixed seed is used for preview renders with high noise levels.
             flam3_init_frame(byref(self))
 
-        self.pixel_aspect_ratio = kwargs.get('aspect', 1.0)
+        self.pixel_aspect_ratio = aspect
         self.ngenomes = 0
-        self.bits = kwargs.get('bits', 33)
-        self.time = kwargs.get('time', 0)
-        self.bytes_per_channel = kwargs.get('bytes_per_channel',1)
+        self.bits = bits
+        self.time = time
+        self.bytes_per_channel = bytes_per_channel
 
-        progress = kwargs.get('progress_func', None)
-        if callable(progress):
-            self.progress = ProgressFunction(progress)
+        if callable(progress_func):
+            self.progress = ProgressFunction(progress_func)
 
-
-        self.nthreads = kwargs.get('nthreads', 0)
-        if not self.nthreads:
+        if nthreads:
+            self.nthreads = nthreads
+        else:
             self.nthreads = flam3_count_nthreads()
 

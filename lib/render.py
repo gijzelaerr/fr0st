@@ -5,12 +5,9 @@ from pyflam3 import Genome
 from lib.fr0stlib import Flame
 
 
-def flam3_render(flame, size, quality, estimator=9, fixed_seed=False, **kwds):
+def flam3_render(flame, size, quality, **kwds):
     """Passes render requests on to flam3."""
-    if type(flame) is str:
-        string = flame
-    else:
-        string = flame.to_string()
+    string = flame if type(flame) is str else flame.to_string()
         
     try:
         genome = Genome.from_string(string)[0]
@@ -27,12 +24,11 @@ def flam3_render(flame, size, quality, estimator=9, fixed_seed=False, **kwds):
     genome.width = width
     genome.height = height
     genome.sample_density = quality
-    genome.estimator = estimator
-    output_buffer, stats = genome.render(fixed_seed=fixed_seed, **kwds)
+    output_buffer, stats = genome.render(**kwds)
     return output_buffer
 
 
-def flam4_render(flame, size, quality, estimator=9, fixed_seed=False, **kwds):
+def flam4_render(flame, size, quality, **kwds):
     """Passes requests on to flam4. Works on windows only for now."""
     from pyflam3 import _flam4
     flam4Flame = _flam4.loadFlam4(flame)
