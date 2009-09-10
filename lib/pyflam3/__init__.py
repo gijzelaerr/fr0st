@@ -24,8 +24,6 @@ import sys
 import os
 from _flam3 import *
 import marshal as marshal
-import _pyapi
-from _exceptions import *
 
 
 class Genome(BaseGenome):
@@ -51,23 +49,6 @@ class Genome(BaseGenome):
         frame = Frame(**kwargs)
         frame.genomes = cast(pointer(self), POINTER(BaseGenome))
         frame.ngenomes = 1
-
-##        output_buffer = kwargs.get('buffer', None)
-##        if output_buffer:
-##            if isinstance(output_buffer, buffer):
-##                # standard write buffer objects
-##                # allows rendering directly to wxPython Images
-##                # through the DataBuffer object
-##                ptr = c_void_p()
-##                len = _pyapi.Py_ssize_t()
-##                _pyapi.PyObject_AsWriteBuffer(output_buffer, byref(ptr), byref(len))
-##                if len < (self.width * self.height * channels):
-##                    raise BufferTooSmallError("buffer isn't large enough")
-##                output_buffer = cast(ptr, POINTER(c_ubyte))
-##            # otherwise...
-##            # try and pass it in, ctypes will tell us if it won't work
-##        else:
-##            output_buffer = allocate_output_buffer(self.size, channels)
 
         output_buffer = allocate_output_buffer(self.size, channels)
 
