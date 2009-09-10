@@ -276,21 +276,19 @@ class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
         return treemixin.VirtualTree.GetItemChildren(self, item)
 
 
-    def _get_itemparent(self):
+    @property
+    def itemparent(self):
         if self.item:
             parent = self.GetItemParent(self.item)
             if parent == self.root:
                 return self.item
             return parent
 
-    itemparent = property(_get_itemparent)
 
-
-    def _get_itemdata(self):
+    @property
+    def itemdata(self):
         if self.item:
             return self.GetFlameData(self.item)
-
-    itemdata = property(_get_itemdata)
 
 
     def find_open_flame(self, path):

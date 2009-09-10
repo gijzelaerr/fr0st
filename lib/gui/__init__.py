@@ -383,12 +383,16 @@ class MainWindow(wx.Frame):
 
 
     def SaveFlame(self, path, confirm=True):
-        lst = Flame.load_file(path)
         data = self.tree.itemdata
-        if data[0] in lst:
-            lst[lst.index(data[0])] = data[-1]
+
+        if os.path.exists(path):
+            lst = Flame.load_file(path)
+            if data[0] in lst:
+                lst[lst.index(data[0])] = data[-1]
+            else:
+                lst.append(data[-1])
         else:
-            lst.append(data[-1])
+            lst = [data[-1]]
 
         fr0stlib.save_flames(path,*lst)
             
