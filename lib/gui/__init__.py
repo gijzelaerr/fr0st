@@ -96,7 +96,7 @@ class MainWindow(wx.Frame):
 
         # Set up paths
         sys.path.append(os.path.join(sys.path[0],"scripts")) # imp in scripts
-        self.flamepath = os.path.join(sys.path[0],*config["flamepath"])
+        self.flamepath = os.path.join(sys.path[0], config["flamepath"])
         
         if os.path.exists('paths.temp') and False:
             # TODO: check if another fr0st process is running.
@@ -135,7 +135,7 @@ class MainWindow(wx.Frame):
     @Bind(wx.EVT_MENU,id=ID.EXIT)
     def OnExit(self,e):
         # check for renders in progress
-        if self.renderdialog and self.renderdialog.closeDialog() == wx.ID_NO:
+        if self.renderdialog and self.renderdialog.OnExit() == wx.ID_NO:
             return
             
         # check for script diffs

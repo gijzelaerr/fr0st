@@ -278,11 +278,14 @@ class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
             return self.GetFlameData(self.item)
 
 
+    def GetDataList(self):
+        return (i for i,_ in self.GetChildren((0,)))
+
+
     def GetFlames(self, type=Flame):
         """Returns all flames in the currently selected file. Type can be Flame
         (default) or str. Meant to be called from a script."""
-        indices = self.GetIndexOfItem(self.itemparent)
-        return [type(i[-1]) for i,_ in self.GetChildren(indices)]
+        return [type(i[-1]) for i in self.GetDataList()]
 
 
     #-------------------------------------------------------------------------

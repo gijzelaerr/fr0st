@@ -20,8 +20,6 @@ class NumberTextCtrl(wx.TextCtrl):
         self.parent = parent
         # Size is set to ubuntu default (75,27), maybe make it 75x21 in win
         wx.TextCtrl.__init__(self,parent,-1, size=(75,27))
-        self.SetValue("0.0")
-        self._value = 0.0
         
         if (low,high) != (None,None):
             self.SetAllowedRange(low, high)
@@ -30,6 +28,8 @@ class NumberTextCtrl(wx.TextCtrl):
             self.callback = partial(callback, self)
         else:
             self.callback = lambda: None
+    
+        self.SetFloat(0.0)
             
 
     def GetFloat(self):
@@ -52,6 +52,11 @@ class NumberTextCtrl(wx.TextCtrl):
         self._value = v
         self.SetValue(str(v))
 
+
+    def MakeIntOnly(self):
+        self.SetInt(self.GetFloat())
+        self.SetFloat, self.GetFloat = self.SetInt, self.GetInt
+        
 
     def SetAllowedRange(self, low=None, high=None):
         self.low = low
@@ -78,14 +83,15 @@ class NumberTextCtrl(wx.TextCtrl):
         if str(self._value) != self.GetValue():
             try:
                 v = self.GetFloat() # Can raise ValueError
-                if self.low is not None and v < self.low:
-                    raise ValueError
-                if self.high is not None and v > self.high:
-                    raise ValueError
                 self._value = v
-                self.callback()
             except ValueError:
                 self.SetFloat(self._value)
+                return
+            if self.low is not None and v < self.low:
+                self.SetFloat(self.low)
+            elif self.high is not None and v > self.high:
+                self.SetFloat(self.high)
+
         
 
 

@@ -145,7 +145,7 @@ class Genome(BaseGenome):
 
 
 class Frame(BaseFrame):
-    def __init__(self, fixed_seed=False, aspect=1.0, bits=33, time=0,
+    def __init__(self, fixed_seed=False, aspect=1.0, buffer_depth=33, time=0,
                  bytes_per_channel=1, progress_func=None, nthreads=0,
                  **kwargs):
         if not fixed_seed:
@@ -155,7 +155,7 @@ class Frame(BaseFrame):
 
         self.pixel_aspect_ratio = aspect
         self.ngenomes = 0
-        self.bits = bits
+        self.bits = buffer_depth
         self.time = time
         self.bytes_per_channel = bytes_per_channel
 

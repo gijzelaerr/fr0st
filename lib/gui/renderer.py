@@ -72,7 +72,7 @@ class Renderer():
         kwds["progress_func"] = self.prog_wrapper(prog_func, "bgflag")
         kwds["renderer"] = kwds.get("renderer", config["renderer"])
 
-        self.bgqueue = [(callback,args,kwds)]
+        self.bgqueue.append((callback,args,kwds))
         
 
     @Threaded

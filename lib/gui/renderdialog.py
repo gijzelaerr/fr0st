@@ -7,205 +7,133 @@
 #     Currently supports PNG and JPG images, will support more.
 
 import wx, os, time
-from  wx.lib.filebrowsebutton import FileBrowseButton
+from  wx.lib.filebrowsebutton import FileBrowseButton, DirBrowseButton
+from functools import partial
 
 from lib.fr0stlib import Flame
 from lib.pyflam3 import Genome
 from utils import NumberTextCtrl
+from config import config
+from constants import ID
 from _events import EVT_THREAD_MESSAGE, ThreadMessageEvent
 from lib.decorators import *
-
-class RenderDialog(wx.Frame):
-
-    @BindEvents
-    def __init__(self, parent, id):
-	self.parent = parent
-	
-	wx.Frame.__init__(self, parent, id,
-                           title="Render Flame to Image File",
-                           size=(416,210))#TODO:Change title to say name 
-					  #of current flame - self.parent.flame.name
-             
-        #Destination Box
-        wx.StaticBox(self, 1,"Destination:", pos=(5, 5),size=(390,55)) 
-        wx.StaticText(self, 1, "Output Destination:",pos=(10,20))
-        self.txtDestination = wx.TextCtrl(self, 1, '',pos=(10,35),size=(280,22))
-        wx.Button(self, 3, ". . .", pos=(300,35),size=(75,22))
-
-        #Size Box
-        wx.StaticBox(self, 2, "Size:", pos=(5,60),size=(180,75))
-        wx.StaticText(self, 2, "Width:", pos=(10,75))
-        wx.StaticText(self, 2, "Height:", pos=(10,110))
-        self.Width = wx.ComboBox(self, 2, '', pos=(50,70), size=(130,22),
-                                 choices=('320','640','1024','1280','2048'))
-        self.Height = wx.ComboBox(self, 2, '', pos=(50,105), size=(130,22),
-                                  choices=('240','480','768','1024','1536'))
-        #Initialize the Values
-        self.Width.SetValue("1024")
-        self.Height.SetValue("768")
-        
-        #Quality Box
-        wx.StaticBox(self, 3, "Render Options:", pos=(200,60),size=(195,75))
-        wx.StaticText(self, 3, "Quality:", pos=(207,80))
-        wx.StaticText(self, 3, "Estimator:", pos=(207,110))
-        self.Quality = wx.SpinCtrl(self, 3, '', pos=(250,75),size=(140,22))
-        self.Quality.SetRange(1,150000)
-        self.Estimator = wx.TextCtrl(self, 3, '', pos=(260,105), size=(130,22))
-        self.Estimator.SetValue('9')
-        #TODO - Add more options. Oversample, etc.
-        
-        wx.Button(self, 1, "Begin Render", pos=(10,150))
-        wx.Button(self, 2, "Close", pos=(300,150))
-
-        self.exitflag = 0
-        self.rendering = False
-        
-        self.Centre()
-        self.Show(1)
-
-
-    @Bind(wx.EVT_BUTTON, id=3)
-    def chooseOutputFile(self, event):
-        filters = 'All files (*.*)|*.*|PNG File (*.png)|*.png|JPG File (*.jpg)|*.jpg'
-        dlg=wx.FileDialog(self, "Choose the Output File", os.getcwd(),
-                          "", filters, wx.SAVE)
-        if dlg.ShowModal()==wx.ID_OK:
-            path = dlg.GetPath()
-            self.txtDestination.SetValue(path)         
-        dlg.Destroy()
-
-
-    @Bind(wx.EVT_CLOSE)
-    @Bind(wx.EVT_BUTTON, id=2)
-    def closeDialog(self, e=None):
-        # TODO: dialog confirming exit (and cancelling render if yes)
-        if self.rendering:
-            self.SetFocus() # So the user sees where the dialog comes from.
-            dlg = wx.MessageDialog(self, 'Abort render?' ,
-                                   'Fr0st',wx.YES_NO)
-            res = dlg.ShowModal()
-            if res == wx.ID_NO:
-                return res
-            
-        self.exitflag = 1
-        while self.rendering:
-            # waiting for prog func
-            time.sleep(0.1)
-            
-        self.parent.renderdialog = None
-        self.Destroy()
-
-
-    @Bind(wx.EVT_BUTTON, id=1)
-    def beginRender(self, event):
-        destination = str(self.txtDestination.GetValue())
-	#GetValue() returns unicode, change to string
-	type = os.path.splitext(destination)[1]
-        size = int(self.Width.GetValue()),int(self.Height.GetValue())
-	#GetValue() returns unicode, change to int
-	
-	self.utype = type.upper()
-	if self.utype == '.PNG': self.wxFormat = wx.BITMAP_TYPE_PNG
-        elif self.utype == '.JPG': self.wxFormat = wx.BITMAP_TYPE_JPG
-	elif self.utype == '.BMP': self.wxFormat = wx.BITMAP_TYPE_BMP
-	elif self.utype == '.GIF': self.wxFormat = wx.BITMAP_TYPE_GIF
-	elif self.utype == '.PNM': self.wxFormat = wx.BITMAP_TYPE_PNM
-	elif self.utype == '.XPM': self.wxFormat = wx.BITMAP_TYPE_XPM
-	elif self.utype == '.TIF': self.wxFormat = wx.BITMAP_TYPE_TIF
-	else: raise ValueError(self.utype)
-
-	flame = self.parent.flame
-
-        # TODO: filter shouldn't be hardcoded.
-	req = self.parent.renderer.RenderRequest
-	req(self.save, flame, size, self.Quality.GetValue(),
-            int(self.Estimator.GetValue()), filter=.2, progress_func=self.prog)
-
-        self.rendering = True
-        self.t = time.time()
-
-
-    def prog(self, py_object, fraction, stage, eta):
-        print 'rendering: %.2f%% ETA: %.0f seconds' % (fraction,eta)
-        if self.exitflag:
-            self.rendering = False
-            return self.exitflag
-
-
-    def save(self, bmp):
-	image = wx.ImageFromBitmap(bmp)
-	destination = str(self.txtDestination.GetValue())
-	image.SaveFile(destination, self.wxFormat)
-
-	self.rendering = False
-	print time.time() - self.t
 
 
 
 class FreeMemoryPanel(wx.Panel):
-    
     def __init__(self, parent):
         wx.Panel.__init__(self, parent, -1)
+        self.GetMem = self.GetMemLinux # TODO: platform specific stuff.
         self.OnUpdate(None)
 
     def OnUpdate(self, e):
         fgs = wx.FlexGridSizer(2, 2, 1, 1)
-        lst = "Free: ", "n/a", "Required: ", "n/a"
-        fgs.AddMany(wx.StaticText(self, -1, i) for i in lst)
+        lst = "Free: ", "n/a", "Required: ", self.GetRequiredMem()
+        fgs.AddMany(wx.StaticText(self, -1, str(i)) for i in lst)
         self.SetSizer(fgs)
         fgs.Fit(self)
+
+    def GetMemWindows(self):
+        pass
+
+    def GetMemLinux(self):
+        pass
+
+    def GetRequiredMem(self):
+        return "n/a"
+        w,h = (self.Parent.dict[i].GetFloat() for i in ("width", "height"))
+        if self.Parent.dict["buffer_depth"].GetValue() == '64':
+            return w * h * 4. / 1024**2
+    
         
         
 
-class RenderDialogUnderConstruction(wx.Frame):
+class RenderDialog(wx.Frame):
     keepratio = True
+    depths = {"32-bit int": 32,
+              "32-bit float": 33,
+              "64-bit int": 64}
+    types = {".bmp": wx.BITMAP_TYPE_BMP,
+                ".png": wx.BITMAP_TYPE_PNG,
+                ".jpg": wx.BITMAP_TYPE_JPEG}
 
     @BindEvents
     def __init__(self, parent, id):
 	self.parent = parent
-	self.dict = {}
-	
-	wx.Frame.__init__(self, parent, id,
-                           title="Render Flames to Disk",)
-##                           size=(400,210))
+	style = (wx.DEFAULT_FRAME_STYLE &
+                 ~(wx.RESIZE_BORDER | wx.RESIZE_BOX | wx.MAXIMIZE_BOX))
 
-        fbb = FileBrowseButton(self, -1, changeCallback=self.fbbCallback)
+	wx.Frame.__init__(self, parent, id, title="Render Flames to Disk",
+                          style=style)
 
+        self.config = config["Render-Settings"]
+        self.dict = {}
+        
         self.gauge = wx.Gauge(self, -1)
 
+        fbb = self.MakeFileBrowseButton()
         flame = self.MakeFlameSelector()
         size = self.MakeSizeSelector()
         opts = self.MakeTCs("quality", "filter", "spatial_oversample",
                             "estimator", "estimator_curve",
                             "estimator_minimum", "highlight_power")
-        opts = self.Box("Settings", opts)
+        opts = self.Box("Render Settings", opts)
 
 
-        mem = self.Box("Memory", FreeMemoryPanel(self))
+        mem = self.MakeMemoryWidget()
+
+        self.render = wx.Button(self, ID.RENDER, "Render")
+
+        self.CreateStatusBar()
+
+        for i in "quality", "spatial_oversample", "width", "height":
+            tc = self.dict[i]
+            tc.MakeIntOnly()
+            tc.low = 1
+        self.dict["spatial_oversample"].high = 16
         
         szr0 = wx.BoxSizer(wx.VERTICAL)
         szr0.AddMany((size, (mem, 0, wx.EXPAND)))
 	szr1 = wx.BoxSizer(wx.HORIZONTAL)
 	szr1.AddMany((opts, szr0))
 	szr2 = wx.BoxSizer(wx.VERTICAL)
-	szr2.AddMany(((fbb, 0, wx.EXPAND), szr1))
+	szr2.AddMany(((fbb, 0, wx.EXPAND), szr1,
+                      (self.render, 0, wx.ALIGN_RIGHT|wx.ALIGN_BOTTOM)))
 	szr3 = wx.BoxSizer(wx.HORIZONTAL)
-	szr3.AddMany((flame, szr2))
+	szr3.AddMany(((flame, 0, wx.EXPAND), (szr2, 0, wx.EXPAND)))
 	szr4 = wx.BoxSizer(wx.VERTICAL)
 	szr4.AddMany((szr3, (self.gauge, 0, wx.EXPAND)))
 	
 	self.SetSizer(szr4)
 	szr4.Fit(self)
+
+        self.exitflag = 0
+        self.rendering = False
+	
+	self.Center(wx.CENTER_ON_SCREEN)
 	self.Show(True)
+
+
+    def MakeFileBrowseButton(self):
+        mask = "PNG File (*.png)|*.png|" \
+               "JPG File (*.jpg)|*.jpg|" \
+               "BMP File (*.bmp)|*.bmp"
+        initial = os.path.join(config["Img-Dir"],
+                               self.parent.flame.name+config["Img-Type"])
+        fbb = FileBrowseButton(self, -1, fileMask=mask, labelText='File:',
+                               initialValue=initial)
+        self.fbb = fbb
+        return self.Box("Output Destination", (fbb, 0, wx.EXPAND))
 
 
     def MakeFlameSelector(self):
 	data = self.parent.tree.itemdata
-	choices = list(self.parent.tree.GetFlames(type=str))
-	lb = wx.ListBox(self, -1, size=(180,300),
-                         choices=[f.name for f in choices],
-                         style=wx.LB_EXTENDED)
+	self.choices = choices = list(self.parent.tree.GetDataList())
+	lb = wx.ListBox(self, -1, choices=[f.name for f in choices],
+                        style=wx.LB_EXTENDED)
 	lb.SetSelection(choices.index(data))
+	lb.SetMinSize((180,1))
+	self.lb = lb
         btn = wx.Button(self, -1, "All")
         btn.Bind(wx.EVT_BUTTON, lambda e: map(lb.Select, range(len(choices))))
         btn2 = wx.Button(self, -1, "None")
@@ -213,35 +141,49 @@ class RenderDialogUnderConstruction(wx.Frame):
 
 	boxhor = wx.BoxSizer(wx.HORIZONTAL)
 	boxhor.AddMany((btn, btn2))
-	return self.Box("Select Flame(s) to render", boxhor, lb)
+	return self.Box("Select Flame(s) to render", boxhor, (lb, 1, wx.EXPAND))
 
 
     def MakeSizeSelector(self):
-        fgs = self.MakeTCs("width", "height",
-                           low=0, callback=self.SizeCallback)
         w,h = 1024., 768.
         self.ratio = w/h
-        self.dict["width"].SetInt(w)
-        self.dict["height"].SetInt(h)
+        self.config["width"] = w
+        self.config["height"] = h
         
+        fgs = self.MakeTCs("width", "height", low=0,callback=self.SizeCallback)
+
         ratio = wx.CheckBox(self, -1, "Keep Ratio")
         ratio.SetValue(True)
         ratio.Bind(wx.EVT_CHECKBOX, self.OnCheckBox)
 
 	return self.Box("Size", fgs, ratio)
-
+    
 
     def MakeTCs(self, *a, **k):
         fgs = wx.FlexGridSizer(99, 2, 1, 1)
         for i in a:
             tc = NumberTextCtrl(self, **k)
+            tc.SetFloat(self.config[i])
             self.dict[i] = tc
             fgs.Add(wx.StaticText(self, -1, i.replace("_", " ").title()),
                     0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
             fgs.Add(tc, 0, wx.ALIGN_LEFT, 5)
 
 	return fgs
-      
+
+
+    def MakeMemoryWidget(self):
+        choices = sorted(self.depths.iteritems())
+        self.depth = wx.Choice(self, -1, choices=[k for k,_ in choices])
+        bits = self.config["buffer_depth"]
+        self.depth.SetSelection([v for _,v in choices].index(bits))
+        depthtxt = wx.StaticText(self, -1, "Buffer Depth")
+        depthszr = wx.BoxSizer(wx.HORIZONTAL)
+        depthszr.AddMany(((depthtxt, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5),
+                          (self.depth, 0, wx.EXPAND)))
+        # TODO: what about setting number of strips?
+        return self.Box("Memory Settings", depthszr, FreeMemoryPanel(self))
+    
 
     def Box(self, name, *a):
 	box = wx.StaticBoxSizer(wx.StaticBox(self, -1, name),
@@ -255,18 +197,115 @@ class RenderDialogUnderConstruction(wx.Frame):
 
 
     def SizeCallback(self, tc):
+        wtc, htc = self.dict["width"], self.dict["height"]
         if self.keepratio:
             v = tc.GetFloat()
             tc.SetInt(v)
-            if tc == self.wtc:
-                self.htc.SetInt(v / self.ratio)
+            if tc == wtc:
+                htc.SetInt(v / self.ratio)
             else:
-                self.wtc.SetInt(v * self.ratio)
+                wtc.SetInt(v * self.ratio)
         else:
-            self.ratio = self.wtc.GetFloat() / self.htc.GetFloat()
+            self.ratio = wtc.GetFloat() / htc.GetFloat()
 
 
-    def fbbCallback(self, e):
-        self.path = e.GetString()
-         
+    @Bind(wx.EVT_CLOSE)
+    def OnExit(self, e=None):
+        if self.rendering:
+            self.SetFocus() # So the user sees where the dialog comes from.
+            dlg = wx.MessageDialog(self, 'Abort render?', 'Fr0st',wx.YES_NO)
+            res = dlg.ShowModal()
+            if res == wx.ID_NO:
+                return res
+            
+        self.CancelRender()
+            
+        self.parent.renderdialog = None
+        self.Destroy()
+
+
+    @Bind(wx.EVT_BUTTON, id=ID.RENDER)
+    def OnRender(self, event):
+        if self.render.Label == "Cancel":
+            self.CancelRender()
+            return
+
+        self.destination = self.fbb.GetValue()
+        ty= os.path.splitext(self.destination)[1].lower()
+        if ty in self.types:
+            config["Img-Type"] = ty
+        else:
+            raise ValueError(ty)
+            # TODO: create a dialog.
+
+        self.rendering = True
+        self.render.Label = "Cancel"    
+
+	kwds = dict((k,v.GetFloat()) for k,v in self.dict.iteritems())
+	size = [int(kwds.pop(i)) for i in ("width","height")]
+	kwds["buffer_depth"] = self.depths[self.depth.GetStringSelection()]
+
+	config["Render-Settings"].update(kwds)
+
+        req = self.parent.renderer.RenderRequest
+        for i in self.lb.GetSelections():
+            # TODO: handle repeated names.
+            data = self.choices[i]
+            self.maxrenderindex = i
+            req(partial(self.save, data.name, i), data[-1], size,
+                progress_func=self.prog, **kwds)
+
+        self.t = time.time()
+
+
+    def prog(self, *args):
+        if self.exitflag:
+            self.rendering = False
+            return self.exitflag
+        wx.PostEvent(self, ThreadMessageEvent(-1, *args))
         
+
+    @Bind(EVT_THREAD_MESSAGE)
+    def OnProgress(self, e):
+        py_object, fraction, stage, eta = e.GetArgs()
+        h = eta/3600
+        m = eta%3600/60
+        s = eta%60
+        self.SetStatusText("rendering: %.2f %%\t\tETA: %02d:%02d:%02d"
+                           %(fraction,h,m,s))
+        self.gauge.SetValue(fraction)
+
+            
+    def CancelRender(self):
+        self.exitflag = 1
+        # HACK: prevent future renders from being passed to flame.
+        del self.parent.renderer.bgqueue[:]
+        while self.rendering:
+            # waiting for prog func
+            time.sleep(0.01)
+        self.CleanProg()
+        
+
+    def CleanProg(self):
+        self.render.Label = "Render"
+        self.gauge.SetValue(0)
+        self.SetStatusText("")
+
+
+    def save(self, name, index, bmp):
+        if self.exitflag:
+            # Don't save image.
+            self.exitflag = 0
+            return
+        ty = config["Img-Type"]
+	image = wx.ImageFromBitmap(bmp)
+	image.SaveFile(os.path.join(os.path.dirname(self.destination),name+ty),
+                       self.types[ty])
+
+        if index == self.maxrenderindex:
+            self.rendering = False
+            self.CleanProg()
+            
+	print time.time() - self.t
+
+
