@@ -352,8 +352,18 @@ class VarPanel(wx.Panel):
             attr = str(getattr(xform, name))
             if self.tree.GetItemText(i,1) == attr:
                 continue
-            self.tree.SetItemText(i, attr, 1)
+            self.SetItemText(i, attr, 1)
 
+
+    def SetItemText(self, i, s, col):
+        """A wrapper for tree.SetItemText, which also sets color according to
+        value."""
+        self.tree.SetItemText(i, s, col)
+        if s == "0.0":
+            self.tree.SetItemTextColour(i, "dark grey")
+        else:
+            self.tree.SetItemTextColour(i, "BLACK")
+            
 
     def SetFlameAttribute(self, item, value):
         parent = self.tree.GetItemParent(item)
@@ -374,7 +384,7 @@ class VarPanel(wx.Panel):
         oldvalue = self.tree.GetItemText(item, 1)
         try:
             value = float(e.GetLabel() or "0.0")
-            self.tree.SetItemText(item,str(value),1)
+            self.SetItemText(item,str(value),1)
         except ValueError:
             e.Veto()
             return
@@ -420,7 +430,7 @@ class VarPanel(wx.Panel):
             else:
                 new = 0.0
             self.SetFlameAttribute(item, new)
-            self.tree.SetItemText(item, str(new), 1)
+            self.SetItemText(item, str(new), 1)
             self.parent.TreePanel.TempSave()
         e.Skip()
         
@@ -449,7 +459,7 @@ class VarPanel(wx.Panel):
         
         val = float(val) + (diff if e.GetWheelRotation() > 0 else -diff)
         self.SetFlameAttribute(item, val)
-        self.tree.SetItemText(item, str(val), 1)
+        self.SetItemText(item, str(val), 1)
         self.parent.image.RenderPreview()
         self.HasChanged = True
         
