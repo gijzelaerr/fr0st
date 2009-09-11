@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import wx, os, sys
 
 os.chdir(sys.path[0])
