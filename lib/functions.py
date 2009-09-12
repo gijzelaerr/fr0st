@@ -1,14 +1,4 @@
-from __future__ import generators
-
-#Copyright (c) 2008 Vitor Bosshard
-#This program licensed under the GPL. See license.txt for details.
-#
-#Tested under:
-#Python 2.6.1
-#Pygame 1.8.1.win32-py2.5
-#-----------------------------------------------------------------
-
-import os, sys, cmath, numpy, colorsys
+import os, sys, cmath, numpy, colorsys, random
 from math import *
 
 hues = {'red': 0,
@@ -38,40 +28,50 @@ def in_ranges(n, ranges):
     else:
         if n >= ranges[0] and n <= ranges[1]: return True
     return False
+
+
+def randrange2(x,y):
+    """A smarter randrange. Returns a random float between both args."""
+    return x if x==y else random.randrange(*sorted((x,y)), int=float)
     
 #-------------------------------------------------------------------------------
 #Converters
 
 def polar(coord):
-##    return cmath.polar(complex(*coord)) # Use this once 2.6 is default
     l = sqrt(coord[0]**2 + coord[1]**2)
     theta = atan2(coord[1], coord[0]) * (180.0/pi)
     return l, theta   
 
 def rect(coord):
-##    comp = cmath.rect(r,phi)
-##    return comp.real,comp.imag # Use this once 2.6 is default
     real = coord[0] * cos(coord[1]*pi/180.0)
     imag = coord[0] * sin(coord[1]*pi/180.0)
     return real, imag
 
-"""
-Takes an rgb tuple (0-255) and returns hls tuple (hls is scalar)
-"""
-def rgb2hls(color):
-    return colorsys.rgb_to_hls(*map(lambda x: x/256.0, color))
 
-"""
-Takes hls tuple and returns rgb tuple (rgb is int)
-"""    
+def rgb2hls(color):
+    """Takes an rgb tuple (0-255) and returns hls tuple (hls is scalar)"""
+    return colorsys.rgb_to_hls((x/256. for x in color))
+
 def hls2rgb(color):
+    """Takes hls tuple and returns rgb tuple (rgb is int)"""
     #convert h to scalar
     h,l,s = color
     h = clip(h,0,1,True)
     l = clip(l,0,1)
     s = clip(s,0,1)
+    return tuple(int(x*256) for x in colorsys.hls_to_rgb(h,l,s))
 
-    return tuple(map(lambda x: int(x*256),colorsys.hls_to_rgb(h,l,s)))
+
+def rgb2hsv(color):
+    return colorsys.rgb_to_hsv((x/256. for x in color))
+
+def hsv2rgb(color):
+    h,s,v = color
+    h = clip(h,0,1,True)
+    s = clip(s,0,1)
+    v = clip(v,0,1)
+    return tuple(int(x*256) for x in colorsys.hsv_to_rgb(h,s,v))
+    
     
 #-------------------------------------------------------------------------------
 #General utils
@@ -204,12 +204,7 @@ def drange(x, y, n, i, **kwargs):
 """
 prange - Periodic range
 """
-def prange(x, y, n, i, **kwargs):
-    curve = kwargs.get('curve','lin')
-    a     = kwargs.get('a',1.0)
-    peak  = kwargs.get('peak',0.5)    
-    freq  = kwargs.get('freq',1)
-
+def prange(x, y, n, i, curve='lin', a=1.0, peak=0.5, freq=1):
     n1=int(peak*n)
     n2=n-n1
     m=float(n)
@@ -239,10 +234,7 @@ def prange(x, y, n, i, **kwargs):
         else:    return drange(y,x,n2,i-n1,curve='lin',a=a)
 #---end prange
 
-def vector(cps, n, i, **kwargs):
-    #Set defaults
-    t = kwargs.get('t', 0.5)
-        
+def vector(cps, n, i, t=0.5, **kwargs):
     if 1 < len(cps) < 4:
         return drange(cps[0], cps[1], n, i, **kwargs)
     elif len(cps)==4:
@@ -262,10 +254,7 @@ def vector(cps, n, i, **kwargs):
         print "You have the wrong number of cps."
 #---end vector
 
-def vector2d(cps, n, i, **kwargs):
-    #Set defaults
-    p_space = kwargs.get('p_space','polar')
-    
+def vector2d(cps, n, i, p_space='polar', **kwargs):
     if p_space=='polar':
         tmp = []
         for c in cps:
@@ -280,20 +269,20 @@ def vector2d(cps, n, i, **kwargs):
         return (vector(xcps,n,i,**kwargs),vector(ycps,n,i,**kwargs))
 #---end vector2d
 
-def vector3d(cps, n, i, **kwargs):
-    #Set defaults
-    c_space = kwargs.get('c_space','rgb')
-    
-    if c_space=='hls':
-        tmp = []
-        for c in cps:
-            tmp.append(rgb2hls(c))
-        cps = tmp
+def vector3d(cps, n, i, c_space='rgb', **kwargs):
+    # VBT: commented out because the args are assumed to already be in the
+    # target colorspace.
+##    if c_space=='hls':
+##        cps = [rgb2hls(c) for c in cps]
 
     rcps, gcps, bcps = zip(*cps)
     
     if c_space=='hls':
         return hls2rgb((vector(rcps,n,i,**kwargs)
+                       ,vector(gcps,n,i,**kwargs)
+                       ,vector(bcps,n,i,**kwargs)))
+    elif c_space=='hsv':
+        return hsv2rgb((vector(rcps,n,i,**kwargs)
                        ,vector(gcps,n,i,**kwargs)
                        ,vector(bcps,n,i,**kwargs)))
     else:

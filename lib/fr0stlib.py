@@ -1,6 +1,7 @@
 import re, shutil, random, itertools
-from functions import *
 from math import *
+
+from functions import *
 
 try:
     import wx
@@ -409,45 +410,54 @@ class Palette(list):
             g += tmp
         self[:] = g
 
-    """Beginnings of a random generator that takes some ranges"""
-    def random(self, **kwargs):
-        h_ranges = kwargs.get('h_ranges', (0,1))
-        l_ranges = kwargs.get('l_ranges', (0,1))
-        s_ranges = kwargs.get('s_ranges', (0,1))
-        b_range  = kwargs.get('blocks', (32,64))
-        
-        blocks = random.randint(b_range[0],b_range[1])
-        mbs = 256/blocks                        #mean block size
-        mbsr = 256%blocks                       #remainder
-        bsv = mbs/2                             #size variance 1/2 mean
-        bs = []
-        for i in xrange(blocks):
-            v = random.randint(-bsv, bsv)
-            if v<>0: mbsr -= v
-            bs.append(mbs + v)
-        
-        if mbsr>0:
-            r = len(bs)/mbsr
-            for i in xrange(mbsr):
-                bs[(i*r)+random.randrange(r)] += 1
-        elif mbsr<0:
-            r = -len(bs)/mbsr
-            for i in xrange(-mbsr):
-                bs[(i*r)+random.randrange(r)] -= 1
-        tmp = []
-        for b in bs:
-            h = random.random()
-            while not in_ranges(h, h_ranges): h = random.random()
-            l = random.random()
-            while not in_ranges(l, l_ranges): l = random.random()
-            s = random.random()
-            while not in_ranges(s, s_ranges): s = random.random()
-            else:
-                for i in xrange(b):
-                    tmp.append(hls2rgb((h,l,s)))
-        self[:] = tmp
+##    """Beginnings of a random generator that takes some ranges"""
+##    def random(self, **kwargs):
+##        h_ranges = kwargs.get('h_ranges', (0,1))
+##        l_ranges = kwargs.get('l_ranges', (0,1))
+##        s_ranges = kwargs.get('s_ranges', (0,1))
+##        b_range  = kwargs.get('blocks', (32,64))
+##        
+##        blocks = random.randint(b_range[0],b_range[1])
+##        mbs = 256/blocks                        #mean block size
+##        mbsr = 256%blocks                       #remainder
+##        bsv = mbs/2                             #size variance 1/2 mean
+##        bs = []
+##        for i in xrange(blocks):
+##            v = random.randint(-bsv, bsv)
+##            if v<>0: mbsr -= v
+##            bs.append(mbs + v)
+##        
+##        if mbsr>0:
+##            r = len(bs)/mbsr
+##            for i in xrange(mbsr):
+##                bs[(i*r)+random.randrange(r)] += 1
+##        elif mbsr<0:
+##            r = -len(bs)/mbsr
+##            for i in xrange(-mbsr):
+##                bs[(i*r)+random.randrange(r)] -= 1
+##        tmp = []
+##        for b in bs:
+##            h = random.random()
+##            while not in_ranges(h, h_ranges): h = random.random()
+##            l = random.random()
+##            while not in_ranges(l, l_ranges): l = random.random()
+##            s = random.random()
+##            while not in_ranges(s, s_ranges): s = random.random()
+##            else:
+##                for i in xrange(b):
+##                    tmp.append(hls2rgb((h,l,s)))
+##        self[:] = tmp
 
 
+    def random(self, range_hue=(0,1), range_sat=(0,1), range_val=(0,1), 
+               n_seeds=5, curve='cos'):
+        dims = range_hue, range_sat, range_val
+##        rand = lambda x,y: x if x==y else random.randrange(x,y, int=float)
+        seeds = [tuple(randrange2(*i) for i in dims) for j in range(n_seeds)]
+
+        self.from_seeds(seeds, curve, 'hsv')
+
+        
     def from_image(self, filename, num_tries=50, try_size=1000):
         if not wx:
             raise ImportError('this method requires wx.')
