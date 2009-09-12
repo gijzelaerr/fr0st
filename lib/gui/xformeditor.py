@@ -105,9 +105,13 @@ class XformPanel(wx.Panel):
         hsizer = wx.BoxSizer(wx.HORIZONTAL)
         hsizer.AddMany((fgs, radiosizer))
 
-        # Add the reset xform button
+        # Add other buttons
         reset = wx.Button(self, -1, "reset xform", name="Reset",
                           style=wx.BU_EXACTFIT)
+        solo = wx.Button(self, -1, "make solo", name="Solo",
+                         style=wx.BU_EXACTFIT)
+        btnszr = wx.BoxSizer(wx.HORIZONTAL)
+        btnszr.AddMany((reset, solo))
 
         # Add weight box
         weightsizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -138,7 +142,7 @@ class XformPanel(wx.Panel):
         
         # Finally, put everything together
         sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.AddMany((hsizer, reset, weightsizer, fgs2))
+        sizer.AddMany((hsizer, btnszr, weightsizer, fgs2))
         self.SetSizer(sizer)
         self.Layout()
 
@@ -193,6 +197,13 @@ class XformPanel(wx.Panel):
 
     def FuncReset(self, xform):
         xform.coefs = 1.0, 0.0, 0.0, 1.0, 0.0, 0.0
+
+    def FuncSolo(self, xform):
+        xform.opacity = 1
+        for i in xform._parent.xform:
+            if i == xform:
+                continue
+            i.opacity = 0
 
     def Func90Left(self, xform):
         xform.rotate(90)
