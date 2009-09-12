@@ -145,7 +145,7 @@ class RenderDialog(wx.Frame):
 
 
     def MakeSizeSelector(self):
-        w,h = 1024., 768.
+        w,h = 512., 384.
         self.ratio = w/h
         self.config["width"] = w
         self.config["height"] = h
@@ -168,7 +168,6 @@ class RenderDialog(wx.Frame):
             fgs.Add(wx.StaticText(self, -1, i.replace("_", " ").title()),
                     0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
             fgs.Add(tc, 0, wx.ALIGN_LEFT, 5)
-
 	return fgs
 
 
@@ -235,8 +234,15 @@ class RenderDialog(wx.Frame):
         if ty in self.types:
             config["Img-Type"] = ty
         else:
-            raise ValueError(ty)
-            # TODO: create a dialog.
+            wx.MessageDialog(self, "File extension must be png, jpg or bmp.",
+                             'Fr0st', wx.OK).ShowModal()
+            return
+        
+        self.selections = self.lb.GetSelections()
+        if not self.selections:
+            wx.MessageDialog(self, "You must select at least 1 flame.",
+                             'Fr0st', wx.OK).ShowModal()
+            return
 
         self.rendering = True
         self.render.Label = "Cancel"    
@@ -248,10 +254,9 @@ class RenderDialog(wx.Frame):
 	config["Render-Settings"].update(kwds)
 
         req = self.parent.renderer.RenderRequest
-        for i in self.lb.GetSelections():
+        for i in self.selections:
             # TODO: handle repeated names.
             data = self.choices[i]
-            self.maxrenderindex = i
             req(partial(self.save, data.name, i), data[-1], size,
                 progress_func=self.prog, **kwds)
 
@@ -299,10 +304,13 @@ class RenderDialog(wx.Frame):
             return
         ty = config["Img-Type"]
 	image = wx.ImageFromBitmap(bmp)
-	image.SaveFile(os.path.join(os.path.dirname(self.destination),name+ty),
-                       self.types[ty])
+	if len(self.selections) == 1:
+            path = self.destination
+        else:
+            path = os.path.join(os.path.dirname(self.destination), name+ty)
+	image.SaveFile(path, self.types[ty])
 
-        if index == self.maxrenderindex:
+        if index == self.selections[-1]:
             self.rendering = False
             self.CleanProg()
             

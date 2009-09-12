@@ -84,6 +84,7 @@ class NumberTextCtrl(wx.TextCtrl):
             try:
                 v = self.GetFloat() # Can raise ValueError
                 self._value = v
+                self.callback()
             except ValueError:
                 self.SetFloat(self._value)
                 return
