@@ -192,7 +192,7 @@ class XformPanel(wx.Panel):
         xform.c, xform.f = 0,0
 
     def FuncReset(self, xform):
-        xform.coefs = 1,0,0,1,0,0
+        xform.coefs = 1.0, 0.0, 0.0, 1.0, 0.0, 0.0
 
     def Func90Left(self, xform):
         xform.rotate(90)
