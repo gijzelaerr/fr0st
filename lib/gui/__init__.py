@@ -352,13 +352,15 @@ class MainWindow(wx.Frame):
         else:
             itr = (self.tree.itemdata,)
         for i, data in enumerate(itr):
+            index = lst.index(data[0])
             if data[0] in lst:
-                lst[lst.index(data[0])] = data[-1]
+                lst[index] = data[-1]
             else:
                 lst.append(data[-1])
 
             data.Reset()
-            self.tree.SetItemText(self.tree.GetItemByIndex((0,i)), data.name)
+            self.tree.SetItemText(self.tree.GetItemByIndex((0,index)),
+                                  data.name)
 
         fr0stlib.save_flames(path,*lst)
         
