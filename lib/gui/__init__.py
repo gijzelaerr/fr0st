@@ -513,6 +513,7 @@ class MainWindow(wx.Frame):
 
 
     @Bind(EVT_THREAD_MESSAGE, id=ID.RENDER)
+    @Catches(wx.PyDeadObjectError)
     def OnImageReady(self,e):
         callback, (w,h), output_buffer, channels = e.GetValue()
         if channels == 3:

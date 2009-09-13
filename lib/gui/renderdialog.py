@@ -257,27 +257,32 @@ class RenderDialog(wx.Frame):
         for i in self.selections:
             # TODO: handle repeated names.
             data = self.choices[i]
+            prog = self.MakeProg(data.name, self.selections.index(i)+1,
+                                 len(self.selections))
             req(partial(self.save, data.name, i), data[-1], size,
-                progress_func=self.prog, **kwds)
+                progress_func=prog, **kwds)
 
         self.t = time.time()
 
 
-    def prog(self, *args):
-        if self.exitflag:
-            self.rendering = False
-            return self.exitflag
-        wx.PostEvent(self, ThreadMessageEvent(-1, *args))
+    def MakeProg(self, name, index, lenght):
+        string = ("rendering %s/%s (%s): %%.2f %%%%\t\tETA: %%02d:%%02d:%%02d"
+                  %(index, lenght, name))
+        def prog(*args):
+            if self.exitflag:
+                self.rendering = False
+                return self.exitflag
+            wx.PostEvent(self, ThreadMessageEvent(-1, string, *args))
+        return prog
         
 
     @Bind(EVT_THREAD_MESSAGE)
     def OnProgress(self, e):
-        py_object, fraction, stage, eta = e.GetArgs()
+        string, py_object, fraction, stage, eta = e.GetArgs()
         h = eta/3600
         m = eta%3600/60
         s = eta%60
-        self.SetStatusText("rendering: %.2f %%\t\tETA: %02d:%02d:%02d"
-                           %(fraction,h,m,s))
+        self.SetStatusText(string % (fraction,h,m,s))
         self.gauge.SetValue(fraction)
 
             
