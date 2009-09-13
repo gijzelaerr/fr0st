@@ -230,6 +230,10 @@ class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
         return self.GetItem(self.GetIndexOfItem(item))[0]
 
 
+    def GetFilePath(self):
+        return self.GetItem((0,))[0][-1]
+    
+
     def OnDrop(self, *args):
         """This method is used by the DragAndDrop mixin."""
         dropindex, dragindex = map(self.GetIndexOfItem, args)

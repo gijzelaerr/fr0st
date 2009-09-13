@@ -445,6 +445,7 @@ class MainWindow(wx.Frame):
                          preview = self.preview,
                          large_preview = self.large_preview,
                          dialog = self.editorframe.make_dialog,
+                         get_file_path = self.tree.GetFilePath,
                          )
 
         exec("from lib.fr0stlib import *; __name__='__main__'",namespace)
