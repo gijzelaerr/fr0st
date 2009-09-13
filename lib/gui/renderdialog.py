@@ -6,13 +6,13 @@
 #   Basic Operations completed April 10th -
 #     Currently supports PNG and JPG images, will support more.
 
-import wx, os, time
+import wx, os, time, sys
 from  wx.lib.filebrowsebutton import FileBrowseButton, DirBrowseButton
 from functools import partial
 
 from lib.fr0stlib import Flame
 from lib.pyflam3 import Genome
-from utils import NumberTextCtrl
+from utils import NumberTextCtrl, Box
 from config import config
 from constants import ID
 from _events import EVT_THREAD_MESSAGE, ThreadMessageEvent
@@ -23,27 +23,49 @@ from lib.decorators import *
 class FreeMemoryPanel(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent, -1)
-        self.GetMem = self.GetMemLinux # TODO: platform specific stuff.
-        self.OnUpdate(None)
+        self.fgs = wx.FlexGridSizer(2, 2, 1, 1)
+        self.SetSizer(self.fgs)
+        self.Update()
 
-    def OnUpdate(self, e):
-        fgs = wx.FlexGridSizer(2, 2, 1, 1)
-        lst = "Free: ", "n/a", "Required: ", self.GetRequiredMem()
-        fgs.AddMany(wx.StaticText(self, -1, str(i)) for i in lst)
-        self.SetSizer(fgs)
-        fgs.Fit(self)
+
+    def Update(self, e=None):
+        self.fgs.Clear(True)
+        lst = (("Free: ", 0), (self.GetFree(), wx.ALIGN_RIGHT),
+               ("Required: ", 0), (self.GetRequired(), wx.ALIGN_RIGHT))
+        self.fgs.AddMany((wx.StaticText(self, -1, str(i)), 0, fl) for i, fl in lst)
+        self.fgs.Fit(self)
+
+
+    def GetMemGeneric(self):
+        return "%d MB" % wx.GetFreeMemory()
 
     def GetMemWindows(self):
-        pass
+        return "n/a" # TODO: implement this.
 
     def GetMemLinux(self):
-        pass
+        with open("/proc/meminfo") as f:
+            # TODO: not sure if this is entirely correct.
+            total, free, buff, cached = (int(f.readline().split()[1])
+                                         for i in range(4))
+            return "%d MB" % ((free + cached) / 1024)
+        
+    try:
+        wx.GetFreeMemory()
+        GetFree = GetMemGeneric
+    except NotImplementedError:   
+        if 'win' in sys.platform:
+            GetFree = GetMemWindows
+        else:
+            GetFree = GetMemLinux
 
-    def GetRequiredMem(self):
-        return "n/a"
-        w,h = (self.Parent.dict[i].GetFloat() for i in ("width", "height"))
-        if self.Parent.dict["buffer_depth"].GetValue() == '64':
-            return w * h * 4. / 1024**2
+
+    def GetRequired(self):
+        w, h = (self.Parent.dict[i].GetFloat() for i in ("width", "height"))
+        os = self.Parent.dict["spatial_oversample"].GetFloat()
+        int_size = 4
+        if self.Parent.depth.GetStringSelection() == "64-bit int":
+            int_size = 8
+        return "%d MB" % (w * h * os**2 * int_size * 4 / 1024.**2)
     
         
         
@@ -77,7 +99,7 @@ class RenderDialog(wx.Frame):
         opts = self.MakeTCs("quality", "filter", "spatial_oversample",
                             "estimator", "estimator_curve",
                             "estimator_minimum", "highlight_power")
-        opts = self.Box("Render Settings", opts)
+        opts = Box(self, "Render Settings", opts)
 
 
         mem = self.MakeMemoryWidget()
@@ -86,11 +108,14 @@ class RenderDialog(wx.Frame):
 
         self.CreateStatusBar()
 
-        for i in "quality", "spatial_oversample", "width", "height":
+        for i in "quality", "width", "height":
             tc = self.dict[i]
             tc.MakeIntOnly()
             tc.low = 1
-        self.dict["spatial_oversample"].high = 16
+        os = self.dict["spatial_oversample"]
+        os.MakeIntOnly()
+        os.SetAllowedRange(1,16)
+        os.callback = self.mem.Update
         
         szr0 = wx.BoxSizer(wx.VERTICAL)
         szr0.AddMany((size, (mem, 0, wx.EXPAND)))
@@ -123,7 +148,7 @@ class RenderDialog(wx.Frame):
         fbb = FileBrowseButton(self, -1, fileMask=mask, labelText='File:',
                                initialValue=initial)
         self.fbb = fbb
-        return self.Box("Output Destination", (fbb, 0, wx.EXPAND))
+        return Box(self, "Output Destination", (fbb, 0, wx.EXPAND))
 
 
     def MakeFlameSelector(self):
@@ -141,7 +166,7 @@ class RenderDialog(wx.Frame):
 
 	boxhor = wx.BoxSizer(wx.HORIZONTAL)
 	boxhor.AddMany((btn, btn2))
-	return self.Box("Select Flame(s) to render", boxhor, (lb, 1, wx.EXPAND))
+	return Box(self, "Select Flame(s) to render", boxhor, (lb, 1, wx.EXPAND))
 
 
     def MakeSizeSelector(self):
@@ -156,7 +181,7 @@ class RenderDialog(wx.Frame):
         ratio.SetValue(True)
         ratio.Bind(wx.EVT_CHECKBOX, self.OnCheckBox)
 
-	return self.Box("Size", fgs, ratio)
+	return Box(self, "Size", fgs, ratio)
     
 
     def MakeTCs(self, *a, **k):
@@ -174,6 +199,8 @@ class RenderDialog(wx.Frame):
     def MakeMemoryWidget(self):
         choices = sorted(self.depths.iteritems())
         self.depth = wx.Choice(self, -1, choices=[k for k,_ in choices])
+        self.mem = FreeMemoryPanel(self)
+        self.depth.Bind(wx.EVT_CHOICE, self.mem.Update)
         bits = self.config["buffer_depth"]
         self.depth.SetSelection([v for _,v in choices].index(bits))
         depthtxt = wx.StaticText(self, -1, "Buffer Depth")
@@ -181,15 +208,8 @@ class RenderDialog(wx.Frame):
         depthszr.AddMany(((depthtxt, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5),
                           (self.depth, 0, wx.EXPAND)))
         # TODO: what about setting number of strips?
-        return self.Box("Memory Settings", depthszr, FreeMemoryPanel(self))
-    
+        return Box(self, "Memory Settings", depthszr, self.mem)
 
-    def Box(self, name, *a):
-	box = wx.StaticBoxSizer(wx.StaticBox(self, -1, name),
-                                wx.VERTICAL)
-	box.AddMany(a)
-	return box
-    
 
     def OnCheckBox(self, e):
         self.keepratio = e.GetInt()
@@ -206,6 +226,13 @@ class RenderDialog(wx.Frame):
                 wtc.SetInt(v * self.ratio)
         else:
             self.ratio = wtc.GetFloat() / htc.GetFloat()
+        self.mem.Update()
+
+
+##    def OnSelection(self, e=None):
+##        path = os.path.join(config["Img-Dir"],
+##                            self.parent.flame.name+config["Img-Type"])
+##        self.fbb.SetValue(path)              
 
 
     @Bind(wx.EVT_CLOSE)

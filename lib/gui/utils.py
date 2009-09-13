@@ -10,6 +10,12 @@ def LoadIcon(*path):
     return wx.BitmapFromImage(img)
 
 
+def Box(self, name, *a, **k):
+    box = wx.StaticBoxSizer(wx.StaticBox(self, -1, name),
+                            k.get('orient', wx.VERTICAL))
+    box.AddMany(a)
+    return box
+
 
 class NumberTextCtrl(wx.TextCtrl):
     low = None
@@ -83,16 +89,17 @@ class NumberTextCtrl(wx.TextCtrl):
         if str(self._value) != self.GetValue():
             try:
                 v = self.GetFloat() # Can raise ValueError
-                self._value = v
-                self.callback()
             except ValueError:
                 self.SetFloat(self._value)
                 return
             if self.low is not None and v < self.low:
                 self.SetFloat(self.low)
+                return
             elif self.high is not None and v > self.high:
                 self.SetFloat(self.high)
-
+                return
+            self._value = v
+            self.callback()
         
 
 
@@ -122,11 +129,7 @@ class MultiSliderMixin(object):
         slider.Bind(wx.EVT_LEFT_UP, self.OnSliderUp)
 
         name = name.replace("_", " ").title()
-        siz = wx.StaticBoxSizer(wx.StaticBox(self, -1, name), wx.HORIZONTAL)
-        siz.Add(tc)
-        siz.Add(slider, wx.EXPAND)
-
-        return siz
+        return Box(self, name, tc, (slider, wx.EXPAND), orient=wx.HORIZONTAL)
 
 
     def UpdateSlider(self, name, val):
