@@ -65,7 +65,8 @@ class FreeMemoryPanel(wx.Panel):
         int_size = 4
         if self.Parent.depth.GetStringSelection() == "64-bit int":
             int_size = 8
-        return "%d MB" % (w * h * os**2 * int_size * 4 / 1024.**2)
+        # the *9 is for: 5 in bucket (RGBA+density) + 4 in abucket (RGBA)
+        return "%d MB" % (w * h * os**2 * int_size * 9 / 1024.**2)
     
         
         

@@ -119,7 +119,7 @@ class MultiSliderMixin(object):
                            style=wx.SL_HORIZONTAL
                            | wx.SL_SELRANGE
                            )
-        tc = NumberTextCtrl(self, callback=lambda tc: self.UpdateXform())
+        tc = NumberTextCtrl(self, callback=self.__callback)
         if strictrange:
             tc.SetAllowedRange(low, high)
         self.sliders[name] = slider, tc
@@ -169,6 +169,11 @@ class MultiSliderMixin(object):
             self._new = None
             self._changed = True
 
+
+    def __callback(self, tc):
+        self.UpdateXform()
+        self.parent.TreePanel.TempSave()
+        
 
     def UpdateXform(self):
         Abstract

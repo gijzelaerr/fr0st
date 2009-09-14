@@ -115,7 +115,7 @@ class XformPanel(wx.Panel):
 
         # Add weight box
         weightsizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.weight = NumberTextCtrl(self)
+        self.weight = NumberTextCtrl(self, callback=cb)
         self.weight.SetAllowedRange(low=0)
         weightsizer.AddMany((wx.StaticText(self, -1, "weight"), self.weight))
         

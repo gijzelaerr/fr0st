@@ -37,13 +37,14 @@ class Genome(BaseGenome):
     size = property(_get_size, _set_size)
 
     def render(self, channels=3, transparent=False, ntemporal_samples=1,
-               temporal_filter=1.0, estimator=9, **kwargs):
+               temporal_filter=1.0, estimator=9, spatial_oversample=1,
+               **kwargs):
         
         self.ntemporal_samples = ntemporal_samples
         self.temporal_filter_width = temporal_filter
         self.estimator = estimator
+        self.spatial_oversample = spatial_oversample
         # TODO: add:
-        # spatial_oversample,
         # spatial_filter (why is there a radius/select?)
         
         frame = Frame(**kwargs)
