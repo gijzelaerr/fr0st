@@ -12,7 +12,7 @@ from functools import partial
 
 from lib.fr0stlib import Flame
 from lib.pyflam3 import Genome
-from utils import NumberTextCtrl, Box
+from utils import NumberTextCtrl, Box, MyChoice
 from config import config
 from constants import ID
 from _events import EVT_THREAD_MESSAGE, ThreadMessageEvent
@@ -23,6 +23,7 @@ from lib.decorators import *
 class FreeMemoryPanel(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent, -1)
+        self.depth = parent.dict["buffer_depth"]
         self.fgs = wx.FlexGridSizer(2, 2, 1, 1)
         self.SetSizer(self.fgs)
         self.Update()
@@ -55,7 +56,7 @@ class FreeMemoryPanel(wx.Panel):
     except NotImplementedError:   
         if 'win' in sys.platform:
             GetFree = GetMemWindows
-        else:
+        elif 'linux' in sys.platform:
             GetFree = GetMemLinux
 
 
@@ -63,7 +64,7 @@ class FreeMemoryPanel(wx.Panel):
         w, h = (self.Parent.dict[i].GetFloat() for i in ("width", "height"))
         os = self.Parent.dict["spatial_oversample"].GetFloat()
         int_size = 4
-        if self.Parent.depth.GetStringSelection() == "64-bit int":
+        if self.depth.GetStringSelection() == "64-bit int":
             int_size = 8
         # the *9 is for: 5 in bucket (RGBA+density) + 4 in abucket (RGBA)
         return "%d MB" % (w * h * os**2 * int_size * 9 / 1024.**2)
@@ -73,12 +74,14 @@ class FreeMemoryPanel(wx.Panel):
 
 class RenderDialog(wx.Frame):
     keepratio = True
-    depths = {"32-bit int": 32,
+    buffer_depth_dict = {"32-bit int": 32,
               "32-bit float": 33,
               "64-bit int": 64}
     types = {".bmp": wx.BITMAP_TYPE_BMP,
-                ".png": wx.BITMAP_TYPE_PNG,
-                ".jpg": wx.BITMAP_TYPE_JPEG}
+             ".png": wx.BITMAP_TYPE_PNG,
+             ".jpg": wx.BITMAP_TYPE_JPEG}
+    nthreads_dict = dict(("%2d" %i, i) for i in range(1, 17))
+    nthreads_dict["auto"] = 0
 
     @BindEvents
     def __init__(self, parent, id):
@@ -197,19 +200,23 @@ class RenderDialog(wx.Frame):
 	return fgs
 
 
+    def MakeChoices(self, *a):
+        fgs = wx.FlexGridSizer(99, 2, 1, 1)
+        for i in a:
+            widg = MyChoice(self, i, getattr(self, i+"_dict"), self.config[i])
+            self.dict[i] = widg
+            fgs.Add(wx.StaticText(self, -1, i.replace("_", " ").title()),
+                    0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
+            fgs.Add(widg, 0, wx.ALIGN_LEFT, 5)
+        return fgs
+
+
     def MakeMemoryWidget(self):
-        choices = sorted(self.depths.iteritems())
-        self.depth = wx.Choice(self, -1, choices=[k for k,_ in choices])
-        self.mem = FreeMemoryPanel(self)
-        self.depth.Bind(wx.EVT_CHOICE, self.mem.Update)
-        bits = self.config["buffer_depth"]
-        self.depth.SetSelection([v for _,v in choices].index(bits))
-        depthtxt = wx.StaticText(self, -1, "Buffer Depth")
-        depthszr = wx.BoxSizer(wx.HORIZONTAL)
-        depthszr.AddMany(((depthtxt, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5),
-                          (self.depth, 0, wx.EXPAND)))
         # TODO: what about setting number of strips?
-        return Box(self, "Memory Settings", depthszr, self.mem)
+        depthszr = self.MakeChoices("buffer_depth", "nthreads")
+        self.mem = FreeMemoryPanel(self)
+        self.dict["buffer_depth"].Bind(wx.EVT_CHOICE, self.mem.Update)
+        return Box(self, "Resource Usage", depthszr, self.mem)
 
 
     def OnCheckBox(self, e):
@@ -277,9 +284,8 @@ class RenderDialog(wx.Frame):
 
 	kwds = dict((k,v.GetFloat()) for k,v in self.dict.iteritems())
 	size = [int(kwds.pop(i)) for i in ("width","height")]
-	kwds["buffer_depth"] = self.depths[self.depth.GetStringSelection()]
 
-	config["Render-Settings"].update(kwds)
+	self.config.update(kwds)
 
         req = self.parent.renderer.RenderRequest
         for i in self.selections:

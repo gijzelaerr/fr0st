@@ -101,7 +101,7 @@ class Renderer():
     def process(self, callback, args, kwds):
         self.previewflag = 0
 
-        renderer = kwds["renderer"]
+        renderer = kwds.pop("renderer")
         if renderer == "flam3":
             render = flam3_render
         elif renderer == "flam4":
@@ -120,7 +120,7 @@ class Renderer():
         if hasattr(callback, "_can_cancel") and self.previewflag:
             return        
         
-        if kwds["renderer"] == 'flam4':
+        if renderer == 'flam4':
             channels = 4
         else:
             channels = kwds.get('channels', 3)

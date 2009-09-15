@@ -17,6 +17,20 @@ def Box(self, name, *a, **k):
     return box
 
 
+
+class MyChoice(wx.Choice):
+    def __init__(self, parent, name, d, initial):
+        self.d = d
+        choices = sorted(d.iteritems())
+        wx.Choice.__init__(self, parent, -1, choices=[k for k,_ in choices])
+        self.SetSelection([v for _,v in choices].index(initial))
+
+
+    def GetFloat(self):
+        return self.d[self.GetStringSelection()]
+
+    
+
 class NumberTextCtrl(wx.TextCtrl):
     low = None
     high = None
