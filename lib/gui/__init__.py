@@ -203,6 +203,7 @@ class MainWindow(wx.Frame):
         
         child = self.tree.GetItemByIndex((0, -1))
         self.tree.SelectItem(child)
+        self.flame.gradient.random(**config["Gradient-Settings"])
 
         # This adds the flame to the temp file, but without any actual changes.
         data.pop(0)

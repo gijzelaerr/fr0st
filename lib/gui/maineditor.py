@@ -3,7 +3,7 @@ from wx.lib import buttons
 
 from lib.decorators import *
 from lib.gui.canvas import XformCanvas
-from lib.gui.utils import LoadIcon, MultiSliderMixin
+from lib.gui.utils import LoadIcon, MultiSliderMixin, Box, NumberTextCtrl
 from lib.gui.config import config
 
 
@@ -125,15 +125,18 @@ class TransformPanel(wx.Panel):
         
 
 class GradientPanel(wx.Panel):
-
+    _new = None
+    _changed = False
+    _startval = None
+    _flame = None # Only used to check identity
+    
     @BindEvents
     def __init__(self,parent):
         wx.Panel.__init__(self,parent,-1)
         self.parent = parent.parent
-        self._new = None
-        self._changed = False
-        self._startval = None
-        self._flame = None # Only used to check identity
+
+        self.config = config["Gradient-Settings"]
+        self.dict = {}
         
         choicelist = [('rotate', (-128, 128)),
                       ('hue',(-180,180)),
@@ -158,14 +161,42 @@ class GradientPanel(wx.Panel):
         self.slider.Bind(wx.EVT_SLIDER, self.OnSlider)
         self.slider.Bind(wx.EVT_LEFT_DOWN, self.OnSliderDown)
         self.slider.Bind(wx.EVT_LEFT_UP, self.OnSliderUp)
+
+        opts = self.MakeTCs("hue", "saturation", "value", "nodes",
+                            low=0, high=1, callback=self.OptCallback)
+        for i in self.dict["nodes"]:
+            i.MakeIntOnly()
+            i.SetAllowedRange(1,256)
+        btn = wx.Button(self, -1, "Randomize")
+        opts = Box(self, "Gradient Generation", opts, btn,
+                   orient=wx.HORIZONTAL)
             
         sizer1 = wx.BoxSizer(wx.VERTICAL)
         sizer1.Add(self.image,0, wx.EXPAND)
         sizer1.Add(self.Selector,0)
         sizer1.Add(self.slider,0,wx.EXPAND)
+        sizer1.Add(opts, 0, wx.EXPAND)
         
         self.SetSizer(sizer1)
         self.Layout()
+
+
+    def MakeTCs(self, *a, **k):
+        fgs = wx.FlexGridSizer(99, 3, 1, 1)
+        fgs.AddMany(((0,0),
+                     (wx.StaticText(self, -1, "Min"), 0, wx.ALIGN_CENTER),
+                     (wx.StaticText(self, -1, "Max"), 0, wx.ALIGN_CENTER)))
+        for i in a:
+            tc1 = NumberTextCtrl(self, **k)
+            tc2 = NumberTextCtrl(self, **k)
+            tcs = (tc1, tc2)
+            map(NumberTextCtrl.SetFloat, tcs, self.config[i])
+            self.dict[i] = tcs
+            fgs.Add(wx.StaticText(self, -1, i.replace("_", " ").title()),
+                    0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
+            fgs.Add(tc1, 0, wx.ALIGN_LEFT, 5)
+            fgs.Add(tc2, 0, wx.ALIGN_LEFT, 5)
+	return fgs
 
 
     def UpdateView(self):
@@ -175,6 +206,17 @@ class GradientPanel(wx.Panel):
             self.ResetSlider()
             self._flame = self.parent.flame
 
+
+    def OptCallback(self, tc):
+        for k,v in self.dict.iteritems():
+            self.config[k] = tuple(i.GetFloat() for i in v)
+
+
+    @Bind(wx.EVT_BUTTON)
+    def OnButton(self, e):
+        self.parent.flame.gradient.random(**self.config)
+        self.parent.TreePanel.TempSave()
+        
 
     @Bind(wx.EVT_IDLE)
     def OnIdle(self, e):
@@ -283,6 +325,11 @@ class Gradient(wx.Panel):
         if self._startpos is not None:
             offset = int((e.GetPosition()[0] - self._startpos[0])/1.5)
             self.GetParent()._new = offset
+
+
+    @Bind(wx.EVT_LEFT_DCLICK)
+    def OnDoubleClick(self, e):
+        self.Parent.OnButton(None)
             
 
 

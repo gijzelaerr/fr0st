@@ -449,12 +449,11 @@ class Palette(list):
 ##        self[:] = tmp
 
 
-    def random(self, range_hue=(0,1), range_sat=(0,1), range_val=(0,1), 
-               n_seeds=5, curve='cos'):
-        dims = range_hue, range_sat, range_val
-##        rand = lambda x,y: x if x==y else random.randrange(x,y, int=float)
-        seeds = [tuple(randrange2(*i) for i in dims) for j in range(n_seeds)]
-
+    def random(self, hue=(0,1), saturation=(0,1), value=(0,1),  nodes=(5,5),
+               curve='cos'):
+        dims = hue, saturation, value
+        seeds = [tuple(randrange2(*i) for i in dims)
+                 for j in range(randrange2(*nodes, int=int))]
         self.from_seeds(seeds, curve, 'hsv')
 
         

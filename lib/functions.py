@@ -30,9 +30,9 @@ def in_ranges(n, ranges):
     return False
 
 
-def randrange2(x,y):
+def randrange2(x,y, int=float):
     """A smarter randrange. Returns a random float between both args."""
-    return x if x==y else random.randrange(*sorted((x,y)), int=float)
+    return x if x==y else random.randrange(*sorted((x,y)), int=int)
     
 #-------------------------------------------------------------------------------
 #Converters
