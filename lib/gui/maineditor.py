@@ -345,7 +345,8 @@ class AdjustPanel(MultiSliderMixin, wx.Panel):
                       (("scale", 25, 1, 100, False),
                        ("x_offset", 0, -5, 5, False),
                        ("y_offset", 0, -5, 5, False),
-                       ("rotate", 0, -360, 360, True)))
+                       ("rotate", 0, -360, 360, True),
+                       ("highlight_power", -1, -1, 5, False)))
         self.SetSizer(sizer)
 
 

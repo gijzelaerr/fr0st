@@ -73,6 +73,7 @@ class Flame(object):
         self.background = [0.0,0.0,0.0]
         self.final = None
         self.scale = 0.0
+        self.highlight_power = -1
         self.gradient = Palette()
         
         if not string and file:

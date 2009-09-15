@@ -99,7 +99,7 @@ class RenderDialog(wx.Frame):
         size = self.MakeSizeSelector()
         opts = self.MakeTCs("quality", "filter", "spatial_oversample",
                             "estimator", "estimator_curve",
-                            "estimator_minimum", "highlight_power")
+                            "estimator_minimum")
         opts = Box(self, "Render Settings", opts)
 
 
