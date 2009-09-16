@@ -327,7 +327,7 @@ class RenderDialog(wx.Frame):
         while self.rendering:
             # waiting for prog func
             time.sleep(0.01)
-        self.CleanProg()
+##        self.CleanProg()
         
 
     def CleanProg(self):
@@ -340,6 +340,7 @@ class RenderDialog(wx.Frame):
         if self.exitflag:
             # Don't save image.
             self.exitflag = 0
+            self.CleanProg()
             return
         ty = config["Img-Type"]
 	image = wx.ImageFromBitmap(bmp)
