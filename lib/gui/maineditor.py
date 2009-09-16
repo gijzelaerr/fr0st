@@ -341,12 +341,15 @@ class AdjustPanel(MultiSliderMixin, wx.Panel):
         super(AdjustPanel, self).__init__(parent, -1)
 
         sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.AddMany((self.MakeSlider(*i), 0, wx.EXPAND) for i in
+        sizer.Add(Box(self, "Camera Settings",
+                      *((self.MakeSlider(*i),0, wx.EXPAND) for i in
                       (("scale", 25, 1, 100, False),
                        ("x_offset", 0, -5, 5, False),
                        ("y_offset", 0, -5, 5, False),
-                       ("rotate", 0, -360, 360, True),
-                       ("highlight_power", -1, -1, 5, False)))
+                       ("rotate", 0, -360, 360, True)))), 0, wx.EXPAND)
+        sizer.Add(Box(self, "Other Settings",
+                      *((self.MakeSlider(*i),0, wx.EXPAND) for i in
+                      (("highlight_power", -1, -1, 5, False),))), 0, wx.EXPAND)
         self.SetSizer(sizer)
 
 
