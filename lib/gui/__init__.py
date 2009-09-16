@@ -108,7 +108,7 @@ class MainWindow(wx.Frame):
         else:
             # Normal startup
             try:
-                self.tree.item = self.OpenFlame(self.flamepath)
+                self.OpenFlame(self.flamepath)
             except:
                 self.OnFlameNew(e=None)
 ##                self.OnFlameNew2(e=None)
@@ -338,7 +338,11 @@ class MainWindow(wx.Frame):
             return
 
         # Add flames to the tree
-        self.tree.AddFlamefile(path, flamestrings)
+        item = self.tree.AddFlamefile(path, flamestrings)
+        # HACK: Select parent first, to be 100% sure that selection change
+        # actually triggers.
+        self.tree.SelectItem(self.tree.GetItemByIndex((0,)))
+        self.tree.SelectItem(self.tree.GetItemByIndex((0,0)))
 
         # Dump the path to file for bookkeeping
         with open('paths.temp','a') as f:
