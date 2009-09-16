@@ -470,12 +470,20 @@ class MainWindow(wx.Frame):
         self.log._script = text
         
         try:
+            # _namespace is used as globals and locals, to emulate top level
+            # module behaviour.
             exec(script,self._namespace)
         except SystemExit:
             pass
         except ThreadInterrupt:
             print("\n\nScript Interrupted")
         finally:
+            # Restore the scripting environment to its default state.
+            # self.flame is stored in the dict, needs to be transferred.
+            flame = self.flame
+            self._namespace = self.CreateNamespace()
+            self.flame = flame
+            
             # This lets the GUI know that the script has finished.
             wx.PostEvent(self, ThreadMessageEvent(ID.ENDOFSCRIPT))
 
