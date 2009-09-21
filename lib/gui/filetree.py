@@ -28,7 +28,7 @@ class TreePanel(wx.Panel):
                                      | wx.TR_HIDE_ROOT)
 
 
-    def TempSave(self):
+    def TempSave(self, force=False):
         """Updates the tree's undo list and saves a backup version from
         which the session can be restored."""
         # HACK: this prevents loads of useless tempsaves when running a script.
@@ -42,7 +42,7 @@ class TreePanel(wx.Panel):
         string = self.parent.flame.to_string()
         # Check if flame has changed. to_string is needed to detect identical
         # flames saved in different apps. This comparison takes about 5ms.
-        if Flame(data[-1]).to_string() == string:
+        if not force and Flame(data[-1]).to_string() == string:
             return
 
         # Update the child

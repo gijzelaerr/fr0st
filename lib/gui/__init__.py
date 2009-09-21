@@ -211,7 +211,7 @@ class MainWindow(wx.Frame):
 
         # This adds the flame to the temp file, but without any actual changes.
         data.pop(0)
-        self.TreePanel.TempSave()
+        self.TreePanel.TempSave(force=True)
 
         return child
 
@@ -332,17 +332,22 @@ class MainWindow(wx.Frame):
                 # User cancelled when prompted to save changes.
                 return
 
-        # scan the file to see if it's valid
-        flamestrings = Flame.load_file(path)
-        if not flamestrings:
-            dlg = wx.MessageDialog(self, "It seems %s is not a valid flame file. Please choose a different flame." % path,
-                                   'Fr0st',wx.OK)
-            dlg.ShowModal()
-            self.OnFlameOpen(None)
-            return
+        if os.path.exists(path):
+            # scan the file to see if it's valid
+            flamestrings = Flame.load_file(path)
+            if not flamestrings:
+                dlg = wx.MessageDialog(self, "It seems %s is not a valid flame file. Please choose a different flame." % path,
+                                       'Fr0st',wx.OK)
+                dlg.ShowModal()
+                self.OnFlameOpen(None)
+                return
+        else:
+            flamestrings = []
 
         # Add flames to the tree
         item = self.tree.AddFlamefile(path, flamestrings)
+        if not flamestrings:
+            self.OnFlameNew2(None)
         # HACK: Select parent first, to be 100% sure that selection change
         # actually triggers.
         self.tree.SelectItem(self.tree.GetItemByIndex((0,)))
@@ -360,18 +365,23 @@ class MainWindow(wx.Frame):
             itr = (i for i,_ in self.tree.flamefiles[0][1])
         else:
             itr = (self.tree.itemdata,)
+            
         for i, data in enumerate(itr):
-            index = lst.index(data[0])
             if data[0] in lst:
+                index = lst.index(data[0])
                 lst[index] = data[-1]
             else:
+                index = len(lst)
                 lst.append(data[-1])
 
             data.Reset()
             self.tree.SetItemText(self.tree.GetItemByIndex((0,index)),
                                   data.name)
+        
+        fr0stlib.save_flames(path, *lst)
 
-        fr0stlib.save_flames(path,*lst)
+        # Make sure GUI updates properly
+        self.SetFlame(self.flame)
         
 
     def CheckForChanges(self, itemdata, lst):
