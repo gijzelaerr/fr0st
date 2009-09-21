@@ -6,9 +6,10 @@
 #   Basic Operations completed April 10th -
 #     Currently supports PNG and JPG images, will support more.
 
-import wx, os, time, sys
+import wx, os, time, sys, itertools
 from  wx.lib.filebrowsebutton import FileBrowseButton, DirBrowseButton
 from functools import partial
+from collections import defaultdict
 
 from lib.fr0stlib import Flame
 from lib.pyflam3 import Genome
@@ -26,29 +27,32 @@ class FreeMemoryPanel(wx.Panel):
         self.depth = parent.dict["buffer_depth"]
         self.fgs = wx.FlexGridSizer(2, 2, 1, 1)
         self.SetSizer(self.fgs)
-        self.Update()
+        self.UpdateView()
 
 
-    def Update(self, e=None):
+    def UpdateView(self, e=None):
         self.fgs.Clear(True)
-        lst = (("Free: ", 0), (self.GetFree(), wx.ALIGN_RIGHT),
-               ("Required: ", 0), (self.GetRequired(), wx.ALIGN_RIGHT))
-        self.fgs.AddMany((wx.StaticText(self, -1, str(i)), 0, fl) for i, fl in lst)
+        s = "%.2f MB"
+        lst = (("Free Memory: ", 0), (s %self.GetFree(), wx.ALIGN_RIGHT),
+               ("Required Memory: ", 0), (s %self.GetRequired(), wx.ALIGN_RIGHT))
+        self.fgs.AddMany((wx.StaticText(self, -1, str(i)), 0, fl)
+                         for i, fl in lst)
+        self.fgs.Layout()
         self.fgs.Fit(self)
 
 
     def GetMemGeneric(self):
-        return "%d MB" % wx.GetFreeMemory()
+        return wx.GetFreeMemory() / 1024.**2
 
     def GetMemWindows(self):
-        return "n/a" # TODO: implement this.
+        return 0 # TODO: implement this.
 
     def GetMemLinux(self):
         with open("/proc/meminfo") as f:
             # TODO: not sure if this is entirely correct.
             total, free, buff, cached = (int(f.readline().split()[1])
                                          for i in range(4))
-            return "%d MB" % ((free + cached) / 1024)
+            return (free + cached) / 1024.
         
     try:
         wx.GetFreeMemory()
@@ -67,7 +71,7 @@ class FreeMemoryPanel(wx.Panel):
         if self.depth.GetStringSelection() == "64-bit int":
             int_size = 8
         # the *9 is for: 5 in bucket (RGBA+density) + 4 in abucket (RGBA)
-        return "%d MB" % (w * h * os**2 * int_size * 9 / 1024.**2)
+        return w * h * os**2 * int_size * 9 / 1024.**2
     
         
         
@@ -119,7 +123,7 @@ class RenderDialog(wx.Frame):
         os = self.dict["spatial_oversample"]
         os.MakeIntOnly()
         os.SetAllowedRange(1,16)
-        os.callback = self.mem.Update
+        os.callback = self.mem.UpdateView
         
         szr0 = wx.BoxSizer(wx.VERTICAL)
         szr0.AddMany((size, (mem, 0, wx.EXPAND)))
@@ -140,6 +144,9 @@ class RenderDialog(wx.Frame):
         self.rendering = False
 	
 	self.Center(wx.CENTER_ON_SCREEN)
+	if "win" in sys.platform:
+            # TODO: need a cleaner way to make this look right in windows.
+            self.SetBackgroundColour((255,255,255))
 	self.Show(True)
 
 
@@ -162,11 +169,12 @@ class RenderDialog(wx.Frame):
                         style=wx.LB_EXTENDED)
 	lb.SetSelection(choices.index(data))
 	lb.SetMinSize((180,1))
+	lb.Bind(wx.EVT_LISTBOX, self.OnSelection)
 	self.lb = lb
         btn = wx.Button(self, -1, "All")
-        btn.Bind(wx.EVT_BUTTON, lambda e: map(lb.Select, range(len(choices))))
+        btn.Bind(wx.EVT_BUTTON, self.OnSelectAll)
         btn2 = wx.Button(self, -1, "None")
-        btn2.Bind(wx.EVT_BUTTON, lambda e: lb.DeselectAll())
+        btn2.Bind(wx.EVT_BUTTON, self.OnDeselectAll)
 
 	boxhor = wx.BoxSizer(wx.HORIZONTAL)
 	boxhor.AddMany((btn, btn2))
@@ -215,7 +223,7 @@ class RenderDialog(wx.Frame):
         # TODO: what about setting number of strips?
         depthszr = self.MakeChoices("buffer_depth", "nthreads")
         self.mem = FreeMemoryPanel(self)
-        self.dict["buffer_depth"].Bind(wx.EVT_CHOICE, self.mem.Update)
+        self.dict["buffer_depth"].Bind(wx.EVT_CHOICE, self.mem.UpdateView)
         return Box(self, "Resource Usage", depthszr, self.mem)
 
 
@@ -234,13 +242,31 @@ class RenderDialog(wx.Frame):
                 wtc.SetInt(v * self.ratio)
         else:
             self.ratio = wtc.GetFloat() / htc.GetFloat()
-        self.mem.Update()
+        self.mem.UpdateView()
 
 
-##    def OnSelection(self, e=None):
-##        path = os.path.join(config["Img-Dir"],
-##                            self.parent.flame.name+config["Img-Type"])
-##        self.fbb.SetValue(path)              
+    def OnSelection(self, e=None):
+        selections = self.lb.GetSelections()
+        len_ = len(selections)
+        if not len_:
+            return
+        elif len_ == 1:
+            name = self.choices[selections[0]]._name
+        else:
+            name = "{name}"
+        path = self.fbb.GetValue()
+        ext = os.path.splitext(path)[1]
+        self.fbb.SetValue(os.path.join(os.path.dirname(path), name) + ext)
+
+        
+    def OnSelectAll(self, e=None):
+        map(self.lb.Select, range(len(self.choices)))
+        self.OnSelection()
+
+
+    def OnDeselectAll(self, e=None):
+        self.lb.DeselectAll()
+##        self.OnSelection()
 
 
     @Bind(wx.EVT_CLOSE)
@@ -264,11 +290,9 @@ class RenderDialog(wx.Frame):
             self.CancelRender()
             return
 
-        self.destination = self.fbb.GetValue()
-        ty= os.path.splitext(self.destination)[1].lower()
-        if ty in self.types:
-            config["Img-Type"] = ty
-        else:
+        destination = self.fbb.GetValue()
+        ty= os.path.splitext(destination)[1].lower()
+        if ty not in self.types:
             wx.MessageDialog(self, "File extension must be png, jpg or bmp.",
                              'Fr0st', wx.OK).ShowModal()
             return
@@ -279,28 +303,75 @@ class RenderDialog(wx.Frame):
                              'Fr0st', wx.OK).ShowModal()
             return
 
+        if self.mem.GetRequired() > self.mem.GetFree() + .5:
+            # TODO: offer between slicing and cancel
+            wx.MessageDialog(self, "Not enough memory for render.",
+                             'Fr0st', wx.OK).ShowModal()
+            return
+
+        # Interpolate flame names, make repeated names unique, and ensure all
+        # paths are legal by calling the os.
+        paths = []
+        d = defaultdict(lambda: itertools.count(2).next)
+        for i in self.selections:
+            data = self.choices[i]
+            try:
+                path = destination.format(name=data._name)
+                if path in paths:
+                    base, ext = os.path.splitext(path)
+                    path = "%s (%s)%s" %(base, d[path](), ext)
+                # Check if path is valid and user has write permission.
+                if os.path.exists(path):
+                    open(path, 'a').close()
+                else:
+                    dirname = os.path.dirname(path)
+                    if not os.path.exists(dirname):
+                        os.makedirs(dirname)
+                    open(path, 'w').close()
+                    os.remove(path)
+            except (KeyError, ValueError, IndexError, IOError):
+                wx.MessageDialog(self, "Invalid path name.", 'Fr0st',
+                                 wx.OK).ShowModal()
+                return
+            paths.append(path)
+
+        clashes = [path for path in paths if os.path.exists(path)]
+        if clashes:
+            string = ("The following file%s already exist%s:\n\n"
+                      "%s\n\n" 
+                      "Do you want to overwrite?")
+            s1, s2 = ("s", "") if len(clashes) > 1 else ("", "s")
+            if wx.MessageDialog(self, string %(s1, s2, "\n".join(clashes)),
+                                'Fr0st', wx.YES_NO).ShowModal() == wx.ID_NO:
+                return
+
+        # All checks have been made, the render is confirmed.
         self.rendering = True
-        self.render.Label = "Cancel"    
+        self.render.Label = "Cancel"
 
 	kwds = dict((k,v.GetFloat()) for k,v in self.dict.iteritems())
 	size = [int(kwds.pop(i)) for i in ("width","height")]
 
 	self.config.update(kwds)
+	config["Img-Dir"] = os.path.dirname(destination)
+	config["Img-Type"] = ty
 
         req = self.parent.renderer.RenderRequest
-        for i in self.selections:
-            # TODO: handle repeated names.
+        backup = open('renders.flame', 'a')
+        for i, path in zip(self.selections, paths):
             data = self.choices[i]
             prog = self.MakeProg(data.name, self.selections.index(i)+1,
                                  len(self.selections))
-            req(partial(self.save, data.name, i), data[-1], size,
+            req(partial(self.save, path, i), data[-1], size,
                 progress_func=prog, **kwds)
+            backup.write(data[-1] + "\n")
+        backup.close()
 
         self.t = time.time()
 
 
     def MakeProg(self, name, index, lenght):
-        string = ("rendering %s/%s (%s): %%.2f %%%%\t\tETA: %%02d:%%02d:%%02d"
+        string = ("rendering %s/%s (%s): %%.2f %%%% \tETA: %%02d:%%02d:%%02d"
                   %(index, lenght, name))
         def prog(*args):
             if self.exitflag:
@@ -327,7 +398,6 @@ class RenderDialog(wx.Frame):
         while self.rendering:
             # waiting for prog func
             time.sleep(0.01)
-##        self.CleanProg()
         
 
     def CleanProg(self):
@@ -336,24 +406,20 @@ class RenderDialog(wx.Frame):
         self.SetStatusText("")
 
 
-    def save(self, name, index, bmp):
+    def save(self, path, index, bmp):
         if self.exitflag:
             # Don't save image.
             self.exitflag = 0
             self.CleanProg()
             return
         ty = config["Img-Type"]
-	image = wx.ImageFromBitmap(bmp)
-	if len(self.selections) == 1:
-            path = self.destination
-        else:
-            path = os.path.join(os.path.dirname(self.destination), name+ty)
-	image.SaveFile(path, self.types[ty])
+	wx.ImageFromBitmap(bmp).SaveFile(path, self.types[ty])
 
         if index == self.selections[-1]:
             self.rendering = False
             self.CleanProg()
-            
+
+        # TODO: remove
 	print time.time() - self.t
 
 
