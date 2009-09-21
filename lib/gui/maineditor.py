@@ -351,7 +351,9 @@ class AdjustPanel(MultiSliderMixin, wx.Panel):
                        ("rotate", 0, -360, 360, True)))), 0, wx.EXPAND)
         sizer.Add(Box(self, "Other Settings",
                       *((self.MakeSlider(*i),0, wx.EXPAND) for i in
-                      (("highlight_power", -1, -1, 5, False),))), 0, wx.EXPAND)
+                      (("gamma",4,1,10,False),
+                       ("brightness",4,0,100,False),
+                       ("highlight_power", -1, -1, 5, False)))), 0, wx.EXPAND)
         self.SetSizer(sizer)
 
 
