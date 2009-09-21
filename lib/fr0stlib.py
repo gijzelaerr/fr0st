@@ -7,45 +7,9 @@ try:
     import wx
 except ImportError:
     wx = False
-    
-BLANKFLAME = """<flame name="Untitled" version="fr0st" size="512 384" center="0 0" scale="128" oversample="1" filter="0.2" quality="1" background="0 0 0" brightness="4" gamma="4" gamma_threshold="0.04" >
-   <xform weight="0.5" color="0" linear="1" coefs="1 0 0 1 0 0" />
-   <palette count="256" format="RGB">
-      000000000000000000000000000000000000000000000000
-      000000000000000000000000000000000000000000000000
-      000000000000000000000000000000000000000000000000
-      000000000000000000000000000000000000000000000000
-      000000000000000000000000000000000000000000000000
-      000000000000000000000000000000000000000000000000
-      000000000000000000000000000000000000000000000000
-      000000000000000000000000000000000000000000000000
-      000000000000000000000000000000000000000000000000
-      000000000000000000000000000000000000000000000000
-      000000000000000000000000000000000000000000000000
-      000000000000000000000000000000000000000000000000
-      000000000000000000000000000000000000000000000000
-      000000000000000000000000000000000000000000000000
-      000000000000000000000000000000000000000000000000
-      000000000000000000000000000000000000000000000000
-      000000000000000000000000000000000000000000000000
-      000000000000000000000000000000000000000000000000
-      000000000000000000000000000000000000000000000000
-      000000000000000000000000000000000000000000000000
-      000000000000000000000000000000000000000000000000
-      000000000000000000000000000000000000000000000000
-      000000000000000000000000000000000000000000000000
-      000000000000000000000000000000000000000000000000
-      000000000000000000000000000000000000000000000000
-      000000000000000000000000000000000000000000000000
-      000000000000000000000000000000000000000000000000
-      000000000000000000000000000000000000000000000000
-      000000000000000000000000000000000000000000000000
-      000000000000000000000000000000000000000000000000
-      000000000000000000000000000000000000000000000000
-      000000000000000000000000000000000000000000000000
-   </palette>
-</flame>
-"""
+
+VERSION = "fr0st 0.5 alpha"
+
 
 class ParsingError(Exception):
     pass
@@ -60,37 +24,29 @@ class Flame(object):
 
     _default = set(("final","gradient","xform","name", "version"))
     
-    def __init__(self, string="", file="", name=""):
-        """A new flame object can be created by passing it a filename or
-        a string. If name is not specified, the first flame will be taken."""
-
+    def __init__(self, string=""):
         # Set minimum required attributes.
+        self.name = "Untitled"
         self.xform = []
-        self.size = [256,192]
+        self.size = [512, 384]
         self.zoom = 0.0
-        self.center = [0.0,0.0]
+        self.center = [0.0, 0.0]
         self.rotate = 0.0
-        self.background = [0.0,0.0,0.0]
+        self.background = [0.0, 0.0, 0.0]
         self.final = None
         self.scale = 0.0
         self.highlight_power = -1
+##        self.oversample = 1
+##        self.filter = 0.2
+##        self.quality = 100
+##        self.brightness = 4
+##        self.gamma = 4
+##        self.gamma_threshold = 0.04
         self.gradient = Palette()
-        
-        if not string and file:
-            path = os.path.join(sys.path[0],file)
-            lst = Flame.load_file(path)
-            if not name:
-                string = lst[0]
-            else:
-                for flamestring in Flame.load_file(path):
-                    if 'name="%s"' %name in flamestring:
-                        string = flamestring ; break
-                if not string:
-                    raise NameError, 'Flame "%s" not found' %name
+          
+        if string:
             self.from_string(string)
-                   
-        elif string:
-            self.from_string(string)
+
 
     @classmethod
     def load_file(cls,filename):
@@ -196,7 +152,7 @@ class Flame(object):
 
     def add_xform(self):
         self.xform.append(Xform(self, coefs=[1.0, 0.0, 0.0, 1.0, 0.0, 0.0],
-                                linear=1, color=0, weight=0.5))
+                                linear=1, color=0, weight=1))
         return self.xform[-1]
 
 
@@ -239,7 +195,7 @@ class Flame(object):
 
 
     def iter_attributes(self):
-        return itertools.chain((("name",self.name), ("version","fr0st")),
+        return itertools.chain((("name", self.name), ("version", VERSION)),
                                ((k,v) for (k,v) in self.__dict__.iteritems()
                                 if k not in self._default))
 
@@ -284,10 +240,10 @@ class Palette(list):
     formatstr = ('   <palette count="256" format="RGB">' +
                  32 * ('\n      ' + 24 * '%02X') +
                  '\n   </palette>\n')
-    old_formatstr = "".join('   <color index="%s"'%i + ' rgb="%s %s %s"/>\n'
+    old_formatstr = "".join('   <color index="%s" rgb="%%s %%s %%s"/>\n' %i
                                 for i in range(256))
     
-    def __init__(self,string=None):
+    def __init__(self,string=""):
         if string:
             for i in self.re_grad.findall(string):
                 self.append((int(i[0:2],16),
