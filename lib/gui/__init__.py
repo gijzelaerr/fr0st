@@ -436,6 +436,8 @@ class MainWindow(wx.Frame):
         self.large_preview()
         self.XformTabs.UpdateView()
         self.notebook.UpdateView(rezoom=rezoom)
+        if self.renderdialog:
+            self.renderdialog.UpdateView()
 
         # Set Undo and redo buttons to the correct value:
         data = self.tree.itemdata

@@ -163,14 +163,10 @@ class RenderDialog(wx.Frame):
 
 
     def MakeFlameSelector(self):
-	data = self.parent.tree.itemdata
-	self.choices = choices = list(self.parent.tree.GetDataList())
-	lb = wx.ListBox(self, -1, choices=[f.name for f in choices],
-                        style=wx.LB_EXTENDED)
-	lb.SetSelection(choices.index(data))
+	self.lb = lb = wx.ListBox(self, -1, style=wx.LB_EXTENDED)
+	self.UpdateFlameSelector()
 	lb.SetMinSize((180,1))
 	lb.Bind(wx.EVT_LISTBOX, self.OnSelection)
-	self.lb = lb
         btn = wx.Button(self, -1, "All")
         btn.Bind(wx.EVT_BUTTON, self.OnSelectAll)
         btn2 = wx.Button(self, -1, "None")
@@ -179,6 +175,15 @@ class RenderDialog(wx.Frame):
 	boxhor = wx.BoxSizer(wx.HORIZONTAL)
 	boxhor.AddMany((btn, btn2))
 	return Box(self, "Select Flame(s) to render", boxhor, (lb, 1, wx.EXPAND))
+
+
+    def UpdateFlameSelector(self):
+        for i in range(len(self.lb.GetItems())):
+            self.lb.Delete(0)
+        data = self.parent.tree.itemdata
+        self.choices = choices = list(self.parent.tree.GetDataList())
+        self.lb.InsertItems([f.name for f in choices], pos=0)
+        self.lb.SetSelection(choices.index(data))
 
 
     def MakeSizeSelector(self):
@@ -274,6 +279,11 @@ class RenderDialog(wx.Frame):
         self.lb.DeselectAll()
 ##        self.OnSelection()
 
+
+    def UpdateView(self):
+        self.UpdateFlameSelector()
+        self.OnSelection()
+        
 
     @Bind(wx.EVT_CLOSE)
     def OnExit(self, e=None):
