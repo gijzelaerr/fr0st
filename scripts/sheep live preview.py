@@ -35,7 +35,7 @@ def main():
         rot = (rot-5) % 360
         f = flame.copy()
         for x in f.xform:
-            if x.symmetry <= 0:
+            if x.animate:
                 x.rotate(rot)
         preview(f)
         time.sleep(0.05)

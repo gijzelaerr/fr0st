@@ -543,9 +543,10 @@ class ColorPanel(MultiSliderMixin, wx.Panel):
         dc = wx.PaintDC(self)
         dc.DrawBitmap(self.bmp, 2, 2, True)     
 
-#    @Bind(wx.EVT_CHECKBOX)
-#    def OnCheckbox(self,evt):
-#        self.UpdateView()
+    @Bind(wx.EVT_CHECKBOX)
+    def OnCheckbox(self,evt):
+        self.UpdateXform()
+        self.parent.TreePanel.TempSave()
 
 
 class ChaosPanel(wx.Panel):
