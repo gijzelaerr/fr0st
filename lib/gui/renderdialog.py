@@ -182,12 +182,13 @@ class RenderDialog(wx.Frame):
 
 
     def MakeSizeSelector(self):
-        w,h = 512., 384.
-        self.ratio = w/h
-        self.config["width"] = w
-        self.config["height"] = h
-        
+        # HACK: those are arbitrary values, just so MakeTCs doesn't choke.
+        self.config["width"] = 512.
+        self.config["height"] = 384.    
         fgs = self.MakeTCs("width", "height", low=0,callback=self.SizeCallback)
+
+        # Update tc to show flame size.
+        self.OnSelection()
 
         ratio = wx.CheckBox(self, -1, "Keep Ratio")
         ratio.SetValue(True)
@@ -257,6 +258,11 @@ class RenderDialog(wx.Frame):
         path = self.fbb.GetValue()
         ext = os.path.splitext(path)[1]
         self.fbb.SetValue(os.path.join(os.path.dirname(path), name) + ext)
+
+        tempflame = Flame(self.choices[selections[0]][-1])
+        self.dict["width"].SetFloat(tempflame.width)
+        self.dict["height"].SetFloat(tempflame.height)
+        self.ratio = float(tempflame.width) / tempflame.height
 
         
     def OnSelectAll(self, e=None):
