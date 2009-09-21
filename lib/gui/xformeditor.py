@@ -500,7 +500,7 @@ class ColorPanel(MultiSliderMixin, wx.Panel):
         sizer.Add((198,50))
         sizer.AddMany((self.MakeSlider(*i), 0, wx.EXPAND) for i in
                       (("color", 0, 0, 1),
-                       ("symmetry", 0, -1, 1),
+                       ("color_speed", 0.5, 0, 1),
                        ("opacity", 1, 0, 1)))
 
         self.SetSizer(sizer)

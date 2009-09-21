@@ -29,7 +29,6 @@ class Flame(object):
         self.name = "Untitled"
         self.xform = []
         self.size = [512, 384]
-        self.zoom = 0.0
         self.center = [0.0, 0.0]
         self.rotate = 0.0
         self.background = [0.0, 0.0, 0.0]
@@ -95,9 +94,9 @@ class Flame(object):
         self.scale = self.scale * 100 / self.size[0]
 
         # zoom is deprecated, so scale is adjusted by the zoom value
-        self.scale *= 2**self.zoom
-        del self.zoom
-
+        if hasattr(self,"zoom"):
+           self.scale *= 2**self.zoom
+           del self.zoom
         
     def to_string(self, omit_details=False):
         """Extracts parameters from a Flame object and converts them into
@@ -490,6 +489,8 @@ class Xform(object):
     # See iter_attributes for more details.
     opacity = 1.0
     color = 0.0
+    color_speed = 0.5
+    animate = 1.0
 
     def __init__(self, parent=None, chaos=None, post=None, **kwds):
         self._parent = parent
@@ -521,6 +522,13 @@ class Xform(object):
         x = Xform(parent, **kwds)
         # Convert from screen to complex plane orientation
         x.coefs = x.screen_coefs
+        
+        # Symmetry is deprecated.
+        if x.symmetry:
+           x.color_speed = (1-x.symmetry)/2.0
+           x.animate = float(x.symmetry>0)
+           del x.symmetry
+            
         return x
 
     
