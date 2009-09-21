@@ -33,7 +33,7 @@ class Flame(object):
         self.rotate = 0.0
         self.background = [0.0, 0.0, 0.0]
         self.final = None
-        self.scale = 0.0
+        self.scale = 25.
         self.highlight_power = -1
 ##        self.oversample = 1
 ##        self.filter = 0.2
