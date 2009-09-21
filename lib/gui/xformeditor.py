@@ -503,6 +503,11 @@ class ColorPanel(MultiSliderMixin, wx.Panel):
                        ("color_speed", 0.5, 0, 1),
                        ("opacity", 1, 0, 1)))
 
+        self.animflag = wx.CheckBox(self,-1,"animate")
+        
+        sizer.Add(self.animflag)
+        
+
         self.SetSizer(sizer)
 
 
@@ -511,7 +516,9 @@ class ColorPanel(MultiSliderMixin, wx.Panel):
         xform = self.parent.ActiveXform
 
         for name in self.sliders:
-            self.UpdateSlider(name, getattr(xform, name))         
+            self.UpdateSlider(name, getattr(xform, name))
+            
+        self.animflag.SetValue(xform.animate!=0)
         
         color = int(xform.color * 256) or 1
         grad = itertools.chain(*flame.gradient[:color])
@@ -526,6 +533,7 @@ class ColorPanel(MultiSliderMixin, wx.Panel):
         # Note: This method is also called by OnIdle.
         for name, val in self.IterSliders():
             setattr(self.parent.ActiveXform, name, val)
+        self.parent.ActiveXform.animate = float(self.animflag.IsChecked())
         self.UpdateView()
         self.parent.image.RenderPreview() 
 
@@ -535,6 +543,9 @@ class ColorPanel(MultiSliderMixin, wx.Panel):
         dc = wx.PaintDC(self)
         dc.DrawBitmap(self.bmp, 2, 2, True)     
 
+#    @Bind(wx.EVT_CHECKBOX)
+#    def OnCheckbox(self,evt):
+#        self.UpdateView()
 
 
 class ChaosPanel(wx.Panel):
