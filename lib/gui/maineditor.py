@@ -308,6 +308,8 @@ class Gradient(wx.Panel):
 
     @Bind(wx.EVT_LEFT_UP)
     def OnLeftUp(self, e):
+        if self._startpos is None:
+            return
         self.ReleaseMouse()
         self._startpos = None
         parent = self.GetParent()

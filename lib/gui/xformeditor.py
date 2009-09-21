@@ -391,20 +391,21 @@ class VarPanel(wx.Panel):
 
     @Bind(wx.EVT_TREE_END_LABEL_EDIT)
     def OnEndEdit(self, e):
+        e.Veto()
         item = e.GetItem()
         oldvalue = self.tree.GetItemText(item, 1)
         try:
             value = float(e.GetLabel() or "0.0")
             self.SetItemText(item,str(value),1)
         except ValueError:
-            e.Veto()
             return
-
+        if value:
+            self.tree.Expand(item)
+        else:
+            self.tree.Collapse(item)
         if value != oldvalue:
             self.SetFlameAttribute(item, value)
             self.parent.TreePanel.TempSave()
-
-        e.Veto()
 
 
 ##    # TODO: is it preferrable to have:
@@ -438,12 +439,13 @@ class VarPanel(wx.Panel):
             text = self.tree.GetItemText(item, 1)
             if text == '0.0':
                 new = 1.0
+                self.tree.Expand(item)
             else:
                 new = 0.0
+                self.tree.Collapse(item)
             self.SetFlameAttribute(item, new)
             self.SetItemText(item, str(new), 1)
             self.parent.TreePanel.TempSave()
-        e.Skip()
         
 
     def OnWheel(self,e):

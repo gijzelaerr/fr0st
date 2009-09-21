@@ -17,7 +17,7 @@ from lib.gui.renderdialog import RenderDialog
 from lib.gui.config import config
 
 from lib import fr0stlib
-from lib.fr0stlib import Flame, BLANKFLAME
+from lib.fr0stlib import Flame
 from lib.pyflam3 import Genome
 from lib.decorators import *
 from lib.threadinterrupt import ThreadInterrupt, interruptall
@@ -41,7 +41,7 @@ class MainWindow(wx.Frame):
         self.CreateStatusBar()
         self.SetDoubleBuffered(True)
         
-        # Launch the render thread
+        # Launch the render threads
         self.renderer = Renderer(self)
         self.renderdialog = None
         
@@ -54,8 +54,6 @@ class MainWindow(wx.Frame):
         self.grad = self.notebook.grad
         self.canvas = self.notebook.canvas
         self.adjust = self.notebook.adjust
-
-        self.previewframe = PreviewFrame(self)
 
         self.editorframe = EditorFrame(self)
         self.editor = self.editorframe.editor
@@ -79,6 +77,12 @@ class MainWindow(wx.Frame):
         
         self.SetSizer(sizer)
 
+        self._namespace = self.CreateNamespace()
+        self.flame = Flame()
+        self.flame.add_xform()
+
+        self.previewframe = PreviewFrame(self)
+
         # Calculate the correct minimum size dynamically.
         sizer.Fit(self)
         self.SetMinSize(self.GetSize())
@@ -92,11 +96,9 @@ class MainWindow(wx.Frame):
                 window.SetDimensions(*rect)
                 window.Maximize(maximize)
 
-        self._namespace = self.CreateNamespace()
-
         # Set up paths
         sys.path.append(os.path.join(sys.path[0],"scripts")) # imp in scripts
-        self.flamepath = os.path.join(sys.path[0], *config["flamepath"])
+        self.flamepath = os.path.join(sys.path[0], config["flamepath"])
         
         if os.path.exists('paths.temp') and False:
             # TODO: check if another fr0st process is running.
@@ -193,7 +195,10 @@ class MainWindow(wx.Frame):
 
     @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=ID.FNEW2)
     def OnFlameNew2(self,e):
-        data = ItemData(BLANKFLAME)
+        flame = Flame()
+        flame.add_xform()
+        flame.gradient.random(**config["Gradient-Settings"])
+        data = ItemData(flame.to_string())
 
         self.tree.GetChildren((0,)).append((data,[]))
         self.tree.RefreshItems()
@@ -203,7 +208,6 @@ class MainWindow(wx.Frame):
         
         child = self.tree.GetItemByIndex((0, -1))
         self.tree.SelectItem(child)
-        self.flame.gradient.random(**config["Gradient-Settings"])
 
         # This adds the flame to the temp file, but without any actual changes.
         data.pop(0)
@@ -445,12 +449,12 @@ class MainWindow(wx.Frame):
         """Recreates the namespace each time the script is run to reassign
         the flame variable, etc."""
         namespace = dict(self = self, # for debugging only!
-                         flame = Flame(string=fr0stlib.BLANKFLAME),
                          get_flames = self.tree.GetFlames,
                          preview = self.preview,
                          large_preview = self.large_preview,
                          dialog = self.editorframe.make_dialog,
                          get_file_path = self.tree.GetFilePath,
+                         VERSION = fr0stlib.VERSION,
                          )
 
         exec("from lib.fr0stlib import *; __name__='__main__'",namespace)
