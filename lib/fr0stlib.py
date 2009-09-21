@@ -39,9 +39,9 @@ class Flame(object):
 ##        self.oversample = 1
 ##        self.filter = 0.2
 ##        self.quality = 100
-##        self.brightness = 4
-##        self.gamma = 4
-##        self.gamma_threshold = 0.04
+        self.brightness = 4
+        self.gamma = 4
+        self.gamma_threshold = 0.04
         self.gradient = Palette()
           
         if string:
