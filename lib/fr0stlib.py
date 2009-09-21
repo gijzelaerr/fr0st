@@ -523,11 +523,10 @@ class Xform(object):
         # Convert from screen to complex plane orientation
         x.coefs = x.screen_coefs
         
-        # Symmetry is deprecated.
-        if x.symmetry:
-           x.color_speed = (1-x.symmetry)/2.0
-           x.animate = float(x.symmetry>0)
-           del x.symmetry
+        # Symmetry is deprecated, so we factor it into the equivalent attrs.
+        x.color_speed = x.__dict__.get("color_speed", (1 - x.symmetry) / 2.0)
+        x.animate = x.__dict__.get("animate", float(x.symmetry <= 0))
+        x.symmetry = 0.0
             
         return x
 
