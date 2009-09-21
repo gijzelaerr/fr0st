@@ -31,6 +31,7 @@ def flam3_render(flame, size, quality, **kwds):
 def flam4_render(flame, size, quality, **kwds):
     """Passes requests on to flam4. Works on windows only for now."""
     from pyflam3 import _flam4
+    flame = flame if type(flame) is Flame else Flame(flame)
     flam4Flame = _flam4.loadFlam4(flame)
     output_buffer = _flam4.renderFlam4(flam4Flame, size, quality, **kwds)
     return output_buffer
