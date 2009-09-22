@@ -194,6 +194,10 @@ flam3_count_nthreads = libflam3.flam3_count_nthreads
 libflam3.flam3_render.argtypes = [POINTER(BaseFrame), POINTER(c_ubyte), c_int, c_int, c_int, POINTER(RenderStats)]
 flam3_render = libflam3.flam3_render
 
+# void flam3_interpolate(flam3_genome *genomes, int ngenomes, double time, double stagger, flam3_genome *result);
+#libflam3.flam3_interpolate.argtypes = [POINTER(BaseGenome), c_int, c_float32, c_float32, POINTER(BaseGenome)]
+#flam3_interpolate = libflam3.flam3_interpolate
+
 # double flam3_render_memory_required(flam3_frame *f);
 libflam3.flam3_render_memory_required.argtypes = [POINTER(BaseFrame)]
 libflam3.flam3_render_memory_required.restype = c_double
