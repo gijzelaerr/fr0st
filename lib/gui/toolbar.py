@@ -32,14 +32,14 @@ def CreateToolBar(parent):
         "Open Script", "")
     add(ID.RUN, LoadIcon('toolbar', 'Run'),
         "Run Script", " Run the currently loaded script file") 
-    add(ID.STOP, GetBMP(wx.ART_ERROR),
+    add(ID.STOP, LoadIcon('toolbar', 'Stop'),
         "Stop Script", " Stop script execution")
-    add(ID.EDITOR, GetBMP(wx.ART_MISSING_IMAGE),
+    add(ID.EDITOR, LoadIcon('toolbar', 'Script-Editor'),
         "Editor", " Open the script editor")
     tb.AddSeparator()
-    add(ID.PREVIEW, GetBMP(wx.ART_MISSING_IMAGE),
+    add(ID.PREVIEW, LoadIcon('toolbar', 'Preview'),
         "Preview", " Open the preview frame")
-    add(ID.RENDER, GetBMP(wx.ART_EXECUTABLE_FILE),
+    add(ID.RENDER, LoadIcon('toolbar', 'Render'),
         "Render", " Render flame to image file")
     
     tb.Realize()
