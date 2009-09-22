@@ -194,10 +194,13 @@ class MainWindow(wx.Frame):
             
 
     @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=ID.FNEW2)
-    def OnFlameNew2(self,e):
-        flame = Flame()
-        flame.add_xform()
-        flame.gradient.random(**config["Gradient-Settings"])
+    def OnFlameNew2(self, e=None, string=None):
+        if string:
+            flame = Flame(string)
+        else:
+            flame = Flame()
+            flame.add_xform()
+            flame.gradient.random(**config["Gradient-Settings"])
         data = ItemData(flame.to_string())
 
         self.tree.GetChildren((0,)).append((data,[]))
@@ -236,13 +239,17 @@ class MainWindow(wx.Frame):
         
     @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=ID.FSAVEAS)
     def OnFlameSaveAs(self,e):
-        self.flamepath = self.tree.GetFlameData(self.tree.itemparent)[-1]
-        dDir,dFile = os.path.split(self.flamepath)
+        filedata, lst = self.tree.flamefiles[0]
+        dDir,dFile = os.path.split(filedata[-1])
         dlg = wx.FileDialog(self, message="Save file as ...", defaultDir=dDir,
                             defaultFile=dFile, wildcard=self.wildcard,
                             style=wx.SAVE)
         if dlg.ShowModal() == wx.ID_OK:
             self.flamepath = dlg.GetPath()
+
+            if self.flamepath == filedata[-1]:
+                # Make a copy rather than overwriting.
+                self.OnFlameNew2(string=self.flame.to_string())
             self.SaveFlame(self.flamepath)
         dlg.Destroy()
         

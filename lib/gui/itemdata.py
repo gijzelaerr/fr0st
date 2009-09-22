@@ -66,5 +66,5 @@ class ItemData(list):
         return ('* ' if self.undo else '') + self._name
     @name.setter
     def name(self, v):
-        self._name = v[1:] if v[:2] == '* ' else v
+        self._name = v[2:] if v[:2] == '* ' else v
         self.append(self.re_name.sub(self._name, self[-1]))
