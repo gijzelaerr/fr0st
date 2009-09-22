@@ -180,17 +180,17 @@ class MultiSliderMixin(object):
 
     def OnIdle(self, e):
         if self._new is not None:
-            self.UpdateXform()
+            self.UpdateFlame()
             self._new = None
             self._changed = True
 
 
     def __callback(self, tc):
-        self.UpdateXform()
+        self.UpdateFlame()
         self.parent.TreePanel.TempSave()
         
 
-    def UpdateXform(self):
+    def UpdateFlame(self):
         Abstract
 
 

@@ -83,7 +83,7 @@ class XformPanel(wx.Panel):
         self.parent = parent.parent
 
         # Add the number fields
-        cb = lambda tc: self.UpdateXform()
+        cb = lambda tc: self.UpdateFlame()
         for i in "adbecf":
             setattr(self, i, NumberTextCtrl(self, callback=cb))
         btn = (wx.Button(self,-1,i,name=i,style=wx.BU_EXACTFIT) for i in "xyo")
@@ -271,7 +271,7 @@ class XformPanel(wx.Panel):
         self.postflag.SetFont(font)
 
 
-    def UpdateXform(self,e=None):
+    def UpdateFlame(self,e=None):
         xform, view = self.GetActive()
 
         # Update weight.
@@ -529,7 +529,7 @@ class ColorPanel(MultiSliderMixin, wx.Panel):
         self.Refresh()
 
 
-    def UpdateXform(self):
+    def UpdateFlame(self):
         # Note: This method is also called by OnIdle.
         for name, val in self.IterSliders():
             setattr(self.parent.ActiveXform, name, val)
@@ -545,7 +545,7 @@ class ColorPanel(MultiSliderMixin, wx.Panel):
 
     @Bind(wx.EVT_CHECKBOX)
     def OnCheckbox(self,evt):
-        self.UpdateXform()
+        self.UpdateFlame()
         self.parent.TreePanel.TempSave()
 
 

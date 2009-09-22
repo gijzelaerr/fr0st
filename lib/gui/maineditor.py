@@ -364,7 +364,7 @@ class AdjustPanel(MultiSliderMixin, wx.Panel):
             self.UpdateSlider(name, getattr(flame, name))         
 
 
-    def UpdateXform(self):
+    def UpdateFlame(self):
         for name, val in self.IterSliders():
             setattr(self.parent.flame, name, val)
         self.UpdateView()
