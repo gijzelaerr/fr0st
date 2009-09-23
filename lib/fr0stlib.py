@@ -145,7 +145,7 @@ class Flame(object):
     def create_final(self):
         if not self.final:
             self.final = Xform(self, coefs=[1.0, 0.0, 0.0, 1.0, 0.0, 0.0],
-                               linear=1, color=0)
+                               linear=1, color=0, color_speed=0)
         return self.final
 
 
