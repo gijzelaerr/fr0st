@@ -185,7 +185,7 @@ class MainWindow(wx.Frame):
 ##    @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=ID.FNEW)
     def OnFlameNew(self, e):
         path = self.newfilename()
-        self.tree.item = self.tree.AddFlamefile(path, [])
+        self.tree.item = self.tree.SetFlames(path)
         
         with open('paths.temp','a') as f:
             f.write(path + '\n')
@@ -352,7 +352,7 @@ class MainWindow(wx.Frame):
             flamestrings = []
 
         # Add flames to the tree
-        item = self.tree.AddFlamefile(path, flamestrings)
+        item = self.tree.SetFlames(path, *flamestrings)
         if not flamestrings:
             self.OnFlameNew2(None)
         # HACK: Select parent first, to be 100% sure that selection change
@@ -464,6 +464,7 @@ class MainWindow(wx.Frame):
         the flame variable, etc."""
         namespace = dict(self = self, # for debugging only!
                          get_flames = self.tree.GetFlames,
+                         set_flames = self.tree.SetFlames,
                          preview = self.preview,
                          large_preview = self.large_preview,
                          dialog = self.editorframe.make_dialog,
