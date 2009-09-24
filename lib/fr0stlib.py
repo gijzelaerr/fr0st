@@ -542,7 +542,7 @@ class Xform(object):
         # Write the chaos values.
         xaos = self.chaos.get_list()
         if xaos:
-            lst.append('chaos="%s " />' % " ".join(map(str,xaos)))
+            lst.append('chaos="%s " />\n' % " ".join(map(str,xaos)))
         else:
             lst.append('/>\n')
 
