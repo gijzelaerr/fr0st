@@ -330,8 +330,9 @@ class VarPanel(wx.Panel):
         for i in config["active-vars"]:
             child = self.tree.AppendItem(self.root, i)
 
-            for j in pyflam3.variables[i]:
-                item = self.tree.AppendItem(child,  j)
+            for k,v in pyflam3.variables[i]:
+                item = self.tree.AppendItem(child,  k)
+                self.SetItemText(item, str(v), 1)
 
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(self.tree,1,wx.EXPAND)
@@ -352,18 +353,27 @@ class VarPanel(wx.Panel):
         while child.IsOk():
             name = self.tree.GetItemText(child)
             yield (child, name)
-            for i,_ in self.itervars(child):
-                yield (i, "%s_%s" % (name, self.tree.GetItemText(i)))
             child,cookie = self.tree.GetNextChild(item,cookie)
 
 
     def UpdateView(self):
         xform = self.parent.ActiveXform
-        for i,name in self.itervars():
+        for i, name in self.itervars():
+            # Looping through variations
             attr = str(getattr(xform, name))
-            if self.tree.GetItemText(i,1) == attr:
+            if self.tree.GetItemText(i, 1) != attr:
+                self.SetItemText(i, attr, 1)
+            if not float(attr):
                 continue
-            self.SetItemText(i, attr, 1)
+            for j, name2 in self.itervars(i):
+                # Looping through variables
+                variable = "%s_%s" %(name, name2)
+                if variable not in xform.__dict__:
+                    # Avoid overwriting variables set in GUI with value of 0
+                    continue
+                attr = str(getattr(xform, variable))
+                if self.tree.GetItemText(j, 1) != attr:
+                    self.SetItemText(j, attr, 1)              
 
 
     def SetItemText(self, i, s, col):
@@ -371,23 +381,38 @@ class VarPanel(wx.Panel):
         value."""
         self.tree.SetItemText(i, s, col)
         if s == "0.0":
-            self.tree.SetItemTextColour(i, "dark grey")
+            self.tree.SetItemTextColour(i, "grey")
         else:
             self.tree.SetItemTextColour(i, "BLACK")
             
 
     def SetFlameAttribute(self, item, value):
+        xform = self.parent.ActiveXform
         parent = self.tree.GetItemParent(item)
         if parent == self.root:
             # it's a variation
             name = self.tree.GetItemText(item, 0)
+            if value:
+                # populate xform with values from tree.
+                for j, name2 in self.itervars(item):
+                    value2 = float(self.tree.GetItemText(j, 1))
+                    setattr(xform, "%s_%s" %(name, name2), value2)
+            else:
+                # Remove all variables from file.
+                for j, name2 in self.itervars(item):
+                    variable = "%s_%s" %(name, name2)
+                    if hasattr(xform ,variable):
+                        delattr(xform, variable) 
         else:
             # it's a variable
-            name = "_".join(map(self.tree.GetItemText,(parent,item)))
-        setattr(self.parent.ActiveXform,name,value)
+            variation = self.tree.GetItemText(parent, 0)
+            if not getattr(xform, variation):
+                return
+            name = "%s_%s" %(variation, self.tree.GetItemText(item, 0))
+        setattr(xform, name, value)
         # TODO: This could be optimized to just redraw the var preview.
         self.parent.canvas.ShowFlame(rezoom=False)
-
+        
 
     @Bind(wx.EVT_TREE_END_LABEL_EDIT)
     def OnEndEdit(self, e):

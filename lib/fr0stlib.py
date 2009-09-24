@@ -8,6 +8,11 @@ try:
 except ImportError:
     wx = False
 
+try:
+    from pyflam3.variations import variable_dict as _variables
+except ImportError:
+    _variables = {}
+
 VERSION = "fr0st 0.5 alpha"
 
 
@@ -627,7 +632,8 @@ class Xform(object):
 
     def iter_attributes(self):
         return ((k,v) for (k,v) in self.__dict__.iteritems()
-                if k not in self._default and v or hasattr(self.__class__, k))
+                if k not in self._default and v or hasattr(self.__class__, k)
+                or k in _variables)
 
 #----------------------------------------------------------------------
 
