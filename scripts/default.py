@@ -1,6 +1,6 @@
 
 while True:
     for x in flame.xform:
-        if x.symmetry <= 0:
+        if x.animate:
             x.rotate(-5)
     preview()
