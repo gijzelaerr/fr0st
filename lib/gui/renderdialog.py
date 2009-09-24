@@ -163,7 +163,11 @@ class RenderDialog(wx.Frame):
         fbb = FileBrowseButton(self, -1, fileMask=mask, labelText='File:',
                                initialValue=initial)
         self.fbb = fbb
-        return Box(self, "Output Destination", (fbb, 0, wx.EXPAND))
+        transp = wx.CheckBox(self, -1, "PNG Transparency")
+        self.transp = self.config["transparent"]
+        transp.SetValue(self.transp)
+        transp.Bind(wx.EVT_CHECKBOX, self.OnTransp)
+        return Box(self, "Output Destination", (fbb, 0, wx.EXPAND), transp)
 
 
     def MakeFlameSelector(self):
@@ -243,6 +247,10 @@ class RenderDialog(wx.Frame):
 
     def OnEarly(self, e):
         self.earlyclip = e.GetInt()
+
+
+    def OnTransp(self, e):
+        self.transp = e.GetInt()
 
 
     def SizeCallback(self, tc):
@@ -375,6 +383,8 @@ class RenderDialog(wx.Frame):
 
 	kwds = dict((k,v.GetFloat()) for k,v in self.dict.iteritems())
 	kwds["earlyclip"] = self.earlyclip
+	if ty == ".png":
+            kwds["transparent"] = self.transp
 	size = [int(kwds.pop(i)) for i in ("width","height")]
 
 	self.config.update(kwds)

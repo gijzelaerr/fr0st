@@ -105,7 +105,8 @@ config = {"active-vars": ('linear',
                               "estimator_minimum": 0,
                               "nthreads": 0,
                               "buffer_depth": 33,
-                              "earlyclip": False},
+                              "earlyclip": False,
+                              "transparent": False},
           "Gradient-Settings": {"hue": (0, 1),
                                 "saturation": (0, 1),
                                 "value": (.25, 1),
@@ -130,6 +131,12 @@ def dump():
 
 
 if os.path.exists(_configpath):
-    config.update(load())
+##    config.update(load())
+    d = load()
+    for k,v in d.iteritems():
+        if type(v) == dict:
+            config[k].update(v)
+        else:
+            config[k] = v
     
 atexit.register(dump)

@@ -123,7 +123,7 @@ class Renderer():
         if renderer == 'flam4':
             channels = 4
         else:
-            channels = kwds.get('channels', 3)
+            channels = kwds.get('transparent', False) + 3
         # args[1] is always size...
         evt = ThreadMessageEvent(ID.RENDER, callback, args[1], output_buffer,
                                  channels)

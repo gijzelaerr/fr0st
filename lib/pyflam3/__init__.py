@@ -36,7 +36,7 @@ class Genome(BaseGenome):
 
     size = property(_get_size, _set_size)
 
-    def render(self, channels=3, transparent=False, ntemporal_samples=1,
+    def render(self, transparent=False, ntemporal_samples=1,
                temporal_filter=1.0, estimator=9, estimator_curve=.4,
                estimator_minimum=0, spatial_oversample=1, filter=1., **kwargs):
         
@@ -52,10 +52,11 @@ class Genome(BaseGenome):
         frame.genomes = cast(pointer(self), POINTER(BaseGenome))
         frame.ngenomes = 1
 
-        output_buffer = allocate_output_buffer(self.size, channels)
+        output_buffer = allocate_output_buffer(self.size, transparent+3)
 
         stats = RenderStats()
-        flam3_render(byref(frame), output_buffer, flam3_field_both, channels, transparent, byref(stats))
+        flam3_render(byref(frame), output_buffer, flam3_field_both,
+                     transparent+3, transparent, byref(stats))
         return (output_buffer, stats)
 
     @classmethod
