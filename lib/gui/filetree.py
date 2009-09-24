@@ -195,8 +195,7 @@ class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
 
 
     def SetFlames(self, path, *flamestrings):
-        lst = [(ItemData(s if type(s) is str else s.to_string()), [])
-               for s in flamestrings]
+        lst = [(ItemData(s), []) for s in flamestrings]
         name = os.path.basename(path)
         self.flamefiles = [(ItemData(path, name=name),lst),]
 

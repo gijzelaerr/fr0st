@@ -464,7 +464,7 @@ class MainWindow(wx.Frame):
         the flame variable, etc."""
         namespace = dict(self = self, # for debugging only!
                          get_flames = self.tree.GetFlames,
-                         set_flames = self.tree.SetFlames,
+                         set_flames = self.set_flames,
                          preview = self.preview,
                          large_preview = self.large_preview,
                          dialog = self.editorframe.make_dialog,
@@ -532,7 +532,7 @@ class MainWindow(wx.Frame):
     def large_preview(self):
         if self.previewframe.IsShown():
             self.previewframe.RenderPreview()
-
+        
 
     @Bind(EVT_THREAD_MESSAGE, id=ID.PREVIEW)
     def OnPreview(self, e):
@@ -542,6 +542,17 @@ class MainWindow(wx.Frame):
 ##        self.notebook.UpdateView()
         self.canvas.ShowFlame(rezoom=False)
         self.grad.UpdateView()
+
+
+    def set_flames(self, path, *flames):
+        lst = [s if type(s) is str else s.to_string() for s in flames]
+        wx.PostEvent(self, ThreadMessageEvent(ID.SETF, path, lst))
+
+
+    @Bind(EVT_THREAD_MESSAGE, id=ID.SETF)
+    def OnSetFlames(self, e):
+        path, lst = e.GetValue()
+        self.tree.SetFlames(path, *lst)
 
 
     @Bind(EVT_THREAD_MESSAGE, id=ID.RENDER)
