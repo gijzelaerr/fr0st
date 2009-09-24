@@ -192,7 +192,7 @@ def loadFlam4(flame):
     flam4Flame.hue = 0                              #LINKME
     flam4Flame.rotation = flame.angle # flam4 uses radians for rotate!
     flam4Flame.symmetry = 0                         #LINKME
-    flam4Flame.background = rgba(0,0,0,0)           #LINKME
+    flam4Flame.background = rgba(flame.background[0]/255.,flame.background[1]/255.,flame.background[2]/255.,0)
     flam4Flame.brightness = flame.brightness
     flam4Flame.gamma = flame.gamma
     flam4Flame.vibrancy = 1                         #LINKME
@@ -262,11 +262,11 @@ def renderFlam4(flame, size, quality, progress_func, **kwds):
     flame.quality = numBatches
     libflam4.cuStartFrame(pointer(flame))
     # HACK: if we're only doing 3 batches, assume preview and don't run fuse
-    if numBatches > 3:
+    if flame.quality > 3:
         libflam4.cuRunFuse(pointer(flame))
     for x in range(numBatches):
         libflam4.cuRenderBatch(pointer(flame))
-        flag = progress_func(None, float(x+1)*100/numBatches, 0, 0)
+        flag = progress_func(None, float(x+1)*100/flame.quality, 0, 0)
         # HACK: the print forces a refresh. Without it, the prog func will
         # never have time to run.
         sys.stdout.write("")
