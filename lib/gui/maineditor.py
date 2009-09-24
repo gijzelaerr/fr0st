@@ -353,8 +353,9 @@ class AdjustPanel(MultiSliderMixin, wx.Panel):
                       *((self.MakeSlider(*i),0, wx.EXPAND) for i in
                       (("gamma",4,1,10,False),
                        ("brightness",4,0,100,False),
-                       ("gamma_threshold",0.01, 0, .1,False),
+                       ("gamma_threshold",0.01, 0, 1,False),
                        ("highlight_power", -1, -1, 5, False)))), 0, wx.EXPAND)
+        self.sliders["gamma_threshold"][1].SetAllowedRange(0, None)
         self.SetSizer(sizer)
 
 
