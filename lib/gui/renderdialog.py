@@ -32,16 +32,17 @@ class FreeMemoryPanel(wx.Panel):
 
     def UpdateView(self, e=None):
         self.fgs.Clear(True)
-        s = "%.2f MB"
-        lst = (("Free Memory: ", 0), (s %self.GetFree(), wx.ALIGN_RIGHT),
-               ("Required Memory: ", 0), (s %self.GetRequired(), wx.ALIGN_RIGHT))
+        s = "%.2f MB "
+        lst = ((" Required Memory: ", 0), (s %self.GetRequired(), wx.ALIGN_RIGHT),
+               (" Free Memory: ", 0), (s %self.GetFree(), wx.ALIGN_RIGHT))
         self.fgs.AddMany((wx.StaticText(self, -1, str(i)), 0, fl)
                          for i, fl in lst)
         self.fgs.Layout()
         self.fgs.Fit(self)
 
 
-    def GetMemGeneric(self):
+    def GetFree(self):
+        """Generic Implementation."""
         return wx.GetFreeMemory() / 1024.**2
 
     def GetMemWindows(self):
@@ -56,7 +57,6 @@ class FreeMemoryPanel(wx.Panel):
         
     try:
         wx.GetFreeMemory()
-        GetFree = GetMemGeneric
     except NotImplementedError:   
         if 'win' in sys.platform:
             GetFree = GetMemWindows
@@ -84,6 +84,20 @@ class RenderDialog(wx.Frame):
     types = {".bmp": wx.BITMAP_TYPE_BMP,
              ".png": wx.BITMAP_TYPE_PNG,
              ".jpg": wx.BITMAP_TYPE_JPEG}
+    filter_kernel_dict = {"Gaussian": 0,
+                          "Hermite": 1,
+                          "Box": 2,
+                          "Triangle": 3,
+                          "Bell": 4,
+                          "B_spline": 5,
+                          "Lanczos3": 6,
+                          "Lanczos2": 7,
+                          "Mitchell": 8,
+                          "Blackman": 9,
+                          "Catrom": 10,
+                          "Hamming": 11,
+                          "Hanning": 12,
+                          "Quadratic": 13}
     nthreads_dict = dict(("%2d" %i, i) for i in range(1, 17))
     nthreads_dict["auto"] = 0
 
@@ -104,16 +118,7 @@ class RenderDialog(wx.Frame):
         fbb = self.MakeFileBrowseButton()
         flame = self.MakeFlameSelector()
         size = self.MakeSizeSelector()
-        opts = self.MakeTCs("quality", "filter", "spatial_oversample",
-                            "estimator", "estimator_curve",
-                            "estimator_minimum")
-        early = wx.CheckBox(self, -1, "Early Clip")
-        self.earlyclip = self.config["earlyclip"]
-        early.SetValue(self.earlyclip)
-        early.Bind(wx.EVT_CHECKBOX, self.OnEarly)
-        opts = Box(self, "Render Settings", opts, early)
-
-
+        opts = self.MakeOpts()
         mem = self.MakeMemoryWidget()
 
         self.render = wx.Button(self, ID.RENDER, "Render")
@@ -208,7 +213,27 @@ class RenderDialog(wx.Frame):
         ratio.Bind(wx.EVT_CHECKBOX, self.OnRatio)
 
 	return Box(self, "Size", fgs, ratio)
+
+
+    def MakeOpts(self):
+        opts = self.MakeTCs("quality", "spatial_oversample",
+                            "estimator", "estimator_curve",
+                            "estimator_minimum", "filter_radius")
+        filters = self.MakeChoices("filter_kernel", fgs=opts)
+        early = wx.CheckBox(self, -1, "Early Clip")
+        self.earlyclip = self.config["earlyclip"]
+        early.SetValue(self.earlyclip)
+        early.Bind(wx.EVT_CHECKBOX, self.OnEarly)
+        return Box(self, "Render Settings", opts, early)
+
     
+    def MakeMemoryWidget(self):
+        # TODO: what about setting number of strips?
+        depthszr = self.MakeChoices("buffer_depth", "nthreads")
+        self.mem = FreeMemoryPanel(self)
+        self.dict["buffer_depth"].Bind(wx.EVT_CHOICE, self.mem.UpdateView)
+        return Box(self, "Resource Usage", depthszr, self.mem)
+
 
     def MakeTCs(self, *a, **k):
         fgs = wx.FlexGridSizer(99, 2, 1, 1)
@@ -218,27 +243,19 @@ class RenderDialog(wx.Frame):
             self.dict[i] = tc
             fgs.Add(wx.StaticText(self, -1, i.replace("_", " ").title()),
                     0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
-            fgs.Add(tc, 0, wx.ALIGN_LEFT, 5)
+            fgs.Add(tc, 0, wx.ALIGN_RIGHT, 5)
 	return fgs
 
 
-    def MakeChoices(self, *a):
-        fgs = wx.FlexGridSizer(99, 2, 1, 1)
+    def MakeChoices(self, *a, **k):
+        fgs = k["fgs"] if "fgs" in k else wx.FlexGridSizer(99, 2, 1, 1)
         for i in a:
             widg = MyChoice(self, i, getattr(self, i+"_dict"), self.config[i])
             self.dict[i] = widg
             fgs.Add(wx.StaticText(self, -1, i.replace("_", " ").title()),
                     0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
-            fgs.Add(widg, 0, wx.ALIGN_LEFT, 5)
+            fgs.Add(widg, 0, wx.ALIGN_RIGHT, 5)
         return fgs
-
-
-    def MakeMemoryWidget(self):
-        # TODO: what about setting number of strips?
-        depthszr = self.MakeChoices("buffer_depth", "nthreads")
-        self.mem = FreeMemoryPanel(self)
-        self.dict["buffer_depth"].Bind(wx.EVT_CHOICE, self.mem.UpdateView)
-        return Box(self, "Resource Usage", depthszr, self.mem)
 
 
     def OnRatio(self, e):

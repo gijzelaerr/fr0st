@@ -36,9 +36,10 @@ class Genome(BaseGenome):
 
     size = property(_get_size, _set_size)
 
-    def render(self, transparent=False, ntemporal_samples=1,
-               temporal_filter=1.0, estimator=9, estimator_curve=.4,
-               estimator_minimum=0, spatial_oversample=1, filter=1., **kwargs):
+    def render(self, transparent=0, ntemporal_samples=1, temporal_filter=1.0,
+               estimator=9, estimator_curve=.4, estimator_minimum=0,
+               spatial_oversample=1, filter_radius=1., filter_kernel=0,
+               **kwargs):
         
         self.ntemporal_samples = ntemporal_samples
         self.temporal_filter_width = temporal_filter
@@ -46,7 +47,8 @@ class Genome(BaseGenome):
         self.estimator_curve = estimator_curve
         self.estimator_minimum = estimator_minimum
         self.spatial_oversample = spatial_oversample
-        self.spatial_filter_radius = filter
+        self.spatial_filter_radius = filter_radius
+        self.spatial_filter_select = filter_kernel
         
         frame = Frame(**kwargs)
         frame.genomes = cast(pointer(self), POINTER(BaseGenome))

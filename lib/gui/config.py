@@ -93,12 +93,12 @@ config = {"active-vars": ('linear',
                                    "depth": 1},
           "Preview-Settings": {"quality": 5,
                                "estimator": 0,
-                               "filter": .5},
+                               "filter_radius": .5},
           "Large-Preview-Settings": {"quality": 25,
                                      "estimator": 0,
-                                     "filter": .5},
+                                     "filter_radius": .5},
           "Render-Settings": {"quality": 500,
-                              "filter": 0.8,
+                              "filter_radius": 0.8,
                               "spatial_oversample": 1,
                               "estimator": 9,
                               "estimator_curve": 0.4,
@@ -106,7 +106,8 @@ config = {"active-vars": ('linear',
                               "nthreads": 0,
                               "buffer_depth": 33,
                               "earlyclip": False,
-                              "transparent": False},
+                              "transparent": False,
+                              "filter_kernel": 0},
           "Gradient-Settings": {"hue": (0, 1),
                                 "saturation": (0, 1),
                                 "value": (.25, 1),
@@ -130,13 +131,16 @@ def dump():
         f.write("\n".join("%r: %r" %i for i in config.iteritems()))
 
 
-if os.path.exists(_configpath):
-##    config.update(load())
-    d = load()
-    for k,v in d.iteritems():
+def update_dict(old, new):
+    for k,v in new.iteritems():
         if type(v) == dict:
-            config[k].update(v)
-        else:
-            config[k] = v
+            update_dict(old[k], v)
+        elif k in old:
+            old[k] = v
+
+
+if os.path.exists(_configpath):
+    update_dict(config, load())
+
     
 atexit.register(dump)
