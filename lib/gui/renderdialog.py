@@ -108,7 +108,8 @@ class RenderDialog(wx.Frame):
                             "estimator", "estimator_curve",
                             "estimator_minimum")
         early = wx.CheckBox(self, -1, "Early Clip")
-        early.SetValue(self.config["earlyclip"])
+        self.earlyclip = self.config["earlyclip"]
+        early.SetValue(self.earlyclip)
         early.Bind(wx.EVT_CHECKBOX, self.OnEarly)
         opts = Box(self, "Render Settings", opts, early)
 
