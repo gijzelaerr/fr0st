@@ -107,7 +107,10 @@ class RenderDialog(wx.Frame):
         opts = self.MakeTCs("quality", "filter", "spatial_oversample",
                             "estimator", "estimator_curve",
                             "estimator_minimum")
-        opts = Box(self, "Render Settings", opts)
+        early = wx.CheckBox(self, -1, "Early Clip")
+        early.SetValue(self.config["earlyclip"])
+        early.Bind(wx.EVT_CHECKBOX, self.OnEarly)
+        opts = Box(self, "Render Settings", opts, early)
 
 
         mem = self.MakeMemoryWidget()
@@ -197,7 +200,7 @@ class RenderDialog(wx.Frame):
 
         ratio = wx.CheckBox(self, -1, "Keep Ratio")
         ratio.SetValue(True)
-        ratio.Bind(wx.EVT_CHECKBOX, self.OnCheckBox)
+        ratio.Bind(wx.EVT_CHECKBOX, self.OnRatio)
 
 	return Box(self, "Size", fgs, ratio)
     
@@ -233,8 +236,12 @@ class RenderDialog(wx.Frame):
         return Box(self, "Resource Usage", depthszr, self.mem)
 
 
-    def OnCheckBox(self, e):
+    def OnRatio(self, e):
         self.keepratio = e.GetInt()
+
+
+    def OnEarly(self, e):
+        self.earlyclip = e.GetInt()
 
 
     def SizeCallback(self, tc):
@@ -366,6 +373,7 @@ class RenderDialog(wx.Frame):
         self.render.Label = "Cancel"
 
 	kwds = dict((k,v.GetFloat()) for k,v in self.dict.iteritems())
+	kwds["earlyclip"] = self.earlyclip
 	size = [int(kwds.pop(i)) for i in ("width","height")]
 
 	self.config.update(kwds)

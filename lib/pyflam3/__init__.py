@@ -38,7 +38,7 @@ class Genome(BaseGenome):
 
     def render(self, channels=3, transparent=False, ntemporal_samples=1,
                temporal_filter=1.0, estimator=9, estimator_curve=.4,
-               estimator_minimum=0, spatial_oversample=1, filter=.4, **kwargs):
+               estimator_minimum=0, spatial_oversample=1, filter=1., **kwargs):
         
         self.ntemporal_samples = ntemporal_samples
         self.temporal_filter_width = temporal_filter
@@ -148,7 +148,8 @@ class Genome(BaseGenome):
 
 class Frame(BaseFrame):
     def __init__(self, fixed_seed=False, aspect=1.0, buffer_depth=33, time=0,
-                 bytes_per_channel=1, progress_func=None, nthreads=0):
+                 bytes_per_channel=1, progress_func=None, nthreads=0,
+                 earlyclip=False):
         if not fixed_seed:
             # Initializes the random seed based on system time.
             # A fixed seed is used for preview renders with high noise levels.
@@ -159,6 +160,7 @@ class Frame(BaseFrame):
         self.bits = buffer_depth
         self.time = time
         self.bytes_per_channel = bytes_per_channel
+        self.earlyclip = earlyclip
 
         if callable(progress_func):
             self.progress = ProgressFunction(progress_func)
