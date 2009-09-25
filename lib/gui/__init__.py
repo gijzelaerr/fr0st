@@ -91,7 +91,7 @@ class MainWindow(wx.Frame):
         for window, k in ((self, "Rect-Main"),
                           (self.editorframe, "Rect-Editor"),
                           (self.previewframe, "Rect-Preview")):
-            if k in config:
+            if config[k]:
                 rect, maximize = config[k]
                 window.SetDimensions(*rect)
                 window.Maximize(maximize)

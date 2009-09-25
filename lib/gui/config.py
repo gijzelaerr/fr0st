@@ -115,7 +115,10 @@ config = {"active-vars": ('linear',
           "Img-Dir": "renders",
           "Img-Type": ".png",
           "Bits": 0,
-          "renderer": "flam3"
+          "renderer": "flam3",
+          "Rect-Main": None,
+          "Rect-Editor": None,
+          "Rect-Preview": None,
           }
  
 _configpath = 'config.cfg'
