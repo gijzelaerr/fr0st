@@ -143,10 +143,18 @@ def update_dict(old, new):
             new[k] = v
 
 
+def update_dict(old, new):
+    for k,v in new.iteritems():
+        if k in old:
+            if type(v) == dict:
+                update_dict(old[k], v)
+            else:
+                old[k] = v
+            
+
 if os.path.exists(_configpath):
-    _old_config = config
-    config = load()
-    update_dict(_old_config, config)
+    _old_config = config.copy()
+    update_dict(config, load())
 
     
 atexit.register(dump)
