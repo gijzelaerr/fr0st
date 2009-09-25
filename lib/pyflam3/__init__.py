@@ -49,6 +49,11 @@ class Genome(BaseGenome):
         self.spatial_oversample = spatial_oversample
         self.spatial_filter_radius = filter_radius
         self.spatial_filter_select = filter_kernel
+
+        if filter_kernel in (6,7):
+            # HACK: force earlyclip for lanczos filters, which don't work
+            # properly witohut it, generating lots of noise.
+            kwargs["earlyclip"] = True
         
         frame = Frame(**kwargs)
         frame.genomes = cast(pointer(self), POINTER(BaseGenome))

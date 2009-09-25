@@ -115,7 +115,7 @@ class BaseGenome(Structure):
                , ('zoom', c_double)
                , ('pixels_per_unit', c_double)
                , ('spatial_filter_radius', c_double)
-               , ('spacial_filter_select', c_int)
+               , ('spatial_filter_select', c_int)
                , ('sample_density', c_double)
                , ('nbatches', c_int)
                , ('ntemporal_samples', c_int)
