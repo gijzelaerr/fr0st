@@ -406,7 +406,8 @@ class MainWindow(wx.Frame):
     @Bind(EVT_THREAD_MESSAGE, id=ID.ENDOFSCRIPT)
     def EndOfScript(self, e):
         self.BlockGUI(False)
-        self.TreePanel.TempSave()
+        if e.GetValue()[0]:
+            self.TreePanel.TempSave()
 
         
     @CallableFrom('MainThread')
@@ -470,6 +471,7 @@ class MainWindow(wx.Frame):
                          dialog = self.editorframe.make_dialog,
                          get_file_path = self.tree.GetFilePath,
                          VERSION = fr0stlib.VERSION,
+                         update_flame = True,
                          )
 
         exec("from lib.fr0stlib import *; __name__='__main__'",namespace)
@@ -499,12 +501,13 @@ class MainWindow(wx.Frame):
         finally:
             # Restore the scripting environment to its default state.
             # self.flame is stored in the dict, needs to be transferred.
+            update = self._namespace["update_flame"]
             flame = self.flame
             self._namespace = self.CreateNamespace()
             self.flame = flame
             
             # This lets the GUI know that the script has finished.
-            wx.PostEvent(self, ThreadMessageEvent(ID.ENDOFSCRIPT))
+            wx.PostEvent(self, ThreadMessageEvent(ID.ENDOFSCRIPT, update))
 
         # Keep this out of the finally clause!
         print "\nSCRIPT STATS:\n"\
@@ -545,6 +548,7 @@ class MainWindow(wx.Frame):
 
 
     def set_flames(self, path, *flames):
+        self._namespace["update_flame"] = False
         lst = [s if type(s) is str else s.to_string() for s in flames]
         wx.PostEvent(self, ThreadMessageEvent(ID.SETF, path, lst))
 
