@@ -118,105 +118,105 @@ for k,v in locals().items():
         variation_list[v] = name
 
 
-variable_dict = {'blob_low': 0.2,  
-                 'blob_high': 1.0,  
-                 'blob_waves': 5.0,  
-                 'pdj_a': 0.5,  
-                 'pdj_b': 2.0,  
-                 'pdj_c': 0.8,  
-                 'pdj_d': 1.0,  
-                 'fan2_x': 0.4,  
-                 'fan2_y': 4.0,  
-                 'rings2_val': 0.5,  
-                 'perspective_angle': 0.4,  
-                 'perspective_dist': 2.0,  
-                 'julian_power': 4.0,  
-                 'julian_dist': 1.0,  
-                 'juliascope_power': 4.0,  
-                 'juliascope_dist': 1.0,  
-                 'radial_blur_angle': 0.5,  
-                 'pie_slices': 5.0,  
-                 'pie_rotation': 0.0,  
-                 'pie_thickness': 0.4,  
-                 'ngon_sides': 5.0,  
-                 'ngon_power': 0.6,  
-                 'ngon_circle': 0.3,  
-                 'ngon_corners': 1.0,  
-                 'curl_c1': 0.4,  
-                 'curl_c2': 0.5,  
-                 'rectangles_x': 0.4,  
-                 'rectangles_y': 0.3,  
-                 'disc2_rot': 0.5,  
-                 'disc2_twist': 0.5,  
-                 'super_shape_rnd': 0.4,  
-                 'super_shape_m': 5.0,  
-                 'super_shape_n1': 0.4,  
-                 'super_shape_n2': 0.6,  
-                 'super_shape_n3': 0.4,  
-                 'super_shape_holes': -0.4,  
-                 'flower_petals': 7.0,  
-                 'flower_holes': 0.2,  
-                 'conic_eccentricity': 0.6,  
-                 'conic_holes': 0.5,  
-                 'parabola_height': 0.8,  
-                 'parabola_width': 0.5,  
-                 'bent2_x': 0.3,  
-                 'bent2_y': 0.5,  
-                 'bipolar_shift': 0.0,  
-                 'cell_size': 0.5,  
-                 'cpow_r': 0.5,                   
-                 'cpow_i': 0.3,  
-                 'cpow_power': 2.0,                   
-                 'curve_xamp': 0.4,                   
-                 'curve_yamp': -0.6,                   
-                 'curve_xlength': 2.0,                   
-                 'curve_ylength': 1.0,                   
-                 'escher_beta': 0.6,                   
-                 'lazysusan_spin': 0.5,                   
-                 'lazysusan_space': 0.3,                   
-                 'lazysusan_twist': 3.0,                   
-                 'lazysusan_x': 0.0,  
-                 'lazysusan_y': 0.0,                   
-                 'modulus_x': 0.4,                   
-                 'modulus_y': 1.0,                   
-                 'oscilloscope_separation': 0.0,                   
-                 'oscilloscope_frequency': 2.0,                   
-                 'oscilloscope_amplitude': 1.0,                   
-                 'oscilloscope_damping': 0.5,                   
-                 'popcorn2_x': 0.2,                   
-                 'popcorn2_y': 0.2,                   
-                 'popcorn2_c': 4.0,  
-                 'separation_x': 0.3,                   
-                 'separation_xinside': 0.5,                   
-                 'separation_y': 0.2,                   
-                 'separation_yinside': 0.4,                   
-                 'split_xsize': 2.0,                   
-                 'split_ysize': 1.0,                   
-                 'splits_x': 0.2,                   
-                 'splits_y': 0.1,                   
-                 'stripes_space': -0.5,                   
-                 'stripes_warp': 2.0,  
-                 'wedge_angle': 0.5,                   
-                 'wedge_hole': 0.0,                   
-                 'wedge_count': 3.0,                   
-                 'wedge_swirl': 0.4,                   
-                 'wedge_julia_angle': 0.2,                   
-                 'wedge_julia_count': 7.0,                   
-                 'wedge_julia_power': 3.0,                   
-                 'wedge_julia_dist': 4.0,                   
-                 'wedge_sph_angle': 0.5,                   
-                 'wedge_sph_count': 3.0,  
-                 'wedge_sph_hole': 0.0,                   
-                 'wedge_sph_swirl': 0.4,                   
-                 'whorl_inside': 0.3,                   
-                 'whorl_outside': -0.2,                   
-                 'waves2_freqx': 0.8,                   
-                 'waves2_scalex': 1.0,                   
-                 'waves2_freqy': 0.4,                   
-                 'waves2_scaley': 2.0}         
+variable_list = {('blob_low' ,  0.2)  
+                 ('blob_high' ,  1.0)  
+                 ('blob_waves' ,  5.0)  
+                 ('pdj_a' ,  0.5)  
+                 ('pdj_b' ,  2.0)  
+                 ('pdj_c' ,  0.8)  
+                 ('pdj_d' ,  1.0)  
+                 ('fan2_x' ,  0.4)  
+                 ('fan2_y' ,  4.0)  
+                 ('rings2_val' ,  0.5)  
+                 ('perspective_angle' ,  0.4)  
+                 ('perspective_dist' ,  2.0)  
+                 ('julian_power' ,  4.0)  
+                 ('julian_dist' ,  1.0)  
+                 ('juliascope_power' ,  4.0)  
+                 ('juliascope_dist' ,  1.0)  
+                 ('radial_blur_angle' ,  0.5)  
+                 ('pie_slices' ,  5.0)  
+                 ('pie_rotation' ,  0.0)  
+                 ('pie_thickness' ,  0.4)  
+                 ('ngon_sides' ,  5.0)  
+                 ('ngon_power' ,  0.6)  
+                 ('ngon_circle' ,  0.3)  
+                 ('ngon_corners' ,  1.0)  
+                 ('curl_c1' ,  0.4)  
+                 ('curl_c2' ,  0.5)  
+                 ('rectangles_x' ,  0.4)  
+                 ('rectangles_y' ,  0.3)  
+                 ('disc2_rot' ,  0.5)  
+                 ('disc2_twist' ,  0.5)  
+                 ('super_shape_rnd' ,  0.4)  
+                 ('super_shape_m' ,  5.0)  
+                 ('super_shape_n1' ,  0.4)  
+                 ('super_shape_n2' ,  0.6)  
+                 ('super_shape_n3' ,  0.4)  
+                 ('super_shape_holes' ,  -0.4)  
+                 ('flower_petals' ,  7.0)  
+                 ('flower_holes' ,  0.2)  
+                 ('conic_eccentricity' ,  0.6)  
+                 ('conic_holes' ,  0.5)  
+                 ('parabola_height' ,  0.8)  
+                 ('parabola_width' ,  0.5)  
+                 ('bent2_x' ,  0.3)  
+                 ('bent2_y' ,  0.5)  
+                 ('bipolar_shift' ,  0.0)  
+                 ('cell_size' ,  0.5)  
+                 ('cpow_r' ,  0.5)                   
+                 ('cpow_i' ,  0.3)  
+                 ('cpow_power' ,  2.0)                   
+                 ('curve_xamp' ,  0.4)                   
+                 ('curve_yamp' ,  -0.6)                   
+                 ('curve_xlength' ,  2.0)                   
+                 ('curve_ylength' ,  1.0)                   
+                 ('escher_beta' ,  0.6)                   
+                 ('lazysusan_spin' ,  0.5)                   
+                 ('lazysusan_space' ,  0.3)                   
+                 ('lazysusan_twist' ,  3.0)                   
+                 ('lazysusan_x' ,  0.0)  
+                 ('lazysusan_y' ,  0.0)                   
+                 ('modulus_x' ,  0.4)                   
+                 ('modulus_y' ,  1.0)                   
+                 ('oscilloscope_separation' ,  0.0)                   
+                 ('oscilloscope_frequency' ,  2.0)                   
+                 ('oscilloscope_amplitude' ,  1.0)                   
+                 ('oscilloscope_damping' ,  0.5)                   
+                 ('popcorn2_x' ,  0.2)                   
+                 ('popcorn2_y' ,  0.2)                   
+                 ('popcorn2_c' ,  4.0)  
+                 ('separation_x' ,  0.3)                   
+                 ('separation_xinside' ,  0.5)                   
+                 ('separation_y' ,  0.2)                   
+                 ('separation_yinside' ,  0.4)                   
+                 ('split_xsize' ,  2.0)                   
+                 ('split_ysize' ,  1.0)                   
+                 ('splits_x' ,  0.2)                   
+                 ('splits_y' ,  0.1)                   
+                 ('stripes_space' ,  -0.5)                   
+                 ('stripes_warp' ,  2.0)  
+                 ('wedge_angle' ,  0.5)                   
+                 ('wedge_hole' ,  0.0)                   
+                 ('wedge_count' ,  3.0)                   
+                 ('wedge_swirl' ,  0.4)                   
+                 ('wedge_julia_angle' ,  0.2)                   
+                 ('wedge_julia_count' ,  7.0)                   
+                 ('wedge_julia_power' ,  3.0)                   
+                 ('wedge_julia_dist' ,  4.0)                   
+                 ('wedge_sph_angle' ,  0.5)                   
+                 ('wedge_sph_count' ,  3.0)  
+                 ('wedge_sph_hole' ,  0.0)                   
+                 ('wedge_sph_swirl' ,  0.4)                   
+                 ('whorl_inside' ,  0.3)                   
+                 ('whorl_outside' ,  -0.2)                   
+                 ('waves2_freqx' ,  0.8)                   
+                 ('waves2_scalex' ,  1.0)                   
+                 ('waves2_freqy' ,  0.4)                   
+                 ('waves2_scaley': 2.0)}         
 
 variables = defaultdict(list)
-for k,v in variable_dict.iteritems():
+for k,v in variable_list:
     tion, ble = k.rsplit("_", 1)
     variables[tion].append((ble, v))
 
