@@ -406,8 +406,8 @@ class MainWindow(wx.Frame):
     @Bind(EVT_THREAD_MESSAGE, id=ID.ENDOFSCRIPT)
     def EndOfScript(self, e):
         self.BlockGUI(False)
-        if e.GetValue()[0]:
-            self.TreePanel.TempSave()
+        self.SetFlame(self.flame, rezoom=False)
+        self.TreePanel.TempSave()
 
         
     @CallableFrom('MainThread')
@@ -489,6 +489,7 @@ class MainWindow(wx.Frame):
         text = string.splitlines()
         script = "\n".join(text) +'\n'
         self.log._script = text
+        flame = Flame(self.flame.to_string())
         
         try:
             # _namespace is used as globals and locals, to emulate top level
@@ -501,13 +502,13 @@ class MainWindow(wx.Frame):
         finally:
             # Restore the scripting environment to its default state.
             # self.flame is stored in the dict, needs to be transferred.
-            update = self._namespace["update_flame"]
-            flame = self.flame
+            if self._namespace["update_flame"]:
+                flame = self.flame
             self._namespace = self.CreateNamespace()
             self.flame = flame
             
             # This lets the GUI know that the script has finished.
-            wx.PostEvent(self, ThreadMessageEvent(ID.ENDOFSCRIPT, update))
+            wx.PostEvent(self, ThreadMessageEvent(ID.ENDOFSCRIPT))
 
         # Keep this out of the finally clause!
         print "\nSCRIPT STATS:\n"\
