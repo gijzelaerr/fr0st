@@ -9,7 +9,8 @@ except ImportError:
     wx = False
 
 try:
-    from pyflam3.variations import variable_dict as _variables
+    from pyflam3.variations import variable_list
+    _variables = dict(variable_list)
 except ImportError:
     _variables = {}
 
