@@ -135,15 +135,18 @@ def dump():
 
 
 def update_dict(old, new):
-    for k,v in new.iteritems():
-        if type(v) == dict:
-            update_dict(old[k], v)
-        elif k in old:
-            old[k] = v
+    for k,v in old.iteritems():
+        if k in new:
+            if type(v) == dict:
+                update_dict(v, new[k])
+        else:
+            new[k] = v
 
 
 if os.path.exists(_configpath):
-    update_dict(config, load())
+    _old_config = config
+    config = load()
+    update_dict(_old_config, config)
 
     
 atexit.register(dump)
