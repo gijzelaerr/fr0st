@@ -407,7 +407,8 @@ class MainWindow(wx.Frame):
     def EndOfScript(self, e):
         self.BlockGUI(False)
         self.SetFlame(self.flame, rezoom=False)
-        self.TreePanel.TempSave()
+        if e.GetValue()[0]:
+            self.TreePanel.TempSave()
 
         
     @CallableFrom('MainThread')
@@ -502,13 +503,14 @@ class MainWindow(wx.Frame):
         finally:
             # Restore the scripting environment to its default state.
             # self.flame is stored in the dict, needs to be transferred.
-            if self._namespace["update_flame"]:
+            update = self._namespace["update_flame"]
+            if update:
                 flame = self.flame
             self._namespace = self.CreateNamespace()
             self.flame = flame
             
             # This lets the GUI know that the script has finished.
-            wx.PostEvent(self, ThreadMessageEvent(ID.ENDOFSCRIPT))
+            wx.PostEvent(self, ThreadMessageEvent(ID.ENDOFSCRIPT, update))
 
         # Keep this out of the finally clause!
         print "\nSCRIPT STATS:\n"\
