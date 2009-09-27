@@ -280,7 +280,7 @@ class RenderDialog(wx.Frame):
             else:
                 wtc.SetInt(v * self.ratio)
         else:
-            self.ratio = wtc.GetFloat() / htc.GetFloat()
+            self.ratio = float(wtc.GetInt()) / htc.GetInt()
         self.mem.UpdateView()
 
 
