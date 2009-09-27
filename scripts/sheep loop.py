@@ -1,11 +1,11 @@
 
 
 lst = []
-name = flame.name + "%02d"
-for i in range(72):
+name = flame.name + "%03d"
+for i in range(120):
     for x in flame.xform:
         if x.animate:
-            x.rotate(-5)
+            x.rotate(-3)
     flame.name = name % i
     lst.append(flame.copy())
     

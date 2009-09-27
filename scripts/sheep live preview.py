@@ -32,7 +32,7 @@ def main():
     """This is the actual script."""
     rot = 0
     while True:
-        rot = (rot-5) % 360
+        rot = (rot-3) % 360
         f = flame.copy()
         for x in f.xform:
             if x.animate:
