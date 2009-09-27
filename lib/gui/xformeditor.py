@@ -519,7 +519,7 @@ class ColorPanel(MultiSliderMixin, wx.Panel):
         self.parent = parent.parent
         super(ColorPanel, self).__init__(parent, -1)
 
-        self.bmp = wx.EmptyBitmap(128, 28)
+        self.bmp = self.bmp2 = self.bmp3 = wx.EmptyBitmap(1, 32)
 
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add((198,50))
@@ -537,20 +537,31 @@ class ColorPanel(MultiSliderMixin, wx.Panel):
 
 
     def UpdateView(self):
-        flame = self.parent.flame
+        gradient = self.parent.flame.gradient
         xform = self.parent.ActiveXform
 
         for name in self.sliders:
             self.UpdateSlider(name, getattr(xform, name))
             
-        self.animflag.SetValue(xform.animate!=0)
+        self.animflag.SetValue(xform.animate)
         
-        color = int(xform.color * 256) or 1
-        grad = itertools.chain(*flame.gradient[:color])
+        color = min(max(int(xform.color * 256), 1), 255)
+        grad = itertools.chain(*gradient[:color])
         buff = "%c%c%c" * color % tuple(map(int, grad))
         img = wx.ImageFromBuffer(color, 1, buff)
-        img.Rescale(192, 28) # Could be 128, 192 or 256
+        img.Rescale(96, 28)
         self.bmp = wx.BitmapFromImage(img)
+
+        img = wx.ImageFromBuffer(1,1,"%c%c%c" %tuple(map(int,gradient[color])))
+        img.Rescale(12, 32)
+        self.bmp2 = wx.BitmapFromImage(img)
+
+        grad = itertools.chain(*gradient[color:])
+        buff = "%c%c%c" * (256-color) % tuple(map(int, grad))
+        img = wx.ImageFromBuffer(256-color, 1, buff)
+        img.Rescale(96, 28)
+        self.bmp3 = wx.BitmapFromImage(img)
+        
         self.Refresh()
 
 
@@ -566,7 +577,11 @@ class ColorPanel(MultiSliderMixin, wx.Panel):
     @Bind(wx.EVT_PAINT)
     def OnPaint(self, evt):
         dc = wx.PaintDC(self)
-        dc.DrawBitmap(self.bmp, 2, 2, True)     
+        w = self.bmp.Width
+        dc.DrawBitmap(self.bmp, 6, 8, True)
+        dc.DrawBitmap(self.bmp2, w + 8, 6, True)
+        dc.DrawBitmap(self.bmp3, w + 22, 8, True)   
+
 
     @Bind(wx.EVT_CHECKBOX)
     def OnCheckbox(self,evt):
