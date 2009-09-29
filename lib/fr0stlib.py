@@ -286,9 +286,8 @@ class Palette(list):
             self[i] = hls2rgb((h,l,s))
 
             
-    def inverse(self):
-        for i in self:
-            i = (255 - i[0], 255 - i[1], 255 - i[2])
+    def invert(self):
+        self[:] = ((255 - i[0], 255 - i[1], 255 - i[2]) for i in self)
 
   
 ##    def blur(self, value, space='rgb'):
@@ -313,10 +312,6 @@ class Palette(list):
 ##            color = (r,g,b)
 ##            tmp.append(color)
 ##        self[:] = tmp
-
-
-    def reverse(self):
-        self.reverse()
 
         
     def from_seed(self, seed, csplit=0, split=30,  dist=64, curve='lin'):

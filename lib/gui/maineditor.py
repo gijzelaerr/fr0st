@@ -138,11 +138,10 @@ class GradientPanel(wx.Panel):
         self.config = config["Gradient-Settings"]
         self.dict = {}
         
-        choicelist = [('rotate', (-128, 128)),
+        choicelist = (('rotate', (-128, 128)),
                       ('hue',(-180,180)),
                       ('saturation', (-100,100)),
-                      ('brightness', (-100,100))]
-                      ##('blur', (0, 127))]
+                      ('brightness', (-100,100)))
         self.choices = dict(choicelist)
         self.choice = 'rotate'
         self.func = lambda x: getattr(self.parent.flame.gradient,
@@ -156,7 +155,6 @@ class GradientPanel(wx.Panel):
         
         self.slider = wx.Slider(self, -1, 0, -180, 180,
                                 style=wx.SL_HORIZONTAL
-##                                |wx.SL_AUTOTICKS
                                 |wx.SL_LABELS)
         self.slider.Bind(wx.EVT_SLIDER, self.OnSlider)
         self.slider.Bind(wx.EVT_LEFT_DOWN, self.OnSliderDown)
@@ -167,15 +165,27 @@ class GradientPanel(wx.Panel):
         for i in self.dict["nodes"]:
             i.MakeIntOnly()
             i.SetAllowedRange(1,256)
-        btn = wx.Button(self, -1, "Randomize")
-        opts = Box(self, "Gradient Generation", opts, btn,
-                   orient=wx.HORIZONTAL)
+        opts = Box(self, "Gradient Generation", opts)
+            
+        rdm = wx.Button(self, -1, "Randomize")
+        rdm.Bind(wx.EVT_BUTTON, self.OnRandomize)
+        inv = wx.Button(self, -1, "Invert")
+        inv.Bind(wx.EVT_BUTTON, self.OnInvert)
+        rev = wx.Button(self, -1, "Reverse")
+        rev.Bind(wx.EVT_BUTTON, self.OnReverse)
+        btnszr = wx.BoxSizer(wx.VERTICAL)
+        btnszr.AddMany((rdm, inv, rev))
+
+        szr2 = wx.BoxSizer(wx.HORIZONTAL)
+        szr2.AddMany((opts, (btnszr, 0 ,wx.ALIGN_RIGHT)))
+        
+        
             
         sizer1 = wx.BoxSizer(wx.VERTICAL)
         sizer1.Add(self.image,0, wx.EXPAND)
         sizer1.Add(self.Selector,0)
         sizer1.Add(self.slider,0,wx.EXPAND)
-        sizer1.Add(opts, 0, wx.EXPAND)
+        sizer1.Add(szr2, 0, wx.EXPAND)
         
         self.SetSizer(sizer1)
         self.Layout()
@@ -212,11 +222,20 @@ class GradientPanel(wx.Panel):
             self.config[k] = tuple(i.GetFloat() for i in v)
 
 
-    @Bind(wx.EVT_BUTTON)
-    def OnButton(self, e):
+    def OnRandomize(self, e):
         self.parent.flame.gradient.random(**self.config)
         self.parent.TreePanel.TempSave()
-        
+
+
+    def OnInvert(self, e):
+        self.parent.flame.gradient.invert()
+        self.parent.TreePanel.TempSave()        
+
+
+    def OnReverse(self, e):
+        self.parent.flame.gradient.reverse()
+        self.parent.TreePanel.TempSave()
+    
 
     @Bind(wx.EVT_IDLE)
     def OnIdle(self, e):
@@ -331,7 +350,7 @@ class Gradient(wx.Panel):
 
     @Bind(wx.EVT_LEFT_DCLICK)
     def OnDoubleClick(self, e):
-        self.Parent.OnButton(None)
+        self.Parent.OnRandomize(None)
             
 
 
