@@ -1,27 +1,13 @@
 import os, sys, cmath, numpy, colorsys, random
 from math import *
 
-hues = {'red': 0,
-        'orange': 1/12.0,
-        'yellow': 1/6.0,
-        'lime': 0.25,
-        'green': 1/3.0,
-        'turquois': 5/12.0,
-        'cyan': 0.5,
-        'lblue': 7/12.0,
-        'blue': 2/3.0,
-        'purple': 0.75,
-        'pink': 5/6.0,
-        'magenta': 11/12.0}
-
 #-------------------------------------------------------------------------------
 #Utility functions
-"""
-in_ranges - Returns True if n is in one of the tuple ranges
-  n - number to check
-  ranges - list of min-max tuples (or single tuple)
-"""
+
 def in_ranges(n, ranges):
+    """ Returns True if n is in one of the tuple ranges.
+    n - number to check
+    ranges - list of min-max tuples (or single tuple) """
     if type(ranges)==list:
         for r in ranges:
             if n >= r[0] and n <= r[1]: return True

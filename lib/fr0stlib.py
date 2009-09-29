@@ -28,13 +28,14 @@ class Flame(object):
     re_xform  = re.compile(r'<[a-zA-Z]*xform .*?/>')
     re_attr   = re.compile(r'[^ ]*?=".*?(?=")') # Works for xforms and header  
 
-    _default = set(("final","gradient","xform","name", "version"))
+    _default = set(("final", "gradient", "xform", "name", "version",
+                    "width", "height", "x_offset", "y_offset"))
     
     def __init__(self, string=""):
         # Set minimum required attributes.
         self.name = "Untitled"
         self.xform = []
-        self.size = [512, 384]
+        self.size = 512, 384
         self.center = [0.0, 0.0]
         self.rotate = 0.0
         self.background = [0.0, 0.0, 0.0]
@@ -195,46 +196,33 @@ class Flame(object):
         r, phi = polar(diff)
         phi -= self.rotate
         w, h = rect((r, phi))
-        self.center[0] += w
-        self.center[1] += h        
+        self.x_offset += w
+        self.y_offset += h        
 
 
     def iter_attributes(self):
-        return itertools.chain((("name", self.name), ("version", VERSION)),
+        return itertools.chain((("name", self.name),
+                                ("version", VERSION),
+                                ("size", self.size),
+                                ("center", self.center)),
                                ((k,v) for (k,v) in self.__dict__.iteritems()
                                 if k not in self._default))
 
-
+    
     @property
-    def width(self):
-        return self.size[0]
-    @width.setter
-    def width(self,v):
-        self.size[0] = v
-
-
-    @property
-    def height(self):
-        return self.size[1]
-    @height.setter
-    def height(self,v):
-        self.size[1] = v
+    def size(self):
+        return self.width, self.height
+    @size.setter
+    def size(self, v):
+        self.width, self.height = v
 
 
     @property
-    def x_offset(self):
-        return self.center[0]
-    @x_offset.setter
-    def x_offset(self, v):
-        self.center[0] = v
-
-
-    @property
-    def y_offset(self):
-        return self.center[1]
-    @y_offset.setter
-    def y_offset(self, v):
-        self.center[1] = v
+    def center(self):
+        return self.x_offset, self.y_offset
+    @center.setter
+    def center(self, v):
+        self.x_offset, self.y_offset = v
     
 
 
@@ -371,44 +359,6 @@ class Palette(list):
                 tmp.append(interp([seeds[i-1], seeds[i]], ds[i], j, curve=curve, c_space=space))
             g += tmp
         self[:] = g
-
-##    """Beginnings of a random generator that takes some ranges"""
-##    def random(self, **kwargs):
-##        h_ranges = kwargs.get('h_ranges', (0,1))
-##        l_ranges = kwargs.get('l_ranges', (0,1))
-##        s_ranges = kwargs.get('s_ranges', (0,1))
-##        b_range  = kwargs.get('blocks', (32,64))
-##        
-##        blocks = random.randint(b_range[0],b_range[1])
-##        mbs = 256/blocks                        #mean block size
-##        mbsr = 256%blocks                       #remainder
-##        bsv = mbs/2                             #size variance 1/2 mean
-##        bs = []
-##        for i in xrange(blocks):
-##            v = random.randint(-bsv, bsv)
-##            if v<>0: mbsr -= v
-##            bs.append(mbs + v)
-##        
-##        if mbsr>0:
-##            r = len(bs)/mbsr
-##            for i in xrange(mbsr):
-##                bs[(i*r)+random.randrange(r)] += 1
-##        elif mbsr<0:
-##            r = -len(bs)/mbsr
-##            for i in xrange(-mbsr):
-##                bs[(i*r)+random.randrange(r)] -= 1
-##        tmp = []
-##        for b in bs:
-##            h = random.random()
-##            while not in_ranges(h, h_ranges): h = random.random()
-##            l = random.random()
-##            while not in_ranges(l, l_ranges): l = random.random()
-##            s = random.random()
-##            while not in_ranges(s, s_ranges): s = random.random()
-##            else:
-##                for i in xrange(b):
-##                    tmp.append(hls2rgb((h,l,s)))
-##        self[:] = tmp
 
 
     def random(self, hue=(0,1), saturation=(0,1), value=(0,1),  nodes=(5,5),

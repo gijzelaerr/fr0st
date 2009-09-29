@@ -601,7 +601,7 @@ class ImagePanel(PreviewBase):
         one redundant preview is rendered."""    
         flame = flame or self.parent.flame
 
-        ratio = flame.size[0] / flame.size[1]
+        ratio = float(flame.width) / flame.height
         width = 200 if ratio > 1 else int(200*ratio)
         height = int(width / ratio)
         size = width,height
