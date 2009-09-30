@@ -1,4 +1,4 @@
-import re, shutil, random, itertools
+import re, shutil, random, itertools, utils
 from math import *
 
 from functions import *
@@ -321,25 +321,43 @@ class Palette(list):
         comp = hls2rgb((h+csplit+0.5,l,s))
         lspl = hls2rgb((h-split,l,s))
         rspl = hls2rgb((h+split,l,s))
+        if curve=='lin': cur = 0
+        elif curve=='cos': cur = 1
+        else: raise ValueError('Curve must be lin or cos')
 
         #from 0 (compliment) to dist (left split)
-        g = []
+        gen = []
         for i in xrange(dist):
-            g.append(tuple(map(int,interp([comp, lspl], dist, i, curve=curve))))
+            r = utils.pblend(comp[0], lspl[0], (i/float(dist)), cur)
+            g = utils.pblend(comp[1], lspl[1], (i/float(dist)), cur)
+            b = utils.pblend(comp[2], lspl[2], (i/float(dist)), cur)
+            gen.append((r, g, b))
         #from dist to 128 (seed)
         for i in xrange(128-dist):
-            g.append(tuple(map(int,interp([lspl, seed], 128-dist, i, curve=curve))))
+            r = utils.pblend(lspl[0], seed[0], (i/float(128-dist)), cur)
+            g = utils.pblend(lspl[1], seed[1], (i/float(128-dist)), cur)
+            b = utils.pblend(lspl[2], seed[2], (i/float(128-dist)), cur)
+            gen.append((r, g, b))
         #from 127 to 255-dist
         for i in xrange(128-dist):
-            g.append(tuple(map(int,interp([seed, rspl], 128-dist, i, curve=curve))))
+            r = utils.pblend(seed[0], rspl[0], (i/float(128-dist)), cur)
+            g = utils.pblend(seed[1], rspl[1], (i/float(128-dist)), cur)
+            b = utils.pblend(seed[2], rspl[2], (i/float(128-dist)), cur)
+            gen.append((r, g, b))
         #from 255-dist to 255
         for i in xrange(dist):
-            g.append(tuple(map(int,interp([rspl, comp], dist, i, curve=curve))))
+            r = utils.pblend(rspl[0], comp[0], (i/float(dist)), cur)
+            g = utils.pblend(rspl[1], comp[1], (i/float(dist)), cur)
+            b = utils.pblend(rspl[2], comp[2], (i/float(dist)), cur)
+            gen.append((r, g, b))
         
-        self[:] = g
+        self[:] = gen
 
 
-    def from_seeds(self, seeds, curve='cos', space='rgb'):
+    def from_seeds(self, seeds, curve='cos'):
+        if curve=='lin': cur = 0
+        elif curve=='cos': cur = 1
+        else: raise ValueError('Curve must be lin or cos')
         ns = len(seeds)
         d = 256/ns
         r = 256%ns
@@ -347,13 +365,14 @@ class Palette(list):
         for i in xrange(ns):
             if i+1<=r: ds.append(d+1)
             else:      ds.append(d)
-        g = []
+        gen = []
         for i in xrange(ns):
-            tmp = []
             for j in xrange(ds[i]):
-                tmp.append(interp([seeds[i-1], seeds[i]], ds[i], j, curve=curve, c_space=space))
-            g += tmp
-        self[:] = g
+                h = utils.pblend(seeds[i-1][0], seeds[i][0], (j/float(ds[i])), cur)
+                s = utils.pblend(seeds[i-1][1], seeds[i][1], (j/float(ds[i])), cur)
+                v = utils.pblend(seeds[i-1][2], seeds[i][2], (j/float(ds[i])), cur)
+                gen.append(hsv2rgb((h,s,v)))
+        self[:] = gen
 
 
     def random(self, hue=(0,1), saturation=(0,1), value=(0,1),  nodes=(5,5),
@@ -361,7 +380,7 @@ class Palette(list):
         dims = hue, saturation, value
         seeds = [tuple(randrange2(*i) for i in dims)
                  for j in range(randrange2(*nodes, int=int))]
-        self.from_seeds(seeds, curve, 'hsv')
+        self.from_seeds(seeds, curve)
 
         
     def from_image(self, filename, num_tries=50, try_size=1000):
