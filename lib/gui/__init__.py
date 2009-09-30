@@ -355,10 +355,6 @@ class MainWindow(wx.Frame):
         item = self.tree.SetFlames(path, *flamestrings)
         if not flamestrings:
             self.OnFlameNew2(None)
-        # HACK: Select parent first, to be 100% sure that selection change
-        # actually triggers.
-        self.tree.SelectItem(self.tree.GetItemByIndex((0,)))
-        self.tree.SelectItem(self.tree.GetItemByIndex((0,0)))
 
         # Dump the path to file for bookkeeping
         with open('paths.temp','a') as f:
@@ -551,6 +547,8 @@ class MainWindow(wx.Frame):
 
 
     def set_flames(self, path, *flames):
+        if not flames:
+            raise ValueError("You must specify at least 1 flame to set.")
         self._namespace["update_flame"] = False
         lst = [s if type(s) is str else s.to_string() for s in flames]
         wx.PostEvent(self, ThreadMessageEvent(ID.SETF, path, lst))

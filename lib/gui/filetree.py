@@ -200,17 +200,20 @@ class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
         self.flamefiles = [(ItemData(path, name=name),lst),]
 
         self.RefreshItems()
-        item = self.itemparent
+        parent = self.itemparent
 
-        self.Expand(item)
+        self.Expand(parent)
 
-        for child, data in zip(self.GetItemChildren(item),
+        for child, data in zip(self.GetItemChildren(parent),
                                (i[0] for i in lst)):
             self.RenderThumbnail(child, data)
             # Set item to default until thumbnail is ready.    
             self.SetItemImage(child, 2)
 
-        return item
+        self.SelectItem(parent)
+        self.SelectItem(self.GetItemByIndex((0,0)))
+
+        return parent
 
 
     def RenderThumbnail(self, child=None, data=None):
