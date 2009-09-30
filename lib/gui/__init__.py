@@ -214,6 +214,7 @@ class MainWindow(wx.Frame):
 
         # This adds the flame to the temp file, but without any actual changes.
         data.pop(0)
+        self.tree.SetItemImage(child, 2)
         self.TreePanel.TempSave(force=True)
 
         return child
