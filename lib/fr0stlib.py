@@ -1,4 +1,4 @@
-import re, shutil, random, itertools, utils
+import re, shutil, random, itertools, utils, Image, numpy
 from math import *
 
 from functions import *
@@ -384,71 +384,17 @@ class Palette(list):
 
         
     def from_image(self, filename, num_tries=50, try_size=1000):
-        if not wx:
-            raise ImportError('this method requires wx.')
-        img = wx.Image(filename)
-        orig = []
+        img = Image.open(filename)
+        bin = map(ord, img.tostring())
+        grab = numpy.zeros((256, 3), numpy.float32)
         for i in xrange(256):
-            x = random.randint(0, img.Width-1)
-            y = random.randint(0, img.Height-1)
-            idx = 3*(x + img.Width*y)
-            c = map(ord,img.GetData()[idx:idx+3])
-            orig.append(tuple(c))
+            x = random.randint(0, img.size[0]-1)
+            y = random.randint(0, img.size[1]-1)
+            idx = 3*(x + img.size[0]*y)
+            grab[i] = bin[idx:idx+3]
 
-        best = orig[:]
-        len_best = sum(map(pix_diff, best[:-1], best[1:]))
-        
-        for i in xrange(num_tries):
-            pal = orig[:]
-            #scramble
-            for j in xrange(256):
-                pix_swap(pal, i, random.randint(0, 255))
-            #measure
-            pal_len = sum(map(pix_diff, pal[:-1], pal[1:]))
-            #improve
-            for j in xrange(try_size):
-                i0 = 1 + random.randint(0, 253)
-                i1 = 1 + random.randint(0, 253)
-                if i0-i1==1:
-                    as_is = pix_diff(pal[i1-1], pal[i1]) +\
-                            pix_diff(pal[i0], pal[i0+1])
-                    swapd = pix_diff(pal[i1-1], pal[i0]) +\
-                            pix_diff(pal[i0], pal[i1+1])
-                elif i1-i0==1:
-                    as_is = pix_diff(pal[i0-1], pal[i0]) +\
-                            pix_diff(pal[i1], pal[i1+1])
-                    swapd = pix_diff(pal[i0-1], pal[i1]) +\
-                            pix_diff(pal[i1], pal[i0+1])
-                else:
-                    as_is = pix_diff(pal[i0], pal[i0+1]) +\
-                            pix_diff(pal[i0], pal[i0-1]) +\
-                            pix_diff(pal[i1], pal[i1+1]) +\
-                            pix_diff(pal[i1], pal[i1-1])
-                    swapd = pix_diff(pal[i1], pal[i0+1]) +\
-                            pix_diff(pal[i1], pal[i0-1]) +\
-                            pix_diff(pal[i0], pal[i1+1]) +\
-                            pix_diff(pal[i0], pal[i1-1])
-                if swapd < as_is:
-                    pix_swap(pal, i0, i1)
-                    pal_len += (swapd - as_is)
-            if pal_len < len_best:
-                best = pal[:]
-                len_best = pal_len
-        #---end
-        for i in xrange(256):
-            i0 = 1 + random.randint(0, 252)
-            i1 = i0 + 1
-            
-            as_is = pix_diff(best[i0-1], best[i0]) +\
-                    pix_diff(best[i1], best[i1+1])
-            swapd = pix_diff(best[i0-1], best[i1]) +\
-                    pix_diff(best[i0], best[i1+1])
-            if swapd < as_is:
-                holder = pal[i1]
-                best[i1] = best[i0]
-                best[i0] = holder
-                len_best += swapd - as_is
-        self[:] = best
+        best = utils.palette_improve(grab, num_tries, try_size)        for i in xrange(256):
+            self[i] = (best[i,0], best[i,1], best[i,2])
 
 
 class Xform(object):
