@@ -9,10 +9,15 @@ except ImportError:
     wx = False
 
 try:
-    from pyflam3.variations import variable_list
-    _variables = dict(variable_list)
+    from pyflam3.variations import variable_list,variation_list,variables
+    _variables = dict([x[0:2] for x in variable_list])
 except ImportError:
     _variables = {}
+
+try:
+    from pyflam3.constants import flam3_nvariations
+except ImportError:
+    flam3_nvariations = 0
 
 VERSION = "fr0st 0.5 alpha"
 
@@ -423,6 +428,47 @@ class Xform(object):
                 post = [1,0,0,1,0,0]
             self._post = PostXform(self, screen_coefs=post)
 
+    @classmethod
+    def random(cls, parent, xv=range(flam3_nvariations), n=1, xw=0, fx=0, col=0, **kwds):
+
+        # We can't add a final xform if one already exists
+        if parent.final and fx>0:
+            return None
+        
+        # Add a standard xform, or a final if the randomness permits
+        if fx==0:
+            x = parent.add_xform()
+        elif random.uniform(0,1)<=fx:
+            x = parent.create_final()
+        else:
+            return None
+        
+        # Clear out the linearness
+        x.linear=0
+        
+        # Randomize the coefficients
+        x.coefs = (random.uniform(-1,1) for i in range(6))
+        
+        if xw>0: # If weight is > 0, set the weight directly
+            x.weight = xw
+        elif xw<0: # Weight < 0 means randomize from 0 to -xw
+            x.weight = random.uniform(0,-xw)
+        else: # Random from 0 to 1
+            x.weight = random.uniform(0.1,1)
+        
+        # Select the variations to use
+        use_vars = random.sample(xv,n)
+        for uv in use_vars:
+            setattr(x,variation_list[uv],random.uniform(-2,2))
+            for p,v in variables[variation_list[uv]]:
+                setattr(x, "%s_%s" % (variation_list[uv],p), v())
+            
+        x.color = col
+        
+        if fx==0:
+            x.animate=1
+            
+        return x
 
     @classmethod
     def from_string(cls, parent, string):
