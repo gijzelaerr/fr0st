@@ -163,8 +163,7 @@ class EditorFrame(wx.Frame):
         """This method runs from the script thread, so it can't create the
         dialog directly."""
         self.dlgready = False
-        lst = []
-        evt = ThreadMessageEvent(-1, lst, a)
+        evt = ThreadMessageEvent(-1, *a)
         wx.PostEvent(self, evt)
         # Wait for dialog to return
         while not self.dlgready:
@@ -173,28 +172,32 @@ class EditorFrame(wx.Frame):
         if isinstance(self.dlgready, Exception):
             e = self.dlgready
             raise e
-        return lst
+        elif self.dlgready == wx.ID_CANCEL:
+            raise ThreadInterrupt
+        return self.dlgresult
 
 
     @Bind(EVT_THREAD_MESSAGE)
     def OnDialogRequest(self, e):
         """Callback which processes script dialogs in the main threads, then
         arranges for results to be returned."""
-        lst,a = e.GetValue()
         # TODO: instead of isshown, need a method to determine if it's in front
-        # of the parent
+        # of the parent (maybe by checking where the GUI event comes from?)
         if self.IsShown():
             parent = self
         else:
             parent = self.parent
         try:
             name = "%s asks" %os.path.basename(self.scriptpath)
-            DynamicDialog(parent, lst, name, *a)
-            self.dlgready = True
+            dlg = DynamicDialog(parent, name, *e.GetValue())
+            res = dlg.ShowModal()
+            if res == wx.ID_OK:
+                self.dlgresult = [w.GetValue() for w in dlg.widgets]
+            self.dlgready = res
         except Exception as e:
             self.dlgready = e
+            
 
-        
 
 class MyLog(wx.TextCtrl):
     re_exc = re.compile(r'^.*?(?=  File "<string>")',re.DOTALL)
