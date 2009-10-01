@@ -7,7 +7,7 @@ from toolbar import CreateEditorToolBar
 from menu import CreateEditorMenu
 from constants import ID
 from scriptutils import DynamicDialog
-from _events import EVT_THREAD_MESSAGE, ThreadMessageEvent
+from _events import EVT_THREAD_MESSAGE, ThreadMessageEvent, InMain
 
 
 class EditorFrame(wx.Frame):
@@ -162,23 +162,15 @@ class EditorFrame(wx.Frame):
     def make_dialog(self, *a):
         """This method runs from the script thread, so it can't create the
         dialog directly."""
-        self.dlgready = False
-        evt = ThreadMessageEvent(-1, *a)
-        wx.PostEvent(self, evt)
-        # Wait for dialog to return
-        while not self.dlgready:
-            time.sleep(0.1)
-        # If there was an error, propagate it.
-        if isinstance(self.dlgready, Exception):
-            e = self.dlgready
-            raise e
-        elif self.dlgready == wx.ID_CANCEL:
-            raise ThreadInterrupt
-        return self.dlgresult
+        res = self.OnDialogRequest(*a)
+        if isinstance(res, BaseException):
+            # If there was an error, propagate it.
+            raise res
+        return res
 
 
-    @Bind(EVT_THREAD_MESSAGE)
-    def OnDialogRequest(self, e):
+    @InMain
+    def OnDialogRequest(self, *a):
         """Callback which processes script dialogs in the main threads, then
         arranges for results to be returned."""
         # TODO: instead of isshown, need a method to determine if it's in front
@@ -189,13 +181,13 @@ class EditorFrame(wx.Frame):
             parent = self.parent
         try:
             name = "%s asks" %os.path.basename(self.scriptpath)
-            dlg = DynamicDialog(parent, name, *e.GetValue())
+            dlg = DynamicDialog(parent, name, *a)
             res = dlg.ShowModal()
-            if res == wx.ID_OK:
-                self.dlgresult = [w.GetValue() for w in dlg.widgets]
-            self.dlgready = res
+            if res == wx.ID_CANCEL:
+                return ThreadInterrupt()
+            return [w.GetValue() for w in dlg.widgets]
         except Exception as e:
-            self.dlgready = e
+            return e
             
 
 
@@ -222,14 +214,12 @@ class MyLog(wx.TextCtrl):
 ##        self._suppress = 0
 ##        self._syntax  = 0
 
-
-    @Catches(PyDeadObjectError)
+    @InMain
     def write(self, message):
         """Notifies the main thread to print a message."""
-        wx.PostEvent(self, ThreadMessageEvent(-1, message))
+        self._write(message)
 
 
-    @Catches(PyDeadObjectError)
     def _write(self,message):
         self.oldstderr.write(message) # For debugging purposes!
 
@@ -251,47 +241,10 @@ class MyLog(wx.TextCtrl):
         self.AppendText(message)
 
 
-    @Bind(EVT_THREAD_MESSAGE)
-    def OnPrint(self,e):
-        self._write(e.GetValue()[0])
-
     # On windows, wx is threadsafe. This code skips all event processing
     # and sends prints directly to the tc, which is much faster.
     if "win32" in sys.platform:
         write = _write
-
-        
-    # This is the old procedural write method, it's kept here because it
-    # works even if write is fed the traceback little pieces at a time.
-##    def write(self,message):
-##
-##        # Prints the script traceback
-##        if message.startswith('  File "<string>"'): 
-##            self._suppress = 0
-##            lines = message.split(",")
-##            line  = int(lines[1][6:])
-##            message = "  Script, line %d,%s    %s\n"\
-##                      %(line,lines[2],self._script[line-1].strip())
-##                      
-##        # suppresses the internal fr0st tracebacks (each generates 3 writes)
-##        elif message.startswith('  File "'): 
-##             self._suppress = 3
-##        
-##        # Handles syntax errors passed to write() as single tokens, not lines.
-##        elif message == '", line ':
-##            self._syntax  = 1      
-##        elif self._syntax:
-##            self._syntax  = 0
-##            self._suppress = 0
-##            message = '  Script, line %s ' %message
-##            
-##        # Didn't trigger anything, so we just decrease the suppress count.
-##        elif self._suppress:
-##            self._suppress -= 1
-##
-##        # Finally, print the message
-##        if not self._suppress:
-##            self.tc.AppendText(message)    
 
 
 

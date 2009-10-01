@@ -81,8 +81,10 @@ def Threaded(f):
     The thread's name is set to that of the function."""
     @wraps(f)
     def wrapper(*args,**kwds):
-        Thread(target=Catches(ThreadInterrupt)(f),
-               args=args, kwargs=kwds, name=f.__name__).start()
+        thr = Thread(target=Catches(ThreadInterrupt)(f),
+                     args=args, kwargs=kwds, name=f.__name__)
+        thr.daemon = True
+        thr.start()
     return wrapper
 
 

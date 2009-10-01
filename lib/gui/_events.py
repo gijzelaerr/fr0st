@@ -1,5 +1,5 @@
 import wx
-
+from threading import Event, Lock
 
 myEVT_THREAD_MESSAGE = wx.NewEventType()
 EVT_THREAD_MESSAGE = wx.PyEventBinder(myEVT_THREAD_MESSAGE, 1)
@@ -14,10 +14,29 @@ class ThreadMessageEvent(wx.PyCommandEvent):
     
     def __init__(self, id=wx.ID_ANY, *args):
         wx.PyCommandEvent.__init__(self, myEVT_THREAD_MESSAGE, id)
-        self._args = args
+        self.Args = args
 
     def GetArgs(self):
-        return self._args
+        return self.Args
 
     # For compatibility with existing code
     GetValue = GetMessage = GetArgs
+
+
+def InMain(f):
+    res = [None]
+    def callback(e):
+        flag, self, a, k = e.Args
+        res[0] = f(self, *a, **k)
+        flag.set()
+    bound = Event()
+    ID = wx.NewId()
+    def inner(self, *a, **k):
+        if not bound.is_set():
+            wx.GetApp().Bind(EVT_THREAD_MESSAGE, callback, id=ID)
+            bound.set()
+        flag = Event()
+        wx.PostEvent(self, ThreadMessageEvent(ID, flag, self, a, k))
+        flag.wait()
+        return res[0]
+    return inner

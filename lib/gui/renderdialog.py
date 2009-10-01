@@ -16,7 +16,7 @@ from lib.pyflam3 import Genome
 from utils import NumberTextCtrl, Box, MyChoice
 from config import config
 from constants import ID
-from _events import EVT_THREAD_MESSAGE, ThreadMessageEvent
+from _events import InMain
 from lib.decorators import *
 
 
@@ -429,13 +429,12 @@ class RenderDialog(wx.Frame):
             if self.exitflag:
                 self.rendering = False
                 return self.exitflag
-            wx.PostEvent(self, ThreadMessageEvent(-1, string, *args))
+            self.OnProgress(string, *args)
         return prog
         
 
-    @Bind(EVT_THREAD_MESSAGE)
-    def OnProgress(self, e):
-        string, py_object, fraction, stage, eta = e.GetArgs()
+    @InMain
+    def OnProgress(self, string, py_object, fraction, stage, eta):
         h = eta/3600
         m = eta%3600/60
         s = eta%60

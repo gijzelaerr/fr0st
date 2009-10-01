@@ -41,7 +41,6 @@ class DynamicDialog(wx.Dialog):
             widget = wx.CheckBox(self, -1)
             if default:
                 widget.SetValue(True)
-            return widget
         elif ty == file:
             widget = FileBrowseButton(self, -1, labelText='',
                                       initialValue=default or "")

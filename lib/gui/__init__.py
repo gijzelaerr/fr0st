@@ -11,7 +11,7 @@ from lib.gui.constants import ID
 from lib.gui.maineditor import MainNotebook
 from lib.gui.xformeditor import XformTabs
 from lib.gui.renderer import Renderer
-from lib.gui._events import EVT_THREAD_MESSAGE, ThreadMessageEvent
+from lib.gui._events import InMain
 from lib.gui.itemdata import ItemData
 from lib.gui.renderdialog import RenderDialog
 from lib.gui.config import config
@@ -142,6 +142,9 @@ class MainWindow(wx.Frame):
             
         # check for script diffs
         self.OnStopScript()
+##        while self.scriptrunning:
+####            self.log.oldstderr.write("sleeping\n")
+##            time.sleep(.01)
         if self.editorframe.CheckForChanges() == wx.ID_CANCEL:
             return
         
@@ -400,12 +403,12 @@ class MainWindow(wx.Frame):
             return result
 
 
-    @Bind(EVT_THREAD_MESSAGE, id=ID.ENDOFSCRIPT)
-    def EndOfScript(self, e):
-        self.BlockGUI(False)
+    @InMain
+    def EndOfScript(self, update):
         self.SetFlame(self.flame, rezoom=False)
-        if e.GetValue()[0]:
+        if update:
             self.TreePanel.TempSave()
+        self.BlockGUI(False)
 
         
     @CallableFrom('MainThread')
@@ -477,8 +480,7 @@ class MainWindow(wx.Frame):
 
 
     @Threaded
-    @Locked(blocking=False)
-    @Catches(PyDeadObjectError)
+    @Locked(blocking=True)
     def Execute(self,string):
         print time.strftime("\n---------- %H:%M:%S ----------")
         start = time.time()
@@ -507,7 +509,7 @@ class MainWindow(wx.Frame):
             self.flame = flame
             
             # This lets the GUI know that the script has finished.
-            wx.PostEvent(self, ThreadMessageEvent(ID.ENDOFSCRIPT, update))
+            self.EndOfScript(update)
 
         # Keep this out of the finally clause!
         print "\nSCRIPT STATS:\n"\
@@ -528,8 +530,8 @@ class MainWindow(wx.Frame):
         # WARNING: This function is called from the script thread, so it's not
         # Allowed to change any shared state.
         self.image.RenderPreview()
-        wx.PostEvent(self, ThreadMessageEvent(ID.PREVIEW))
-        time.sleep(.05) # Avoids spamming too many requests.
+        self.OnPreview()
+        time.sleep(.01) # Avoids spamming too many requests.
 
 
     def large_preview(self):
@@ -537,8 +539,8 @@ class MainWindow(wx.Frame):
             self.previewframe.RenderPreview()
         
 
-    @Bind(EVT_THREAD_MESSAGE, id=ID.PREVIEW)
-    def OnPreview(self, e):
+    @InMain
+    def OnPreview(self):
         # only update a select few of all the panels.
         # TODO: need to test if this is really necessary.
 ##        self.XformTabs.UpdateView()
@@ -547,24 +549,17 @@ class MainWindow(wx.Frame):
         self.grad.UpdateView()
 
 
+    @InMain
     def set_flames(self, path, *flames):
         if not flames:
             raise ValueError("You must specify at least 1 flame to set.")
-        self._namespace["update_flame"] = False
+##        self._namespace["update_flame"] = False
         lst = [s if type(s) is str else s.to_string() for s in flames]
-        wx.PostEvent(self, ThreadMessageEvent(ID.SETF, path, lst))
-
-
-    @Bind(EVT_THREAD_MESSAGE, id=ID.SETF)
-    def OnSetFlames(self, e):
-        path, lst = e.GetValue()
         self.tree.SetFlames(path, *lst)
 
 
-    @Bind(EVT_THREAD_MESSAGE, id=ID.RENDER)
-    @Catches(wx.PyDeadObjectError)
-    def OnImageReady(self,e):
-        callback, (w,h), output_buffer, channels = e.GetValue()
+    @InMain
+    def OnImageReady(self, callback, (w,h), output_buffer, channels):
         if channels == 3:
             fun = wx.BitmapFromBuffer
         elif channels == 4:

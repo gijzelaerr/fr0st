@@ -2,7 +2,7 @@ import wx, sys, numpy as N
 
 from lib.decorators import *
 from config import config
-from _events import EVT_THREAD_MESSAGE, ThreadMessageEvent
+from _events import InMain
 
 
 class PreviewFrame(wx.Frame):
@@ -96,13 +96,8 @@ class PreviewFrame(wx.Frame):
     RenderCallback._can_cancel = True
 
 
-    def prog_func(self, *args):
-        wx.PostEvent(self, ThreadMessageEvent(-1, *args))
-
-
-    @Bind(EVT_THREAD_MESSAGE)
-    def OnProgress(self, e):
-        py_object, fraction, stage, eta = e.GetArgs()
+    @InMain
+    def prog_func(self, py_object, fraction, stage, eta):
         self.SetStatusText("rendering: %.2f %%" %fraction)
 
 

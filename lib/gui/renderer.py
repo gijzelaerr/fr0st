@@ -5,7 +5,6 @@ from lib.decorators import Catches, Threaded
 from lib.render import flam3_render, flam4_render
 from lib.gui.config import config
 from lib.gui.constants import ID
-from _events import ThreadMessageEvent
 
 
 class Renderer():
@@ -76,7 +75,6 @@ class Renderer():
         
 
     @Threaded
-    @Catches((TypeError, wx.PyDeadObjectError))
     def RenderLoop(self):
         while not self.exitflag:
             queue = self.previewqueue or self.thumbqueue
@@ -89,7 +87,6 @@ class Renderer():
 
 
     @Threaded
-    @Catches((TypeError, wx.PyDeadObjectError))
     def bgRenderLoop(self):
         while not self.exitflag:
             if self.bgqueue:
@@ -125,9 +122,7 @@ class Renderer():
         else:
             channels = kwds.get('transparent', False) + 3
         # args[1] is always size...
-        evt = ThreadMessageEvent(ID.RENDER, callback, args[1], output_buffer,
-                                 channels)
-        wx.PostEvent(self.parent, evt)
+        self.parent.OnImageReady(callback, args[1], output_buffer, channels)
         
 
     def prog_wrapper(self, f, flag):
