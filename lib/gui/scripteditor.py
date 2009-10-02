@@ -214,13 +214,16 @@ class MyLog(wx.TextCtrl):
 ##        self._suppress = 0
 ##        self._syntax  = 0
 
-    @InMain
+
     def write(self, message):
         """Notifies the main thread to print a message."""
-        self._write(message)
+        wx.PostEvent(self, ThreadMessageEvent(-1, message))
 
 
-    def _write(self,message):
+    @Bind(EVT_THREAD_MESSAGE)
+    def OnWrite(self, e):
+        self._write(*e.Args)
+
         self.oldstderr.write(message) # For debugging purposes!
 
         if not message.startswith("Exception"):
