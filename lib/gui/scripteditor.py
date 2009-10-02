@@ -224,6 +224,7 @@ class MyLog(wx.TextCtrl):
     def OnWrite(self, e):
         self._write(*e.Args)
 
+    def _write(self, message):
         self.oldstderr.write(message) # For debugging purposes!
 
         if not message.startswith("Exception"):
