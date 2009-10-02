@@ -135,7 +135,7 @@ class RenderDialog(wx.Frame):
         os.callback = self.mem.UpdateView
         
         szr0 = wx.BoxSizer(wx.VERTICAL)
-        szr0.AddMany((size, (mem, 0, wx.EXPAND)))
+        szr0.AddMany(((mem, 0, wx.EXPAND), size))
 	szr1 = wx.BoxSizer(wx.HORIZONTAL)
 	szr1.AddMany((opts, szr0))
 	szr2 = wx.BoxSizer(wx.VERTICAL)
@@ -168,11 +168,7 @@ class RenderDialog(wx.Frame):
         fbb = FileBrowseButton(self, -1, fileMask=mask, labelText='File:',
                                initialValue=initial)
         self.fbb = fbb
-        transp = wx.CheckBox(self, -1, "PNG Transparency")
-        self.transp = self.config["transparent"]
-        transp.SetValue(self.transp)
-        transp.Bind(wx.EVT_CHECKBOX, self.OnTransp)
-        return Box(self, "Output Destination", (fbb, 0, wx.EXPAND), transp)
+        return Box(self, "Output Destination", (fbb, 0, wx.EXPAND))
 
 
     def MakeFlameSelector(self):
@@ -220,11 +216,18 @@ class RenderDialog(wx.Frame):
                             "estimator", "estimator_curve",
                             "estimator_minimum", "filter_radius")
         filters = self.MakeChoices("filter_kernel", fgs=opts)
+        
         early = wx.CheckBox(self, -1, "Early Clip")
         self.earlyclip = self.config["earlyclip"]
         early.SetValue(self.earlyclip)
         early.Bind(wx.EVT_CHECKBOX, self.OnEarly)
-        return Box(self, "Render Settings", opts, early)
+        
+        transp = wx.CheckBox(self, -1, "PNG Transparency")
+        self.transp = self.config["transparent"]
+        transp.SetValue(self.transp)
+        transp.Bind(wx.EVT_CHECKBOX, self.OnTransp)
+        
+        return Box(self, "Render Settings", opts, early, transp)
 
     
     def MakeMemoryWidget(self):
