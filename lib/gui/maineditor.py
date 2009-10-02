@@ -19,7 +19,7 @@ class MainNotebook(wx.Notebook):
         transform = TransformPanel(self)
         self.canvas = transform.canvas
         self.AddPage(transform, "Transform Editor")
-        
+
         self.grad = GradientPanel(self)
         self.AddPage(self.grad, "Gradient Editor")
 
@@ -35,59 +35,63 @@ class MainNotebook(wx.Notebook):
 
 
 class TransformPanel(wx.Panel):
-    
+
     @BindEvents
     def __init__(self, parent):
         self.parent = parent.parent
         wx.Panel.__init__(self,parent,-1)
-        self.toolbar = self.AddFakeToolbar()
+        self.toolbar = self.AddToolbar()
         self.canvas = XformCanvas(self)
-        
+
         szr = wx.BoxSizer(wx.VERTICAL)
-        szr.Add(self.toolbar)
+        szr.Add(self.toolbar, 0, wx.EXPAND)
         szr.Add(self.canvas, 1, wx.EXPAND)
-        
+
         self.SetSizer(szr)
         self.Layout()
 
-        
-    def AddFakeToolbar(self):
-        btn = [wx.BitmapButton(self, -1, LoadIcon('toolbar',i),
-                                       name=i.replace("-",""),
-                                       style=wx.BORDER_NONE)
-               for i in ('Clear-Flame',
-                         'Add-Xform',
-                         'Add-Final-Xform',
-                         'Duplicate-Xform',
-                         'Delete-Xform')]
 
-        # Add toggle buttons
-        # TODO: Isn't there a default Bitmap/Toggle button? Don't like these.
-        for i in ('World-Pivot','Lock-Axes','Variation-Preview',
-                  'Edit-Post-Xform'):
-            b = buttons.GenBitmapToggleButton(self, -1, LoadIcon('toolbar',i),
-                                              name=i.replace("-",""),
-                                              style=wx.BORDER_NONE)
-            b.SetToggle(config[i])
-            self.MakeConfigFunc(i)
-            btn.append(b)
+    def AddToolbar(self):
+        self.tool_ids = {}
 
-        szr = wx.BoxSizer(wx.HORIZONTAL)
-        szr.AddMany(btn)
-        return szr
+        toolbar = wx.ToolBar(self, -1, style=wx.TB_HORIZONTAL|wx.TB_FLAT)
+
+        def add_tool(name, toggle=False):
+            id = wx.NewId()
+            name_nodash = name.replace("-","")
+            self.tool_ids[id] = name_nodash
+            toolbar.AddSimpleTool(id, LoadIcon('toolbar', name),
+                                  name_nodash, isToggle=toggle)
+            if toggle:
+                toolbar.ToggleTool(id, config[name])
+                self.MakeConfigFunc(name)
+
+        add_tool('Clear-Flame')
+        add_tool('Add-Xform')
+        add_tool('Add-Final-Xform')
+        add_tool('Duplicate-Xform')
+        add_tool('Delete-Xform')
+
+        add_tool('World-Pivot', True)
+        add_tool('Lock-Axes', True)
+        add_tool('Variation-Preview', True)
+        add_tool('Edit-Post-Xform', True)
+
+        toolbar.Realize()
+
+        return toolbar
 
 
     def MakeConfigFunc(self, i):
         def onbtn():
             config[i] = not config[i]
             self.parent.canvas.ShowFlame(rezoom=False)
-        setattr(self, "Func%s" %i.replace("-",""), onbtn)        
+        setattr(self, "Func%s" %i.replace("-",""), onbtn)
 
 
-    @Bind(wx.EVT_BUTTON)
+    @Bind(wx.EVT_TOOL)
     def OnButton(self, e):
-        getattr(self, "Func%s" %e.GetEventObject().GetName())()
-
+        getattr(self, "Func%s" % self.tool_ids[e.GetId()])()
 
     def modifyxform(f):
         """This decorator wraps away common code in the button functions."""
@@ -101,35 +105,35 @@ class TransformPanel(wx.Panel):
     def FuncClearFlame(self, xform):
         self.parent.flame.clear()
         self.parent.ActiveXform = self.parent.flame.add_xform()
-        
-    @modifyxform        
+
+    @modifyxform
     def FuncAddXform(self, xform):
         self.parent.ActiveXform = self.parent.flame.add_xform()
-        
-    @modifyxform        
+
+    @modifyxform
     def FuncAddFinalXform(self, xform):
         # create_final already checks if a final xform exists.
         self.parent.ActiveXform = self.parent.flame.create_final()
-        
-    @modifyxform           
+
+    @modifyxform
     def FuncDuplicateXform(self, xform):
         self.parent.ActiveXform = xform.copy()
-        
-    @modifyxform           
+
+    @modifyxform
     def FuncDeleteXform(self, xform):
         if not xform.isfinal() and len(xform._parent.xform) == 1:
             # Can't delete the last xform.
             return
         xform.delete()
         self.parent.ActiveXform = None
-        
+
 
 class GradientPanel(wx.Panel):
     _new = None
     _changed = False
     _startval = None
     _flame = None # Only used to check identity
-    
+
     @BindEvents
     def __init__(self,parent):
         wx.Panel.__init__(self,parent,-1)
@@ -137,7 +141,7 @@ class GradientPanel(wx.Panel):
 
         self.config = config["Gradient-Settings"]
         self.dict = {}
-        
+
         choicelist = (('rotate', (-128, 128)),
                       ('hue',(-180,180)),
                       ('saturation', (-100,100)),
@@ -152,7 +156,7 @@ class GradientPanel(wx.Panel):
         #Controls - choice for method and slider
         self.Selector = wx.Choice(self, -1, choices=[i[0] for i in choicelist])
         self.Selector.Bind(wx.EVT_CHOICE, self.OnChoice)
-        
+
         self.slider = wx.Slider(self, -1, 0, -180, 180,
                                 style=wx.SL_HORIZONTAL
                                 |wx.SL_LABELS)
@@ -166,7 +170,7 @@ class GradientPanel(wx.Panel):
             i.MakeIntOnly()
             i.SetAllowedRange(1,256)
         opts = Box(self, "Gradient Generation", opts)
-            
+
         rdm = wx.Button(self, -1, "Randomize")
         rdm.Bind(wx.EVT_BUTTON, self.OnRandomize)
         inv = wx.Button(self, -1, "Invert")
@@ -178,15 +182,15 @@ class GradientPanel(wx.Panel):
 
         szr2 = wx.BoxSizer(wx.HORIZONTAL)
         szr2.AddMany((opts, (btnszr, 0 ,wx.ALIGN_RIGHT)))
-        
-        
-            
+
+
+
         sizer1 = wx.BoxSizer(wx.VERTICAL)
         sizer1.Add(self.image,0, wx.EXPAND)
         sizer1.Add(self.Selector,0)
         sizer1.Add(self.slider,0,wx.EXPAND)
         sizer1.Add(szr2, 0, wx.EXPAND)
-        
+
         self.SetSizer(sizer1)
         self.Layout()
 
@@ -229,20 +233,20 @@ class GradientPanel(wx.Panel):
 
     def OnInvert(self, e):
         self.parent.flame.gradient.invert()
-        self.parent.TreePanel.TempSave()        
+        self.parent.TreePanel.TempSave()
 
 
     def OnReverse(self, e):
         self.parent.flame.gradient.reverse()
         self.parent.TreePanel.TempSave()
-    
+
 
     @Bind(wx.EVT_IDLE)
     def OnIdle(self, e):
         if self._new is not None:
 
             self.parent.flame.gradient[:] = self._grad_copy
-            
+
             self.func(self._new)
             self._new = None
             self._changed = True
@@ -252,7 +256,7 @@ class GradientPanel(wx.Panel):
 
             # HACK: Updating the color tab without calling SetFlame.
             self.parent.XformTabs.Color.UpdateView()
-            
+
 
     def OnChoice(self, e):
         self.choice = e.GetString()
@@ -268,7 +272,7 @@ class GradientPanel(wx.Panel):
         self._grad_copy = self.parent.flame.gradient[:]
         self._startval = self.slider.GetValue()
         e.Skip()
-        
+
 
     def OnSliderUp(self, e):
         if self._changed:
@@ -277,12 +281,12 @@ class GradientPanel(wx.Panel):
         self._startval = None
         e.Skip()
 
-        
+
     def OnSlider(self, e):
         if self._startval is not None:
             self._new = e.GetInt() - self._startval
 
-        
+
 
 class Gradient(wx.Panel):
     formatstr = "%c" * 256 * 3
@@ -300,7 +304,7 @@ class Gradient(wx.Panel):
 
         grad = itertools.chain(*flame.gradient)
         buff = self.formatstr % tuple(map(int, grad))
-        
+
 ##        self.bmp = wx.BitmapFromBuffer(256, 50, buff *50)
         img = wx.ImageFromBuffer(256, 1, buff)
         img.Rescale(384, 50)
@@ -314,7 +318,7 @@ class Gradient(wx.Panel):
         dc = wx.PaintDC(self)
         dc.DrawBitmap(self.bmp, 2, 2, True)
 
-    
+
     @Bind(wx.EVT_LEFT_DOWN)
     def OnLeftDown(self, e):
         self.CaptureMouse()
@@ -323,7 +327,7 @@ class Gradient(wx.Panel):
         self._oldchoice = parent.choice
         parent.choice = 'rotate'
         parent.OnSliderDown(e)
-        
+
 
     @Bind(wx.EVT_LEFT_UP)
     def OnLeftUp(self, e):
@@ -351,7 +355,7 @@ class Gradient(wx.Panel):
     @Bind(wx.EVT_LEFT_DCLICK)
     def OnDoubleClick(self, e):
         self.Parent.OnRandomize(None)
-            
+
 
 
 class AdjustPanel(MultiSliderMixin, wx.Panel):
@@ -381,7 +385,7 @@ class AdjustPanel(MultiSliderMixin, wx.Panel):
     def UpdateView(self):
         flame = self.parent.flame
         for name in self.sliders:
-            self.UpdateSlider(name, getattr(flame, name))         
+            self.UpdateSlider(name, getattr(flame, name))
 
 
     def UpdateFlame(self):
@@ -390,4 +394,4 @@ class AdjustPanel(MultiSliderMixin, wx.Panel):
         self.UpdateView()
         self.parent.image.RenderPreview()
 
-        
+
