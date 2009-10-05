@@ -18,7 +18,7 @@ class TreePanel(wx.Panel):
         # Use the WANTS_CHARS style so the panel doesn't eat the Return key.
         wx.Panel.__init__(self, parent, -1, style=wx.WANTS_CHARS)
         self.parent = parent
-                       
+
         # Specify a size instead of using wx.DefaultSize
         self.tree = FlameTree(self, wx.NewId(), size=(180,520),
                                style=wx.TR_DEFAULT_STYLE
@@ -26,6 +26,11 @@ class TreePanel(wx.Panel):
                                      | wx.TR_EDIT_LABELS
                                      #| wx.TR_MULTIPLE
                                      | wx.TR_HIDE_ROOT)
+
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(self.tree, 1, wx.EXPAND)
+        self.SetSizer(sizer)
+        self.Layout()
 
 
     def TempSave(self, force=False):
@@ -36,7 +41,7 @@ class TreePanel(wx.Panel):
         # segfaults.
         if self.parent.scriptrunning:
             return
-        
+
         data = self.tree.itemdata
 
         string = self.parent.flame.to_string()
@@ -53,7 +58,7 @@ class TreePanel(wx.Panel):
 
         data = self.tree.GetFlameData(self.tree.itemparent)
 ##        self.tree.SetItemText(self.tree.itemparent, '* ' + data.name)
-        
+
         # Create the temp file.
         lst = [self.tree.GetFlameData(i)[1:]
                for i in self.tree.GetItemChildren()]
@@ -74,7 +79,7 @@ class TreePanel(wx.Panel):
             else:
                 lst = []
             undolists.append(lst)
-        
+
         # Create the backup files.
         targetdir = os.path.join(sys.path[0], 'recovery',
                                  time.strftime("%Y%m%d-%H%M%S"))
@@ -90,14 +95,14 @@ class TreePanel(wx.Panel):
                     newpath = '%s (%s)%s' %(head,number,ext)
                     number += 1
             shutil.copy(path,newpath)
-            
+
         # Finally, recover the actual session
         for path,undolist in zip(paths,undolists):
             if os.path.exists(path):
                 self.tree.item = self.parent.OpenFlame(path)
             else:
                 self.tree.item = self.parent.OnFlameNew(None)
-                
+
             # This is an ad-hoc izip_longest (2.6 feature!)
             itr = itertools.chain(self.tree.GetItemChildren(),
                                   itertools.repeat(None))
@@ -122,21 +127,21 @@ class TreePanel(wx.Panel):
     def OnRightUp(self, event):
         pt = event.GetPosition();
         item, flags = self.tree.HitTest(pt)
-        if item:        
+        if item:
             self.log.WriteText("OnRightUp: %s (manually starting label edit)\n"
                                % self.tree.GetItemText(item))
-            self.tree.EditLabel(item)  
+            self.tree.EditLabel(item)
 
 
     @Bind(wx.EVT_TREE_SEL_CHANGED)
-    def OnSelChanged(self, event):       
+    def OnSelChanged(self, event):
         item = event.GetItem()
         event.Skip()
-        
+
         if self.tree._dragging:
             # Don't reselect flames when a drop is happening.
             return
-        
+
         if item and len(self.tree.GetIndexOfItem(item)) == 2:
             # Item is a flame
             self.tree.item = item
@@ -149,7 +154,7 @@ class TreePanel(wx.Panel):
             self.parent.Enable(ID.UNDO, False)
             self.parent.Enable(ID.REDO, False)
 
-        
+
     @Bind(wx.EVT_TREE_END_LABEL_EDIT)
     def OnEndEdit(self, e):
         item = e.GetItem()
@@ -177,7 +182,7 @@ class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
 
         self.Indent = 8 # default is 15
         self.Spacing = 12 # default is 18
-        
+
         isz = (23,23)
         il = wx.ImageList(*isz)
         il.Add(wx.ArtProvider_GetBitmap(wx.ART_FOLDER,      wx.ART_OTHER, isz))
@@ -207,7 +212,7 @@ class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
         for child, data in zip(self.GetItemChildren(parent),
                                (i[0] for i in lst)):
             self.RenderThumbnail(child, data)
-            # Set item to default until thumbnail is ready.    
+            # Set item to default until thumbnail is ready.
             self.SetItemImage(child, 2)
 
         self.SelectItem(parent)
@@ -227,7 +232,7 @@ class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
         self.parent.parent.renderer.ThumbnailRequest(callback,data[-1],
                                             self.isz,quality=25,estimator=1)
 
-        
+
     def UpdateThumbnail(self, bmp, child, data):
         """Callback function to process rendered thumbnails."""
         self.il.Add(bmp)
@@ -241,7 +246,7 @@ class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
 
     def GetFilePath(self):
         return self.GetItem((0,))[0][-1]
-    
+
 
     def OnDrop(self, *args):
         """This method is used by the DragAndDrop mixin."""
@@ -255,10 +260,10 @@ class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
         toindex = dropindex[1] +1 if len(dropindex) > 1 else 0
 
         lst.insert(toindex, lst.pop(fromindex))
-            
+
         self.RefreshItems()
         index = (0, min(toindex, len(lst)-1))
-        self.SelectItem(self.GetItemByIndex(index))            
+        self.SelectItem(self.GetItemByIndex(index))
 
         self._dragging = False
 
@@ -340,4 +345,4 @@ class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
         """The original method vetoes the dragItem's parent, but we want to
         allow that. Also, there's no need to check for children because our
         tree is flat."""
-        return True 
+        return True

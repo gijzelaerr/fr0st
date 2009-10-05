@@ -120,7 +120,7 @@ config = {"active-vars": ('linear',
           "Rect-Editor": None,
           "Rect-Preview": None,
           }
- 
+
 _configpath = 'config.cfg'
 
 def load():
@@ -129,6 +129,8 @@ def load():
         return eval("{%s}" % ",".join(i for i in f))
 
 def dump():
+    config['Edit-Post-Xform'] = False
+
     with open(_configpath, 'wb') as f:
 ##        cPickle.dump(config, f, cPickle.HIGHEST_PROTOCOL)
         f.write("\n".join("%r: %r" %i for i in config.iteritems()))
@@ -150,11 +152,11 @@ def update_dict(old, new):
                 update_dict(old[k], v)
             else:
                 old[k] = v
-            
+
 
 if os.path.exists(_configpath):
     _old_config = config.copy()
     update_dict(config, load())
 
-    
+
 atexit.register(dump)

@@ -779,7 +779,7 @@ class Xform(object):
 class PostXform(Xform):
     _allowed = set(('coefs', 'points', 'polars', 'screen_coefs', '_parent',
                 'a','b','c','d','e','f',
-                'x','y','o',
+                'x','y','o','pos',
                 'xp','yp','op'))
 
     def __repr__(self):
