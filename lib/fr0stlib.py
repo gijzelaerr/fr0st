@@ -398,7 +398,8 @@ class Palette(list):
             idx = 3*(x + img.size[0]*y)
             grab[i] = bin[idx:idx+3]
 
-        best = utils.palette_improve(grab, num_tries, try_size)        for i in xrange(256):
+        best = utils.palette_improve(grab, num_tries, try_size)
+        for i in xrange(256):
             self[i] = (best[i,0], best[i,1], best[i,2])
 
 
@@ -425,7 +426,7 @@ class Xform(object):
             self._chaos = Chaos(self, chaos)
             
             if post is None:
-                post = [1,0,0,1,0,0]
+                post = [1.0, 0.0, 0.0, 1.0, 0.0, 0.0]
             self._post = PostXform(self, screen_coefs=post)
 
     @classmethod
