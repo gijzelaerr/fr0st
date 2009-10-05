@@ -10,13 +10,26 @@ from lib.pyflam3 import Genome, c_double, RandomContext, flam3_xform_preview
 from lib.gui.config import config
 
 
-class VarPreview(FC.PointSet):   
-    
+def angle_helper(*points):
+        """Given 3 vectors with the same origin, checks if the first falls
+        between the other 2."""
+        itr = (polar(i)[1] for i in points)
+        vect = itr.next() # vector being checked
+        low, high = sorted(itr) # the 2 triangle legs.
+        if high - low > 180:
+                low, high = high-360, low
+        if vect > high:
+                vect -= 360
+        return high > vect > low
+
+
+class VarPreview(FC.PointSet):
+
     def __init__(self, xform, Color):
         self.xform = xform
         lst = self.var_preview(xform, **config["Var-Preview-Settings"])
         FC.PointSet.__init__(self, lst, Color=Color)
-        
+
     def var_preview(self, xform, range, numvals, depth):
         result = (c_double * (2* (2*numvals+1)**2))()
         genome = Genome.from_string(xform._parent.to_string(True))[0]
@@ -26,14 +39,122 @@ class VarPreview(FC.PointSet):
         flam3_xform_preview(genome, index, range, numvals, depth,
                             result, RandomContext())
         return [(x,-y) for x,y in zip(*[iter(result)]*2)]
-    
+
 ##    def CalcBoundingBox(self):
 ##        # We don't want the BBox to be calculated from all points, as it messes
 ##        # with adjustzoom. Just triangle bounds are used, which causes a
 ##        # (slight) bug: when the triangle is dragged off-screen, the preview
 ##        # disappears, even if part of it would still be visible.
 ##        self.BoundingBox = BBox.fromPoints(self.xform.points)
-    
+
+
+class BaseCoefsTriangle(FC.Group):
+    def __init__(self, parent, xform, points, coefs, color, solid, fill):
+        
+        self.xform = xform
+        self.parent = parent
+        self.points = points
+        self.coefs = coefs
+        self.color = color
+
+        self.triangle = FC.Polygon(points,
+                         LineColor=color,
+                         FillColor=color,
+                         FillStyle="BiDiagonalHatch" if fill else "Transparent",
+                         LineStyle="Solid" if solid else parent.style)
+
+        diameter = parent.circle_radius * 2
+
+        circles = [FC.Circle(i, Diameter=diameter, LineColor=color) for i in points]
+
+        text = map(lambda x,y: FC.Text(x,y,Size=10,Color=color), "XYO",points)
+
+        self._circles = circles
+        self._text = text
+
+        FC.Group.__init__(self, [self.triangle] + circles + text)
+
+
+    def _Draw(self, dc , WorldToPixel, ScaleWorldToPixel = None, HTdc=None):
+        if not self.Visible:
+            return
+
+        for obj in self.ObjectList:
+            obj._Draw(dc, WorldToPixel, ScaleWorldToPixel, HTdc)
+
+    def VertexHitTest(self, x, y):
+        a,d,b,e,c,f = self.coefs
+
+        if polar((x - c, y - f))[0] < self.parent.circle_radius:
+            return 'o'
+        elif polar((x - a - c, y - d - f))[0] < self.parent.circle_radius:
+            return 'x'
+        elif polar((x - b - c, y - e - f))[0] < self.parent.circle_radius:
+            return 'y'
+
+        return None
+
+class XFormTriangle(BaseCoefsTriangle):
+    def __init__(self, parent, xform, color, solid=False, fill=False):
+        BaseCoefsTriangle.__init__(self, parent, xform, xform.points, xform.coefs, color, solid, fill)
+
+        if solid:
+            parent._cornerpoints = parent.GetCornerPoints(xform)
+            corners = [FC.Line(i, LineColor=color) for i in parent._cornerpoints]
+            self._text.extend(corners)
+            self.AddObjects(corners)
+##            if config["Variation-Preview"]:
+##                self.preview = VarPreview(xform, Color=color)
+##                self.AddObject(self.preview)
+
+        self.CalcBoundingBox()
+
+    def VertexHitTest(self, x, y):
+        v = BaseCoefsTriangle.VertexHitTest(self, x, y)
+
+        if v is None:
+            return None, None
+        elif v == 'o':
+            return (self.xform, partial(setattr, self.xform, "pos")
+                           if config["Lock-Axes"] else partial(setattr, self.xform, "o"))
+        elif v == 'x':
+            return self.xform, partial(setattr, self.xform, "x")
+
+        elif v == 'y':
+            return self.xform, partial(setattr, self.xform, "y")
+
+    def _Draw(self, dc , WorldToPixel, ScaleWorldToPixel = None, HTdc=None):
+        BaseCoefsTriangle._Draw(self, dc, WorldToPixel, ScaleWorldToPixel, HTdc)
+
+class PostTriangle(BaseCoefsTriangle):
+    def __init__(self, parent, xform, color, solid=False, fill=False):
+        BaseCoefsTriangle.__init__(self, parent, xform, xform.post.points, xform.post.coefs, color, solid, fill)
+
+        if solid:
+            parent._post_cornerpoints = parent.GetCornerPoints(xform, True)
+            corners = [FC.Line(i, LineColor=color) for i in parent._post_cornerpoints]
+            self._text.extend(corners)
+            self.AddObjects(corners)
+
+        self.CalcBoundingBox()
+
+    def VertexHitTest(self, x, y):
+        v = BaseCoefsTriangle.VertexHitTest(self, x, y)
+
+        if v is None:
+            return None, None
+        elif v == 'o':
+            return (self.xform, partial(setattr, self.xform.post, "pos")
+                           if config["Lock-Axes"] else partial(setattr, self.xform.post, "o"))
+        elif v == 'x':
+            return self.xform, partial(setattr, self.xform.post, "x")
+
+        elif v == 'y':
+            return self.xform, partial(setattr, self.xform.post, "y")
+
+    def _Draw(self, dc , WorldToPixel, ScaleWorldToPixel = None, HTdc=None):
+        BaseCoefsTriangle._Draw(self, dc, WorldToPixel, ScaleWorldToPixel, HTdc)
+
 
 
 class XformCanvas(FC.FloatCanvas):
@@ -46,10 +167,10 @@ class XformCanvas(FC.FloatCanvas):
               ( 255, 127,   0), # orange
               ( 255,   0, 127)  # another purplish one
               ] # TODO: extend the color list.
-    
+
     style = "ShortDash" if "linux" in sys.platform else "Dot"
     preview = None
-    
+
     @BindEvents
     def __init__(self, parent):
         self.parent = parent.parent
@@ -68,9 +189,11 @@ class XformCanvas(FC.FloatCanvas):
 
 
         # Lists that hold draw objects
-        self.triangles = []
+        self.xform_groups = []
+        self.post_groups = []
         self.objects = []
         self.shadow = []
+        self.edit_post = False
 
         self.MakeGrid()
         self.ZoomToBB(DrawFlag=False)
@@ -88,29 +211,34 @@ class XformCanvas(FC.FloatCanvas):
         self.HasChanged = False
         self.StartMove = None
         self.callback = None
-        
 
     def ShowFlame(self, flame=None, rezoom=True, refresh=True):
         if flame is None:
             flame = self.parent.flame
 
-        for t in self.triangles:
-            self.RemoveObjects(itertools.chain((t,),t._text,t._circles))
-        self.triangles = []
-        
+        self.RemoveObjects(self.xform_groups)
+        self.xform_groups = []
+
+        self.RemoveObjects(self.post_groups)
+        self.post_groups = []
+
         if self.preview is not None:
             self.RemoveObject(self.preview)
             self.preview = None
-            
+
         for i in flame.iter_xforms():
             xf = self.AddXform(i, solid=i==self.parent.ActiveXform,
                                fill=i==self.SelectedXform)
-            self.triangles.append(xf)
-        
-        # TODO: add post xforms.
-##        for i in flame.iter_posts():
-##            pass
+            self.xform_groups.append(xf)
+
+            p = self.AddXform(i, solid=i==self.parent.ActiveXform,
+                               fill=i==self.SelectedXform, post=True)
+            self.post_groups.append(p)
                 
+            xf.Visible = not config['Edit-Post-Xform']
+            p.Visible = config['Edit-Post-Xform']
+
+
         if rezoom:
             if self.preview is not None:
                 # The preview spread is ignored, as it tends to zoom the flame
@@ -124,42 +252,26 @@ class XformCanvas(FC.FloatCanvas):
         elif refresh:
             # This is an elif because AdjustZoom already forces a Draw.
             self.Draw()
-    
 
-    def AddXform(self, xform, solid=False, fill=False):
+
+    def AddXform(self, xform, solid=False, fill=False, post=False):
         color = ((255,255,255) if xform.isfinal()
                  else self.colors[xform.index%len(self.colors)])
-        points  = xform.points
-        triangle = self.AddPolygon(points,
-                         LineColor=color,
-                         FillColor=color,
-                         FillStyle="BiDiagonalHatch" if fill else "Transparent",
-                         LineStyle="Solid" if solid else self.style)
 
-        diameter = self.circle_radius * 2
-        circles = [self.AddCircle(i, Diameter=diameter, LineColor=color)
-                   for i in points]
-        text = map(lambda x,y: self.AddText(x,y,Size=10,Color=color),
-                   "XYO",points)
-
-        if solid:
-            self._cornerpoints = self.GetCornerPoints(xform)
-            corners = [self.AddLine(i, LineColor=color)
-                       for i in self._cornerpoints]
-            text.extend(corners)
-            if config["Variation-Preview"]:
+        if post:
+            t = PostTriangle(self, xform, color, solid, fill)
+        else:
+            t = XFormTriangle(self, xform, color, solid, fill)
+            if solid and config["Variation-Preview"]:
                 self.preview = VarPreview(xform, Color=color)
-                self.AddObject(self.preview)
-            
-        triangle._circles = circles
-        triangle._text = text
+                self.AddObject(self.preview)            
+        self.AddObject(t)
 
-        return triangle
+        return t
 
-
-    def GetCornerPoints(self, xform):
+    def GetCornerPoints(self, xform, post=False):
         """Calculate the lines making up the corners of the triangle."""
-        a,d,b,e,c,f = xform.coefs
+        a,d,b,e,c,f = xform.coefs if not post else xform.post.coefs
 
         # Get the 4 corner points
         p1 = c + a + b, f + d + e
@@ -182,7 +294,7 @@ class XformCanvas(FC.FloatCanvas):
                  (x1+(x3-x1)/10, y1+(y3-y1)/10))
                 for (x1,y1),(x2,y2),(x3,y3) in combinations]
 
-        
+
     def MakeGrid(self):
         self.GridUnder = FC.DotGrid(Spacing=(.1, .1),
                                     Size=150,
@@ -190,7 +302,7 @@ class XformCanvas(FC.FloatCanvas):
                                     Cross=True,
                                     CrossThickness=1)
 
-        
+
     def AdjustZoom(self):
         """resets the grid and circle sizes, refreshes the canvas."""
         # Adjust Grid Spacing
@@ -208,11 +320,14 @@ class XformCanvas(FC.FloatCanvas):
         # Adjust the circles at the triangle edges
         diameter = self.circle_radius * 2
         map(lambda x: x.SetDiameter(diameter),
-            itertools.chain(*(i._circles for i in self.triangles)))
+            itertools.chain(*(i._circles for i in self.xform_groups)))
+
+        map(lambda x: x.SetDiameter(diameter),
+            itertools.chain(*(i._circles for i in self.post_groups)))
 
         # Refresh canvas
         self._BackgroundDirty = True
-        self.Draw()      
+        self.Draw()
 
 
     def IterXforms(self):
@@ -222,6 +337,22 @@ class XformCanvas(FC.FloatCanvas):
             lst.insert(0, active)
         if self.parent.flame.final:
             lst.append(self.parent.flame.final)
+        return lst
+
+
+    def IterXformGroups(self):
+        lst = []
+
+        for xform_group in self.xform_groups:
+            if xform_group.xform == self.parent.ActiveXform:
+                lst.insert(0, xform_group)
+            else:
+                lst.append(xform_group)
+
+        #TODO: Handle final xform as xformgroup
+        #if self.parent.flame.final:
+        #    lst.append(self.parent.flame.final)
+
         return lst
 
 
@@ -237,18 +368,21 @@ class XformCanvas(FC.FloatCanvas):
 
     def VertexHitTest(self,x,y):
         """Checks if the given point is on top of a vertex."""
+
         for xform in self.IterXforms():
-            a,d,b,e,c,f = xform.coefs
+            xf = xform if not config['Edit-Post-Xform'] else xform.post
+            a,d,b,e,c,f = xf.coefs
+
             if polar((x - c, y - f))[0] < self.circle_radius:
-                return (xform, partial(setattr, xform, "pos")
-                               if config["Lock-Axes"]
-                               else partial(setattr, xform, "o"))
+                return (xform, partial(setattr, xf, "pos") if config["Lock-Axes"] else partial(setattr, xf, "o"))
             elif polar((x - a - c, y - d - f))[0] < self.circle_radius:
-                return xform, partial(setattr, xform, "x")
+                return xform, partial(setattr, xf, "x")
             elif polar((x - b - c, y - e - f))[0] < self.circle_radius:
-                return xform, partial(setattr, xform, "y")
+                return xform, partial(setattr, xf, "y")
+
         return None, None
-    
+
+
 
     def CalcScale(self, points, h, v, hittest=False):
         """Returns the proportion by which the xform needs to be scaled to make
@@ -258,13 +392,13 @@ class XformCanvas(FC.FloatCanvas):
 
         xf = Xform(points=points)
         a,d,b,e,c,f = xf.coefs
-        
+
         # Get angle of the hypothenuse
         angle = polar(((b-a), (e-d)))[1]
 
         # create a rotated triangle and (c,f)->(h,v) vector. This way, the
         # hypothenuse is guaranteed to be horizontal, which makes everything
-        # easier.     
+        # easier.
         xf.rotate(-angle)
         l, theta = polar(((h-c), (v-f)))
         width,height = rect((l, theta - angle))
@@ -297,54 +431,46 @@ class XformCanvas(FC.FloatCanvas):
             cb.prev_angle = angle
         cb.prev_angle = polar((h - pivot[0], v - pivot[1]))[1]
         return cb
-                
-    
+
+
     def SideHitTest(self, h, v):
         """Checks if the given point is near one of the triangle sides
         or corners."""
         for xform in self.IterXforms():
-            x,y,o = xform.points
+            xf = xform if not config['Edit-Post-Xform'] else xform.post
+            x,y,o = xf.points
             for points,func in (((x,y,o), 'scale'),
                                 ((x,o,y), 'rotate_x'),
                                 ((y,o,x), 'rotate_y')):
                 if self.CalcScale(points, h, v, hittest=True):
                     return (points[:2], xform,
-                            self.side_helper(xform, func, h,v))
+                            self.side_helper(xf, func, h,v))
 
         # TODO: detect the actual lines. Right now, it just checks a radius
         # from the middle point.
         radius = self.circle_radius * 3 # better too big than too small.
-        for i,j,k in self._cornerpoints:
+        for i,j,k in (self._cornerpoints if not config['Edit-Post-Xform'] else self._post_cornerpoints):
             if polar((h - j[0], v - j[1]))[0] < radius:
                 xform = self.parent.ActiveXform
-                return ((i,j,k), xform, self.side_helper(xform, 'rotate', h,v))
+                return ((i,j,k), xform, self.side_helper(xform if not config['Edit-Post-Xform'] else xform.post, 'rotate', h,v))
 
         return None, None, None
 
-    
-    def angle_helper(self, *points):
-        """Given 3 vectors with the same origin, checks if the first falls
-        between the other 2."""
-        itr = (polar(i)[1] for i in points)
-        vect = itr.next() # vector being checked
-        low, high = sorted(itr) # the 2 triangle legs.
-        if high - low > 180:
-            low, high = high-360, low
-        if vect > high:
-            vect -= 360
-        return high > vect > low
-    
 
     def XformHitTest(self,x,y):
         """Checks if the given point is inside the area of the xform.
         This is done by testing if it falls inside the angles projected from
         at least 2 of its vertices."""
+
         for xform in self.IterXforms():
-            a,d,b,e,c,f = xform.coefs
-            if self.angle_helper((x-c, y-f), (a, d), (b, e)) and \
-               self.angle_helper((x-a-c, y-d-f), (-a, -d), (b-a, e-d)):
-                diff = x - xform.c, y - xform.f
-                return xform, lambda coord: setattr(xform, "pos", coord-diff)
+            xf = xform if not config['Edit-Post-Xform'] else xform.post
+            a,d,b,e,c,f = xf.coefs
+
+            if angle_helper((x-c, y-f), (a, d), (b, e)) and \
+               angle_helper((x-a-c, y-d-f), (-a, -d), (b-a, e-d)):
+                diff = x - c, y - f
+                return xform, lambda coord: setattr(xf, "pos", coord-diff)
+
         return None, None
 
 
@@ -364,7 +490,7 @@ class XformCanvas(FC.FloatCanvas):
     def OnLeave(self,e):
 ##        self.ReleaseMouse()
         pass
-        
+
 
     @Bind(wx.EVT_IDLE)
     def OnIdle(self,e):
@@ -388,7 +514,7 @@ class XformCanvas(FC.FloatCanvas):
             self.AdjustZoom()
             self.AddObjects(self.objects)
 
-            
+
     @Bind(FC.EVT_MOUSEWHEEL)
     def OnWheel(self,e):
         self._resize_pending *= 1.25 if e.GetWheelRotation()>0 else 0.8
@@ -396,15 +522,19 @@ class XformCanvas(FC.FloatCanvas):
 
     @Bind(FC.EVT_LEFT_DOWN)
     def OnLeftDown(self,e):
-        self.CaptureMouse() 
+        self.CaptureMouse()
         if self.SelectedXform:
             self.parent.ActiveXform = self.SelectedXform
             self.ShowFlame(rezoom=False)
             self.parent.XformTabs.UpdateView()
 
             # EXPERIMENT!
-            t = self.AddXform(self.parent.ActiveXform)
-            self.shadow.extend(itertools.chain((t,),t._text,t._circles))
+            if config['Edit-Post-Xform']:
+                t = self.AddXform(self.parent.ActiveXform, post=True)
+            else:
+                t = self.AddXform(self.parent.ActiveXform)
+
+            self.shadow.extend((t,))
 
 
     @Bind(FC.EVT_LEFT_UP)
@@ -415,7 +545,7 @@ class XformCanvas(FC.FloatCanvas):
         # EXPERIMENT!
         self.RemoveObjects(self.shadow)
         self.shadow = []
-        
+
         if self.HasChanged:
             # Heisenbug, thou art no more! Since TempSave triggers a redraw,
             # It was possible that an idle event was still pending afterwards,
@@ -425,7 +555,7 @@ class XformCanvas(FC.FloatCanvas):
             self.HasChanged = False
             self.parent.TreePanel.TempSave()
 
-            
+
     @Bind(FC.EVT_RIGHT_DOWN)
     def OnRightDown(self,e):
         self.CaptureMouse()
@@ -443,7 +573,7 @@ class XformCanvas(FC.FloatCanvas):
     def OnMove(self,e):
         self.RemoveObjects(self.objects)
         self.objects = []
-        
+
         if  e.RightIsDown() and e.Dragging() and self.StartMove is not None:
             self.EndMove = N.array(e.GetPosition())
             self._right_drag = self.StartMove - self.EndMove
@@ -454,12 +584,13 @@ class XformCanvas(FC.FloatCanvas):
 
         elif e.LeftIsDown() and e.Dragging():
             self._left_drag = e.Coords
-            
+
         else:
             # TODO: maybe uncomment this SetFocus, but activate it only
             # when main frame has focus.
 ##            self.SetFocus() # Makes Canvas take focus under windows.
-            
+
+
             # First, test for vertices
             xform, cb = self.VertexHitTest(*e.Coords)
             if cb:
@@ -475,12 +606,15 @@ class XformCanvas(FC.FloatCanvas):
                 return
 
             # Finally, test for area
+
             xform, cb = self.XformHitTest(*e.Coords)
-            if xform:
+
+            if cb:
                 self.SelectXform(xform)
                 self.callback = cb
+                return
 
-            elif self.SelectedXform is not None:
+            if self.SelectedXform is not None:
                 # Showflame is called here because SelectXform is not.
                 self.SelectedXform = None
                 self.callback = None
@@ -490,7 +624,7 @@ class XformCanvas(FC.FloatCanvas):
     def SelectXform(self, xform, highlight=None):
         if self.SelectedXform == xform and self._highlight == highlight:
             return
-        
+
         self.SelectedXform = xform
         self._highlight = highlight
 
@@ -505,7 +639,7 @@ class XformCanvas(FC.FloatCanvas):
             ver -= 12
             self.objects.append(self.AddText(i, self.PixelToWorld((hor,ver)),
                                 Size = 8, Position = "tr", Color=color))
-                                            
+
         if highlight:
             self.objects.append(self.AddLine(highlight, LineColor=color,
                                              LineWidth=2))
