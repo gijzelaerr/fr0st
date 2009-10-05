@@ -75,13 +75,6 @@ class BaseCoefsTriangle(FC.Group):
         FC.Group.__init__(self, [self.triangle] + circles + text)
 
 
-    def _Draw(self, dc , WorldToPixel, ScaleWorldToPixel = None, HTdc=None):
-        if not self.Visible:
-            return
-
-        for obj in self.ObjectList:
-            obj._Draw(dc, WorldToPixel, ScaleWorldToPixel, HTdc)
-
     def VertexHitTest(self, x, y):
         a,d,b,e,c,f = self.coefs
 
@@ -92,7 +85,6 @@ class BaseCoefsTriangle(FC.Group):
         elif polar((x - b - c, y - e - f))[0] < self.parent.circle_radius:
             return 'y'
 
-        return None
 
 class XFormTriangle(BaseCoefsTriangle):
     def __init__(self, parent, xform, color, solid=False, fill=False):
@@ -103,11 +95,9 @@ class XFormTriangle(BaseCoefsTriangle):
             corners = [FC.Line(i, LineColor=color) for i in parent._cornerpoints]
             self._text.extend(corners)
             self.AddObjects(corners)
-##            if config["Variation-Preview"]:
-##                self.preview = VarPreview(xform, Color=color)
-##                self.AddObject(self.preview)
 
         self.CalcBoundingBox()
+
 
     def VertexHitTest(self, x, y):
         v = BaseCoefsTriangle.VertexHitTest(self, x, y)
@@ -123,8 +113,6 @@ class XFormTriangle(BaseCoefsTriangle):
         elif v == 'y':
             return self.xform, partial(setattr, self.xform, "y")
 
-    def _Draw(self, dc , WorldToPixel, ScaleWorldToPixel = None, HTdc=None):
-        BaseCoefsTriangle._Draw(self, dc, WorldToPixel, ScaleWorldToPixel, HTdc)
 
 class PostTriangle(BaseCoefsTriangle):
     def __init__(self, parent, xform, color, solid=False, fill=False):
@@ -151,10 +139,6 @@ class PostTriangle(BaseCoefsTriangle):
 
         elif v == 'y':
             return self.xform, partial(setattr, self.xform.post, "y")
-
-    def _Draw(self, dc , WorldToPixel, ScaleWorldToPixel = None, HTdc=None):
-        BaseCoefsTriangle._Draw(self, dc, WorldToPixel, ScaleWorldToPixel, HTdc)
-
 
 
 class XformCanvas(FC.FloatCanvas):
