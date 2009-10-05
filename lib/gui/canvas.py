@@ -96,8 +96,6 @@ class XFormTriangle(BaseCoefsTriangle):
             self._text.extend(corners)
             self.AddObjects(corners)
 
-        self.CalcBoundingBox()
-
 
     def VertexHitTest(self, x, y):
         v = BaseCoefsTriangle.VertexHitTest(self, x, y)
@@ -124,7 +122,6 @@ class PostTriangle(BaseCoefsTriangle):
             self._text.extend(corners)
             self.AddObjects(corners)
 
-        self.CalcBoundingBox()
 
     def VertexHitTest(self, x, y):
         v = BaseCoefsTriangle.VertexHitTest(self, x, y)
