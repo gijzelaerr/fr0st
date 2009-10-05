@@ -546,7 +546,14 @@ class XformCanvas(FC.FloatCanvas):
 
     @Bind(FC.EVT_RIGHT_UP)
     def OnRightUp(self,e):
-        self.ReleaseMouse()
+        if self.HasCapture():
+            self.ReleaseMouse()
+
+        self.StartMove = None
+
+
+    @Bind(wx.EVT_MOUSE_CAPTURE_LOST)
+    def OnLostMouseCapture(self, e):
         self.StartMove = None
 
 
