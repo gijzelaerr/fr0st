@@ -432,22 +432,26 @@ class RenderDialog(wx.Frame):
 
 
     def MakeProg(self, name, index, lenght):
-        string = ("rendering %s/%s (%s): %%.2f %%%% \tETA: %%02d:%%02d:%%02d"
-                  %(index, lenght, name))
+        string = "rendering %s/%s (%s): %%.2f %%%% \t" %(index, lenght, name)
+        str_iter = string + "ETA: %02d:%02d:%02d"
+        str_de = string + "running density estimation"
         def prog(*args):
             if self.exitflag:
                 self.rendering = False
                 return self.exitflag
-            self.OnProgress(string, *args)
+            self.OnProgress(str_iter, str_de, *args)
         return prog
         
 
     @InMain
-    def OnProgress(self, string, py_object, fraction, stage, eta):
-        h = eta/3600
-        m = eta%3600/60
-        s = eta%60
-        self.SetStatusText(string % (fraction,h,m,s))
+    def OnProgress(self, str_iter, str_de, py_object, fraction, stage, eta):
+        if stage == 0:
+            h = eta/3600
+            m = eta%3600/60
+            s = eta%60
+            self.SetStatusText(str_iter % (fraction,h,m,s))
+        else:
+            self.SetStatusText(str_de % fraction)
         self.gauge.SetValue(fraction)
 
             
