@@ -287,6 +287,7 @@ class RenderDialog(wx.Frame):
         self.mem.UpdateView()
 
 
+    @Catches(wx.PyDeadObjectError)
     def OnSelection(self, e=None):
         selections = self.lb.GetSelections()
         len_ = len(selections)
@@ -389,8 +390,13 @@ class RenderDialog(wx.Frame):
 
         clashes = [path for path in paths if os.path.exists(path)]
         if clashes:
-            string = ("The following file%s already exist%s:\n\n"
-                      "%s\n\n" 
+            if len(clashes) > 3:
+                middle = "%%s\n... (%s more)\n\n" %len(clashes[3:])
+                clashes = clashes[:3]
+            else:
+                middle = "%s\n\n"
+            string = ("The following file%s already exist%s:\n" + 
+                      middle + 
                       "Do you want to overwrite?")
             s1, s2 = ("s", "") if len(clashes) > 1 else ("", "s")
             if wx.MessageDialog(self, string %(s1, s2, "\n".join(clashes)),
