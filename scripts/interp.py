@@ -1,5 +1,5 @@
 from runscript import *
-from utils import equalize_flame_attributes
+from lib.utils import equalize_flame_attributes
 
 class Interpolation(list):
 
@@ -26,10 +26,10 @@ class Interpolation(list):
             elif key=='smooth':  smooth=kwargs[key]
             elif key=='p_space': p_space=kwargs[key]
             elif key=='c_space': c_space=kwargs[key]
-            
+
         nk = len(keys)
         nf = nk * n
-        
+
         tmp = []
         for i in xrange(nk):
             k1 = Flame(string=keys[i-1].to_string())
@@ -47,7 +47,7 @@ class Interpolation(list):
             interp_attrs = ['scale', 'rotate', 'brightness', 'gamma']
             for name, test in keys[0].iter_attributes():
                 cps = []
-                
+
                 if name in interp_attrs:
                     for k in keys:
                         tmp = getattr(k,name)
@@ -59,16 +59,16 @@ class Interpolation(list):
                 else:
                     pass
             #end flame attrs
-            
+
             maxi = 0
             for k in keys:
                 if len(k.xform)>maxi: maxi=len(k.xform)
-            
+
             #Xform attrs
             for x in xrange(maxi):
                 #Add xform
                 self[i].add_xform()
-                
+
                 #coef interp
                 cpsx = []
                 cpsy = []
@@ -89,7 +89,7 @@ class Interpolation(list):
                 vy = interp(cpsy, n, i, **kwargs)
                 vo = interp(cpso, n, i, **kwargs)
                 self[i].xform[x].coefs = tuple(vx + vy + vo)
-                
+
                 #attribute intep
                 for name in attrset:
                     cps = []
@@ -102,7 +102,7 @@ class Interpolation(list):
                     if name=='weight': val = clip(val, 0, 100)
                     setattr(self[i].xform[x], name, val)
             #end xforms
-            
+
             #gradient
             for c, cps in enumerate(zip(*(key.gradient for key in keys))):
                 val = interp(cps, n, i, **kwargs)
@@ -117,7 +117,7 @@ Erik's secret sauce added for better flava
 # equalize_flame_attributes in utils.
 def get_pad(xform, target):
     HOLES = ['spherical', 'ngon', 'julian', 'juliascope', 'polar', 'wedge_sph', 'wedge_julia']
-    
+
     target.add_xform()
     target.xform[-1] = copy.deepcopy(xform)
     t = target.xform[-1]

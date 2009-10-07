@@ -1,4 +1,5 @@
-import re, shutil, random, itertools, utils, Image, numpy, ctypes
+import re, shutil, random, itertools, Image, numpy, ctypes
+from lib import utils
 from lib.pyflam3 import Genome,RandomContext,flam3_estimate_bounding_box
 from math import *
 
@@ -195,10 +196,10 @@ class Flame(object):
     @angle.setter
     def angle(self,v):
         self.rotate = degrees(v)
-        
+
     def reframe(self):
         TwoDoubles = ctypes.c_double * 2
-        
+
         b_min = TwoDoubles()
         b_max = TwoDoubles()
         b_eps = 0.01
@@ -209,11 +210,11 @@ class Flame(object):
         bxoff = (b_min[0]+b_max[0])/2
         if abs(bxoff)<5:
             self.x_offset = bxoff
-            
+
         byoff = (b_min[1]+b_max[1])/2
         if abs(byoff)<5:
             self.y_offset = byoff
-            
+
         print "%f %f" % (self.width, b_max[0]-b_min[0])
         self.scale = 100 / (b_max[0]-b_min[0])
 
