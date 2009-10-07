@@ -215,6 +215,9 @@ flam3_malloc.restype = c_void_p
 flam3_free = libflam3.flam3_free
 flam3_free.argtypes = [c_void_p]
 
-
+#int flam3_estimate_bounding_box(flam3_genome *cp, double eps, int nsamples,
+#             double *bmin, double *bmax, randctx *rc)
+libflam3.flam3_estimate_bounding_box.argtypes = [POINTER(BaseGenome), c_double, c_int, POINTER(c_double), POINTER(c_double), POINTER(RandomContext)]
+flam3_estimate_bounding_box = libflam3.flam3_estimate_bounding_box
 
 

@@ -1,4 +1,5 @@
-import re, shutil, random, itertools, utils, Image, numpy
+import re, shutil, random, itertools, utils, Image, numpy, ctypes
+from lib.pyflam3 import Genome,RandomContext,flam3_estimate_bounding_box
 from math import *
 
 from functions import *
@@ -194,7 +195,27 @@ class Flame(object):
     @angle.setter
     def angle(self,v):
         self.rotate = degrees(v)
-
+        
+    def reframe(self):
+        TwoDoubles = ctypes.c_double * 2
+        
+        b_min = TwoDoubles()
+        b_max = TwoDoubles()
+        b_eps = 0.01
+        nsamples = 100000
+        genome = Genome.from_string(self.to_string(False))[0]
+        flam3_estimate_bounding_box(genome, b_eps, nsamples, b_min, b_max, RandomContext())
+        print "%f %f" % ((b_min[0]+b_max[0])/2,(b_min[1]+b_max[1])/2)
+        bxoff = (b_min[0]+b_max[0])/2
+        if abs(bxoff)<5:
+            self.x_offset = bxoff
+            
+        byoff = (b_min[1]+b_max[1])/2
+        if abs(byoff)<5:
+            self.y_offset = byoff
+            
+        print "%f %f" % (self.width, b_max[0]-b_min[0])
+        self.scale = 100 / (b_max[0]-b_min[0])
 
     def move_center(self, diff):
         """Moves center point, adjusting for any flame rotation."""
@@ -460,7 +481,7 @@ class Xform(object):
         # Select the variations to use
         use_vars = random.sample(xv,n)
         for uv in use_vars:
-            setattr(x,variation_list[uv],random.uniform(-2,2))
+            setattr(x,variation_list[uv],random.uniform(-1,1))
             for p,v in variables[variation_list[uv]]:
                 setattr(x, "%s_%s" % (variation_list[uv],p), v())
             
