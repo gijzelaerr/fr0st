@@ -22,6 +22,17 @@ from lib.pyflam3 import Genome
 from lib.decorators import *
 from lib.threadinterrupt import ThreadInterrupt, interruptall
 
+
+class Fr0stApp(wx.App):
+    def __init__(self):
+        wx.App.__init__(self, redirect=True)
+        self.SetAppName('fr0st')
+
+    def MainLoop(self):
+        frame = MainWindow(None, wx.ID_ANY)
+        wx.App.MainLoop(self)
+
+
 class MainWindow(wx.Frame):
     wildcard = "Flame file (*.flame)|*.flame|" \
                "All files (*.*)|*.*"
@@ -32,7 +43,7 @@ class MainWindow(wx.Frame):
     @BindEvents
     def __init__(self,parent,id):
         self.title = "Fractal Fr0st"
-        wx.Frame.__init__(self,parent,wx.ID_ANY, self.title)    
+        wx.Frame.__init__(self,parent,wx.ID_ANY, self.title)
 
         # This icon stuff is not working...
 ##        ib=wx.IconBundle()
@@ -40,11 +51,11 @@ class MainWindow(wx.Frame):
 ##        self.SetIcons(ib)
         self.CreateStatusBar()
         self.SetDoubleBuffered(True)
-        
+
         # Launch the render threads
         self.renderer = Renderer(self)
         self.renderdialog = None
-        
+
         # Creating Frame Content
         CreateMenu(parent=self)
         CreateToolBar(self)
@@ -57,8 +68,8 @@ class MainWindow(wx.Frame):
 
         self.editorframe = EditorFrame(self)
         self.editor = self.editorframe.editor
-        self.log = self.editorframe.log 
-        
+        self.log = self.editorframe.log
+
         self.TreePanel = TreePanel(self)
         self.tree = self.TreePanel.tree
 
@@ -69,12 +80,12 @@ class MainWindow(wx.Frame):
         sizer2.Add(self.image,0,wx.EXPAND)
         sizer2.Add(self.XformTabs.Selector,0)
         sizer2.Add(self.XformTabs,1,wx.EXPAND)
-        
+
         sizer = wx.BoxSizer(wx.HORIZONTAL)
         sizer.Add(self.TreePanel,0,wx.EXPAND)
         sizer.Add(sizer3,1,wx.EXPAND)
         sizer.Add(sizer2,0,wx.EXPAND)
-        
+
         self.SetSizer(sizer)
 
         self._namespace = self.CreateNamespace()
@@ -86,7 +97,7 @@ class MainWindow(wx.Frame):
         # Calculate the correct minimum size dynamically.
         sizer.Fit(self)
         self.SetMinSize(self.GetSize())
-        
+
         # Load frame positions from file
         for window, k in ((self, "Rect-Main"),
                           (self.editorframe, "Rect-Editor"),
@@ -99,7 +110,7 @@ class MainWindow(wx.Frame):
         # Set up paths
         sys.path.append(os.path.join(sys.path[0],"scripts")) # imp in scripts
         self.flamepath = os.path.join(sys.path[0], config["flamepath"])
-        
+
         if os.path.exists('paths.temp') and False:
             # TODO: check if another fr0st process is running.
             # Previous session was interrupted
@@ -114,13 +125,13 @@ class MainWindow(wx.Frame):
             except:
                 self.OnFlameNew(e=None)
 ##                self.OnFlameNew2(e=None)
-            
+
 ##        self.tree.ExpandAll()
         self.tree.SelectItem(self.tree.GetItemByIndex((0,0)))
 
         self.Enable(ID.STOP, False, editor=True)
         self.Show(True)
-    
+
 
 #-----------------------------------------------------------------------------
 # Event handlers
@@ -139,7 +150,7 @@ class MainWindow(wx.Frame):
         # check for renders in progress
         if self.renderdialog and self.renderdialog.OnExit() == wx.ID_NO:
             return
-            
+
         # check for script diffs
         self.OnStopScript()
 ##        while self.scriptrunning:
@@ -147,7 +158,7 @@ class MainWindow(wx.Frame):
 ##            time.sleep(.01)
         if self.editorframe.CheckForChanges() == wx.ID_CANCEL:
             return
-        
+
         # check for flame diffs
         for itemdata,lst in self.tree.flamefiles:
             if self.CheckForChanges(itemdata, lst) == wx.ID_CANCEL:
@@ -189,12 +200,12 @@ class MainWindow(wx.Frame):
     def OnFlameNew(self, e):
         path = self.newfilename()
         self.tree.item = self.tree.SetFlames(path)
-        
+
         with open('paths.temp','a') as f:
             f.write(path + '\n')
-            
+
         return self.tree.item
-            
+
 
     @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=ID.FNEW2)
     def OnFlameNew2(self, e=None, string=None):
@@ -208,10 +219,10 @@ class MainWindow(wx.Frame):
 
         self.tree.GetChildren((0,)).append((data,[]))
         self.tree.RefreshItems()
-        
+
         # This is needed to avoid an indexerror when getting child.
         self.tree.Expand(self.tree.itemparent)
-        
+
         child = self.tree.GetItemByIndex((0, -1))
         self.tree.SelectItem(child)
 
@@ -240,7 +251,7 @@ class MainWindow(wx.Frame):
         self.flamepath = self.tree.GetFlameData(self.tree.itemparent)[-1]
         self.SaveFlame(self.flamepath, confirm=False)
 
-        
+
     @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=ID.FSAVEAS)
     def OnFlameSaveAs(self,e):
         filedata, lst = self.tree.flamefiles[0]
@@ -256,7 +267,7 @@ class MainWindow(wx.Frame):
                 self.OnFlameNew2(string=self.flame.to_string())
             self.SaveFlame(self.flamepath)
         dlg.Destroy()
-        
+
 
     @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=ID.SOPEN)
     def OnScriptOpen(self,e):
@@ -286,7 +297,7 @@ class MainWindow(wx.Frame):
     def OnPreviewOpen(self, e):
         self.previewframe.Show(True)
         self.previewframe.Raise()
-        self.previewframe.RenderPreview()      
+        self.previewframe.RenderPreview()
 
 
     @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=ID.UNDO)
@@ -296,13 +307,13 @@ class MainWindow(wx.Frame):
         self.tree.RenderThumbnail()
         self.tree.SetItemText(self.tree.item, data.name)
 
-            
+
     @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=ID.UNDOALL)
     def OnUndoAll(self, e):
         data = self.tree.itemdata
         self.SetFlame(Flame(string=data.UndoAll()), rezoom=False)
         self.tree.RenderThumbnail()
-        self.tree.SetItemText(self.tree.item, data.name)    
+        self.tree.SetItemText(self.tree.item, data.name)
 
 
     @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=ID.REDO)
@@ -312,7 +323,7 @@ class MainWindow(wx.Frame):
         self.tree.RenderThumbnail()
         self.tree.SetItemText(self.tree.item, data.name)
 
-            
+
     @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=ID.REDOALL)
     def OnRedoAll(self,e):
         data = self.tree.itemdata
@@ -328,7 +339,7 @@ class MainWindow(wx.Frame):
         else:
             self.renderdialog = RenderDialog(self, ID.RENDER)
 
-#------------------------------------------------------------------------------    
+#------------------------------------------------------------------------------
 
     def OpenFlame(self, path):
         if self.tree.flamefiles:
@@ -367,12 +378,12 @@ class MainWindow(wx.Frame):
 
     def SaveFlame(self, path, confirm=True):
         lst = Flame.load_file(path) if os.path.exists(path) else []
-            
+
         if self.tree.parentselected:
             itr = (i for i,_ in self.tree.flamefiles[0][1])
         else:
             itr = (self.tree.itemdata,)
-            
+
         for i, data in enumerate(itr):
             if data[0] in lst:
                 index = lst.index(data[0])
@@ -384,12 +395,12 @@ class MainWindow(wx.Frame):
             data.Reset()
             self.tree.SetItemText(self.tree.GetItemByIndex((0,index)),
                                   data.name)
-        
+
         fr0stlib.save_flames(path, *lst)
 
         # Make sure GUI updates properly
         self.SetFlame(self.flame)
-        
+
 
     def CheckForChanges(self, itemdata, lst):
         if any(data.HasChanged() for data,_ in lst):
@@ -410,7 +421,7 @@ class MainWindow(wx.Frame):
             self.TreePanel.TempSave()
         self.BlockGUI(False)
 
-        
+
     @CallableFrom('MainThread')
     def BlockGUI(self, flag=False):
         """Called before and after a script runs."""
@@ -429,7 +440,7 @@ class MainWindow(wx.Frame):
         self.menu.Enable(id, flag)
         if editor:
             self.editorframe.tb.EnableTool(id, flag)
-            
+
 
     @CallableFrom('MainThread')
     def SetFlame(self, flame, rezoom=True):
@@ -445,7 +456,7 @@ class MainWindow(wx.Frame):
             else:
                 index = min(self.ActiveXform.index, len(flame.xform)-1)
                 self.ActiveXform = flame.xform[index]
-            
+
         self.image.RenderPreview(flame)
         self.large_preview()
         self.XformTabs.UpdateView()
@@ -460,7 +471,7 @@ class MainWindow(wx.Frame):
         self.Enable(ID.REDO, data.redo)
         self.Enable(ID.REDOALL, data.redo)
 
-        
+
     def CreateNamespace(self):
         """Recreates the namespace each time the script is run to reassign
         the flame variable, etc."""
@@ -490,7 +501,7 @@ class MainWindow(wx.Frame):
         script = "\n".join(text) +'\n'
         self.log._script = text
         flame = Flame(self.flame.to_string())
-        
+
         try:
             # _namespace is used as globals and locals, to emulate top level
             # module behaviour.
@@ -507,7 +518,7 @@ class MainWindow(wx.Frame):
                 flame = self.flame
             self._namespace = self.CreateNamespace()
             self.flame = flame
-            
+
             # This lets the GUI know that the script has finished.
             self.EndOfScript(update)
 
@@ -537,7 +548,7 @@ class MainWindow(wx.Frame):
     def large_preview(self):
         if self.previewframe.IsShown():
             self.previewframe.RenderPreview()
-        
+
 
     @InMain
     def OnPreview(self):
@@ -566,7 +577,7 @@ class MainWindow(wx.Frame):
             fun = wx.BitmapFromBufferRGBA
         else:
             raise ValueError("need 3 or 4 channels, not %s" % channels)
-        callback(fun(w, h, output_buffer))        
+        callback(fun(w, h, output_buffer))
 
 
 
@@ -586,13 +597,13 @@ class ImagePanel(PreviewBase):
 
     def GetPanelSize(self):
         return self.Size
-    
+
 
     def RenderPreview(self, flame=None):
         """Renders a preview version of the flame and displays it in the gui.
 
         The renderer takes care of denying repeated requests so that at most
-        one redundant preview is rendered."""    
+        one redundant preview is rendered."""
         flame = flame or self.parent.flame
 
         ratio = float(flame.width) / flame.height
@@ -610,7 +621,7 @@ class ImagePanel(PreviewBase):
 
 
     @Bind(wx.EVT_PAINT)
-    def OnPaint(self, evt):       
+    def OnPaint(self, evt):
         fw,fh = self.bmp.GetSize()
         pw,ph = self.GetPanelSize()
         dc = wx.PaintDC(self)
