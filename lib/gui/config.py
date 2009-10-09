@@ -1,5 +1,5 @@
 from __future__ import with_statement
-import cPickle, os, sys, atexit
+import cPickle, os, sys, atexit, wx
 
 config = {"active-vars": ('linear',
                           'sinusoidal',
@@ -121,17 +121,20 @@ config = {"active-vars": ('linear',
           "Rect-Preview": None,
           }
 
-_configpath = 'config.cfg'
+
+def get_config_path():
+    return os.path.join(wx.GetApp().ConfigDir, 'config.cfg')
+
 
 def load():
-    with open(_configpath, 'rb') as f:
+    with open(get_config_path(), 'rb') as f:
 ##        return cPickle.load(f)
         return eval("{%s}" % ",".join(i for i in f))
 
 def dump():
     config['Edit-Post-Xform'] = False
 
-    with open(_configpath, 'wb') as f:
+    with open(get_config_path(), 'wb') as f:
 ##        cPickle.dump(config, f, cPickle.HIGHEST_PROTOCOL)
         f.write("\n".join("%r: %r" %i for i in config.iteritems()))
 
@@ -154,9 +157,11 @@ def update_dict(old, new):
                 old[k] = v
 
 
-if os.path.exists(_configpath):
-    _old_config = config.copy()
-    update_dict(config, load())
+
+def init_config():
+    if os.path.exists(get_config_path()):
+        _old_config = config.copy()
+        update_dict(config, load())
 
 
 atexit.register(dump)

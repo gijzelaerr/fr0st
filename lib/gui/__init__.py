@@ -14,7 +14,7 @@ from lib.gui.renderer import Renderer
 from lib.gui._events import InMain
 from lib.gui.itemdata import ItemData
 from lib.gui.renderdialog import RenderDialog
-from lib.gui.config import config
+from lib.gui.config import config, init_config
 
 from lib import fr0stlib
 from lib.fr0stlib import Flame
@@ -25,12 +25,20 @@ from lib.threadinterrupt import ThreadInterrupt, interruptall
 
 class Fr0stApp(wx.App):
     def __init__(self):
-        wx.App.__init__(self, redirect=True)
+        wx.App.__init__(self, redirect=False)
         self.SetAppName('fr0st')
+        self.standard_paths = wx.StandardPaths.Get()
+        self.config_dir = os.path.join(self.standard_paths.GetUserConfigDir(), 'fr0st')
+        os.makedirs(self.ConfigDir)
+        init_config()
 
     def MainLoop(self):
         frame = MainWindow(None, wx.ID_ANY)
         wx.App.MainLoop(self)
+
+    @property
+    def ConfigDir(self):
+        return self.config_dir
 
 
 class MainWindow(wx.Frame):
