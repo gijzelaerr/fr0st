@@ -203,10 +203,10 @@ class Flame(object):
         b_min = TwoDoubles()
         b_max = TwoDoubles()
         b_eps = 0.01
-        nsamples = 100000
+        nsamples = 10000
         genome = Genome.from_string(self.to_string(False))[0]
         flam3_estimate_bounding_box(genome, b_eps, nsamples, b_min, b_max, RandomContext())
-        print "%f %f" % ((b_min[0]+b_max[0])/2,(b_min[1]+b_max[1])/2)
+        #print "%f %f" % ((b_min[0]+b_max[0])/2,(b_min[1]+b_max[1])/2)
         bxoff = (b_min[0]+b_max[0])/2
         if abs(bxoff)<5:
             self.x_offset = bxoff
@@ -215,8 +215,14 @@ class Flame(object):
         if abs(byoff)<5:
             self.y_offset = byoff
 
-        print "%f %f" % (self.width, b_max[0]-b_min[0])
-        self.scale = 100 / (b_max[0]-b_min[0])
+        tmpscale = 0.7 * 100.0/min(b_max[1]-b_min[1],b_max[0]-b_min[0])
+        
+        if tmpscale<10:
+            self.scale = 10
+        elif tmpscale>100:
+            self.scale = 100
+        else:
+            self.scale = tmpscale
 
     def move_center(self, diff):
         """Moves center point, adjusting for any flame rotation."""
@@ -472,12 +478,17 @@ class Xform(object):
         # Randomize the coefficients
         x.coefs = (random.uniform(-1,1) for i in range(6))
         
-        if xw>0: # If weight is > 0, set the weight directly
-            x.weight = xw
-        elif xw<0: # Weight < 0 means randomize from 0 to -xw
-            x.weight = random.uniform(0,-xw)
-        else: # Random from 0 to 1
-            x.weight = random.uniform(0.1,1)
+        if random.uniform(0,1)>0.7:
+            x.c = 0.0
+            x.f = 0.0
+        
+        if not x.isfinal():
+            if xw>0: # If weight is > 0, set the weight directly
+                x.weight = xw
+            elif xw<0: # Weight < 0 means randomize from 0 to -xw
+                x.weight = random.uniform(0,-xw)
+            else: # Random from 0 to 1
+                x.weight = random.uniform(0.1,1)
         
         # Select the variations to use
         use_vars = random.sample(xv,n)
