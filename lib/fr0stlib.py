@@ -903,34 +903,6 @@ def save_flames(filename,*flames):
     f.close()
 
 
-def load_flames(filename,*args):
-    """Reads a flame file and returns a list of flame objects, specified
-    by index or name. If no flames are specified, returns all flames in the
-    file, in order."""
-    
-    strings = Flame.load_file(filename)
-    
-    if not args:
-        return [Flame(string=i) for i in strings]
-
-    if all(map(lambda x: type(x) is int, args)):
-           return [Flame(string=strings[key]) for key in args]
-
-    flames = []
-    re_name = re.compile(r'(?<= name=").*?(?=")')
-    temp_names = map(lambda x: re_name.findall(x)[0], strings)
-
-    for key in args:
-        _type = type(key)
-        if _type is str:
-            try:
-                key = temp_names.index(key)
-            except ValueError:
-                raise NameError, ' name "%s" not found in %s' %(key,filename)
-        elif _type is not int:
-            raise TypeError, "Expected flame index or name, got %s" %_type
-
-        flames.append(Flame(string=strings[key]))
-        
-    return flames
-
+def load_flames(filename):
+    """Reads a flame file and returns a list of flame objects."""
+    return [Flame(string=i) for i in Flame.load_file(filename)]

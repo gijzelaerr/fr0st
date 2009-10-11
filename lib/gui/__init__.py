@@ -490,6 +490,7 @@ class MainWindow(wx.Frame):
         namespace.update(dict(self = self, # for debugging only!
                               get_flames = self.tree.GetFlames,
                               save_flames = self.save_flames,
+                              load_flames = self.load_flames,
                               preview = self.preview,
                               large_preview = self.large_preview,
                               dialog = self.editorframe.make_dialog,
@@ -584,6 +585,11 @@ class MainWindow(wx.Frame):
         lst = [s if type(s) is str else s.to_string() for s in flames]
         self.tree.SetFlames(path, *lst)
         fr0stlib.save_flames(path, *lst)
+
+
+    @InMain
+    def load_flames(self, path):
+        self.OpenFlame(path)
 
 
     @InMain
