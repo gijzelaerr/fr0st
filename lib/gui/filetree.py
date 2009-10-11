@@ -60,10 +60,10 @@ class TreePanel(wx.Panel):
 ##        self.tree.SetItemText(self.tree.itemparent, '* ' + data.name)
 
         # Create the temp file.
-        lst = [self.tree.GetFlameData(i)[1:]
-               for i in self.tree.GetItemChildren()]
-        with open(data[-1] + '.temp',"wb") as f:
-            cPickle.dump(lst,f,cPickle.HIGHEST_PROTOCOL)
+##        lst = [self.tree.GetFlameData(i)[1:]
+##               for i in self.tree.GetItemChildren()]
+##        with open(data[-1] + '.temp',"wb") as f:
+##            cPickle.dump(lst,f,cPickle.HIGHEST_PROTOCOL)
 
 
     def RecoverSession(self,paths):

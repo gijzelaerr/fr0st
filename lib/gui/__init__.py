@@ -121,7 +121,7 @@ class MainWindow(wx.Frame):
         sys.path.append(os.path.join(sys.path[0],"scripts")) # imp in scripts
         self.flamepath = os.path.join(sys.path[0], config["flamepath"])
 
-        if os.path.exists('paths.temp') and False:
+        if os.path.exists('paths.temp'):
             # TODO: check if another fr0st process is running.
             # Previous session was interrupted
             # TODO: display a message to user explaining situation.
@@ -211,8 +211,8 @@ class MainWindow(wx.Frame):
         path = self.newfilename()
         self.tree.item = self.tree.SetFlames(path)
 
-        with open('paths.temp','a') as f:
-            f.write(path + '\n')
+##        with open('paths.temp','a') as f:
+##            f.write(path + '\n')
 
         return self.tree.item
 
@@ -382,8 +382,8 @@ class MainWindow(wx.Frame):
             self.OnFlameNew2(None)
 
         # Dump the path to file for bookkeeping
-        with open('paths.temp','a') as f:
-            f.write(path + '\n')
+##        with open('paths.temp','a') as f:
+##            f.write(path + '\n')
 
 
     def SaveFlame(self, path, confirm=True):
