@@ -400,6 +400,7 @@ class MainWindow(wx.Frame):
             self.tree.SetItemText(self.tree.item, data.name)
                 
         fr0stlib.save_flames(path, *(data[-1] for data in lst))
+        self.SetFlame(self.flame) # Make sure Undo and Redo get set correctly.
 
 
     def CheckForChanges(self, itemdata, lst):
