@@ -1,14 +1,16 @@
 from random_flame import GenRandomBatch
-from lib.functions import randrange2
+#from lib.functions import randrange2
 import random
 
 # Customize here for awesomeness
 special_vars = (2,3,15,17,23,32,55,59,66,80)
 
 # Lolpolpolpo, by Coppercat
-randopt = [ { 'xv':(0,), 'n':1, 'xw':0},]
+randopt = { 'xv':(0,), 'n':1, 'xw':0}
 nflames = 5
-lst = GenRandomBatch(nflames, *randopt, numbasic=5)
+lst = GenRandomBatch(nflames, randopt, numbasic=5)
+
+k=0
 
 for f in lst:
 
@@ -26,7 +28,7 @@ for f in lst:
             x.weight /= tw
 
     # Choose a random xform.  Delete it and create a new one
-    # with the same weight using variations of your choice,
+    # with the same weight using variations in special_vars
     # choosing 3 of them
     delx = randrange2(0,len(f.xform),int=int)
     delxw = f.xform[delx].weight
@@ -47,7 +49,8 @@ for f in lst:
     lastx.color_speed = 0
 
     f.reframe()
-
+    f.name = "lolpolpolpo_%03d" % k
+    k+=1
 
 
 set_flames("parameters/random_batch.flame",*lst)
