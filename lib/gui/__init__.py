@@ -418,9 +418,11 @@ class MainWindow(wx.Frame):
     @InMain
     def EndOfScript(self, update):
         self.SetFlame(self.flame, rezoom=False)
+        # Note that tempsave returns if scriptrunning == True, so it needs to
+        # come after unblocking the GUI.
+        self.BlockGUI(False)
         if update:
             self.TreePanel.TempSave()
-        self.BlockGUI(False)
 
 
     @CallableFrom('MainThread')
