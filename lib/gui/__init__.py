@@ -236,11 +236,8 @@ class MainWindow(wx.Frame):
 
         child = self.tree.GetItemByIndex((0, -1))
         self.tree.SelectItem(child)
-
-        # This adds the flame to the temp file, but without any actual changes.
-        data.pop(0)
-        self.tree.SetItemImage(child, 2)
-        self.TreePanel.TempSave(force=True)
+        self.tree.RenderThumbnail()
+        self.SaveFlame()
 
         return child
 
@@ -265,15 +262,18 @@ class MainWindow(wx.Frame):
 
     @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=ID.FSAVEAS)
     def OnFlameSaveAs(self,e):
+        flame = self.flame
         path = self.tree.GetFilePath()
-        dlg = SaveDialog(self, path=path, name=self.flame.name)
+        dlg = SaveDialog(self, path=path, name=flame.name)
         if dlg.ShowModal() == wx.ID_OK:
-            self.flamepath = dlg.GetPath()
-            if self.flamepath == path:
-                self.flame.name = str(dlg.GetName())
-                self.OnFlameNew2(string=self.flame.to_string())
-            
-            self.SaveFlame(self.flamepath)
+            newpath = dlg.GetPath()
+            flame.name = str(dlg.GetName())
+            if path == newpath:
+                self.OnFlameNew2(string=flame.to_string())
+            else:
+                lst = Flame.load_file(newpath)
+                lst.append(flame.to_string())
+                fr0stlib.save_flames(newpath, *lst)
         dlg.Destroy()
 
 
@@ -383,32 +383,23 @@ class MainWindow(wx.Frame):
 ##            f.write(path + '\n')
 
 
-    def SaveFlame(self, path, confirm=True):
-        lst = Flame.load_file(path) if os.path.exists(path) else []
+    def SaveFlame(self, path=None, confirm=True):
+        if path is None:
+            path = self.tree.GetFilePath()
 
+        lst = [i for i,_ in self.tree.flamefiles[0][1]]
+        
         if self.tree.parentselected:
-            itr = (i for i,_ in self.tree.flamefiles[0][1])
-        else:
-            itr = (self.tree.itemdata,)
-
-        for i, data in enumerate(itr):
-            if data[0] in lst:
-                index = lst.index(data[0])
-                lst[index] = data[-1]
-            else:
-                index = len(lst)
-                lst.append(data[-1])
-
-            data.Reset()
-            
-            if path == self.tree.GetFilePath():
+            for index, data in enumerate(lst):
+                data.Reset()
                 self.tree.SetItemText(self.tree.GetItemByIndex((0,index)),
                                       data.name)
+        else:
+            data = self.tree.itemdata
+            data.Reset()
+            self.tree.SetItemText(self.tree.item, data.name)
                 
-        fr0stlib.save_flames(path, *lst)
-
-        # Make sure GUI updates properly
-        self.SetFlame(self.flame)
+        fr0stlib.save_flames(path, *(data[-1] for data in lst))
 
 
     def CheckForChanges(self, itemdata, lst):

@@ -267,6 +267,8 @@ class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
 
         self._dragging = False
 
+        self.Parent.Parent.SaveFlame()
+
 
     def GetItem(self, indices):
         data, children = " ", self.flamefiles
