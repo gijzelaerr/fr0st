@@ -271,7 +271,10 @@ class MainWindow(wx.Frame):
             if path == newpath:
                 self.OnFlameNew2(string=flame.to_string())
             else:
-                lst = Flame.load_file(newpath)
+                if os.path.exists(newpath):
+                    lst = Flame.load_file(newpath)
+                else:
+                    lst = []
                 lst.append(flame.to_string())
                 fr0stlib.save_flames(newpath, *lst)
         dlg.Destroy()
