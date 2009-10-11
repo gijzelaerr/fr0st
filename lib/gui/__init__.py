@@ -15,6 +15,7 @@ from lib.gui._events import InMain
 from lib.gui.itemdata import ItemData
 from lib.gui.renderdialog import RenderDialog
 from lib.gui.config import config, init_config
+from lib.gui.savedialog import SaveDialog
 
 from lib import fr0stlib
 from lib.fr0stlib import Flame
@@ -264,24 +265,20 @@ class MainWindow(wx.Frame):
 
     @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=ID.FSAVEAS)
     def OnFlameSaveAs(self,e):
-        filedata, lst = self.tree.flamefiles[0]
-        dDir,dFile = os.path.split(filedata[-1])
-        dlg = wx.FileDialog(self, message="Save file as ...", defaultDir=dDir,
-                            defaultFile=dFile, wildcard=self.wildcard,
-                            style=wx.SAVE)
+        path = self.tree.GetFilePath()
+        dlg = SaveDialog(self, path=path, name=self.flame.name)
         if dlg.ShowModal() == wx.ID_OK:
             self.flamepath = dlg.GetPath()
-
-            if self.flamepath == filedata[-1]:
-                # Make a copy rather than overwriting.
+            if self.flamepath == path:
+                self.flame.name = str(dlg.GetName())
                 self.OnFlameNew2(string=self.flame.to_string())
+            
             self.SaveFlame(self.flamepath)
         dlg.Destroy()
 
 
     @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=ID.SOPEN)
     def OnScriptOpen(self,e):
-        # TODO: how can this ugly wrapper be avoided?
         self.editorframe.OnScriptOpen(e)
 
 
@@ -403,9 +400,11 @@ class MainWindow(wx.Frame):
                 lst.append(data[-1])
 
             data.Reset()
-            self.tree.SetItemText(self.tree.GetItemByIndex((0,index)),
-                                  data.name)
-
+            
+            if path == self.tree.GetFilePath():
+                self.tree.SetItemText(self.tree.GetItemByIndex((0,index)),
+                                      data.name)
+                
         fr0stlib.save_flames(path, *lst)
 
         # Make sure GUI updates properly
