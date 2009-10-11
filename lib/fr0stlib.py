@@ -25,6 +25,7 @@ class ParsingError(Exception):
 class Flame(object):
     re_flame  = re.compile(r'<flame .*?</flame>',re.DOTALL)
     re_header = re.compile(r'<flame .*?>')
+    re_symmetry = re.compile(r'<symmetry kind="(-?\d+)"\s*/>')
     re_xform  = re.compile(r'<[a-zA-Z]*xform .*?/>')
     re_attr   = re.compile(r'[^ ]*?=".*?(?=")') # Works for xforms and header  
 
@@ -104,6 +105,10 @@ class Flame(object):
         if hasattr(self,"zoom"):
             self.scale *= 2**self.zoom
             del self.zoom
+            
+        sym = self.re_symmetry.findall(string);
+        if sym:
+            self.add_symmetry(int(sym[0]))
         
     def to_string(self, omit_details=False):
         """Extracts parameters from a Flame object and converts them into
