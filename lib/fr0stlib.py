@@ -216,6 +216,38 @@ class Flame(object):
             self.scale = 100
         else:
             self.scale = tmpscale
+            
+    def add_symmetry(self,sym):
+        """Adds xforms as per symmetry tag - sym=0 chooses random symmetry"""
+        if sym==0:
+            sym_distrib = (-4, -3, -2, -2, -2, -1, -1, -1, 2, 2, 2, 3, 3, 4, 4)
+            sym = random.choice(sym_distrib)
+            
+        if sym==0 or sym==1:
+            return
+            
+        if sym<0:
+            x = self.add_xform()
+            x.weight = 1.0
+            x.color_speed = 0.0
+            x.animate = 0.0
+            x.color = 1.0
+            x.a = -1.0
+            sym = -sym
+        
+        srot = 360.0 / float(sym)
+        
+        for k in range(1,sym):
+            x = self.add_xform()
+            x.weight = 1.0
+            x.color_speed = 0.0
+            x.animate = 0.0
+            if (sym<3):
+                x.color = 0.0
+            else:
+                x.color = (k-1.0)/(sym-2.0)
+            
+            x.rotate(k*srot)
 
     def move_center(self, diff):
         """Moves center point, adjusting for any flame rotation."""
