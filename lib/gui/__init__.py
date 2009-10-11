@@ -29,7 +29,8 @@ class Fr0stApp(wx.App):
         self.SetAppName('fr0st')
         self.standard_paths = wx.StandardPaths.Get()
         self.config_dir = os.path.join(self.standard_paths.GetUserConfigDir(), 'fr0st')
-        os.makedirs(self.ConfigDir)
+        if not os.path.isdir(self.ConfigDir):
+            os.makedirs(self.ConfigDir)
         init_config()
 
     def MainLoop(self):
