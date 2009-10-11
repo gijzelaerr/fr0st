@@ -1,6 +1,8 @@
 import re, shutil, random, itertools, Image, numpy, ctypes
 from lib import utils
 from lib.pyflam3 import Genome,RandomContext,flam3_estimate_bounding_box
+from pyflam3.variations import variable_list,variation_list,variables
+from pyflam3.constants import flam3_nvariations
 from math import *
 
 from functions import *
@@ -10,19 +12,10 @@ try:
 except ImportError:
     wx = False
 
-try:
-    from pyflam3.variations import variable_list,variation_list,variables
-    _variables = dict([x[0:2] for x in variable_list])
-except ImportError:
-    _variables = {}
-
-try:
-    from pyflam3.constants import flam3_nvariations
-except ImportError:
-    flam3_nvariations = 0
 
 VERSION = "fr0st 0.5 alpha"
 
+_variables = dict([x[0:2] for x in variable_list])
 
 class ParsingError(Exception):
     pass
