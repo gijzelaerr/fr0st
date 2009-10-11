@@ -1,4 +1,4 @@
-import itertools, numpy as N, time, wx, sys, math
+import itertools, numpy as N, wx, sys
 from functools import partial
 from wx.lib.floatcanvas import FloatCanvas as FC
 from wx.lib.floatcanvas.Utilities import BBox
@@ -11,16 +11,16 @@ from lib.gui.config import config
 
 
 def angle_helper(*points):
-        """Given 3 vectors with the same origin, checks if the first falls
-        between the other 2."""
-        itr = (polar(i)[1] for i in points)
-        vect = itr.next() # vector being checked
-        low, high = sorted(itr) # the 2 triangle legs.
-        if high - low > 180:
-                low, high = high-360, low
-        if vect > high:
-                vect -= 360
-        return high > vect > low
+    """Given 3 vectors with the same origin, checks if the first falls
+    between the other 2."""
+    itr = (polar(i)[1] for i in points)
+    vect = itr.next() # vector being checked
+    low, high = sorted(itr) # the 2 triangle legs.
+    if high - low > 180:
+        low, high = high-360, low
+    if vect > high:
+        vect -= 360
+    return high > vect > low
 
 
 class VarPreview(FC.PointSet):

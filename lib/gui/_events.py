@@ -1,5 +1,5 @@
 import wx
-from threading import Event, Lock
+from threading import Event
 
 myEVT_THREAD_MESSAGE = wx.NewEventType()
 EVT_THREAD_MESSAGE = wx.PyEventBinder(myEVT_THREAD_MESSAGE, 1)

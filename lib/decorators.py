@@ -5,8 +5,8 @@ from functools import wraps
 try:
     from threadinterrupt import ThreadInterrupt
 except ImportError:
-    raise ImportWarning("Couldn't import required exception.")
     class ThreadInterrupt(BaseException): pass
+    raise ImportWarning("Couldn't import required exception.")
 
 class ThreadingError(Exception): pass
 

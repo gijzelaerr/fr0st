@@ -1,4 +1,4 @@
-import itertools, sys
+import sys
 from ctypes import *
 
 try:
@@ -202,8 +202,8 @@ def loadFlam4(flame):
     flam4Flame.colorIndex = (rgba*flam4Flame.numColors)()
 
     for ci, color in zip(flam4Flame.colorIndex, flame.gradient):
-                ci.r, ci.g, ci.b = (i/255. for i in color)
-                ci.a = 1
+        ci.r, ci.g, ci.b = (i/255. for i in color)
+        ci.a = 1
                 
     flam4Flame.trans = (xForm*flam4Flame.numTrans)()
     uxf = (unAnimatedxForm*flam4Flame.numTrans)()

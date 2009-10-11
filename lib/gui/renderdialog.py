@@ -7,16 +7,15 @@
 #     Currently supports PNG and JPG images, will support more.
 
 import wx, os, time, sys, itertools
-from  wx.lib.filebrowsebutton import FileBrowseButton, DirBrowseButton
+from  wx.lib.filebrowsebutton import FileBrowseButton
 from functools import partial
 from collections import defaultdict
 
 from lib.fr0stlib import Flame
-from lib.pyflam3 import Genome
-from utils import NumberTextCtrl, Box, MyChoice
-from config import config
-from constants import ID
-from _events import InMain
+from lib.gui.utils import NumberTextCtrl, Box, MyChoice
+from lib.gui.config import config
+from lib.gui.constants import ID
+from lib.gui._events import InMain
 from lib.decorators import *
 
 
@@ -103,11 +102,11 @@ class RenderDialog(wx.Frame):
 
     @BindEvents
     def __init__(self, parent, id):
-	self.parent = parent
-	style = (wx.DEFAULT_FRAME_STYLE &
+        self.parent = parent
+        style = (wx.DEFAULT_FRAME_STYLE &
                  ~(wx.RESIZE_BORDER | wx.RESIZE_BOX | wx.MAXIMIZE_BOX))
 
-	wx.Frame.__init__(self, parent, id, title="Render Flames to Disk",
+        wx.Frame.__init__(self, parent, id, title="Render Flames to Disk",
                           style=style)
 
         self.config = config["Render-Settings"]
@@ -136,27 +135,27 @@ class RenderDialog(wx.Frame):
         
         szr0 = wx.BoxSizer(wx.VERTICAL)
         szr0.AddMany(((mem, 0, wx.EXPAND), size))
-	szr1 = wx.BoxSizer(wx.HORIZONTAL)
-	szr1.AddMany((opts, szr0))
-	szr2 = wx.BoxSizer(wx.VERTICAL)
-	szr2.AddMany(((fbb, 0, wx.EXPAND), szr1,
+        szr1 = wx.BoxSizer(wx.HORIZONTAL)
+        szr1.AddMany((opts, szr0))
+        szr2 = wx.BoxSizer(wx.VERTICAL)
+        szr2.AddMany(((fbb, 0, wx.EXPAND), szr1,
                       (self.render, 0, wx.ALIGN_RIGHT|wx.ALIGN_BOTTOM)))
-	szr3 = wx.BoxSizer(wx.HORIZONTAL)
-	szr3.AddMany(((flame, 0, wx.EXPAND), (szr2, 0, wx.EXPAND)))
-	szr4 = wx.BoxSizer(wx.VERTICAL)
-	szr4.AddMany((szr3, (self.gauge, 0, wx.EXPAND)))
+        szr3 = wx.BoxSizer(wx.HORIZONTAL)
+        szr3.AddMany(((flame, 0, wx.EXPAND), (szr2, 0, wx.EXPAND)))
+        szr4 = wx.BoxSizer(wx.VERTICAL)
+        szr4.AddMany((szr3, (self.gauge, 0, wx.EXPAND)))
 	
-	self.SetSizer(szr4)
-	szr4.Fit(self)
+        self.SetSizer(szr4)
+        szr4.Fit(self)
 
         self.exitflag = 0
         self.rendering = False
 	
-	self.Center(wx.CENTER_ON_SCREEN)
-	if "win" in sys.platform:
+        self.Center(wx.CENTER_ON_SCREEN)
+        if "win" in sys.platform:
             # TODO: need a cleaner way to make this look right in windows.
             self.SetBackgroundColour((255,255,255))
-	self.Show(True)
+        self.Show(True)
 
 
     def MakeFileBrowseButton(self):
@@ -172,18 +171,18 @@ class RenderDialog(wx.Frame):
 
 
     def MakeFlameSelector(self):
-	self.lb = lb = wx.ListBox(self, -1, style=wx.LB_EXTENDED)
-	self.UpdateFlameSelector()
-	lb.SetMinSize((180,1))
-	lb.Bind(wx.EVT_LISTBOX, self.OnSelection)
+        self.lb = lb = wx.ListBox(self, -1, style=wx.LB_EXTENDED)
+        self.UpdateFlameSelector()
+        lb.SetMinSize((180,1))
+        lb.Bind(wx.EVT_LISTBOX, self.OnSelection)
         btn = wx.Button(self, -1, "All")
         btn.Bind(wx.EVT_BUTTON, self.OnSelectAll)
         btn2 = wx.Button(self, -1, "None")
         btn2.Bind(wx.EVT_BUTTON, self.OnDeselectAll)
 
-	boxhor = wx.BoxSizer(wx.HORIZONTAL)
-	boxhor.AddMany((btn, btn2))
-	return Box(self, "Select Flame(s) to render", boxhor, (lb, 1, wx.EXPAND))
+        boxhor = wx.BoxSizer(wx.HORIZONTAL)
+        boxhor.AddMany((btn, btn2))
+        return Box(self, "Select Flame(s) to render", boxhor, (lb, 1, wx.EXPAND))
 
 
     def UpdateFlameSelector(self):
@@ -208,7 +207,7 @@ class RenderDialog(wx.Frame):
         ratio.SetValue(True)
         ratio.Bind(wx.EVT_CHECKBOX, self.OnRatio)
 
-	return Box(self, "Size", fgs, ratio)
+        return Box(self, "Size", fgs, ratio)
 
 
     def MakeOpts(self):
@@ -247,7 +246,7 @@ class RenderDialog(wx.Frame):
             fgs.Add(wx.StaticText(self, -1, i.replace("_", " ").title()),
                     0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
             fgs.Add(tc, 0, wx.ALIGN_RIGHT, 5)
-	return fgs
+        return fgs
 
 
     def MakeChoices(self, *a, **k):
@@ -407,15 +406,15 @@ class RenderDialog(wx.Frame):
         self.rendering = True
         self.render.Label = "Cancel"
 
-	kwds = dict((k,v.GetFloat()) for k,v in self.dict.iteritems())
-	kwds["earlyclip"] = self.earlyclip
-	if ty == ".png":
+        kwds = dict((k,v.GetFloat()) for k,v in self.dict.iteritems())
+        kwds["earlyclip"] = self.earlyclip
+        if ty == ".png":
             kwds["transparent"] = self.transp
-	size = [int(kwds.pop(i)) for i in ("width","height")]
+        size = [int(kwds.pop(i)) for i in ("width","height")]
 
-	self.config.update(kwds)
-	config["Img-Dir"] = os.path.dirname(destination)
-	config["Img-Type"] = ty
+        self.config.update(kwds)
+        config["Img-Dir"] = os.path.dirname(destination)
+        config["Img-Type"] = ty
 
         req = self.parent.renderer.RenderRequest
         backup = open('renders.flame', 'a')
@@ -477,13 +476,13 @@ class RenderDialog(wx.Frame):
             self.CleanProg()
             return
         ty = config["Img-Type"]
-	wx.ImageFromBitmap(bmp).SaveFile(path, self.types[ty])
+        wx.ImageFromBitmap(bmp).SaveFile(path, self.types[ty])
 
         if index == self.selections[-1]:
             self.rendering = False
             self.CleanProg()
 
         # TODO: remove
-	print time.time() - self.t
+        print time.time() - self.t
 
 

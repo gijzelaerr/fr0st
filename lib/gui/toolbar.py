@@ -1,5 +1,5 @@
 import wx
-from constants import ID
+from lib.gui.constants import ID
 from lib.gui.utils import LoadIcon
 
 def GetBMP(name,client=wx.ART_TOOLBAR,size=(16,16)):

@@ -1,5 +1,5 @@
 from __future__ import with_statement
-import cPickle, os, sys, atexit, wx
+import os, atexit, wx
 
 config = {"active-vars": ('linear',
                           'sinusoidal',
@@ -129,14 +129,12 @@ def get_config_path():
 
 def load():
     with open(get_config_path(), 'rb') as f:
-##        return cPickle.load(f)
         return eval("{%s}" % ",".join(i for i in f))
 
 def dump():
     config['Edit-Post-Xform'] = False
     
     with open(get_config_path(), 'wb') as f:
-##        cPickle.dump(config, f, cPickle.HIGHEST_PROTOCOL)
         f.write("\n".join("%r: %r" %i for i in config.iteritems()))
 
 

@@ -1,5 +1,4 @@
 import wx, itertools
-from wx.lib import buttons
 
 from lib.decorators import *
 from lib.gui.canvas import XformCanvas
@@ -210,7 +209,7 @@ class GradientPanel(wx.Panel):
                     0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
             fgs.Add(tc1, 0, wx.ALIGN_LEFT, 5)
             fgs.Add(tc2, 0, wx.ALIGN_LEFT, 5)
-	return fgs
+        return fgs
 
 
     def UpdateView(self):

@@ -1,10 +1,8 @@
-import wx, time, sys, traceback
-from threading import Thread
+import time, sys, traceback
 
 from lib.decorators import Catches, Threaded
 from lib.render import flam3_render, flam4_render
 from lib.gui.config import config
-from lib.gui.constants import ID
 
 
 class Renderer():

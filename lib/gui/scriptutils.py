@@ -1,4 +1,4 @@
-import wx, os
+import wx
 
 from  wx.lib.filebrowsebutton import FileBrowseButton
 

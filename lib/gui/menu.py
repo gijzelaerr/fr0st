@@ -1,7 +1,7 @@
 import wx
 from functools import partial
 
-from constants import ID
+from lib.gui.constants import ID
 
 
 class Filemenu(wx.Menu):

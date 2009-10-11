@@ -1,11 +1,11 @@
 import re, shutil, random, itertools, Image, numpy, ctypes
 from lib import utils
 from lib.pyflam3 import Genome,RandomContext,flam3_estimate_bounding_box
-from pyflam3.variations import variable_list,variation_list,variables
-from pyflam3.constants import flam3_nvariations
+from lib.pyflam3.variations import variable_list,variation_list,variables
+from lib.pyflam3.constants import flam3_nvariations
 from math import *
 
-from functions import *
+from lib.functions import *
 
 try:
     import wx
@@ -15,7 +15,7 @@ except ImportError:
 
 VERSION = "fr0st 0.5 alpha"
 
-_variables = dict([x[0:2] for x in variable_list])
+_variables = dict([i[0:2] for i in variable_list])
 
 class ParsingError(Exception):
     pass
@@ -89,7 +89,7 @@ class Flame(object):
                 
             # Convert value to the appropriate type
             try:
-                if " " in val: val = map(float,val.split())
+                if " " in val: val = [float(i) for i in val.split()]
                 else:          val = float(val)
             except ValueError:
                 pass   # Keep as string
@@ -102,8 +102,8 @@ class Flame(object):
 
         # zoom is deprecated, so scale is adjusted by the zoom value
         if hasattr(self,"zoom"):
-           self.scale *= 2**self.zoom
-           del self.zoom
+            self.scale *= 2**self.zoom
+            del self.zoom
         
     def to_string(self, omit_details=False):
         """Extracts parameters from a Flame object and converts them into

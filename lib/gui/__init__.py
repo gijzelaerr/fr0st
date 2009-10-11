@@ -36,7 +36,7 @@ class Fr0stApp(wx.App):
         init_config()
 
     def MainLoop(self):
-        frame = MainWindow(None, wx.ID_ANY)
+        MainWindow(None, wx.ID_ANY)
         wx.App.MainLoop(self)
 
     @property
@@ -636,7 +636,7 @@ class ImagePanel(PreviewBase):
 
 
     @Bind(wx.EVT_PAINT)
-    def OnPaint(self, evt):
+    def OnPaint(self, e):
         fw,fh = self.bmp.GetSize()
         pw,ph = self.GetPanelSize()
         dc = wx.PaintDC(self)

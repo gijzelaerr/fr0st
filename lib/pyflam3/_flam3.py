@@ -19,11 +19,11 @@
 #  the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 #  Boston, MA 02111-1307, USA.
 ##############################################################################
+import itertools, sys, os
 from ctypes import *
-from constants import *
-from variations import *
-import itertools
-import sys, os
+from lib.pyflam3.constants import *
+from lib.pyflam3.variations import *
+
 
 if 'win32' not in sys.platform:
     try:

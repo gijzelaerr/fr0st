@@ -1,13 +1,13 @@
 from __future__ import with_statement
-import wx, os, sys, re, time
-from wx import stc, PyDeadObjectError
+import wx, os, sys, re
+from wx import stc
 
 from lib.decorators import *
-from toolbar import CreateEditorToolBar
-from menu import CreateEditorMenu
-from constants import ID
-from scriptutils import DynamicDialog
-from _events import EVT_THREAD_MESSAGE, ThreadMessageEvent, InMain
+from lib.gui.toolbar import CreateEditorToolBar
+from lib.gui.menu import CreateEditorMenu
+from lib.gui.constants import ID
+from lib.gui.scriptutils import DynamicDialog
+from lib.gui._events import EVT_THREAD_MESSAGE, ThreadMessageEvent, InMain
 
 
 class EditorFrame(wx.Frame):

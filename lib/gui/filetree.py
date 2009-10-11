@@ -1,16 +1,13 @@
 from __future__ import with_statement
-import wx, sys, os, re, shutil, time, cPickle, itertools, pickle as cPickle
-from threading import Thread
+import wx, sys, os, shutil, time, cPickle, itertools, pickle as cPickle
 from functools import partial
-from wx import PyDeadObjectError
 from wx.lib.mixins import treemixin
 
 from lib.gui.constants import ID
 from lib.fr0stlib import Flame
-from lib.pyflam3 import Genome
 from lib.decorators import *
 from lib import fr0stlib
-from itemdata import ItemData
+from lib.gui.itemdata import ItemData
 
 class TreePanel(wx.Panel):
 
@@ -117,7 +114,7 @@ class TreePanel(wx.Panel):
 
 
     def OnRightDown(self, event):
-        pt = event.GetPosition();
+        pt = event.GetPosition()
         item, flags = self.tree.HitTest(pt)
         if item:
             self.log.WriteText("OnRightClick: %s, %s, %s\n" %
@@ -126,7 +123,7 @@ class TreePanel(wx.Panel):
 
 
     def OnRightUp(self, event):
-        pt = event.GetPosition();
+        pt = event.GetPosition()
         item, flags = self.tree.HitTest(pt)
         if item:
             self.log.WriteText("OnRightUp: %s (manually starting label edit)\n"
