@@ -134,29 +134,19 @@ def load():
 
 def dump():
     config['Edit-Post-Xform'] = False
-
+    
     with open(get_config_path(), 'wb') as f:
 ##        cPickle.dump(config, f, cPickle.HIGHEST_PROTOCOL)
         f.write("\n".join("%r: %r" %i for i in config.iteritems()))
 
 
 def update_dict(old, new):
-    for k,v in old.iteritems():
-        if k in new:
-            if type(v) == dict:
-                update_dict(v, new[k])
-        else:
-            new[k] = v
-
-
-def update_dict(old, new):
     for k,v in new.iteritems():
-        if k in old:
+##        if k in old:
             if type(v) == dict:
                 update_dict(old[k], v)
             else:
                 old[k] = v
-
 
 
 def init_config():
