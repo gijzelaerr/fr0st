@@ -153,6 +153,4 @@ def init_config():
     if os.path.exists(get_config_path()):
         _old_config = config.copy()
         update_dict(config, load())
-
-
-atexit.register(dump)
+    atexit.register(dump)
