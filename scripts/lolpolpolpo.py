@@ -1,19 +1,17 @@
 from random_flame import GenRandomBatch
-#from lib.functions import randrange2
 import random
 
 # Customize here for awesomeness
 special_vars = (2,3,15,17,23,32,55,59,66,80)
 
 # Lolpolpolpo, by Coppercat
-randopt = { 'xv':(0,), 'n':1, 'xw':0}
+randopt = {'xv':(0,), 'n':1, 'xw':0}
 nflames = 5
 lst = GenRandomBatch(nflames, randopt, numbasic=5)
 
 k=0
 
 for f in lst:
-
     # Normalize weights of xforms in this flame
     # and divide them all by 2
     tw=0
@@ -53,8 +51,5 @@ for f in lst:
     k+=1
 
 
-set_flames("parameters/random_batch.flame",*lst)
-    
-
-
+save_flames("parameters/random_batch.flame",*lst)
 

@@ -50,5 +50,5 @@ if __name__ == "__main__":
     batchsize=20
     
     lst = GenRandomBatch(batchsize,*randopt,numbasic=3)
-    set_flames("parameters/random_batch.flame",*lst)
+    save_flames("parameters/random_batch.flame",*lst)
 

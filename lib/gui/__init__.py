@@ -485,18 +485,17 @@ class MainWindow(wx.Frame):
     def CreateNamespace(self):
         """Recreates the namespace each time the script is run to reassign
         the flame variable, etc."""
-        namespace = dict(self = self, # for debugging only!
-                         get_flames = self.tree.GetFlames,
-                         set_flames = self.set_flames,
-                         preview = self.preview,
-                         large_preview = self.large_preview,
-                         dialog = self.editorframe.make_dialog,
-                         get_file_path = self.tree.GetFilePath,
-                         VERSION = fr0stlib.VERSION,
-                         update_flame = True,
-                         )
-
+        namespace = {}
         exec("from lib.fr0stlib import *; __name__='__main__'",namespace)
+        namespace.update(dict(self = self, # for debugging only!
+                              get_flames = self.tree.GetFlames,
+                              save_flames = self.save_flames,
+                              preview = self.preview,
+                              large_preview = self.large_preview,
+                              dialog = self.editorframe.make_dialog,
+                              get_file_path = self.tree.GetFilePath,
+                              VERSION = fr0stlib.VERSION,
+                              update_flame = True))
         return namespace
 
 
@@ -571,12 +570,20 @@ class MainWindow(wx.Frame):
 
 
     @InMain
-    def set_flames(self, path, *flames):
+    def save_flames(self, path, *flames):
         if not flames:
             raise ValueError("You must specify at least 1 flame to set.")
 ##        self._namespace["update_flame"] = False
+        
+        if os.path.exists(path):
+            dlg = wx.MessageDialog(self, "%s already exists. Do you want to overwrite?" % path,
+                                   'Fr0st',wx.YES_NO)
+            if dlg.ShowModal() != wx.ID_YES:
+                return
+            
         lst = [s if type(s) is str else s.to_string() for s in flames]
         self.tree.SetFlames(path, *lst)
+        fr0stlib.save_flames(path, *lst)
 
 
     @InMain

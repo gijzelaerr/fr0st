@@ -10,4 +10,4 @@ for i in range(120):
     lst.append(flame.copy())
     
 
-set_flames("parameters/anim.flame", *lst)
+save_flames("parameters/sheep_loop.flame", *lst)
