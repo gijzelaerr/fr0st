@@ -387,19 +387,18 @@ class MainWindow(wx.Frame):
         if path is None:
             path = self.tree.GetFilePath()
 
-        lst = [i for i,_ in self.tree.flamefiles[0][1]]
-        
+        lst = self.tree.GetDataList()
+    
         if self.tree.parentselected:
-            for index, data in enumerate(lst):
+            for data, item in zip(lst, self.tree.GetItemChildren()):
                 data.Reset()
-                self.tree.SetItemText(self.tree.GetItemByIndex((0,index)),
-                                      data.name)
+                self.tree.SetItemText(item, data.name)
         else:
             data = self.tree.itemdata
             data.Reset()
             self.tree.SetItemText(self.tree.item, data.name)
                 
-        fr0stlib.save_flames(path, *(data[-1] for data in lst))
+        fr0stlib.save_flames(path, *(data[0] for data in lst))
         self.SetFlame(self.flame) # Make sure Undo and Redo get set correctly.
 
 

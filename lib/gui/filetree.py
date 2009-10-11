@@ -9,6 +9,7 @@ from lib.gui.constants import ID
 from lib.fr0stlib import Flame
 from lib.pyflam3 import Genome
 from lib.decorators import *
+from lib import fr0stlib
 from itemdata import ItemData
 
 class TreePanel(wx.Panel):
@@ -266,8 +267,9 @@ class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
         self.SelectItem(self.GetItemByIndex(index))
 
         self._dragging = False
-
-        self.Parent.Parent.SaveFlame()
+        
+        fr0stlib.save_flames(self.GetFilePath(),
+                             *(data[0] for data in self.GetDataList()))
 
 
     def GetItem(self, indices):
@@ -299,7 +301,7 @@ class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
 
 
     def GetDataList(self):
-        return (i for i,_ in self.GetChildren((0,)))
+        return [i for i,_ in self.GetChildren((0,))]
 
 
     def GetFlames(self, type=Flame):
