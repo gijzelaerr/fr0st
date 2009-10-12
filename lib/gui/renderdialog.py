@@ -449,9 +449,9 @@ class RenderDialog(wx.Frame):
             m = eta%3600/60
             s = eta%60
             self.SetStatusText(str_iter % (fraction,h,m,s))
+            self.gauge.SetValue(fraction)
         else:
             self.SetStatusText(str_de % fraction)
-        self.gauge.SetValue(fraction)
 
             
     def CancelRender(self):
