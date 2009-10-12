@@ -54,7 +54,7 @@ class PreviewFrame(wx.Frame):
 ##            return
         
         pw, ph = map(float, self.GetPanelSize())
-        fw, fh = self.parent.flame.size
+        fw, fh = map(float, self.parent.flame.size)
 
         ratio = min(pw/fw, ph/fh)
         image.Rescale(int(fw * ratio), int(fh * ratio))
@@ -77,8 +77,8 @@ class PreviewFrame(wx.Frame):
     def RenderPreview(self, flame=None):
         flame = flame or self.parent.flame
 
-        fw,fh = flame.size
-        pw,ph = self.GetPanelSize()
+        pw, ph = map(float, self.GetPanelSize())
+        fw, fh = map(float, self.parent.flame.size)
 
         ratio = min(pw/fw, ph/fh)
         size = int(fw * ratio), int(fh * ratio)
