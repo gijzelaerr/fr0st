@@ -9,6 +9,16 @@ def calculate_colors(flame):
     for xf in flame.xform:
         xf.color = xf.index / float(len(flame.xform))
 
+def normalize_weights(flame, norm=1.0):
+    """Normalize the weights of the xforms so that they total 1.0"""
+    ws = 0.0
+    for xf in flame.xform:
+        ws += xf.weight
+
+    ws /= norm
+
+    for xf in flame.xform:
+        xf.weight /= ws
 
 
 def equalize_flame_attributes(flame1, flame2):
