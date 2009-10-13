@@ -76,9 +76,9 @@ def _Extension(name, sources, options_dict, *additional_options):
 
 
 setup(
-    name = "utils",
+    name = "_utils",
     ext_modules=[
-        _Extension("lib.utils", ["lib/utils.pyx"],
+        _Extension("lib._utils", ["lib/_utils.pyx"],
             numpy_compiler_options()
         ),
     ],

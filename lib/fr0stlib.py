@@ -1,5 +1,5 @@
 import re, shutil, random, itertools, Image, numpy, ctypes
-from lib import utils
+from lib import _utils as utils
 from lib.pyflam3 import Genome,RandomContext,flam3_estimate_bounding_box
 from lib.pyflam3.variations import variable_list,variation_list,variables
 from lib.pyflam3.constants import flam3_nvariations
