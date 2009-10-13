@@ -212,8 +212,13 @@ class Flame(object):
         byoff = (b_min[1]+b_max[1])/2
         if abs(byoff)<5:
             self.y_offset = byoff
+            
+        denom = min(b_max[1]-b_min[1],b_max[0]-b_min[0])
 
-        tmpscale = 0.7 * 100.0/min(b_max[1]-b_min[1],b_max[0]-b_min[0])
+        if denom==0:
+            tmpscale = 0.0
+        else:
+            tmpscale = 0.7 * 100.0/min(b_max[1]-b_min[1],b_max[0]-b_min[0])
         
         if tmpscale<10:
             self.scale = 10
@@ -488,7 +493,7 @@ class Xform(object):
             self._post = PostXform(self, screen_coefs=post)
 
     @classmethod
-    def random(cls, parent, xv=range(flam3_nvariations), n=1, xw=0, fx=0, col=0, **kwds):
+    def random(cls, parent, xv=range(flam3_nvariations), n=1, xw=0, fx=0, col=0, ident=0, **kwds):
 
         # We can't add a final xform if one already exists
         if parent.final and fx>0:
@@ -506,11 +511,12 @@ class Xform(object):
         x.linear=0
         
         # Randomize the coefficients
-        x.coefs = (random.uniform(-1,1) for i in range(6))
+        if not ident:
+            x.coefs = (random.uniform(-1,1) for i in range(6))
         
-        if random.uniform(0,1)>0.7:
-            x.c = 0.0
-            x.f = 0.0
+            if random.uniform(0,1)>0.7:
+                x.c = 0.0
+                x.f = 0.0
         
         if not x.isfinal():
             if xw>0: # If weight is > 0, set the weight directly
