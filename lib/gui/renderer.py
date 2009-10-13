@@ -1,4 +1,5 @@
 import time, sys, traceback
+from collections import defaultdict
 
 from lib.decorators import Catches, Threaded
 from lib.render import flam3_render, flam4_render
@@ -8,9 +9,10 @@ from lib.gui.config import config
 class Renderer():
     def __init__(self, parent):
         self.parent = parent
-        self.previewqueue = []
-        self.bgqueue = []
         self.thumbqueue = []
+        self.previewqueue = []
+        self.largepreviewqueue = []
+        self.bgqueue = []
         self.exitflag = None
         self.previewflag = 0
         self.bgflag = 0
@@ -21,8 +23,7 @@ class Renderer():
 
 
     def ThumbnailRequest(self, callback, *args, **kwds):
-        """Schedules a genome to be rendered as soon as there are no previous
-        or higher priority requests pending."""
+        """Schedules a thumbnail to be rendered."""
         # These settings are hardcoded on purpose, they can't be overridden
         # by the calling code.
         kwds["nthreads"] = 1
@@ -34,11 +35,9 @@ class Renderer():
 
     def PreviewRequest(self, callback, *args, **kwds):
         """Schedules a render immediately after the current render is done.
-        Cancels previous requests (assuming they are obsolete), but leaves the
-        normal request queue intact."""
+        Cancels previous requests (assuming they are obsolete)."""
         kwds["nthreads"] = 1
         kwds["fixed_seed"] = True
-##        kwds["renderer"] = kwds.get("renderer", config["renderer"])
         kwds["renderer"] = "flam3"
         self.previewflag = 1
         
@@ -46,7 +45,7 @@ class Renderer():
 
         
     def LargePreviewRequest(self, callback, *args, **kwds):
-        """Makes a preview request with a callback function."""
+        """Makes a preview request with a progress function."""
         prog_func = kwds.get("progress_func", None)
         if not prog_func:
             raise KeyError("You must specify a progress function")
@@ -54,10 +53,7 @@ class Renderer():
         kwds["renderer"] = kwds.get("renderer", config["renderer"])
         self.previewflag = 1
 
-        # This is an append so that a simultaneous request for small and
-        # large previews goes through.
-##        self.previewqueue = [(callback,args,kwds)]
-        self.previewqueue.append((callback,args,kwds))
+        self.largepreviewqueue.append((callback,args,kwds))
 
 
     def RenderRequest(self, callback, *args, **kwds):
@@ -75,7 +71,8 @@ class Renderer():
     @Threaded
     def RenderLoop(self):
         while not self.exitflag:
-            queue = self.previewqueue or self.thumbqueue
+            queue = (self.previewqueue or self.thumbqueue 
+                     or self.largepreviewqueue)
             if queue:
 ##                self.bgflag = 2 # Pauses the other thread
                 self.process(*queue.pop(0))
@@ -87,8 +84,9 @@ class Renderer():
     @Threaded
     def bgRenderLoop(self):
         while not self.exitflag:
-            if self.bgqueue:
-                self.process(*self.bgqueue.pop(0))
+            queue = self.bgqueue
+            if queue:
+                self.process(*queue.pop(0))
             else:
                 time.sleep(.01)
 
