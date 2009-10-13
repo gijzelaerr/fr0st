@@ -66,6 +66,7 @@ for i in range(numbatch):
     x.color = ed_color
     
     f.scale = random.uniform(12,16)
+    f.brightness = 35
     f.name = "edisc_julian_%03d" % i
     
     lst.append(f)
