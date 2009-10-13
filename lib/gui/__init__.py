@@ -23,6 +23,8 @@ from lib.pyflam3 import Genome
 from lib.decorators import *
 from lib.threadinterrupt import ThreadInterrupt, interruptall
 
+# Don't write bytecodes to keep script folder clean
+sys.dont_write_bytecode = True
 
 class Fr0stApp(wx.App):
     def __init__(self):
