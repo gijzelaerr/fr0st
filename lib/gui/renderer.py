@@ -74,9 +74,9 @@ class Renderer():
             queue = (self.previewqueue or self.thumbqueue 
                      or self.largepreviewqueue)
             if queue:
-##                self.bgflag = 2 # Pauses the other thread
+                self.bgflag = 2 # Pauses the other thread
                 self.process(*queue.pop(0))
-##                self.bgflag = 0
+                self.bgflag = 0
             else:
                 time.sleep(.01)  # Ideal interval needs to be tested
 
