@@ -119,6 +119,7 @@ class RenderDialog(wx.Frame):
         opts = self.MakeOpts()
 
         self.render = wx.Button(self, ID.RENDER, "Render")
+        self.close = wx.Button(self, ID.CLOSE, "Close")
 
         self.CreateStatusBar()
 
@@ -140,8 +141,10 @@ class RenderDialog(wx.Frame):
         szr1 = wx.BoxSizer(wx.HORIZONTAL)
         szr1.AddMany((opts, szr0))
         szr2 = wx.BoxSizer(wx.VERTICAL)
-        szr2.AddMany(((fbb, 0, wx.EXPAND), szr1,
-                      (self.render, 0, wx.ALIGN_RIGHT|wx.ALIGN_BOTTOM)))
+        btnszr = wx.BoxSizer(wx.HORIZONTAL)
+        btnszr.AddMany(((self.render, 0, wx.ALIGN_RIGHT|wx.ALIGN_BOTTOM),
+                        (self.close, 0, wx.ALIGN_RIGHT|wx.ALIGN_BOTTOM)))
+        szr2.AddMany(((fbb, 0, wx.EXPAND), szr1, (btnszr, 0, wx.ALIGN_RIGHT)))
         szr3 = wx.BoxSizer(wx.HORIZONTAL)
         szr3.AddMany(((flame, 0, wx.EXPAND), (szr2, 0, wx.EXPAND)))
         szr4 = wx.BoxSizer(wx.VERTICAL)
@@ -150,7 +153,7 @@ class RenderDialog(wx.Frame):
         self.SetSizer(szr4)
         szr4.Fit(self)
 
-        self.exitflag = 0
+        self.progflag = 0
         self.rendering = False
 	
         self.Center(wx.CENTER_ON_SCREEN)
@@ -298,10 +301,23 @@ class RenderDialog(wx.Frame):
         self.Destroy()
 
 
+    @Bind(wx.EVT_BUTTON, id=ID.CLOSE)
+    def OnClose(self, e):
+        if self.close.Label == "Cancel":
+            self.CancelRender()
+        else:
+            self.OnExit()
+        
+
     @Bind(wx.EVT_BUTTON, id=ID.RENDER)
     def OnRender(self, event):
-        if self.render.Label == "Cancel":
-            self.CancelRender()
+        if self.render.Label == "Pause":
+            self.render.Label = "Resume"
+            self.progflag = 2
+            return
+        elif self.render.Label == "Resume":
+            self.render.Label = "Pause"
+            self.progflag = 0
             return
 
         destination = self.fbb.GetValue()
@@ -366,7 +382,8 @@ class RenderDialog(wx.Frame):
 
         # All checks have been made, the render is confirmed.
         self.rendering = True
-        self.render.Label = "Cancel"
+        self.close.Label = "Cancel"
+        self.render.Label = "Pause"
 
         kwds = dict((k,v.GetFloat()) for k,v in self.dict.iteritems())
         kwds["earlyclip"] = self.earlyclip
@@ -397,10 +414,11 @@ class RenderDialog(wx.Frame):
         str_iter = string + "ETA: %02d:%02d:%02d"
         str_de = string + "running density estimation"
         def prog(*args):
-            if self.exitflag:
+            if self.progflag == 1:
                 self.rendering = False
-                return self.exitflag
+                return 1
             self.OnProgress(str_iter, str_de, *args)
+            return self.progflag
         return prog
         
 
@@ -417,7 +435,7 @@ class RenderDialog(wx.Frame):
 
             
     def CancelRender(self):
-        self.exitflag = 1
+        self.progflag = 1
         # HACK: prevent future renders from being passed to flame.
         del self.parent.renderer.bgqueue[:]
         while self.rendering:
@@ -427,14 +445,15 @@ class RenderDialog(wx.Frame):
 
     def CleanProg(self):
         self.render.Label = "Render"
+        self.close.Label = "Close"
         self.gauge.SetValue(0)
         self.SetStatusText("")
 
 
     def save(self, path, index, bmp):
-        if self.exitflag:
+        if self.progflag:
             # Don't save image.
-            self.exitflag = 0
+            self.progflag = 0
             self.CleanProg()
             return
         ty = config["Img-Type"]

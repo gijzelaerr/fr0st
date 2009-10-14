@@ -1,5 +1,6 @@
 import time, sys, traceback
 from collections import defaultdict
+from wx import PyDeadObjectError
 
 from lib.decorators import Catches, Threaded
 from lib.render import flam3_render, flam4_render
@@ -13,7 +14,7 @@ class Renderer():
         self.previewqueue = []
         self.largepreviewqueue = []
         self.bgqueue = []
-        self.exitflag = None
+        self.exitflag = 0
         self.previewflag = 0
         self.bgflag = 0
         if "-debug" not in sys.argv:
@@ -91,6 +92,7 @@ class Renderer():
                 time.sleep(.01)
 
 
+    @Catches(PyDeadObjectError)
     def process(self, callback, args, kwds):
         self.previewflag = 0
 
@@ -124,7 +126,7 @@ class Renderer():
     def prog_wrapper(self, f, flag):
         @Catches(TypeError)
         def prog_func(*args):
-            return max(getattr(self, flag), self.exitflag, f(*args))
+            return self.exitflag or f(*args) or getattr(self, flag)
         return prog_func
 
     
