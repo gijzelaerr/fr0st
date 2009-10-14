@@ -2,7 +2,8 @@ import wx, itertools
 
 from lib.decorators import *
 from lib.gui.canvas import XformCanvas
-from lib.gui.utils import LoadIcon, MultiSliderMixin, Box, NumberTextCtrl
+from lib.gui.utils import LoadIcon, MultiSliderMixin, Box, NumberTextCtrl,\
+                          SizePanel
 from lib.gui.config import config
 
 
@@ -11,7 +12,8 @@ class MainNotebook(wx.Notebook):
     def __init__(self, parent):
         self.parent = parent
         # 390 is just the right width for the gradient to be entirely visible.
-        wx.Notebook.__init__(self, parent, -1, size=(390,1), style=
+        # 573 seems to be the right height for all sliders to be visible.
+        wx.Notebook.__init__(self, parent, -1, size=(390,573), style=
                              wx.BK_DEFAULT
                              )
 
@@ -365,6 +367,8 @@ class AdjustPanel(MultiSliderMixin, wx.Panel):
         super(AdjustPanel, self).__init__(parent, -1)
 
         sizer = wx.BoxSizer(wx.VERTICAL)
+        self.sizepanel = SizePanel(self, self.__size_callback)
+        sizer.Add(self.sizepanel)
         sizer.Add(Box(self, "Camera Settings",
                       *((self.MakeSlider(*i),0, wx.EXPAND) for i in
                       (("scale", 25, 1, 100, False),
@@ -381,15 +385,23 @@ class AdjustPanel(MultiSliderMixin, wx.Panel):
         self.SetSizer(sizer)
 
 
+    def __size_callback(self):
+        self.UpdateFlame()
+        self.parent.TreePanel.TempSave()
+
+
     def UpdateView(self):
         flame = self.parent.flame
         for name in self.sliders:
             self.UpdateSlider(name, getattr(flame, name))
+        self.sizepanel.UpdateSize(flame.size)
 
 
     def UpdateFlame(self):
+        flame = self.parent.flame
         for name, val in self.IterSliders():
-            setattr(self.parent.flame, name, val)
+            setattr(flame, name, val)
+        flame.size = self.sizepanel.GetInts()
         self.UpdateView()
         self.parent.image.RenderPreview()
 

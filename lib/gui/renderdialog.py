@@ -264,7 +264,7 @@ class RenderDialog(wx.Frame):
         self.fbb.SetValue(os.path.join(os.path.dirname(path), name) + ext)
 
         tempflame = Flame(self.choices[selections[0]][-1])
-        self.sizepanel.UpdateSize(tempflame)
+        self.sizepanel.UpdateSize(tempflame.size)
         self.mem.UpdateView()
 
         

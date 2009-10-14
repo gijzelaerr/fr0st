@@ -69,10 +69,11 @@ class SizePanel(wx.Panel):
         return [int(tc.GetFloat()) for tc in (self.width, self.height)]
 
 
-    def UpdateSize(self, flame):
-        self.width.SetFloat(flame.width)
-        self.height.SetFloat(flame.height)
-        self.ratio = float(flame.width) / flame.height
+    def UpdateSize(self, size):
+        width, height = (float(i) for i in size)
+        self.width.SetFloat(width)
+        self.height.SetFloat(height)
+        self.ratio = width / height
 
 
     def OnRatio(self, e):
@@ -84,11 +85,13 @@ class SizePanel(wx.Panel):
             v = tc.GetFloat()
             tc.SetInt(v)
             if tc == self.width:
-                self.height.SetInt(v / self.ratio)
+                w, h = v, v / self.ratio
+                self.height.SetInt(h)
             else:
-                self.width.SetInt(v * self.ratio)
+                w, h = v * self.ratio, v
+                self.width.SetInt(w)
         else:
-            self.ratio = float(self.width.GetInt()) / self.height.GetInt()
+            self.ratio = float(self.width.GetFloat()) / self.height.GetFloat()
         self.callback()
 
 
@@ -118,7 +121,7 @@ class NumberTextCtrl(wx.TextCtrl):
         return float(self.GetValue() or "0")
 
     def SetFloat(self, v):
-        v = float(v)
+        v = float(self.Checkrange(v))
         self._value = v
         string = ("%.6f" %v).rstrip("0")
         if string.endswith("."):
@@ -130,7 +133,7 @@ class NumberTextCtrl(wx.TextCtrl):
         return int(self.GetValue() or "0")
 
     def SetInt(self, v):
-        v  = int(v)
+        v = int(self.Checkrange(v))
         self._value = v
         self.SetValue(str(v))
 
@@ -143,6 +146,14 @@ class NumberTextCtrl(wx.TextCtrl):
     def SetAllowedRange(self, low=None, high=None):
         self.low = low
         self.high = high
+
+
+    def Checkrange(self, v):
+        if self.low is not None and v < self.low:
+            return self.low
+        elif self.high is not None and v > self.high:
+            return self.high
+        return v
 
 
     @Bind(wx.EVT_CHAR)
@@ -168,13 +179,7 @@ class NumberTextCtrl(wx.TextCtrl):
             except ValueError:
                 self.SetFloat(self._value)
                 return
-            if self.low is not None and v < self.low:
-                self.SetFloat(self.low)
-                return
-            elif self.high is not None and v > self.high:
-                self.SetFloat(self.high)
-                return
-            self._value = v
+            self.SetFloat(v)
             self.callback()
         
 
