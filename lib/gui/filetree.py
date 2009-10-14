@@ -9,6 +9,7 @@ from lib.decorators import *
 from lib import fr0stlib
 from lib.gui.itemdata import ItemData
 
+
 class TreePanel(wx.Panel):
 
     @BindEvents
@@ -113,24 +114,6 @@ class TreePanel(wx.Panel):
                 self.tree.RenderThumbnail(child)
 
 
-    def OnRightDown(self, event):
-        pt = event.GetPosition()
-        item, flags = self.tree.HitTest(pt)
-        if item:
-            self.log.WriteText("OnRightClick: %s, %s, %s\n" %
-                               (self.tree.GetItemText(item), type(item), item.__class__))
-            self.tree.SelectItem(item)
-
-
-    def OnRightUp(self, event):
-        pt = event.GetPosition()
-        item, flags = self.tree.HitTest(pt)
-        if item:
-            self.log.WriteText("OnRightUp: %s (manually starting label edit)\n"
-                               % self.tree.GetItemText(item))
-            self.tree.EditLabel(item)
-
-
     @Bind(wx.EVT_TREE_SEL_CHANGED)
     def OnSelChanged(self, event):
         item = event.GetItem()
@@ -164,6 +147,36 @@ class TreePanel(wx.Panel):
         self.tree.SetItemText(item, data.name)
         e.Veto()
 
+
+    @Bind(wx.EVT_CONTEXT_MENU)
+    def OnContext(self, e):
+        menu = wx.Menu()
+        menu.Append(ID.RENAME, "Rename")
+        menu.Append(ID.DELETE, "Delete")
+        self.PopupMenu(menu)
+        menu.Destroy()
+
+
+    @Bind(wx.EVT_MENU, id=ID.RENAME)
+    def OnRename(self, e):
+        self.tree.EditLabel(self.tree.item)
+
+
+    @Bind(wx.EVT_MENU, id=ID.DELETE)
+    def OnDelete(self, e):
+        index = self.tree.GetIndexOfItem(self.tree.item)[-1]
+        children = self.tree.GetChildren((0,))
+        children.pop(index)
+        if not children:
+            # Make sure the flamefile is never empty.
+            self.parent.OnFlameNew2()
+        self.tree.RefreshItems()
+        if index >= len(children):
+            index = len(children) - 1
+        self.tree.SelectItem(self.tree.itemparent)
+        self.tree.SelectItem(self.tree.GetItemByIndex((0,index)))
+        self.parent.SaveFlame()
+        
 
 
 class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
