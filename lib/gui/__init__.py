@@ -493,7 +493,8 @@ class MainWindow(wx.Frame):
                               dialog = self.editorframe.make_dialog,
                               get_file_path = self.tree.GetFilePath,
                               VERSION = fr0stlib.VERSION,
-                              update_flame = True))
+                              update_flame = True,
+                              config = config))
         return namespace
 
 
