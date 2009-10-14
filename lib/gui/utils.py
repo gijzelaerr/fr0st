@@ -121,7 +121,7 @@ class NumberTextCtrl(wx.TextCtrl):
         return float(self.GetValue() or "0")
 
     def SetFloat(self, v):
-        v = float(self.Checkrange(v))
+        v = self.Checkrange(float(v))
         self._value = v
         string = ("%.6f" %v).rstrip("0")
         if string.endswith("."):
@@ -133,7 +133,7 @@ class NumberTextCtrl(wx.TextCtrl):
         return int(self.GetValue() or "0")
 
     def SetInt(self, v):
-        v = int(self.Checkrange(v))
+        v = self.Checkrange(int(v))
         self._value = v
         self.SetValue(str(v))
 
