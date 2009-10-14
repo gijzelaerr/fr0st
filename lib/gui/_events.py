@@ -27,7 +27,10 @@ def InMain(f):
     res = [None]
     def callback(e):
         flag, self, a, k = e.Args
-        res[0] = f(self, *a, **k)
+        try:
+            res[0] = f(self, *a, **k)
+        except Exception as e:
+            res[0] = e
         flag.set()
     bound = Event()
     ID = wx.NewId()
@@ -38,5 +41,9 @@ def InMain(f):
         flag = Event()
         wx.PostEvent(self, ThreadMessageEvent(ID, flag, self, a, k))
         flag.wait()
-        return res[0]
+        result = res[0]
+        res[0] = None
+        if isinstance(result, Exception):
+            raise result
+        return result
     return inner
