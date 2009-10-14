@@ -8,7 +8,7 @@ numbatch = 15
 
 # VX:
 # 0: random, 1: fisheye+bubble, 2: fisheye+cylinder, 3: wedge_sph
-VXd = 1
+VXd = 0
 
 # VL:
 # 0: random, 1: waves2, 2: linear
@@ -63,6 +63,7 @@ for i in range(numbatch):
     x.weight = 1
     x.color_speed = 0.25
     x.color = 0
+    x.opacity = 0
     x.animate = 0 # fiddle
     
     # Second Xform
@@ -105,6 +106,7 @@ for i in range(numbatch):
     
     x.weight = uniform(0.05, 0.1)
     x.color_speed = 0.75
+    x.opacity = 0
     x.color = 1
     x.animate = 1 #fiddle
     
