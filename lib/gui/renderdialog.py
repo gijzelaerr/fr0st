@@ -12,7 +12,7 @@ from functools import partial
 from collections import defaultdict
 
 from lib.fr0stlib import Flame
-from lib.gui.utils import NumberTextCtrl, Box, MyChoice
+from lib.gui.utils import NumberTextCtrl, Box, MyChoice, MakeTCs, SizePanel
 from lib.gui.config import config
 from lib.gui.constants import ID
 from lib.gui._events import InMain
@@ -26,7 +26,6 @@ class FreeMemoryPanel(wx.Panel):
         self.depth = parent.dict["buffer_depth"]
         self.fgs = wx.FlexGridSizer(2, 2, 1, 1)
         self.SetSizer(self.fgs)
-        self.UpdateView()
 
 
     def UpdateView(self, e=None):
@@ -64,7 +63,7 @@ class FreeMemoryPanel(wx.Panel):
 
 
     def GetRequired(self):
-        w, h = (self.Parent.dict[i].GetFloat() for i in ("width", "height"))
+        w, h = self.Parent.sizepanel.GetInts()
         os = self.Parent.dict["spatial_oversample"].GetFloat()
         int_size = 4
         if self.depth.GetStringSelection() == "64-bit int":
@@ -76,7 +75,6 @@ class FreeMemoryPanel(wx.Panel):
         
 
 class RenderDialog(wx.Frame):
-    keepratio = True
     buffer_depth_dict = {"32-bit int": 32,
               "32-bit float": 33,
               "64-bit int": 64}
@@ -116,25 +114,29 @@ class RenderDialog(wx.Frame):
 
         fbb = self.MakeFileBrowseButton()
         flame = self.MakeFlameSelector()
-        size = self.MakeSizeSelector()
-        opts = self.MakeOpts()
         mem = self.MakeMemoryWidget()
+        self.sizepanel = SizePanel(self, self.mem.UpdateView)
+        opts = self.MakeOpts()
 
         self.render = wx.Button(self, ID.RENDER, "Render")
 
         self.CreateStatusBar()
 
-        for i in "quality", "width", "height":
-            tc = self.dict[i]
-            tc.MakeIntOnly()
-            tc.low = 1
+        q = self.dict["quality"]
+        q.MakeIntOnly()
+        q.low = 1
+        
         os = self.dict["spatial_oversample"]
         os.MakeIntOnly()
         os.SetAllowedRange(1,16)
         os.callback = self.mem.UpdateView
+
+        # Update size TCs. This needs to be done before setting sizers, to make
+        # sure all widgets ahve their final size.
+        self.OnSelection()
         
         szr0 = wx.BoxSizer(wx.VERTICAL)
-        szr0.AddMany(((mem, 0, wx.EXPAND), size))
+        szr0.AddMany(((mem, 0, wx.EXPAND), self.sizepanel))
         szr1 = wx.BoxSizer(wx.HORIZONTAL)
         szr1.AddMany((opts, szr0))
         szr2 = wx.BoxSizer(wx.VERTICAL)
@@ -194,22 +196,6 @@ class RenderDialog(wx.Frame):
         self.lb.SetSelection(choices.index(data))
 
 
-    def MakeSizeSelector(self):
-        # HACK: those are arbitrary values, just so MakeTCs doesn't choke.
-        self.config["width"] = 512.
-        self.config["height"] = 384.    
-        fgs = self.MakeTCs("width", "height", low=0,callback=self.SizeCallback)
-
-        # Update tc to show flame size.
-        self.OnSelection()
-
-        ratio = wx.CheckBox(self, -1, "Keep Ratio")
-        ratio.SetValue(True)
-        ratio.Bind(wx.EVT_CHECKBOX, self.OnRatio)
-
-        return Box(self, "Size", fgs, ratio)
-
-
     def MakeOpts(self):
         opts = self.MakeTCs("quality", "spatial_oversample",
                             "estimator", "estimator_curve",
@@ -238,14 +224,9 @@ class RenderDialog(wx.Frame):
 
 
     def MakeTCs(self, *a, **k):
-        fgs = wx.FlexGridSizer(99, 2, 1, 1)
-        for i in a:
-            tc = NumberTextCtrl(self, **k)
-            tc.SetFloat(self.config[i])
-            self.dict[i] = tc
-            fgs.Add(wx.StaticText(self, -1, i.replace("_", " ").title()),
-                    0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
-            fgs.Add(tc, 0, wx.ALIGN_RIGHT, 5)
+        """Wrapper around MakeTCs that adds all tcs to self.dict."""
+        fgs, d = MakeTCs(self, *((i, self.config[i]) for i in a), **k)
+        self.dict.update(d)
         return fgs
 
 
@@ -260,30 +241,12 @@ class RenderDialog(wx.Frame):
         return fgs
 
 
-    def OnRatio(self, e):
-        self.keepratio = e.GetInt()
-
-
     def OnEarly(self, e):
         self.earlyclip = e.GetInt()
 
 
     def OnTransp(self, e):
         self.transp = e.GetInt()
-
-
-    def SizeCallback(self, tc):
-        wtc, htc = self.dict["width"], self.dict["height"]
-        if self.keepratio:
-            v = tc.GetFloat()
-            tc.SetInt(v)
-            if tc == wtc:
-                htc.SetInt(v / self.ratio)
-            else:
-                wtc.SetInt(v * self.ratio)
-        else:
-            self.ratio = float(wtc.GetInt()) / htc.GetInt()
-        self.mem.UpdateView()
 
 
     @Catches(wx.PyDeadObjectError)
@@ -301,9 +264,8 @@ class RenderDialog(wx.Frame):
         self.fbb.SetValue(os.path.join(os.path.dirname(path), name) + ext)
 
         tempflame = Flame(self.choices[selections[0]][-1])
-        self.dict["width"].SetFloat(tempflame.width)
-        self.dict["height"].SetFloat(tempflame.height)
-        self.ratio = float(tempflame.width) / tempflame.height
+        self.sizepanel.UpdateSize(tempflame)
+        self.mem.UpdateView()
 
         
     def OnSelectAll(self, e=None):
@@ -410,7 +372,7 @@ class RenderDialog(wx.Frame):
         kwds["earlyclip"] = self.earlyclip
         if ty == ".png":
             kwds["transparent"] = self.transp
-        size = [int(kwds.pop(i)) for i in ("width","height")]
+        size = self.sizepanel.GetInts()
 
         self.config.update(kwds)
         config["Img-Dir"] = os.path.dirname(destination)

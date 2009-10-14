@@ -17,6 +17,18 @@ def Box(self, name, *a, **k):
     return box
 
 
+def MakeTCs(self, *a, **k):
+    fgs = wx.FlexGridSizer(99, 2, 1, 1)
+    tcs = {}
+    for i, default in a:
+        tc = NumberTextCtrl(self, **k)
+        tc.SetFloat(default)
+        tcs[i] = tc
+        fgs.Add(wx.StaticText(self, -1, i.replace("_", " ").title()),
+                0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
+        fgs.Add(tc, 0, wx.ALIGN_RIGHT, 5)
+    return fgs, tcs
+
 
 class MyChoice(wx.Choice):
     def __init__(self, parent, name, d, initial):
@@ -29,7 +41,57 @@ class MyChoice(wx.Choice):
     def GetFloat(self):
         return self.d[self.GetStringSelection()]
 
+
+class SizePanel(wx.Panel):
+    def __init__(self, parent, callback=lambda: None):
+        self.parent = parent
+        self.keepratio = True
+        self.callback = callback
+        wx.Panel.__init__(self, parent, -1)
+
+        fgs, tcs = MakeTCs(self, ("width", 512.), ("height", 384.), low=0,
+                           callback=self.SizeCallback)
+        self.__dict__.update(tcs)
+        for i in (self.width, self.height):
+            i.MakeIntOnly()
+            i.low = 1
+
+        ratio = wx.CheckBox(self, -1, "Keep Ratio")
+        ratio.SetValue(True)
+        ratio.Bind(wx.EVT_CHECKBOX, self.OnRatio)
+
+        box = Box(self, "Size", fgs, ratio)
+        self.SetSizer(box)
+        box.Fit(self)
     
+
+    def GetInts(self):
+        return [int(tc.GetFloat()) for tc in (self.width, self.height)]
+
+
+    def UpdateSize(self, flame):
+        self.width.SetFloat(flame.width)
+        self.height.SetFloat(flame.height)
+        self.ratio = float(flame.width) / flame.height
+
+
+    def OnRatio(self, e):
+        self.keepratio = e.GetInt()
+
+
+    def SizeCallback(self, tc):
+        if self.keepratio:
+            v = tc.GetFloat()
+            tc.SetInt(v)
+            if tc == self.width:
+                self.height.SetInt(v / self.ratio)
+            else:
+                self.width.SetInt(v * self.ratio)
+        else:
+            self.ratio = float(self.width.GetInt()) / self.height.GetInt()
+        self.callback()
+
+
 
 class NumberTextCtrl(wx.TextCtrl):
     low = None
