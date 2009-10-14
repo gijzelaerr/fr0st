@@ -53,7 +53,7 @@ class Renderer():
         kwds["renderer"] = kwds.get("renderer", config["renderer"])
         self.previewflag = 1
 
-        self.largepreviewqueue.append((callback,args,kwds))
+        self.largepreviewqueue = [(callback,args,kwds)]
 
 
     def RenderRequest(self, callback, *args, **kwds):
