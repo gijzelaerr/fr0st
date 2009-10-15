@@ -3,17 +3,12 @@ from fr0stlib.pyflam3.variations import *
 from random import uniform,randint,choice
 
 # Customization for awesomeness
-numbatch = 15
-# End customization
-
-lst = []
-
 tubevars = ( range(0,14) + [15,17,21,25,32,33] + 
              range(35,41) + [42,46,48,49,51,52] +
              range(54,65) )
+# End Customization
 
-for i in range(numbatch):
-
+def julia_wires():
     # Create new flame
     f = Flame()
     f.gradient.random(hue=(0, 1),saturation=(0, 1),value=(.25, 1),nodes=(4, 6))
@@ -97,13 +92,21 @@ for i in range(numbatch):
 
     f.reframe()
 
-    f.name = "julia_wires_%03d" % i
+    return f
     
-    lst.append(f)
-    
-# Display the batch on the UI
-save_flames("parameters/julia_wires.flame",*lst)
-    
+def julia_wires_batch(nflames):
+    lst = []
+    name = "julia_wires_%03d"
+    for i in range(nflames):
+        flame = julia_wires()
+        flame.name = name % i
+        lst.append(flame)
+    return lst
+
+if __name__ == "__main__":
+    lst = julia_wires_batch(20)
+    save_flames("parameters/julia_wires.flame", *lst)
+        
         
     
 

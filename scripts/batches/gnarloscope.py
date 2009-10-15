@@ -1,30 +1,21 @@
 # Gnarloscope by parrotdolphin
 from random import uniform, randint
 
-
-# Customization for awesomeness
-################
-numbatch = 15
-
-# VX:
+# Customization
+# VXd:
 # 0: random, 1: fisheye+bubble, 2: fisheye+cylinder, 3: wedge_sph
 VXd = 0
 
-# VL:
+# VLd:
 # 0: random, 1: waves2, 2: linear
 VLd = 0
 
-# PB: (add pre-blur on bubble or cylinder)
+# PBd: (add pre-blur on bubble or cylinder)
 # 0: random, 1: yes, 2: no
 PBd = 0
-
-################
 # End customization
 
-lst = []
-
-for i in range(numbatch):
-
+def gnarloscope():
 
     if VXd==0:
         VX = randint(1,3)
@@ -123,9 +114,19 @@ for i in range(numbatch):
     f.brightness = 25
     f.scale = 20
 
-    f.name = "gnarloscope_%03d" % i
-    lst.append(f)
+    return f
 
-# Display the batch on the UI
-save_flames("parameters/gnarloscope.flame",*lst)        
+def gnarloscope_batch(nflames):
+    lst = []
+    name = "gnarloscope_%03d"
+    for i in range(nflames):
+        flame = gnarloscope()
+        flame.name = name % i
+        lst.append(flame)
+    return lst
+
+if __name__ == "__main__":
+    lst = gnarloscope_batch(20)
+    save_flames("parameters/gnarloscopes.flame", *lst)
+
 
