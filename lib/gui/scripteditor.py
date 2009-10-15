@@ -34,7 +34,11 @@ class EditorFrame(wx.Frame):
                         "All files (*.*)|*.*"
 
         # Load the default script
-        self.scriptpath = os.path.join(sys.path[0],"scripts", "default.py")
+        self.scriptpath = os.path.join(wx.GetApp().AppBaseDir, 'scripts', 'default.py')
+
+        if not os.path.exists(self.scriptpath):
+            self.scriptpath = os.path.join(wx.GetApp().ScriptsDir, 'default.py')
+
         self.OpenScript(self.scriptpath)
 
 
@@ -57,7 +61,13 @@ class EditorFrame(wx.Frame):
         self.editor.Clear()
         self._new = True
         self.editor._changed = False
-        self.scriptpath = os.path.join(sys.path[0],"scripts", "untitled.py")
+
+        # Load the default script
+        self.scriptpath = os.path.join(wx.GetApp().AppBaseDir, 'scripts', 'untitled.py')
+
+        if not os.path.exists(self.scriptpath):
+            self.scriptpath = os.path.join(wx.GetApp().ScriptsDir, 'untitled.py')
+
         self.Title = "untitled - Script Editor"
 
 

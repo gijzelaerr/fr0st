@@ -4,8 +4,14 @@ from functools import partial
 from lib.decorators import *
 
 def LoadIcon(*path):
-    img = wx.Image(os.path.join('lib','gui','icons',*path) + '.png',
-                                type=wx.BITMAP_TYPE_PNG)
+    # Check for an icons dir in app base path first for development
+    filename = os.path.join(wx.GetApp().AppBaseDir, 'icons', *path) + '.png'
+
+    if not os.path.exists(filename):
+        # Not there, check install path
+        filename = os.path.join(wx.GetApp().IconsDir, *path) + '.png'
+
+    img = wx.Image(filename, type=wx.BITMAP_TYPE_PNG)
     img.Rescale(16,16)
     return wx.BitmapFromImage(img)
 

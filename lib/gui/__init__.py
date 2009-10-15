@@ -1,5 +1,5 @@
 from __future__ import with_statement
-import os, sys, wx, time, re, threading, itertools
+import imp, os, sys, wx, time, re, threading, itertools
 from wx import PyDeadObjectError
 
 from lib.gui.scripteditor import EditorFrame
@@ -31,10 +31,21 @@ class Fr0stApp(wx.App):
         wx.App.__init__(self, redirect=False)
         self.SetAppName('fr0st')
         self.standard_paths = wx.StandardPaths.Get()
+
         self.config_dir = os.path.join(self.standard_paths.GetUserConfigDir(),
                                        '.fr0st')
+
+        if 'win32' in sys.platform:
+            # On windows, GetResourcesDir returns something like
+            #   "c:\Python26\lib\site-packages\wx-2.8-msw-unicode\wx\"
+            # Grab the base directory instead
+            self.resource_dir = self.AppBaseDir
+        else:
+            self.resource_dir = self.standard_paths.GetResourcesDir()
+
         if not os.path.isdir(self.ConfigDir):
             os.makedirs(self.ConfigDir)
+
         init_config()
 
     def MainLoop(self):
@@ -44,6 +55,27 @@ class Fr0stApp(wx.App):
     @property
     def ConfigDir(self):
         return self.config_dir
+
+    @property
+    def ScriptsDir(self):
+        return os.path.join(self.resource_dir, 'scripts')
+
+    @property
+    def Frozen(self):
+        return (hasattr(sys, 'frozen') or
+                hasattr(sys, 'importers') or
+                imp.is_frozen('__main__'))
+
+    @property
+    def AppBaseDir(self):
+        if self.Frozen:
+            return os.path.dirname(sys.executable)
+        else:
+            return os.path.dirname(sys.argv[0])
+
+    @property
+    def IconsDir(self):
+        return os.path.join(self.resource_dir, 'icons')
 
 
 class MainWindow(wx.Frame):
@@ -121,7 +153,8 @@ class MainWindow(wx.Frame):
                 window.Maximize(maximize)
 
         # Set up paths
-        sys.path.append(os.path.join(sys.path[0],"scripts")) # imp in scripts
+        sys.path.append(os.path.join(wx.GetApp().AppBaseDir, 'scripts'))
+        sys.path.append(wx.GetApp().ScriptsDir)
         self.flamepath = os.path.join(sys.path[0], config["flamepath"])
 
         if os.path.exists('paths.temp'):
