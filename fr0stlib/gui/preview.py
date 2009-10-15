@@ -1,6 +1,6 @@
 import wx, sys, numpy as N
 
-from lib.decorators import *
+from fr0stlib.decorators import *
 from config import config
 from _events import InMain
 

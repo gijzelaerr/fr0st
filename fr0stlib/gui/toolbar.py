@@ -1,6 +1,6 @@
 import wx
-from lib.gui.constants import ID
-from lib.gui.utils import LoadIcon
+from fr0stlib.gui.constants import ID
+from fr0stlib.gui.utils import LoadIcon
 
 def GetBMP(name,client=wx.ART_TOOLBAR,size=(16,16)):
     return wx.ArtProvider.GetBitmap(name, client, size)

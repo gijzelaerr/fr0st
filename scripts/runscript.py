@@ -15,5 +15,5 @@ if sys.path[0] == os.path.dirname(__file__):
     sys.path[0] = os.path.join(os.path.dirname(__file__),'..')
 
 sys.dont_write_bytecode = True
-from lib.fr0stlib import *
+from fr0stlib.fr0stlib import *
 

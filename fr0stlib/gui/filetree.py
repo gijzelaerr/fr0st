@@ -3,11 +3,11 @@ import wx, sys, os, shutil, time, cPickle, itertools, pickle as cPickle
 from functools import partial
 from wx.lib.mixins import treemixin
 
-from lib.gui.constants import ID
-from lib.fr0stlib import Flame
-from lib.decorators import *
-from lib import fr0stlib
-from lib.gui.itemdata import ItemData
+from fr0stlib.gui.constants import ID
+from fr0stlib import Flame
+from fr0stlib.decorators import *
+import fr0stlib
+from fr0stlib.gui.itemdata import ItemData
 
 
 class TreePanel(wx.Panel):

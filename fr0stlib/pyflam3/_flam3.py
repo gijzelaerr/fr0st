@@ -21,8 +21,8 @@
 ##############################################################################
 import itertools, sys, os
 from ctypes import *
-from lib.pyflam3.constants import *
-from lib.pyflam3.variations import *
+from fr0stlib.pyflam3.constants import *
+from fr0stlib.pyflam3.variations import *
 
 
 if 'win32' not in sys.platform:

@@ -1,4 +1,4 @@
-from lib.pyflam3 import flam3_colorhist, Genome, flam3_xform_preview, RandomContext
+from fr0stlib.pyflam3 import flam3_colorhist, Genome, flam3_xform_preview, RandomContext
 from ctypes import c_double
 
 genome = Genome.from_string(self.flame.to_string())[0]

@@ -3,11 +3,11 @@ from wx import gizmos
 from collections import defaultdict
 from functools import partial
 
-from lib.decorators import Bind,BindEvents
-from lib.fr0stlib import polar, rect
-from lib import pyflam3
-from lib.gui.config import config
-from lib.gui.utils import LoadIcon, MultiSliderMixin, NumberTextCtrl
+from fr0stlib.decorators import Bind,BindEvents
+from fr0stlib import polar, rect
+from fr0stlib import pyflam3
+from fr0stlib.gui.config import config
+from fr0stlib.gui.utils import LoadIcon, MultiSliderMixin, NumberTextCtrl
 
 
 class XformTabs(wx.Notebook):

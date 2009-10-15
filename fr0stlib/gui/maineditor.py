@@ -1,10 +1,10 @@
 import wx, itertools
 
-from lib.decorators import *
-from lib.gui.canvas import XformCanvas
-from lib.gui.utils import LoadIcon, MultiSliderMixin, Box, NumberTextCtrl,\
+from fr0stlib.decorators import *
+from fr0stlib.gui.canvas import XformCanvas
+from fr0stlib.gui.utils import LoadIcon, MultiSliderMixin, Box, NumberTextCtrl,\
                           SizePanel
-from lib.gui.config import config
+from fr0stlib.gui.config import config
 
 
 class MainNotebook(wx.Notebook):

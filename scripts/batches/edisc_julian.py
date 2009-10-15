@@ -1,6 +1,6 @@
 # Edisc Julian by Shortgreenpigg
 import random
-from lib.pyflam3.variations import *
+from fr0stlib.pyflam3.variations import *
 
 # Customization for awesomeness
 numbatch = 15

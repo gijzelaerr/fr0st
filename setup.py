@@ -78,7 +78,7 @@ def _Extension(name, sources, options_dict, *additional_options):
 setup(
     name = "_utils",
     ext_modules=[
-        _Extension("lib._utils", ["lib/_utils.pyx"],
+        _Extension("fr0stlib._utils", ["fr0stlib/_utils.pyx"],
             numpy_compiler_options()
         ),
     ],

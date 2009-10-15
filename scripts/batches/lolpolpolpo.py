@@ -1,7 +1,7 @@
 # Lolpolpolpo, by Coppercat
 
 from random_flame import GenRandomBatch
-from lib.pyflam3.variations import *
+from fr0stlib.pyflam3.variations import *
 import utils,random
 
 # Customize here

@@ -3,11 +3,11 @@ from functools import partial
 from wx.lib.floatcanvas import FloatCanvas as FC
 from wx.lib.floatcanvas.Utilities import BBox
 
-from lib.decorators import Bind, BindEvents
-from lib.fr0stlib import polar, rect, Xform
-from lib import pyflam3
-from lib.pyflam3 import Genome, c_double, RandomContext, flam3_xform_preview
-from lib.gui.config import config
+from fr0stlib.decorators import Bind, BindEvents
+from fr0stlib import polar, rect, Xform
+from fr0stlib import pyflam3
+from fr0stlib.pyflam3 import Genome, c_double, RandomContext, flam3_xform_preview
+from fr0stlib.gui.config import config
 
 
 def angle_helper(*points):

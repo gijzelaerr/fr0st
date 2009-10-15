@@ -2,9 +2,9 @@ import time, sys, traceback
 from collections import defaultdict
 from wx import PyDeadObjectError
 
-from lib.decorators import Catches, Threaded
-from lib.render import flam3_render, flam4_render
-from lib.gui.config import config
+from fr0stlib.decorators import Catches, Threaded
+from fr0stlib.render import flam3_render, flam4_render
+from fr0stlib.gui.config import config
 
 
 class Renderer():

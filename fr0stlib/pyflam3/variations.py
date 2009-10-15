@@ -24,7 +24,7 @@ from collections import defaultdict
 
 from constants import flam3_nvariations
 from functools import partial
-from lib.functions import randrange2
+from fr0stlib.functions import randrange2
 
 
 VAR_LINEAR = 0

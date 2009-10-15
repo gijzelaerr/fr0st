@@ -15,7 +15,7 @@ The default folder is /parameters.
 
 
 import os, sys
-from lib.gui.renderer import render
+from fr0stlib.gui.renderer import render
 
 basepath = "parameters"
 

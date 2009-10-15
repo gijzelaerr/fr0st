@@ -1,5 +1,5 @@
 from runscript import *
-from lib.utils import equalize_flame_attributes
+from fr0stlib.utils import equalize_flame_attributes
 
 class Interpolation(list):
 

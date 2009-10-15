@@ -2,12 +2,12 @@ from __future__ import with_statement
 import wx, os, sys, re
 from wx import stc
 
-from lib.decorators import *
-from lib.gui.toolbar import CreateEditorToolBar
-from lib.gui.menu import CreateEditorMenu
-from lib.gui.constants import ID
-from lib.gui.scriptutils import DynamicDialog
-from lib.gui._events import EVT_THREAD_MESSAGE, ThreadMessageEvent, InMain
+from fr0stlib.decorators import *
+from fr0stlib.gui.toolbar import CreateEditorToolBar
+from fr0stlib.gui.menu import CreateEditorMenu
+from fr0stlib.gui.constants import ID
+from fr0stlib.gui.scriptutils import DynamicDialog
+from fr0stlib.gui._events import EVT_THREAD_MESSAGE, ThreadMessageEvent, InMain
 
 
 class EditorFrame(wx.Frame):

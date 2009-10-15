@@ -2,26 +2,26 @@ from __future__ import with_statement
 import imp, os, sys, wx, time, re, threading, itertools
 from wx import PyDeadObjectError
 
-from lib.gui.scripteditor import EditorFrame
-from lib.gui.preview import PreviewFrame, PreviewBase
-from lib.gui.filetree import TreePanel
-from lib.gui.menu import CreateMenu
-from lib.gui.toolbar import CreateToolBar
-from lib.gui.constants import ID
-from lib.gui.maineditor import MainNotebook
-from lib.gui.xformeditor import XformTabs
-from lib.gui.renderer import Renderer
-from lib.gui._events import InMain
-from lib.gui.itemdata import ItemData
-from lib.gui.renderdialog import RenderDialog
-from lib.gui.config import config, init_config
-from lib.gui.savedialog import SaveDialog
+from fr0stlib.gui.scripteditor import EditorFrame
+from fr0stlib.gui.preview import PreviewFrame, PreviewBase
+from fr0stlib.gui.filetree import TreePanel
+from fr0stlib.gui.menu import CreateMenu
+from fr0stlib.gui.toolbar import CreateToolBar
+from fr0stlib.gui.constants import ID
+from fr0stlib.gui.maineditor import MainNotebook
+from fr0stlib.gui.xformeditor import XformTabs
+from fr0stlib.gui.renderer import Renderer
+from fr0stlib.gui._events import InMain
+from fr0stlib.gui.itemdata import ItemData
+from fr0stlib.gui.renderdialog import RenderDialog
+from fr0stlib.gui.config import config, init_config
+from fr0stlib.gui.savedialog import SaveDialog
 
-from lib import fr0stlib
-from lib.fr0stlib import Flame
-from lib.pyflam3 import Genome
-from lib.decorators import *
-from lib.threadinterrupt import ThreadInterrupt, interruptall
+import fr0stlib
+from fr0stlib import Flame
+from fr0stlib.pyflam3 import Genome
+from fr0stlib.decorators import *
+from fr0stlib.threadinterrupt import ThreadInterrupt, interruptall
 
 # Don't write bytecodes to keep script folder clean
 sys.dont_write_bytecode = True
@@ -516,7 +516,7 @@ class MainWindow(wx.Frame):
         """Recreates the namespace each time the script is run to reassign
         the flame variable, etc."""
         namespace = {}
-        exec("from lib.fr0stlib import *; __name__='__main__'",namespace)
+        exec("from fr0stlib import *; __name__='__main__'",namespace)
         namespace.update(dict(self = self, # for debugging only!
                               get_flames = self.tree.GetFlames,
                               save_flames = self.save_flames,

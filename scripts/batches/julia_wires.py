@@ -1,5 +1,5 @@
 # Julia Wires by Shortgreenpigg
-from lib.pyflam3.variations import *
+from fr0stlib.pyflam3.variations import *
 from random import uniform,randint,choice
 
 # Customization for awesomeness

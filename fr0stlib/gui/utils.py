@@ -1,7 +1,7 @@
 import wx, os
 from functools import partial
 
-from lib.decorators import *
+from fr0stlib.decorators import *
 
 def LoadIcon(*path):
     # Check for an icons dir in app base path first for development

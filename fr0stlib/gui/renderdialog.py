@@ -11,12 +11,12 @@ from  wx.lib.filebrowsebutton import FileBrowseButton
 from functools import partial
 from collections import defaultdict
 
-from lib.fr0stlib import Flame
-from lib.gui.utils import NumberTextCtrl, Box, MyChoice, MakeTCs, SizePanel
-from lib.gui.config import config
-from lib.gui.constants import ID
-from lib.gui._events import InMain
-from lib.decorators import *
+from fr0stlib import Flame
+from fr0stlib.gui.utils import NumberTextCtrl, Box, MyChoice, MakeTCs, SizePanel
+from fr0stlib.gui.config import config
+from fr0stlib.gui.constants import ID
+from fr0stlib.gui._events import InMain
+from fr0stlib.decorators import *
 
 
 
