@@ -122,11 +122,13 @@ class TransformPanel(wx.Panel):
 
     @modifyxform
     def FuncDeleteXform(self, xform):
-        if not xform.isfinal() and len(xform._parent.xform) == 1:
-            # Can't delete the last xform.
-            return
+        lst = xform._parent.xform
+        if not xform.isfinal() and len(lst) == 1:
+            return #  Can't delete last remaining xform.
+        index = xform.index or 0 # None is turned to 0 
         xform.delete()
-        self.parent.ActiveXform = None
+        self.parent.ActiveXform = lst[min(index, len(lst) - 1)]
+        
 
 
 class GradientPanel(wx.Panel):
