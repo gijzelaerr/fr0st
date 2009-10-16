@@ -39,7 +39,7 @@ class Flame(object):
         self.size = 512, 384
         self.center = [0.0, 0.0]
         self.rotate = 0.0
-        self.background = [0.0, 0.0, 0.0]
+        self.background = (0.0, 0.0, 0.0)
         self.final = None
         self.scale = 25.
         self.highlight_power = -1
@@ -90,7 +90,7 @@ class Flame(object):
                 
             # Convert value to the appropriate type
             try:
-                if " " in val: val = [float(i) for i in val.split()]
+                if " " in val: val = tuple(float(i) for i in val.split())
                 else:          val = float(val)
             except ValueError:
                 pass   # Keep as string
@@ -296,7 +296,7 @@ class Flame(object):
 
 class Palette(list):
     re_grad = re.compile(r'[0-9A-F]{6}(?=[0-9A-F]*.?$)',re.MULTILINE)
-    re_old_grad  = re.compile(r'<color index="[\d]{1,3}" rgb="([\d. ].*)"/>')
+    re_old_grad  = re.compile(r'<color index="[\d]{1,3}" rgb="([\d\. ]*)"/>')
     
     formatstr = ('   <palette count="256" format="RGB">' +
                  32 * ('\n      ' + 24 * '%02X') +
