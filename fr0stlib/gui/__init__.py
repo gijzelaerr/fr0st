@@ -660,10 +660,8 @@ class ImagePanel(PreviewBase):
         one redundant preview is rendered."""
         flame = flame or self.parent.flame
 
-        ratio = float(flame.width) / flame.height
-        width = 200 if ratio > 1 else int(200*ratio)
-        height = int(width / ratio)
-        size = width,height
+        ratio = 200. / max(flame.size)
+        size = [int(i * ratio) for i in flame.size]
         self.parent.renderer.PreviewRequest(self.UpdateBitmap, flame, size,
                                             **config["Preview-Settings"])
 
