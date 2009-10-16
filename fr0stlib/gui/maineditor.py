@@ -170,6 +170,10 @@ class GradientPanel(wx.Panel):
         for i in self.dict["nodes"]:
             i.MakeIntOnly()
             i.SetAllowedRange(1,256)
+        # Set Defaults for tcs.
+        for k, tcs in self.dict.iteritems():
+            [tc.SetFloat(i) for tc,i in zip(tcs, self.config[k])]
+
         opts = Box(self, "Gradient Generation", opts)
 
         rdm = wx.Button(self, -1, "Randomize")
@@ -184,8 +188,6 @@ class GradientPanel(wx.Panel):
         szr2 = wx.BoxSizer(wx.HORIZONTAL)
         szr2.AddMany((opts, (btnszr, 0 ,wx.ALIGN_RIGHT)))
 
-
-
         sizer1 = wx.BoxSizer(wx.VERTICAL)
         sizer1.Add(self.image,0, wx.EXPAND)
         sizer1.Add(self.Selector,0)
@@ -198,19 +200,15 @@ class GradientPanel(wx.Panel):
 
     def MakeTCs(self, *a, **k):
         fgs = wx.FlexGridSizer(99, 3, 1, 1)
-        fgs.AddMany(((0,0),
-                     (wx.StaticText(self, -1, "Min"), 0, wx.ALIGN_CENTER),
-                     (wx.StaticText(self, -1, "Max"), 0, wx.ALIGN_CENTER)))
+        fgs.Add((0,0))
+        fgs.AddMany((wx.StaticText(self, -1, i), 0, wx.ALIGN_CENTER)
+                    for i in ("Min", "Max"))
         for i in a:
-            tc1 = NumberTextCtrl(self, **k)
-            tc2 = NumberTextCtrl(self, **k)
-            tcs = (tc1, tc2)
-            map(NumberTextCtrl.SetFloat, tcs, self.config[i])
+            tcs = tuple(NumberTextCtrl(self, **k) for i in range(2))
             self.dict[i] = tcs
             fgs.Add(wx.StaticText(self, -1, i.replace("_", " ").title()),
                     0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
-            fgs.Add(tc1, 0, wx.ALIGN_LEFT, 5)
-            fgs.Add(tc2, 0, wx.ALIGN_LEFT, 5)
+            fgs.AddMany((tc, 0, wx.ALIGN_LEFT, 5) for tc in tcs)
         return fgs
 
 
