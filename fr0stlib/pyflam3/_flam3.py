@@ -27,7 +27,7 @@ from fr0stlib.pyflam3.variations import *
 
 if 'win32' not in sys.platform:
     try:
-        libflam3 = CDLL('lib/pyflam3/linux_so/libflam3.so')
+        libflam3 = CDLL('fr0stlib/pyflam3/linux_so/libflam3.so')
     except OSError:
         libflam3 = CDLL('libflam3.so')
 
