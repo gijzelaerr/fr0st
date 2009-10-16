@@ -40,9 +40,10 @@ def equalize_flame_attributes(flame1, flame2):
 
     # Size can be interpolated correctly, but it's pointless to
     # produce frames that can't be turned into an animation.
-    flame1.size = flame2.size     
+    flame1.size = flame2.size
 
-    for name in set(flame1.attributes).union(flame2.attributes):
+    for name in set(k for k,v in flame1.iter_attributes()
+                    ).union(k for k,v in flame2.iter_attributes()):
         if not hasattr(flame2, name):
             val = getattr(flame1, name)
             _type = type(val)
