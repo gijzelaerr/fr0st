@@ -5,6 +5,7 @@ from fr0stlib.gui.canvas import XformCanvas
 from fr0stlib.gui.utils import LoadIcon, MultiSliderMixin, Box, NumberTextCtrl,\
                           SizePanel
 from fr0stlib.gui.config import config
+from fr0stlib.gui.constants import ID
 
 
 class MainNotebook(wx.Notebook):
@@ -17,9 +18,9 @@ class MainNotebook(wx.Notebook):
                              wx.BK_DEFAULT
                              )
 
-        transform = TransformPanel(self)
-        self.canvas = transform.canvas
-        self.AddPage(transform, "Transform Editor")
+        self.transform = TransformPanel(self)
+        self.canvas = self.transform.canvas
+        self.AddPage(self.transform, "Transform Editor")
 
         self.grad = GradientPanel(self)
         self.AddPage(self.grad, "Gradient Editor")
@@ -32,6 +33,8 @@ class MainNotebook(wx.Notebook):
         for i in self.grad, self.adjust:
             i.UpdateView()
         self.canvas.ShowFlame(rezoom=rezoom)
+        self.transform.toolbar.ToggleTool(ID.EditPostXform,
+                                          config['Edit-Post-Xform'])
 
 
 
@@ -55,16 +58,17 @@ class TransformPanel(wx.Panel):
     def AddToolbar(self):
         self.tool_ids = {}
 
-        toolbar = wx.ToolBar(self, -1, style=wx.TB_HORIZONTAL|wx.TB_FLAT)
+        self.toolbar = wx.ToolBar(self, -1, style=wx.TB_HORIZONTAL|wx.TB_FLAT)
 
         def add_tool(name, toggle=False):
-            id = wx.NewId()
             name_nodash = name.replace("-","")
+            id = getattr(ID, name_nodash)
             self.tool_ids[id] = name_nodash
-            toolbar.AddSimpleTool(id, LoadIcon('toolbar', name),
-                                  name_nodash, isToggle=toggle)
+            
+            self.toolbar.AddSimpleTool(id, LoadIcon('toolbar', name),
+                                       name_nodash, isToggle=toggle)
             if toggle:
-                toolbar.ToggleTool(id, config[name])
+                self.toolbar.ToggleTool(id, config[name])
                 self.MakeConfigFunc(name)
 
         add_tool('Clear-Flame')
@@ -76,17 +80,18 @@ class TransformPanel(wx.Panel):
         add_tool('World-Pivot', True)
         add_tool('Lock-Axes', True)
         add_tool('Variation-Preview', True)
-        add_tool('Edit-Post-Xform', True)
+        add_tool('Edit-Post-Xform', True)            
 
-        toolbar.Realize()
+        self.toolbar.Realize()
 
-        return toolbar
+        return self.toolbar
 
 
     def MakeConfigFunc(self, i):
         def onbtn():
             config[i] = not config[i]
-            self.parent.canvas.ShowFlame(rezoom=False)
+            # HACK: This is a setflame so the post xform flag updates correctly
+            self.parent.SetFlame(self.parent.flame, rezoom=False)
         setattr(self, "Func%s" %i.replace("-",""), onbtn)
 
 

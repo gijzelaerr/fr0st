@@ -79,7 +79,7 @@ class XformPanel(wx.Panel):
         wx.Panel.__init__(self, parent, -1)
 
         # The view tells us what attributes need to be displayed
-        self._view = [False, "triangle"]
+        self.view = "triangle"
         self.parent = parent.parent
 
         # Add the number fields
@@ -156,15 +156,16 @@ class XformPanel(wx.Panel):
 
     @Bind(wx.EVT_RADIOBUTTON)
     def OnRadioSelected(self,e):
-        self._view[1] = e.GetEventObject().GetLabel()
+        self.view = e.GetEventObject().GetLabel()
         self.UpdateView()
 
 
     @Bind(wx.EVT_CHECKBOX)
     def OnCheckbox(self,e):
         """Toggles post transform selection."""
-        self._view[0] = e.IsChecked()
-        self.UpdateView()
+        config['Edit-Post-Xform'] = e.IsChecked()
+        # HACK: This is a setflame so the post xform button updates correctly
+        self.parent.SetFlame(self.parent.flame, rezoom=False)
 
 
     def OnComboChar(self, e, cb):
@@ -237,11 +238,10 @@ class XformPanel(wx.Panel):
 
 
     def GetActive(self):
-        post, view = self._view
         xform = self.parent.ActiveXform
-        if post:
+        if config['Edit-Post-Xform']:
             xform = xform.post
-        return xform, view
+        return xform, self.view
 
 
     def UpdateView(self):
@@ -269,6 +269,7 @@ class XformPanel(wx.Panel):
         else:
             font.Weight = wx.FONTWEIGHT_NORMAL
         self.postflag.SetFont(font)
+        self.postflag.SetValue(config['Edit-Post-Xform'])
 
 
     def UpdateFlame(self,e=None):
