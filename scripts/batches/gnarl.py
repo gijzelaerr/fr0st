@@ -1,5 +1,5 @@
 # Gnarl Batch by ParrotDolphin
-from lib.pyflam3.variations import *
+from fr0stlib.pyflam3.variations import *
 
 # Customization for awesomeness
 # randsides controls the number of sides; set to 0 to choose randomly
