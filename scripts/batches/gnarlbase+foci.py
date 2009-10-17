@@ -42,13 +42,13 @@ def gnarlbasefoci():
     x.rotate(uniform(0,360))
     x.weight = 0.3
     x.color_speed = 0.4
-    x.color = uniform(0,1)
+    x.color = 0
     x.c += uniform(0,2)
     x.f += uniform(0,2)
     
     
     # Second Xform
-    x = Xform.random(f, xv=(this_var,), n=1, xw=15, col=uniform(0,1), ident=1)
+    x = Xform.random(f, xv=(this_var,), n=1, xw=15, col=1, ident=1)
     setattr(x,variation_list[this_var],0.004+uniform(0,0.001))
     x.a = -(0.5-uniform(0,0.01))
     x.b = (0.866+uniform(0,0.01))
@@ -64,7 +64,7 @@ def gnarlbasefoci():
     x.waves2_freqy = randint(14,30)
     x.waves2_scaley = 0.02+uniform(0,0.01)
     
-    x.color_speed = 0.1
+    x.color_speed = 0.01
     
     # Final X
     fx = f.create_final()
@@ -73,10 +73,10 @@ def gnarlbasefoci():
     fx.e = 1.5
     fx.foci = 1
     fx.color = uniform(0,1)
-    fx.color_speed = 0.2
+    fx.color_speed = 0
     
     
-    
+    f.highlight_power = 1.0
     f.gamma = 2
     f.brightness = 10
     f.scale = 20
