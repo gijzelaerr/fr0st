@@ -8,14 +8,11 @@ randsides = 0
 # End customization
 
 def gnarl():
-
     # Create new flame
     f = Flame()
     f.gradient.random(hue=(0, 1),saturation=(0, 1),value=(.25, 1),nodes=(4, 6))
     
-    RS = randsides
-    if RS==0:
-        RS = random.randint(3,10)
+    RS = randsides or random.randint(3,10)
     
     T1R = RS-2
     T1W = random.uniform(35,45)
@@ -25,31 +22,25 @@ def gnarl():
     x = f.add_xform()
     x.linear = 0
     x.waves2 = 1
-    x.waves2_freqx = 5
-    x.waves2_scalex = W2SC
-    x.waves2_freqy = 5
-    x.waves2_scaley = W2SC
+    x.waves2_freqx = x.waves2_freqy = 5
+    x.waves2_scalex = x.waves2_scaley = W2SC
     x.blur = 0.0025
     
-    if random.uniform(0,1)>0.5:
-        x.scale(0.995)
-    
+    x.scale(random.choice((0.995, 1)))
+
     x.rotate(-360/float(RS))
     if T1R==1 or T1R==2:
-        x.c = random.uniform(-4,4)
-        x.f = random.uniform(-4,4)
+        offset = 4
     elif T1R==3 or T1R==4:
-        x.c = random.uniform(-3.5,3.5)
-        x.f = random.uniform(-3.5,3.5)
+        offset = 3.5
     elif T1R==5 or T1R==6:
-        x.c = random.uniform(-3,3)
-        x.f = random.uniform(-3,3)
+        offset = 3
     elif T1R==7:
-        x.c = random.uniform(-2.5,2.5)
-        x.f = random.uniform(-2.5,2.5)
+        offset = 2.5
     elif T1R==8:
-        x.c = random.uniform(-2,2)
-        x.f = random.uniform(-2,2)
+        offset = 2
+    x.c = random.uniform(-offset, offset)
+    x.f = random.uniform(-offset, offset)  
     
     x.weight = T1W
     x.color_speed = 0.01
