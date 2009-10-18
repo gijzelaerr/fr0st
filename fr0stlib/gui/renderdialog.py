@@ -95,7 +95,7 @@ class RenderDialog(wx.Frame):
                           "Hamming": 11,
                           "Hanning": 12,
                           "Quadratic": 13}
-    nthreads_dict = dict(("%2d" %i, i) for i in range(1, 17))
+    nthreads_dict = dict(("%2d" %i, i) for i in range(1, 9))
     nthreads_dict["auto"] = 0
 
     @BindEvents
