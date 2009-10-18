@@ -16,6 +16,7 @@ from fr0stlib.gui.itemdata import ItemData
 from fr0stlib.gui.renderdialog import RenderDialog
 from fr0stlib.gui.config import config, init_config
 from fr0stlib.gui.savedialog import SaveDialog
+from fr0stlib.gui.exceptiondlg import unhandled_exception_handler
 
 import fr0stlib
 from fr0stlib import Flame
@@ -89,6 +90,8 @@ class MainWindow(wx.Frame):
     def __init__(self,parent,id):
         self.title = "Fractal Fr0st"
         wx.Frame.__init__(self,parent,wx.ID_ANY, self.title)
+
+        sys.excepthook = unhandled_exception_handler
 
         # This icon stuff is not working...
 ##        ib=wx.IconBundle()
