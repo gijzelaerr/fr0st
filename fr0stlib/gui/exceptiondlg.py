@@ -81,7 +81,7 @@ class ExceptionDialog(wx.Dialog):
                 style = wx.TAB_TRAVERSAL|wx.SUNKEN_BORDER)
 
         text = wx.StaticText(scrolled, label=exc_msg)
-        copy_clipboard = wx.Button(pane, label='Copy to clipbaord')
+        copy_clipboard = wx.Button(pane, label='Copy to clipboard')
         self.Bind(wx.EVT_BUTTON, self.OnCopyClipboard, copy_clipboard)
 
         sizer = wx.BoxSizer(wx.VERTICAL)
