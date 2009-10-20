@@ -18,3 +18,10 @@ for x in flame.xform:
     x.color = 1/16. + x.index % 8 / 8.
 
 
+preview()
+large_preview()
+update_flame = False
+dialog("Keep Changes?")
+# If user clicked cancel, execution never gets past this point.
+update_flame = True
+
