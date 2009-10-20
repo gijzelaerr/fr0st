@@ -83,7 +83,9 @@ class XformPanel(wx.Panel):
         self.parent = parent.parent
 
         # Add the number fields
-        cb = lambda tc: self.UpdateFlame()
+        def cb(tc, tempsave=True):
+            self.parent.image.RenderPreview()
+            self.UpdateFlame(tempsave=tempsave)
         for i in "adbecf":
             setattr(self, i, NumberTextCtrl(self, callback=cb))
         btn = (wx.Button(self,-1,i,name=i,style=wx.BU_EXACTFIT) for i in "xyo")
@@ -272,7 +274,7 @@ class XformPanel(wx.Panel):
         self.postflag.SetValue(config['Edit-Post-Xform'])
 
 
-    def UpdateFlame(self,e=None):
+    def UpdateFlame(self,e=None, tempsave=True):
         xform, view = self.GetActive()
 
         # Update weight.
@@ -285,8 +287,9 @@ class XformPanel(wx.Panel):
             xform.coefs = self.coefs
         elif view == "polar":
             xform.polars = zip(*[iter(self.coefs)]*2)
-            
-        self.parent.TreePanel.TempSave()
+
+        if tempsave:
+            self.parent.TreePanel.TempSave()
                                           
 
     def _get_coefs(self):

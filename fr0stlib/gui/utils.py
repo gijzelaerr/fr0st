@@ -86,7 +86,7 @@ class SizePanel(wx.Panel):
         self.keepratio = e.GetInt()
 
 
-    def SizeCallback(self, tc):
+    def SizeCallback(self, tc, tempsave=None):
         if self.keepratio:
             v = tc.GetFloat()
             tc.SetInt(v)
@@ -118,8 +118,10 @@ class NumberTextCtrl(wx.TextCtrl):
         if callback:
             self.callback = partial(callback, self)
         else:
-            self.callback = lambda: None
-    
+            self.callback = lambda tempsave=None: None
+
+        self.HasChanged = False
+        
         self.SetFloat(0.0)
             
 
@@ -160,6 +162,40 @@ class NumberTextCtrl(wx.TextCtrl):
         elif self.high is not None and v > self.high:
             return self.high
         return v
+
+    @Bind(wx.EVT_MOUSEWHEEL)
+    def OnMouseWheel(self, evt):
+        if self.SetFloat == self.SetInt:
+            return
+
+        if evt.CmdDown():
+            if evt.AltDown():
+                delta = 0.01
+            else:
+                delta = 0.1
+        elif evt.AltDown():
+            delta = 0.001
+        else:
+            evt.Skip()
+            return
+
+        self.SetFocus() # Makes sure OnKeyUp gets called.
+
+        v = self._value + delta * evt.GetWheelRotation() / evt.GetWheelDelta()
+        self.SetFloat(v)
+        self.callback(tempsave=False)
+        self.HasChanged = True
+
+        
+    @Bind(wx.EVT_KEY_UP)
+    def OnKeyUp(self, e):
+        # TODO: This code is duplicated with the one found in xformeditor.
+        key = e.GetKeyCode()
+        if (key == wx.WXK_CONTROL and not e.AltDown()) or (
+            key == wx.WXK_ALT and not e.ControlDown()):
+            if self.HasChanged:
+                self.parent.parent.TreePanel.TempSave()
+                self.HasChanged = False
 
 
     @Bind(wx.EVT_CHAR)
@@ -258,9 +294,10 @@ class MultiSliderMixin(object):
             self._changed = True
 
 
-    def __callback(self, tc):
+    def __callback(self, tc, tempsave=True):
         self.UpdateFlame()
-        self.parent.TreePanel.TempSave()
+        if tempsave:
+            self.parent.TreePanel.TempSave()
         
 
     def UpdateFlame(self):
