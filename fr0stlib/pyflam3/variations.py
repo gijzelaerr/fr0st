@@ -109,10 +109,24 @@ VAR_WEDGE_JULIA = 78
 VAR_WEDGE_SPH = 79
 VAR_WHORL = 80
 VAR_WAVES2 = 81
+VAR_EXP = 82
+VAR_LOG = 83
+VAR_SIN = 84
+VAR_COS = 85
+VAR_TAN = 86
+VAR_SEC = 87
+VAR_CSC = 88
+VAR_COT = 89
+VAR_SINH = 90
+VAR_COSH = 91
+VAR_TANH = 92
+VAR_SECH = 93
+VAR_CSCH = 94
+VAR_COTH = 95
 
 
 variations = {}
-variation_list = [None] * 82 #flam3_nvariations
+variation_list = [None] * 96 #flam3_nvariations
 for k,v in locals().items():
     if k.startswith("VAR_"):
         name = k[4:].lower()
