@@ -146,7 +146,9 @@ def load():
         return eval("{%s}" % ",".join(i for i in f))
 
 def dump():
+    # HACK: take out some stuff that's not supposed to be here.
     config['Edit-Post-Xform'] = False
+    del config["active-vars"]
     
     with open(get_config_path(), 'wb') as f:
         f.write("\n".join("%r: %r" %i for i in config.iteritems()))
