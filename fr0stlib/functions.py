@@ -36,7 +36,7 @@ def rect(coord):
 
 def rgb2hls(color):
     """Takes an rgb tuple (0-255) and returns hls tuple (hls is scalar)"""
-    return colorsys.rgb_to_hls(*(x/256. for x in color))
+    return colorsys.rgb_to_hls(*(x/255. for x in color))
 
 def hls2rgb(color):
     """Takes hls tuple and returns rgb tuple (rgb is int)"""
@@ -45,18 +45,18 @@ def hls2rgb(color):
     h = clip(h,0,1,True)
     l = clip(l,0,1)
     s = clip(s,0,1)
-    return tuple(int(x*256) for x in colorsys.hls_to_rgb(h,l,s))
+    return tuple(int(x*255) for x in colorsys.hls_to_rgb(h,l,s))
 
 
 def rgb2hsv(color):
-    return colorsys.rgb_to_hsv(*(x/256. for x in color))
+    return colorsys.rgb_to_hsv(*(x/255. for x in color))
 
 def hsv2rgb(color):
     h,s,v = color
     h = clip(h,0,1,True)
     s = clip(s,0,1)
     v = clip(v,0,1)
-    return tuple(int(x*256) for x in colorsys.hsv_to_rgb(h,s,v))
+    return tuple(int(x*255) for x in colorsys.hsv_to_rgb(h,s,v))
     
     
 #-------------------------------------------------------------------------------
