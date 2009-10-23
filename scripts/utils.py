@@ -9,6 +9,7 @@ def calculate_colors(flame):
     for xf in flame.xform:
         xf.color = xf.index / float(len(flame.xform))
 
+
 def normalize_weights(flame, norm=1.0):
     """Normalize the weights of the xforms so that they total 1.0"""
     ws = 0.0
@@ -19,6 +20,18 @@ def normalize_weights(flame, norm=1.0):
 
     for xf in flame.xform:
         xf.weight /= ws
+
+        
+def batch(func, nflames):
+    """Takes a flame-generating function, and calls it multiple
+    times to generate a batch."""
+    name = func.__name__ + "%03d"
+    lst = []
+    for i in range(nflames):
+        flame = func()
+        flame.name = name % i
+        lst.append(flame)
+    return lst
 
 
 def equalize_flame_attributes(flame1, flame2):

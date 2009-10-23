@@ -1,6 +1,8 @@
 # Gnarloscope by parrotdolphin
 from random import uniform, randint
 
+from utils import batch
+
 # Customization
 # VXd:
 # 0: random, 1: fisheye+bubble, 2: fisheye+cylinder, 3: wedge_sph
@@ -116,17 +118,8 @@ def gnarloscope():
 
     return f
 
-def gnarloscope_batch(nflames):
-    lst = []
-    name = "gnarloscope_%03d"
-    for i in range(nflames):
-        flame = gnarloscope()
-        flame.name = name % i
-        lst.append(flame)
-    return lst
-
 if __name__ == "__main__":
-    lst = gnarloscope_batch(20)
+    lst = batch(gnarloscope, 20)
     save_flames("parameters/gnarloscopes.flame", *lst)
 
 

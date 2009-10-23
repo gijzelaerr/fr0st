@@ -15,6 +15,8 @@
 from random import uniform, randint, choice
 from fr0stlib.pyflam3.variations import *
 
+from utils import batch
+
 # Customization
 # Set selected_var to one of these or 0 for a random selection of spec_vars
 spec_vars = [ VAR_EXP, VAR_LOG, VAR_SIN, VAR_COS, VAR_TAN, VAR_SEC, VAR_CSC, VAR_COT,
@@ -82,17 +84,9 @@ def gnarlcomplex():
 
     return f
 
-def gnarlcomplex_batch(nflames):
-    lst = []
-    name = "gnarlcomplex_%03d"
-    for i in range(nflames):
-        flame = gnarlcomplex()
-        flame.name = name % i
-        lst.append(flame)
-    return lst
 
 if __name__ == "__main__":
-    lst = gnarlcomplex_batch(20)
+    lst = batch(gnarlcomplex, 20)
     save_flames("parameters/gnarlcomplex.flame", *lst)
 
 

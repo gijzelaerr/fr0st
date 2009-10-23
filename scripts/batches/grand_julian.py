@@ -1,3 +1,4 @@
+from utils import batch
 
 def grand_julian():
     flame = Flame()
@@ -49,7 +50,7 @@ def grand_julian_batch(nflames):
     return lst
 
 if __name__ == "__main__":
-    lst = grand_julian_batch(20)
+    lst = batch(grand_julian, 20)
     save_flames("parameters/grand_julians.flame", *lst)
     
 

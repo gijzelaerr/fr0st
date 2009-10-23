@@ -12,6 +12,8 @@
 from random import uniform, randint, choice
 from fr0stlib.pyflam3.variations import *
 
+from utils import batch
+
 # Customization
 # Set selected_var to one of these or 0 for a random selection of spec_vars
 # Set selected_var to -1 and get a random variation
@@ -83,17 +85,8 @@ def gnarlbasefoci():
 
     return f
 
-def gnarlbasefoci_batch(nflames):
-    lst = []
-    name = "gnarlbase+foci_%03d"
-    for i in range(nflames):
-        flame = gnarlbasefoci()
-        flame.name = name % i
-        lst.append(flame)
-    return lst
-
 if __name__ == "__main__":
-    lst = gnarlbasefoci_batch(20)
+    lst = batch(gnarlbasefoci, 20)
     save_flames("parameters/gnarlbasefoci.flame", *lst)
 
 

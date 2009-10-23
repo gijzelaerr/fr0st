@@ -1,6 +1,8 @@
 # Modified Flipped Disc by Shortgreenpigg
 from fr0stlib.pyflam3.variations import *
 
+from utils import batch
+
 # Customization for awesomeness
 additionalvars = ( range(0,8) + range(9,31)+ [32,33] + range(44,56) )
 # End customization
@@ -60,18 +62,9 @@ def modified_flipped_disc():
     f.scale = random.uniform(55,65)
     
     return f
-    
-def modified_flipped_disc_batch(nflames):
-    lst = []
-    name = "mod_flipped_disc_%03d"
-    for i in range(nflames):
-        flame = modified_flipped_disc()
-        flame.name = name % i
-        lst.append(flame)
-    return lst
 
 if __name__ == "__main__":
-    lst = modified_flipped_disc_batch(20)
+    lst = batch(modified_flipped_disc, 20)
     save_flames("parameters/mod_flipped_discs.flame", *lst)
 
 

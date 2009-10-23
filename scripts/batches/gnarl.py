@@ -1,6 +1,8 @@
 # Gnarl Batch by ParrotDolphin
 from fr0stlib.pyflam3.variations import *
 
+from utils import batch
+
 # Customization for awesomeness
 # randsides controls the number of sides; set to 0 to choose randomly
 # between 3 and 10
@@ -88,18 +90,9 @@ def gnarl():
     f.reframe()
    
     return f
-    
-def gnarl_batch(nflames):
-    lst = []
-    name = "gnarl_%03d"
-    for i in range(nflames):
-        flame = gnarl()
-        flame.name = name % i
-        lst.append(flame)
-    return lst
 
 if __name__ == "__main__":
-    lst = gnarl_batch(20)
+    lst = batch(gnarl, 20)
     save_flames("parameters/gnarls.flame", *lst)
 
 

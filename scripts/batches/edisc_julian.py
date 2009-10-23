@@ -2,6 +2,8 @@
 from random import uniform, choice
 from fr0stlib.pyflam3.variations import *
 
+from utils import batch
+
 def edisc_julian():
 
     # Create new flame
@@ -63,18 +65,9 @@ def edisc_julian():
     f.brightness = 35
     
     return f
-    
-def edisc_julian_batch(nflames):
-    lst = []
-    name = "edisc_julian_%03d"
-    for i in range(nflames):
-        flame = edisc_julian()
-        flame.name = name % i
-        lst.append(flame)
-    return lst
 
 if __name__ == "__main__":
-    lst = edisc_julian_batch(20)
+    lst = batch(edisc_julian, 20)
     save_flames("parameters/edisc_julians.flame", *lst)
 
 
