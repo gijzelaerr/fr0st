@@ -415,6 +415,7 @@ class RenderDialog(wx.Frame):
         string = "rendering %s/%s (%s): %%.2f %%%% \t" %(index, lenght, name)
         str_iter = string + "ETA: %02d:%02d:%02d"
         str_de = string + "running density estimation"
+        @Catches(wx.PyDeadObjectError)
         def prog(*args):
             if self.progflag == 1:
                 self.rendering = False
@@ -440,9 +441,6 @@ class RenderDialog(wx.Frame):
         self.progflag = 1
         # HACK: prevent future renders from being passed to flame.
         del self.parent.renderer.bgqueue[:]
-        while self.rendering:
-            # waiting for prog func
-            time.sleep(0.01)
         
 
     def CleanProg(self):
@@ -455,8 +453,8 @@ class RenderDialog(wx.Frame):
     def save(self, path, index, bmp):
         if self.progflag:
             # Don't save image.
-            self.progflag = 0
             self.CleanProg()
+            self.progflag = 0
             return
         ty = config["Img-Type"]
         wx.ImageFromBitmap(bmp).SaveFile(path, self.types[ty])
