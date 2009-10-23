@@ -32,6 +32,7 @@ class DynamicDialog(wx.Dialog):
         sizer.Add(fgs)
         sizer.Add(btnsizer, 0, wx.ALIGN_CENTER)
 
+        self.SetMinSize((250,1))
         self.SetSizer(sizer)
         sizer.Fit(self)
 

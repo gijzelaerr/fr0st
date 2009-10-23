@@ -462,8 +462,3 @@ class RenderDialog(wx.Frame):
         if index == self.selections[-1]:
             self.rendering = False
             self.CleanProg()
-
-        # TODO: remove
-        print time.time() - self.t
-
-

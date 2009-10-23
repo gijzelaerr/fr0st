@@ -308,10 +308,7 @@ class Gradient(wx.Panel):
     def Update(self, flame=None):
         flame = flame or self.parent.flame
 
-        grad = itertools.chain(*flame.gradient)
-        buff = self.formatstr % tuple(map(int, grad))
-
-##        self.bmp = wx.BitmapFromBuffer(256, 50, buff *50)
+        buff = self.formatstr % tuple(itertools.chain(*flame.gradient))
         img = wx.ImageFromBuffer(256, 1, buff)
         img.Rescale(384, 50)
         self.bmp = wx.BitmapFromImage(img)

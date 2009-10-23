@@ -24,7 +24,7 @@ from fr0stlib.pyflam3 import Genome
 from fr0stlib.decorators import *
 from fr0stlib.threadinterrupt import ThreadInterrupt, interruptall
 
-# Don't write bytecodes to keep script folder clean
+# Don't write .pyc files to keep script folder clean
 sys.dont_write_bytecode = True
 
 class Fr0stApp(wx.App):
@@ -597,7 +597,6 @@ class MainWindow(wx.Frame):
     @InMain
     def OnPreview(self):
         # only update a select few of all the panels.
-        # TODO: need to test if this is really necessary.
 ##        self.XformTabs.UpdateView()
 ##        self.notebook.UpdateView()
         self.canvas.ShowFlame(rezoom=False)
@@ -608,7 +607,6 @@ class MainWindow(wx.Frame):
     def save_flames(self, path, *flames):
         if not flames:
             raise ValueError("You must specify at least 1 flame to set.")
-##        self._namespace["update_flame"] = False
         
         if os.path.exists(path):
             dlg = wx.MessageDialog(self, "%s already exists. Do you want to overwrite?" % path,
