@@ -119,9 +119,15 @@ class Fr0stApp(wx.App):
         icons = wx.IconBundle()
 
         if 'win32' in sys.platform:
-            icons.AddIconFromFile(os.path.join(self.IconsDir, 'fr0st.ico'), wx.BITMAP_TYPE_ICO)
+            if os.path.exists('icons'):
+                icons.AddIconFromFile('icons/fr0st.ico', wx.BITMAP_TYPE_ICO)
+            else:
+                icons.AddIconFromFile(os.path.join(self.IconsDir, 'fr0st.ico'), wx.BITMAP_TYPE_ICO)
 
-        icons.AddIconFromFile(os.path.join(self.IconsDir, 'fr0st.png'), wx.BITMAP_TYPE_PNG)
+        if os.path.exists('icons'):
+            icons.AddIconFromFile('icons/fr0st.png', wx.BITMAP_TYPE_PNG)
+        else:
+            icons.AddIconFromFile(os.path.join(self.IconsDir, 'fr0st.png'), wx.BITMAP_TYPE_PNG)
 
         frame.SetIcons(icons)
 
