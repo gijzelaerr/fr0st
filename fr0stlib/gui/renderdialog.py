@@ -398,7 +398,7 @@ class RenderDialog(wx.Frame):
         config["Img-Type"] = ty
 
         req = self.parent.renderer.RenderRequest
-        backup = open('renders.flame', 'a')
+        backup = open(os.path.join(wx.GetApp().ConfigDir,'renders.flame'), 'a')
         for i, path in zip(self.selections, paths):
             data = self.choices[i]
             prog = self.MakeProg(data.name, self.selections.index(i)+1,
