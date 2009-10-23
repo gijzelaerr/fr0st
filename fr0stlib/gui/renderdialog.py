@@ -110,7 +110,7 @@ class RenderDialog(wx.Frame):
         self.config = config["Render-Settings"]
         self.dict = {}
         
-        self.gauge = wx.Gauge(self, -1)
+        self.gauge = wx.Gauge(self, -1, style=wx.GA_HORIZONTAL|wx.GA_SMOOTH)
 
         fbb = self.MakeFileBrowseButton()
         flame = self.MakeFlameSelector()
@@ -157,9 +157,7 @@ class RenderDialog(wx.Frame):
         self.rendering = False
 	
         self.Center(wx.CENTER_ON_SCREEN)
-        if "win" in sys.platform:
-            # TODO: need a cleaner way to make this look right in windows.
-            self.SetBackgroundColour((255,255,255))
+        self.SetBackgroundColour(wx.NullColour)
         self.Show(True)
 
 
