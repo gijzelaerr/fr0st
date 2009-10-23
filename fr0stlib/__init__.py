@@ -154,16 +154,21 @@ class Flame(object):
     soloxform = property(None, _set_soloxform)
     
 
-    def create_final(self):
-        if not self.final:
-            self.final = Xform(self, coefs=[1.0, 0.0, 0.0, 1.0, 0.0, 0.0],
-                               linear=1, color=0, color_speed=0)
+    def create_final(self, **kwds):
+        if self.final:
+            return
+        defaults = dict(coefs=[1.0, 0.0, 0.0, 1.0, 0.0, 0.0],
+                        linear=1, color=0, color_speed=0)
+        defaults.update(kwds)
+        self.final = Xform(self, **defaults)
         return self.final
 
 
-    def add_xform(self):
-        self.xform.append(Xform(self, coefs=[1.0, 0.0, 0.0, 1.0, 0.0, 0.0],
-                                linear=1, color=0, weight=1))
+    def add_xform(self, **kwds):
+        defaults = dict(coefs=[1.0, 0.0, 0.0, 1.0, 0.0, 0.0],
+                        linear=1, color=0, weight=1)
+        defaults.update(kwds)
+        self.xform.append(Xform(self, **defaults))
         return self.xform[-1]
 
 
