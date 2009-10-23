@@ -2,6 +2,10 @@ import numpy as np
 cimport numpy as np
 import random as rn
 
+cdef extern from "math.h":
+    float floorf(float x)
+
+
 """
 palette_improve
 get_length
@@ -10,6 +14,9 @@ pix_swap
 spline
 cdiff
 curve
+array_hsv2rgb
+interp_update_rgb
+interp_update_hsv
 """
 
 def palette_improve(np.ndarray[ndim=2, dtype=np.float32_t] orig, int ntries,\
@@ -234,3 +241,187 @@ def pblend(float s, float e, float i, int curve=0):
         return s + (0.5*(e-s)*(np.cos((i+1)*np.pi)+1))
     else:
         raise ValueError('invalid curve')
+
+
+def array_hsv2rgb(np.ndarray[ndim=2, dtype=np.uint8_t] rgb not None, 
+                  np.ndarray[ndim=2, dtype=np.float32_t] hsv not None):
+    """HSV -> RGB color conversion of 1D images
+
+    """
+
+    cdef float h, s, v
+    cdef float r, g, b
+    cdef float f, p, q, t
+    cdef int i
+
+    for pixel in range(hsv.shape[0]):
+        h = hsv[pixel, 0]
+        s = hsv[pixel, 1]
+        v = hsv[pixel, 2]
+
+        if s == 0.0:
+            rgb[pixel, 0] = v * 255
+            rgb[pixel, 1] = v * 255
+            rgb[pixel, 2] = v * 255
+            continue
+
+        i = <int>floorf(h * 6)
+        f = (h * 6.0) - i
+        p = v * (1.0 - s)
+        q = v * (1.0 - s * f)
+        t = v * (1.0 - s * (1.0 - f))
+        i = i % 6
+
+        if i == 0:
+            rgb[pixel, 0] = v * 255
+            rgb[pixel, 1] = t * 255
+            rgb[pixel, 2] = p * 255
+        elif i == 1:
+            rgb[pixel, 0] = q * 255
+            rgb[pixel, 1] = v * 255
+            rgb[pixel, 2] = p * 255
+        elif i == 2:
+            rgb[pixel, 0] = p * 255
+            rgb[pixel, 1] = v * 255
+            rgb[pixel, 2] = t * 255
+        elif i == 3:
+            rgb[pixel, 0] = p * 255
+            rgb[pixel, 1] = q * 255
+            rgb[pixel, 2] = v * 255
+        elif i == 4:
+            rgb[pixel, 0] = t * 255
+            rgb[pixel, 1] = p * 255
+            rgb[pixel, 2] = v * 255
+        elif i == 5:
+            rgb[pixel, 0] = v * 255
+            rgb[pixel, 1] = p * 255
+            rgb[pixel, 2] = q * 255
+
+
+def interp_update_rgb(np.ndarray[ndim=2, dtype=np.float32_t] palette not None,
+        int r_index, int g_index, int b_index,
+        int h_index, int s_index, int v_index):
+    """HSV->RGB conversion for pixels holding both types in the same array
+    
+    NOTE: RGB channels are in range 0..1
+    """
+
+    cdef float h, s, v
+    cdef float r, g, b
+    cdef float f, p, q, t
+    cdef int i
+
+    for pixel in range(palette.shape[0]):
+        h = palette[pixel, h_index]
+        s = palette[pixel, s_index]
+        v = palette[pixel, v_index]
+
+        if s == 0.0:
+            palette[pixel, r_index] = v
+            palette[pixel, b_index] = v
+            palette[pixel, g_index] = v
+            continue
+
+        i = <int>floorf(h * 6)
+        f = (h * 6.0) - i
+        p = v * (1.0 - s)
+        q = v * (1.0 - s * f)
+        t = v * (1.0 - s * (1.0 - f))
+        i = i % 6
+
+        if i == 0:
+            palette[pixel, r_index] = v
+            palette[pixel, g_index] = t
+            palette[pixel, b_index] = p
+        elif i == 1:
+            palette[pixel, r_index] = q
+            palette[pixel, g_index] = v
+            palette[pixel, b_index] = p
+        elif i == 2:
+            palette[pixel, r_index] = p
+            palette[pixel, g_index] = v
+            palette[pixel, b_index] = t
+        elif i == 3:
+            palette[pixel, r_index] = p
+            palette[pixel, g_index] = q
+            palette[pixel, b_index] = v
+        elif i == 4:
+            palette[pixel, r_index] = t
+            palette[pixel, g_index] = p
+            palette[pixel, b_index] = v
+        elif i == 5:
+            palette[pixel, r_index] = v
+            palette[pixel, g_index] = p
+            palette[pixel, b_index] = q
+
+
+
+def interp_update_hsv(np.ndarray[ndim=2, dtype=np.float32_t] palette not None,
+        int r_index, int g_index, int b_index,
+        int h_index, int s_index, int v_index):
+    """RGB->HSV conversion for pixels holding both types in the same array
+    
+    NOTE: RGB channels are in range 0..1
+    """
+
+    cdef float maxc, minc, diff
+    cdef float rc, gc, bc, h
+
+    for pixel in range(palette.shape[0]):
+        r = palette[pixel, r_index]
+        g = palette[pixel, g_index]
+        b = palette[pixel, b_index]
+
+        if r > g:
+            if r > b:
+                maxc = r
+            else:
+                maxc = b
+        else:
+            if g > b:
+                maxc = g
+            else:
+                maxc = b
+
+        if r < g:
+            if r < b:
+                minc = r
+            else:
+                minc = b
+        else:
+            if g < b:
+                minc = g
+            else:
+                minc = b
+
+        palette[pixel, v_index] = maxc
+
+        if minc == maxc:
+            palette[pixel, h_index] = 0.0
+            palette[pixel, s_index] = 0.0
+            continue
+
+        diff = maxc - minc
+
+        if max == 0.0:
+            palette[pixel, s_index] = 0.0
+            palette[pixel, h_index] = 0.0
+            continue
+
+        palette[pixel, s_index] = diff / maxc
+
+        rc = (maxc - r) / diff
+        gc = (maxc - g) / diff
+        bc = (maxc - b) / diff
+
+        if r == maxc:
+            h = bc - gc
+        elif g == maxc:
+            h = 2.0 + rc - bc
+        else:
+            h = 4.0 + gc - rc
+
+        palette[pixel, h_index] = (h/6) % 1.0
+
+
+
