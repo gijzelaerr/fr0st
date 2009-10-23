@@ -282,6 +282,8 @@ class RenderDialog(wx.Frame):
 
 
     def UpdateView(self):
+        if self.rendering:
+            return
         self.UpdateFlameSelector()
         self.OnSelection()
         
