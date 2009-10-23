@@ -107,6 +107,8 @@ class RenderDialog(wx.Frame):
         wx.Frame.__init__(self, parent, id, title="Render Flames to Disk",
                           style=style)
 
+        wx.GetApp().LoadIconsInto(self)
+
         self.config = config["Render-Settings"]
         self.dict = {}
         

@@ -45,14 +45,46 @@ class Fr0stApp(wx.App):
         else:
             self.resource_dir = self.standard_paths.GetResourcesDir()
 
-        if not os.path.isdir(self.ConfigDir):
-            os.makedirs(self.ConfigDir)
+        self.user_dir = self.standard_paths.GetDocumentsDir()
+        
+        # On *nix, GetDocumentsDir returns ~.  use .fr0st rather than fr0st
+        if os.path.realpath(os.path.expanduser('~')) == os.path.realpath(self.user_dir):
+            self.user_dir = os.path.join(self.user_dir, '.fr0st')
+        else:
+            self.user_dir = os.path.join(self.user_dir, 'fr0st')
+
+        paths_to_check = [
+                self.ConfigDir,
+                self.RendersDir,
+                self.UserScriptsDir,
+                self.UserParametersDir,
+            ]
+
+        for path in paths_to_check:
+            if not os.path.isdir(path):
+                os.makedirs(path)
 
         init_config()
 
     def MainLoop(self):
         MainWindow(None, wx.ID_ANY)
         wx.App.MainLoop(self)
+
+    @property
+    def UserDataDir(self):
+        return self.user_dir
+
+    @property
+    def UserParametersDir(self):
+        return os.path.join(self.user_dir, 'Parameters')
+
+    @property
+    def RendersDir(self):
+        return os.path.join(self.user_dir, 'Renders')
+
+    @property
+    def UserScriptsDir(self):
+        return os.path.join(self.user_dir, 'Scripts')
 
     @property
     def ConfigDir(self):
@@ -76,8 +108,22 @@ class Fr0stApp(wx.App):
             return os.path.dirname(sys.argv[0])
 
     @property
+    def ParametersDir(self):
+        return os.path.join(self.resource_dir, 'parameters')
+
+    @property
     def IconsDir(self):
         return os.path.join(self.resource_dir, 'icons')
+
+    def LoadIconsInto(self, frame):
+        icons = wx.IconBundle()
+
+        if 'win32' in sys.platform:
+            icons.AddIconFromFile(os.path.join(self.IconsDir, 'fr0st.ico'), wx.BITMAP_TYPE_ICO)
+
+        icons.AddIconFromFile(os.path.join(self.IconsDir, 'fr0st.png'), wx.BITMAP_TYPE_PNG)
+
+        frame.SetIcons(icons)
 
 
 class MainWindow(wx.Frame):
@@ -94,10 +140,8 @@ class MainWindow(wx.Frame):
 
         sys.excepthook = unhandled_exception_handler
 
-        # This icon stuff is not working...
-##        ib=wx.IconBundle()
-##        ib.AddIconFromFile("Icon.ico",wx.BITMAP_TYPE_ANY)
-##        self.SetIcons(ib)
+        wx.GetApp().LoadIconsInto(self)
+
         self.CreateStatusBar()
         self.SetDoubleBuffered(True)
         self.SetBackgroundColour(wx.NullColour)
@@ -160,13 +204,23 @@ class MainWindow(wx.Frame):
         # Set up paths
         sys.path.append(os.path.join(wx.GetApp().AppBaseDir, 'scripts'))
         sys.path.append(wx.GetApp().ScriptsDir)
-        self.flamepath = os.path.join(sys.path[0], config["flamepath"])
+        self.flamepath = config["flamepath"]
 
-        if os.path.exists('paths.temp'):
+        if not os.path.exists(self.flamepath):
+            self.flamepath = os.path.join(wx.GetApp().AppBaseDir, 'parameters', config["flamepath"])
+
+        if not os.path.exists(self.flamepath):
+            self.flamepath = os.path.join(wx.GetApp().ParametersDir, config["flamepath"])
+
+        recover_file = os.path.join(wx.GetApp().UserDataDir, 'paths.temp')
+
+        if os.path.exists(recover_file):
             # TODO: check if another fr0st process is running.
             # Previous session was interrupted
             # TODO: display a message to user explaining situation.
-            paths = [i.strip() for i in open('paths.temp')]
+            with open(recover_file) as fd:
+                paths = [i.strip() for i in fd]
+
             self.TreePanel.RecoverSession(paths)
 
         else:
@@ -230,12 +284,17 @@ class MainWindow(wx.Frame):
         self.renderer.exitflag = True
 
         # Remove all temp files
-        if os.path.exists('paths.temp'):
-            lst = [i.strip()+'.temp' for i in open('paths.temp')]
+        recover_file = os.path.join(wx.GetApp().UserDataDir, 'paths.temp')
+
+        if os.path.exists(recover_file):
+            with open(recover_file) as fd:
+                lst = [i.strip()+'.temp' for i in fd]
+
             for i in lst:
                 if os.path.exists(i):
                     os.remove(i)
-            os.remove('paths.temp')
+
+            os.remove(recover_file)
 
         # Save size and pos of each window
         for window, k in ((self, "Rect-Main"),

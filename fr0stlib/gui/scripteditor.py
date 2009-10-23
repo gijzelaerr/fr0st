@@ -20,6 +20,8 @@ class EditorFrame(wx.Frame):
         self.parent = parent
         wx.Frame.__init__(self,parent,wx.ID_ANY, self.title)
 
+        wx.GetApp().LoadIconsInto(self)
+
         CreateEditorMenu(self)
         CreateEditorToolBar(self)
         self.SetSize((865,500))
@@ -63,10 +65,7 @@ class EditorFrame(wx.Frame):
         self.editor._changed = False
 
         # Load the default script
-        self.scriptpath = os.path.join(wx.GetApp().AppBaseDir, 'scripts', 'untitled.py')
-
-        if not os.path.exists(self.scriptpath):
-            self.scriptpath = os.path.join(wx.GetApp().ScriptsDir, 'untitled.py')
+        self.scriptpath = os.path.join(wx.GetApp().UserScriptsDir, 'untitled.py')
 
         self.Title = "untitled - Script Editor"
 
@@ -158,13 +157,22 @@ class EditorFrame(wx.Frame):
         
 
     def SaveScript(self, path, confirm=True):
+        if not os.access(path, os.W_OK):
+            basename = os.path.splitpath(path)[1]
+            path = os.path.join(wx.GetApp().UserScriptsDir, basename)
+
         if os.path.exists(path) and confirm:
             dlg = wx.MessageDialog(self, '%s already exists.\nDo You want to replace it?'
                                    %path,'Fr0st',wx.YES_NO)
             if dlg.ShowModal() == wx.ID_NO: return
             dlg.Destroy()
-        with open(path,"w") as f:
-            f.write(self.editor.GetText())
+        try:
+            with open(path,"w") as f:
+                f.write(self.editor.GetText())
+        except Exception:
+            wx.MessageDialog(self, "Unable to save file or destination not writable.", 'Fr0st',
+                             wx.OK).ShowModal()
+
         self.SetTitle("%s - Script Editor" % os.path.basename(path))
         self.editor._changed = False
 

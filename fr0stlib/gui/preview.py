@@ -13,6 +13,8 @@ class PreviewFrame(wx.Frame):
         self.parent = parent
         wx.Frame.__init__(self,parent,wx.ID_ANY, self.title)
 
+        wx.GetApp().LoadIconsInto(self)
+
         self.CreateStatusBar()
         
         self.image = PreviewPanel(self)
