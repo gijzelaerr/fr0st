@@ -16,6 +16,8 @@ class Filemenu(wx.Menu):
         self.AppendSeparator()
         self.Append(ID.RENDER, "&Render\tCtrl-R"," Render a flame to an image")
         self.AppendSeparator()
+        self.Append(wx.ID_PREFERENCES, "&Preferences", "Edit preferences")
+        self.AppendSeparator()
         self.Append(ID.ABOUT, "&About"," Information about this program")
         self.AppendSeparator()
         self.Append(ID.EXIT,"E&xit\tCtrl-Q"," Terminate the program")

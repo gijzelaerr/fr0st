@@ -15,6 +15,7 @@ from fr0stlib.gui._events import InMain
 from fr0stlib.gui.itemdata import ItemData
 from fr0stlib.gui.renderdialog import RenderDialog
 from fr0stlib.gui.config import config, init_config
+from fr0stlib.gui.configdlg import ConfigDialog
 from fr0stlib.gui.savedialog import SaveDialog
 from fr0stlib.gui.exceptiondlg import unhandled_exception_handler
 
@@ -192,6 +193,14 @@ class MainWindow(wx.Frame):
         d.ShowModal()
         d.Destroy()
 
+    @Bind(wx.EVT_MENU, id=wx.ID_PREFERENCES)
+    def OnPreferences(self, evt):
+        dlg = ConfigDialog(self)
+
+        if dlg.ShowModal() == wx.ID_OK:
+            dlg.CommitChanges()
+
+        dlg.Destroy()
 
     @Bind(wx.EVT_CLOSE)
     @Bind(wx.EVT_MENU,id=ID.EXIT)

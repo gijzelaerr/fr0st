@@ -194,7 +194,8 @@ class NumberTextCtrl(wx.TextCtrl):
         if (key == wx.WXK_CONTROL and not e.AltDown()) or (
             key == wx.WXK_ALT and not e.ControlDown()):
             if self.HasChanged:
-                self.parent.parent.TreePanel.TempSave()
+                if hasattr(self.parent, 'parent') and hasattr(self.parent.parent, 'TreePanel'):
+                    self.parent.parent.TreePanel.TempSave()
                 self.HasChanged = False
 
 
