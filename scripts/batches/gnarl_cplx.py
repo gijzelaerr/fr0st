@@ -65,7 +65,7 @@ def gnarlcomplex():
     x.color_speed = 0.01
 
     # Final X
-    fx = f.create_final()
+    fx = f.add_final()
     fx.a = fx.e = -uniform(0.5,1.0)
     fx.d = 0.373412
     fx.b = -fx.d

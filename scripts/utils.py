@@ -48,8 +48,8 @@ def equalize_flame_attributes(flame1, flame2):
             flame2.xform[-1].symmetry = 1
 
     if flame1.final or flame2.final:
-        flame1.create_final()
-        flame2.create_final()
+        flame1.add_final()
+        flame2.add_final()
 
     # Size can be interpolated correctly, but it's pointless to
     # produce frames that can't be turned into an animation.

@@ -154,7 +154,7 @@ class Flame(object):
     soloxform = property(None, _set_soloxform)
     
 
-    def create_final(self, **kwds):
+    def add_final(self, **kwds):
         if self.final:
             return
         defaults = dict(coefs=[1.0, 0.0, 0.0, 1.0, 0.0, 0.0],
@@ -508,7 +508,7 @@ class Xform(object):
         if fx==0:
             x = parent.add_xform()
         elif random.uniform(0,1)<=fx:
-            x = parent.create_final()
+            x = parent.add_final()
         else:
             return None
         

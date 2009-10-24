@@ -1,7 +1,8 @@
 # Gnarl Base + Foci by Bunny Clarke and Bart Doetsch
 # From original parameters by Golubaja
 # Her "Gnarly" gallery is @  http://Golubaja.deviantart.com/
-# Foci FX suggested by Zooreka  http://Zooreka.deviantart.com/# TIPS : If there is a hole in the center of the flame - move transforms
+# Foci FX suggested by Zooreka  http://Zooreka.deviantart.com/
+# TIPS : If there is a hole in the center of the flame - move transforms
 # closer together . If flame is too bright - 1 or both Transforms are too
 # close to the 0 point of the reference triangle.
 # T1 : Add variations, resize, reshape . &/or move it.
@@ -69,7 +70,7 @@ def gnarlbasefoci():
     x.color_speed = 0.01
     
     # Final X
-    fx = f.create_final()
+    fx = f.add_final()
     fx.linear = 0
     fx.a = 1.5
     fx.e = 1.5

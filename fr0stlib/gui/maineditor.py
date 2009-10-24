@@ -118,8 +118,8 @@ class TransformPanel(wx.Panel):
 
     @modifyxform
     def FuncAddFinalXform(self, xform):
-        # create_final already checks if a final xform exists.
-        self.parent.ActiveXform = self.parent.flame.create_final()
+        # add_final already checks if a final xform exists.
+        self.parent.ActiveXform = self.parent.flame.add_final()
 
     @modifyxform
     def FuncDuplicateXform(self, xform):

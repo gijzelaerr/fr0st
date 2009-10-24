@@ -83,7 +83,7 @@ def julia_wires():
     x.color_speed = 0.9
     x.color = 0
     
-    xf = f.create_final()
+    xf = f.add_final()
     xf.linear = 0
     xf.spherical = uniform(.5,1.5)
     xf.julia = uniform(.25,1.25)
