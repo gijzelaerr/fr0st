@@ -64,6 +64,8 @@ ParametersDir: %(ParametersDir)s
     rv = dlg.ShowModal()
     dlg.Destroy()
 
+    # Pass it on to python to crash or not
+    sys.__excepthook__(exc_type, exc_value, exc_traceback)
 
 
 
