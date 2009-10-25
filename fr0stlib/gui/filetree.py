@@ -176,6 +176,18 @@ class TreePanel(wx.Panel):
         self.tree.SelectItem(self.tree.itemparent)
         self.tree.SelectItem(self.tree.GetItemByIndex((0,index)))
         self.parent.SaveFlame()
+
+    @Bind(wx.EVT_TREE_ITEM_COLLAPSING)
+    def OnTreeItemCollapsing(self, evt):
+        item = evt.GetItem()
+        parent = self.tree.GetItemParent(item)
+
+        if parent == self.tree.root:
+            evt.Veto()
+            
+
+
+
         
 
 
