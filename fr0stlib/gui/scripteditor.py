@@ -65,7 +65,7 @@ class EditorFrame(wx.Frame):
         self.editor._changed = False
 
         # Load the default script
-        self.scriptpath = os.path.join(wx.GetApp().UserScriptsDir, 'untitled.py')
+        self.scriptpath = '<unknown>'
 
         self.Title = "untitled - Script Editor"
 
@@ -87,13 +87,22 @@ class EditorFrame(wx.Frame):
 
     @Bind(wx.EVT_TOOL,id=ID.SSAVE)
     def OnScriptSave(self, e):
-        self._new = False
-        self.SaveScript(self.scriptpath, confirm=False)
+        if self._new:
+            self.OnScriptSaveAs(e)
+            self._new = False
+        else:
+            self.SaveScript(self.scriptpath, confirm=False)
+            self._new = False
         
 
     @Bind(wx.EVT_TOOL,id=ID.SSAVEAS)
     def OnScriptSaveAs(self, e=None):
-        dDir,dFile = os.path.split(self.scriptpath)
+        if self._new:
+            dDir = wx.GetApp().UserScriptsDir
+            dFile = 'untitled.py'
+        else:
+            dDir,dFile = os.path.split(self.scriptpath)
+
         dlg = wx.FileDialog(self, message="Save file as ...",
                             defaultDir=dDir, 
                             defaultFile=dFile,
@@ -158,7 +167,7 @@ class EditorFrame(wx.Frame):
 
     def SaveScript(self, path, confirm=True):
         if not os.access(path, os.W_OK):
-            basename = os.path.splitpath(path)[1]
+            basename = os.path.split(path)[1]
             path = os.path.join(wx.GetApp().UserScriptsDir, basename)
 
         if os.path.exists(path) and confirm:
