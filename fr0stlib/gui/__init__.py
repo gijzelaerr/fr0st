@@ -67,6 +67,17 @@ class Fr0stApp(wx.App):
         init_config()
 
     def MainLoop(self):
+        single_instance_name = 'fr0st-%s' % wx.GetUserId()
+        single_instance = wx.SingleInstanceChecker(single_instance_name)
+
+        if single_instance.IsAnotherRunning():
+            dlg = wx.MessageDialog(None, 
+                    "Another instance of fr0st is already running.  Multiple instances are not supported",
+                    "fr0st", wx.OK|wx.ICON_ERROR)
+            dlg.ShowModal()
+            dlg.Destroy()
+            return
+
         MainWindow(None, wx.ID_ANY)
         wx.App.MainLoop(self)
 
