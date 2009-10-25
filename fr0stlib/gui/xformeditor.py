@@ -85,6 +85,7 @@ class XformPanel(wx.Panel):
         # Add the number fields
         def cb(tc, tempsave=True):
             self.parent.image.RenderPreview()
+            self.parent.canvas.ShowFlame(rezoom=False)
             self.UpdateFlame(tempsave=tempsave)
         for i in "adbecf":
             setattr(self, i, NumberTextCtrl(self, callback=cb))
