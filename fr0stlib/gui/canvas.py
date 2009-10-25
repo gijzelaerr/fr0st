@@ -221,15 +221,7 @@ class XformCanvas(FC.FloatCanvas):
 
 
         if rezoom:
-            if self.preview is not None:
-                # The preview spread is ignored, as it tends to zoom the flame
-                # too far out.
-                self.RemoveObject(self.preview)
-                self.ZoomToBB(DrawFlag=False)
-                self.AddObject(self.preview)
-            else:
-                self.ZoomToBB(DrawFlag=False)
-            self.AdjustZoom()
+            self.ZoomToFit()
         elif refresh:
             # This is an elif because AdjustZoom already forces a Draw.
             self.Draw()
@@ -455,9 +447,15 @@ class XformCanvas(FC.FloatCanvas):
         return None, None
 
 
-    # TODO: Currently not bound
-    def OnZoomToFit(self,e):
-        self.ZoomToBB(DrawFlag=False)
+    def ZoomToFit(self):
+        if self.preview is not None:
+            # The preview spread is ignored, as it tends to zoom the flame
+            # too far out.
+            self.RemoveObject(self.preview)
+            self.ZoomToBB(DrawFlag=False)
+            self.AddObject(self.preview)
+        else:
+            self.ZoomToBB(DrawFlag=False)
         self.AdjustZoom()
         self.SetFocus() # Otherwise focus stays on Button.
 
