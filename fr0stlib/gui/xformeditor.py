@@ -90,7 +90,7 @@ class XformPanel(wx.Panel):
             setattr(self, i, NumberTextCtrl(self, callback=cb))
         btn = (wx.Button(self,-1,i,name=i,style=wx.BU_EXACTFIT) for i in "xyo")
 
-        fgs = wx.FlexGridSizer(3,3,5,5)
+        fgs = wx.FlexGridSizer(3,3,1,1)
         itr = (getattr(self, i) for i in "adbecf")
         fgs.AddMany(itertools.chain(*zip(btn, itr, itr)))
 
@@ -105,7 +105,7 @@ class XformPanel(wx.Panel):
 
         # Put the view buttons to the right of the number fields
         hsizer = wx.BoxSizer(wx.HORIZONTAL)
-        hsizer.AddMany((fgs, (radiosizer, 0, wx.ALL, 5)))
+        hsizer.AddMany((fgs, (radiosizer, 0, wx.ALL, 1)))
 
         # Add other buttons
         reset = wx.Button(self, -1, "Reset xform", name="Reset",
@@ -121,7 +121,7 @@ class XformPanel(wx.Panel):
         self.weight.SetAllowedRange(low=0)
         weightsizer.AddMany((
                (wx.StaticText(self, -1, "Weight"), 0, wx.ALIGN_CENTER_VERTICAL),
-               (self.weight, 0, wx.ALL, 5)
+               (self.weight, 0, wx.ALL, 1)
             ))
         
         
@@ -142,7 +142,7 @@ class XformPanel(wx.Panel):
         btn.insert(10, (0,0))
         btn.insert(12, self.scale)
         
-        fgs2 = wx.FlexGridSizer(4, 5, 5, 5)
+        fgs2 = wx.FlexGridSizer(4, 5, 1, 1)
         fgs2.AddMany(btn)        
         
         # Finally, put everything together
