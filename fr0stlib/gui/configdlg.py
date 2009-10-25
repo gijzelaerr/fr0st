@@ -74,8 +74,8 @@ class ConfigDialog(wx.Dialog):
         self.number_text(parent, gbs, 1, 'Quality', 
                 'Var-Preview-Settings', 'numvals', 10, 40, is_int=True)
 
-        # This looks weird at anything but 1, the default. Exclude it.
-        # self.number_text(parent, gbs, 2, 'Depth', 'Var-Preview-Settings', 'depth', 1, 5, is_int=True) 
+        self.number_text(parent, gbs, 2, 'Depth',
+                'Var-Preview-Settings', 'depth', 1, 5, is_int=True) 
 
         return Box(parent, 'Variation Preview', (gbs, 0, wx.EXPAND))
 
@@ -114,6 +114,8 @@ class ConfigDialog(wx.Dialog):
 
     def CommitChanges(self):
         update_dict(config, self.local_config)
+        # Immediately update canvas to see eventual changes in var preview.
+        self.Parent.canvas.ShowFlame(rezoom=False)
 
 
 
