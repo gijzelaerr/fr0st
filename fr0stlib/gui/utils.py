@@ -204,7 +204,7 @@ class NumberTextCtrl(wx.TextCtrl):
         key = event.GetKeyCode()
         if key in [wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER]:
             self.OnKillFocus(None)
-        elif key < wx.WXK_SPACE or key == wx.WXK_DELETE or key > 255:
+        elif key < wx.WXK_SPACE or key == wx.WXK_DELETE or key > 255 or key == wx.WXK_TAB:
             event.Skip()
         elif chr(key) in "0123456789.-":
             event.Skip()  
