@@ -8,11 +8,6 @@ from fr0stlib.gui.config import config, update_dict
 from fr0stlib.gui.utils import NumberTextCtrl, Box
 
 
-"""
-    flamepath: flame file opened by default or where they are saved to, or what exactly?
-"""
-
-
 class ConfigDialog(wx.Dialog):
 
     @BindEvents
@@ -22,6 +17,7 @@ class ConfigDialog(wx.Dialog):
         # save a copy of config to work with
         # allows us to implement cancel
         self.local_config = deepcopy(config)
+        self.controls = {}
 
         notebook = wx.Notebook(self, style=wx.BK_DEFAULT)
         notebook.AddPage(self.CreatePreviewSettings(notebook), 'Preview Quality', select=True)
@@ -36,6 +32,9 @@ class ConfigDialog(wx.Dialog):
 
         self.SetSizerAndFit(sizer)
 
+        self.controls['Var-Preview-Settings->range'].SetFocus()
+        
+
     @Bind(wx.EVT_BUTTON, id=wx.ID_OK)
     @Bind(wx.EVT_BUTTON, id=wx.ID_CANCEL)
     def OnOK(self, evt):
@@ -45,8 +44,8 @@ class ConfigDialog(wx.Dialog):
         panel = wx.Panel(parent)
         gbs = wx.GridBagSizer(5, 5)
         gbs.Add(self.CreateVariationPreviewSettings(panel), (0, 0), flag=wx.EXPAND)
-        gbs.Add(self.CreateLargePreviewSettings(panel), (0, 1), (2, 1))
         gbs.Add(self.CreateSmallPreviewSettings(panel), (1, 0), (1, 1), flag=wx.EXPAND)
+        gbs.Add(self.CreateLargePreviewSettings(panel), (0, 1), (2, 1))
         panel.SetSizerAndFit(gbs)
         return panel
 
@@ -57,6 +56,7 @@ class ConfigDialog(wx.Dialog):
             ntc.MakeIntOnly()
 
         section = self.local_config[config_section]
+        self.controls[config_section + '->' + config_key] = ntc
 
         ntc.SetFloat(section[config_key])
         ntc.callback = lambda tempsave=False: setitem(section, config_key, ntc.GetFloat())
