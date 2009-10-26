@@ -160,7 +160,6 @@ class MainWindow(wx.Frame):
         wx.GetApp().LoadIconsInto(self)
 
         self.CreateStatusBar()
-        self.SetDoubleBuffered(True)
         self.SetBackgroundColour(wx.NullColour)
 
         # Launch the render threads
