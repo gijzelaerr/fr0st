@@ -240,13 +240,14 @@ class MultiSliderMixin(object):
 
     def MakeSlider(self, name, init, low, high, strictrange=True):
         """Programatically builds stuff."""
+        tc = NumberTextCtrl(self, callback=self.__callback)
+        if strictrange:
+            tc.SetAllowedRange(low, high)
+
         slider = wx.Slider(self, -1, init*100, low*100, high*100,
                            style=wx.SL_HORIZONTAL
                            | wx.SL_SELRANGE
                            )
-        tc = NumberTextCtrl(self, callback=self.__callback)
-        if strictrange:
-            tc.SetAllowedRange(low, high)
         self.sliders[name] = slider, tc
 
         slider.Bind(wx.EVT_SLIDER, partial(self.OnSlider, tc=tc))
