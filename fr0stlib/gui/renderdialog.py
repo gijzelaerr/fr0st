@@ -23,7 +23,7 @@ from fr0stlib.decorators import *
 class FreeMemoryPanel(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent, -1)
-        self.depth = parent.dict["buffer_depth"]
+        self.depth = parent.GetParent().dict["buffer_depth"]
         self.fgs = wx.FlexGridSizer(2, 2, 1, 1)
         self.SetSizer(self.fgs)
 
@@ -63,8 +63,8 @@ class FreeMemoryPanel(wx.Panel):
 
 
     def GetRequired(self):
-        w, h = self.Parent.sizepanel.GetInts()
-        os = self.Parent.dict["spatial_oversample"].GetFloat()
+        w, h = self.GetParent().GetParent().sizepanel.GetInts()
+        os = self.GetParent().GetParent().dict["spatial_oversample"].GetFloat()
         int_size = 4
         if self.depth.GetStringSelection() == "64-bit int":
             int_size = 8
@@ -111,17 +111,22 @@ class RenderDialog(wx.Frame):
 
         self.config = config["Render-Settings"]
         self.dict = {}
+
+        #NOTE: On windows, all child controls must not have a frame as their direct
+        #NOTE: parent if you want to use tab traversal. There MUST be a panel between
+        #NOTE: the control an the frame in the window heirarchy.
+        main_panel = wx.Panel(self)
         
-        self.gauge = wx.Gauge(self, -1, style=wx.GA_HORIZONTAL|wx.GA_SMOOTH)
+        self.gauge = wx.Gauge(main_panel, -1, style=wx.GA_HORIZONTAL|wx.GA_SMOOTH)
 
-        fbb = self.MakeFileBrowseButton()
-        flame = self.MakeFlameSelector()
-        mem = self.MakeMemoryWidget()
-        self.sizepanel = SizePanel(self, self.mem.UpdateView)
-        opts = self.MakeOpts()
+        fbb = self.MakeFileBrowseButton(main_panel)
+        flame = self.MakeFlameSelector(main_panel)
+        mem = self.MakeMemoryWidget(main_panel)
+        self.sizepanel = SizePanel(main_panel, self.mem.UpdateView)
+        opts = self.MakeOpts(main_panel)
 
-        self.render = wx.Button(self, ID.RENDER, "Render")
-        self.close = wx.Button(self, ID.CLOSE, "Close")
+        self.render = wx.Button(main_panel, ID.RENDER, "Render")
+        self.close = wx.Button(main_panel, ID.CLOSE, "Close")
 
         self.CreateStatusBar()
 
@@ -152,8 +157,12 @@ class RenderDialog(wx.Frame):
         szr4 = wx.BoxSizer(wx.VERTICAL)
         szr4.AddMany((szr3, (self.gauge, 0, wx.EXPAND)))
 	
-        self.SetSizer(szr4)
-        szr4.Fit(self)
+        main_panel.SetSizer(szr4)
+
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(main_panel, 1, wx.EXPAND|wx.ALL, 5)
+        self.SetSizerAndFit(sizer)
+        #szr4.Fit(self)
 
         self.progflag = 0
         self.rendering = False
@@ -162,32 +171,56 @@ class RenderDialog(wx.Frame):
         self.SetBackgroundColour(wx.NullColour)
         self.Show(True)
 
+        prev = self.flame_select_all
+        tab_order = [
+                    self.flame_select_none,
+                    self.lb,
+                    self.fbb,
+                    self.dict['quality'], 
+                    self.dict['spatial_oversample'],
+                    self.dict['estimator'],
+                    self.dict['estimator_curve'],
+                    self.dict['estimator_minimum'],
+                    self.dict['filter_radius'],
+                    self.dict['filter_kernel'],
+                    self.check_early_clip,
+                    self.check_transparent,
+                    self.dict['buffer_depth'],
+                    self.dict['nthreads'],
+                ]
 
-    def MakeFileBrowseButton(self):
+        for x in tab_order:
+            x.MoveAfterInTabOrder(prev)
+            prev = x
+
+
+    def MakeFileBrowseButton(self, parent):
         mask = "PNG File (*.png)|*.png|" \
                "JPG File (*.jpg)|*.jpg|" \
                "BMP File (*.bmp)|*.bmp"
         initial = os.path.join(config["Img-Dir"],
                                self.parent.flame.name+config["Img-Type"])
-        fbb = FileBrowseButton(self, -1, fileMask=mask, labelText='File:',
+        fbb = FileBrowseButton(parent, -1, fileMask=mask, labelText='File:',
                                initialValue=initial)
         self.fbb = fbb
-        return Box(self, "Output Destination", (fbb, 0, wx.EXPAND))
+        return Box(parent, "Output Destination", (fbb, 0, wx.EXPAND))
 
 
-    def MakeFlameSelector(self):
-        self.lb = lb = wx.ListBox(self, -1, style=wx.LB_EXTENDED)
+    def MakeFlameSelector(self, parent):
+        self.flame_select_all = btn = wx.Button(parent, -1, "All")
+        btn.Bind(wx.EVT_BUTTON, self.OnSelectAll)
+
+        self.flame_select_none = btn2 = wx.Button(parent, -1, "None")
+        btn2.Bind(wx.EVT_BUTTON, self.OnDeselectAll)
+
+        self.lb = lb = wx.ListBox(parent, -1, style=wx.LB_EXTENDED)
         self.UpdateFlameSelector()
         lb.SetMinSize((180,1))
         lb.Bind(wx.EVT_LISTBOX, self.OnSelection)
-        btn = wx.Button(self, -1, "All")
-        btn.Bind(wx.EVT_BUTTON, self.OnSelectAll)
-        btn2 = wx.Button(self, -1, "None")
-        btn2.Bind(wx.EVT_BUTTON, self.OnDeselectAll)
 
         boxhor = wx.BoxSizer(wx.HORIZONTAL)
         boxhor.AddMany((btn, btn2))
-        return Box(self, "Select Flame(s) to render", boxhor, (lb, 1, wx.EXPAND))
+        return Box(parent, "Select Flame(s) to render", boxhor, (lb, 1, wx.EXPAND))
 
 
     def UpdateFlameSelector(self):
@@ -199,46 +232,49 @@ class RenderDialog(wx.Frame):
         self.lb.SetSelection(choices.index(data))
 
 
-    def MakeOpts(self):
-        opts = self.MakeTCs("quality", "spatial_oversample",
+    def MakeOpts(self, parent):
+        opts = self.MakeTCs(parent, 
+                            "quality", "spatial_oversample",
                             "estimator", "estimator_curve",
                             "estimator_minimum", "filter_radius")
-        filters = self.MakeChoices("filter_kernel", fgs=opts)
+        filters = self.MakeChoices(parent, "filter_kernel", fgs=opts)
         
-        early = wx.CheckBox(self, -1, "Early Clip")
+        early = wx.CheckBox(parent, -1, "Early Clip")
         self.earlyclip = self.config["earlyclip"]
+        self.check_early_clip = early
         early.SetValue(self.earlyclip)
         early.Bind(wx.EVT_CHECKBOX, self.OnEarly)
         
-        transp = wx.CheckBox(self, -1, "PNG Transparency")
+        transp = wx.CheckBox(parent, -1, "PNG Transparency")
         self.transp = self.config["transparent"]
+        self.check_transparent = transp
         transp.SetValue(self.transp)
         transp.Bind(wx.EVT_CHECKBOX, self.OnTransp)
         
-        return Box(self, "Render Settings", opts, early, transp)
+        return Box(parent, "Render Settings", opts, early, transp)
 
     
-    def MakeMemoryWidget(self):
+    def MakeMemoryWidget(self, parent):
         # TODO: what about setting number of strips?
-        depthszr = self.MakeChoices("buffer_depth", "nthreads")
-        self.mem = FreeMemoryPanel(self)
+        depthszr = self.MakeChoices(parent, "buffer_depth", "nthreads")
+        self.mem = FreeMemoryPanel(parent)
         self.dict["buffer_depth"].Bind(wx.EVT_CHOICE, self.mem.UpdateView)
-        return Box(self, "Resource Usage", depthszr, self.mem)
+        return Box(parent, "Resource Usage", depthszr, self.mem)
 
 
-    def MakeTCs(self, *a, **k):
+    def MakeTCs(self, parent, *a, **k):
         """Wrapper around MakeTCs that adds all tcs to self.dict."""
-        fgs, d = MakeTCs(self, *((i, self.config[i]) for i in a), **k)
+        fgs, d = MakeTCs(parent, *((i, self.config[i]) for i in a), **k)
         self.dict.update(d)
         return fgs
 
 
-    def MakeChoices(self, *a, **k):
+    def MakeChoices(self, parent, *a, **k):
         fgs = k["fgs"] if "fgs" in k else wx.FlexGridSizer(99, 2, 1, 1)
         for i in a:
-            widg = MyChoice(self, i, getattr(self, i+"_dict"), self.config[i])
+            widg = MyChoice(parent, i, getattr(self, i+"_dict"), self.config[i])
             self.dict[i] = widg
-            fgs.Add(wx.StaticText(self, -1, i.replace("_", " ").title()),
+            fgs.Add(wx.StaticText(parent, -1, i.replace("_", " ").title()),
                     0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
             fgs.Add(widg, 0, wx.ALIGN_RIGHT, 5)
         return fgs
