@@ -1,6 +1,7 @@
 # Lolpolpolpo, by Coppercat
 
-from random_flame import GenRandomBatch
+from random_flame import GenRandomFlame
+
 from fr0stlib.pyflam3.variations import *
 import utils,random
 
@@ -16,11 +17,11 @@ special_vars = (VAR_SPHERICAL,VAR_SWIRL,VAR_WAVES,VAR_POPCORN,
 
 # Generate a random batch of flames made from up to 5 linear xforms
 randopt = {'xv':(0,), 'n':1, 'xw':0}
-nflames = 15
-lst = GenRandomBatch(nflames, randopt, numbasic=5)
 
-k=0
-for f in lst:
+def lolpolpolpo():
+
+    # Generate a random flame
+    f = GenRandomFlame(randopt, numbasic=5)
     # Normalize weights of xforms in this flame
     # to a sum of 0.5
     utils.normalize_weights(f,norm=0.5)
@@ -38,20 +39,19 @@ for f in lst:
 
     # Add one more all-linear xform with weight 0.5
     # with the magic rotation & offset
-    lastx = f.add_xform()
+    lastx = f.add_xform(weight=0.5, color_speed=0)
 
     lastx.rotate(random.uniform(rand_angle_min,rand_angle_max))
     lastx.c = random.uniform(-0.5, 0.5)
     lastx.f = random.uniform(-0.5, 0.5)
-    lastx.weight = 0.5
-    lastx.color_speed = 0
 
     # reframe and name the flame
     f.reframe()
-    f.name = "lolpolpolpo_%03d" % k
     
-    k+=1
+    return f
 
-# Display the batch on the UI
-save_flames("parameters/lolpolpolpo_batch.flame",*lst)
+if __name__ == "__main__":
+    lst = utils.batch(lolpolpolpo, 20)
+    save_flames("parameters/lolpolpolpo_batch.flame", *lst)
+
 

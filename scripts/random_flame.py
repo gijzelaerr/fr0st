@@ -1,5 +1,5 @@
 from fr0stlib.functions import randrange2
-from fr0stlib.fr0stlib import Flame, Xform
+from fr0stlib import Flame, Xform
 
 def GenRandomBatch(numrand,*a, **k):
 
