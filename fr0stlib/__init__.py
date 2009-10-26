@@ -3,6 +3,7 @@ from fr0stlib import _utils as utils
 from fr0stlib.pyflam3 import Genome,RandomContext,flam3_estimate_bounding_box
 from fr0stlib.pyflam3.variations import variable_list,variation_list,variables
 from fr0stlib.pyflam3.constants import flam3_nvariations
+from fr0stlib.compatibility import compatibilize
 from math import *
 
 from fr0stlib.functions import *
@@ -29,12 +30,13 @@ class Flame(object):
     re_xform  = re.compile(r'<[a-zA-Z]*xform .*?/>')
     re_attr   = re.compile(r'[^ ]*?=".*?(?=")') # Works for xforms and header  
 
-    _default = set(("final", "gradient", "xform", "name", "version",
+    _default = set(("final", "gradient", "xform", "name",
                     "width", "height", "x_offset", "y_offset"))
     
     def __init__(self, string=""):
         # Set minimum required attributes.
         self.name = "Untitled"
+        self.version = VERSION
         self.xform = []
         self.size = 512, 384
         self.center = [0.0, 0.0]
@@ -66,7 +68,6 @@ class Flame(object):
 
             
     def from_string(self,string):
-            
         # Create the gradient
         self.gradient = Palette(string)
                 
@@ -97,18 +98,16 @@ class Flame(object):
             
             setattr(self,name,val)
 
-        # Scale needs to be converted to Apo notation. This is reversed in
-        # the to_string method
+        # Scale needs to be converted. This is reversed in to_string.
         self.scale = self.scale * 100 / self.size[0]
-
-        # zoom is deprecated, so scale is adjusted by the zoom value
-        if hasattr(self,"zoom"):
-            self.scale *= 2**self.zoom
-            del self.zoom
             
-        sym = self.re_symmetry.findall(string);
+        sym = self.re_symmetry.findall(string)
         if sym:
             self.add_symmetry(int(sym[0]))
+
+        if self.version != VERSION:
+            compatibilize(self, VERSION)
+
         
     def to_string(self, omit_details=False):
         """Extracts parameters from a Flame object and converts them into
@@ -145,13 +144,6 @@ class Flame(object):
 
     def __repr__(self):
         return '<flame "%s">' % self.name
-    
-
-    def _set_soloxform(self, v):
-        for xform in self.xform:
-            xform.opacity = 1.0 if xform.index == v else 0.0
-
-    soloxform = property(None, _set_soloxform)
     
 
     def add_final(self, **kwds):
@@ -275,7 +267,6 @@ class Flame(object):
 
     def iter_attributes(self):
         return itertools.chain((("name", self.name),
-                                ("version", VERSION),
                                 ("size", self.size),
                                 ("center", self.center)),
                                ((k,v) for (k,v) in self.__dict__.iteritems()
@@ -320,7 +311,7 @@ class Palette(list):
             if len(self) != 256:
                 raise ParsingError("Palette data unreadable")
         else:
-            for i in xrange(0, 256): self.append((0, 0, 0))
+            self.extend((0, 0, 0) for i in xrange(256))
 
 
     def to_string(self, newformat=True):
@@ -346,7 +337,7 @@ class Palette(list):
         for i in xrange(256):
             h,l,s = rgb2hls(self[i])
             s += value
-            s = clip(s,0,0.999999)
+            s = clip(s,0,1)
             self[i] = hls2rgb((h,l,s))
 
             
@@ -355,7 +346,7 @@ class Palette(list):
         for i in xrange(256):
             h,l,s = rgb2hls(self[i])
             l += value
-            l = clip(l,0,0.999999)
+            l = clip(l,0,1)
             self[i] = hls2rgb((h,l,s))
 
             
@@ -559,11 +550,6 @@ class Xform(object):
         x = Xform(parent, **kwds)
         # Convert from screen to complex plane orientation
         x.coefs = x.screen_coefs
-        
-        # Symmetry is deprecated, so we factor it into the equivalent attrs.
-        x.color_speed = x.__dict__.get("color_speed", (1 - x.symmetry) / 2.0)
-        x.animate = x.__dict__.get("animate", float(x.symmetry <= 0))
-        x.symmetry = 0.0
             
         return x
 
@@ -622,14 +608,6 @@ class Xform(object):
         if self is self._parent.final:
             return None
         return self._parent.xform.index(self)
-
-
-    def _set_plotmode(self, v):
-        if v.lower() == "off":
-            self.opacity = 0.0
-        else:
-            raise ValueError('Plotmode can only be set to "off"')
-    plotmode = property(None, _set_plotmode)
     
        
     @property

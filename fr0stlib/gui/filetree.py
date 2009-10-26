@@ -251,10 +251,9 @@ class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
         data.imgindex = self.newimgindex()
         # This is the only place where a request is made directly with a
         # string. The _flam3_render function checks for this special case.
-        callback = partial(self.UpdateThumbnail, child=child, data=data)
-        self.parent.parent.renderer.ThumbnailRequest(callback,data[-1],
-                                            self.isz,quality=10,estimator=1,
-                                                     filter_radius=0)
+        req = self.parent.parent.renderer.ThumbnailRequest
+        req(partial(self.UpdateThumbnail, child=child, data=data),
+            Flame(data[-1]), self.isz, quality=10, estimator=1,filter_radius=0)
 
 
     def UpdateThumbnail(self, bmp, child, data):

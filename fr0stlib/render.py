@@ -4,10 +4,8 @@ from fr0stlib import Flame
 
 def flam3_render(flame, size, quality, **kwds):
     """Passes render requests on to flam3."""
-    string = flame if type(flame) is str else flame.to_string()
-        
     try:
-        genome = Genome.from_string(string)[0]
+        genome = Genome.from_string(flame.to_string())[0]
     except Exception:
         raise ValueError("Error while parsing flame string.")
         
