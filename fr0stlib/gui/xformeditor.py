@@ -82,19 +82,21 @@ class XformPanel(wx.Panel):
         self.view = "triangle"
         self.parent = parent.parent
 
-        # Add the number fields
         def cb(tc, tempsave=True):
             self.parent.image.RenderPreview()
             self.parent.canvas.ShowFlame(rezoom=False)
             self.UpdateFlame(tempsave=tempsave)
+
+        self.weight = NumberTextCtrl(self, callback=cb)
+        self.weight.SetAllowedRange(low=0)
+
+        # Add the number fields
         for i in "adbecf":
             setattr(self, i, NumberTextCtrl(self, callback=cb))
-        btn = (wx.Button(self,-1,i,name=i,style=wx.BU_EXACTFIT) for i in "xyo")
-
+        xyo_btn = [wx.Button(self,-1,i,name=i,style=wx.BU_EXACTFIT) for i in "xyo"]
         fgs = wx.FlexGridSizer(3,3,1,1)
         itr = (getattr(self, i) for i in "adbecf")
-        fgs.AddMany(itertools.chain(*zip(btn, itr, itr)))
-
+        fgs.AddMany(itertools.chain(*zip(xyo_btn, itr, itr)))
 
         # Add the view buttons
         r1 = wx.RadioButton(self, -1, "triangle", style = wx.RB_GROUP )
@@ -118,8 +120,6 @@ class XformPanel(wx.Panel):
 
         # Add weight box
         weightsizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.weight = NumberTextCtrl(self, callback=cb)
-        self.weight.SetAllowedRange(low=0)
         weightsizer.AddMany((
                (wx.StaticText(self, -1, "Weight"), 0, wx.ALIGN_CENTER_VERTICAL),
                (self.weight, 0, wx.ALL, 1)
@@ -160,7 +160,22 @@ class XformPanel(wx.Panel):
         self.SetSizer(sizer)
         self.Layout()
 
-        
+        # Setup tab order
+
+        prev = self.weight
+
+        tab_order = [
+                xyo_btn[0], self.a, self.d,
+                xyo_btn[1], self.b, self.e,
+                xyo_btn[2], self.c, self.f,
+                r1, r2, r3, self.postflag,
+                reset, solo,
+                ]  + btn[:10] + btn[11:11+3]
+
+        for x in tab_order:
+            x.MoveAfterInTabOrder(prev)
+            prev = x
+
     def MakeComboBox(self, name, default):
         cb = wx.ComboBox(self, -1, str(default), name=name, size=(80,28),
                          choices=self.choices[name])
