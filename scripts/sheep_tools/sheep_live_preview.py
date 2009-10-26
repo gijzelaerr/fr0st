@@ -25,6 +25,7 @@ def ScriptHack(func):
         # exception, so we need the finally clause.
         self.image.RenderPreview = preview
         preview()
+        large_preview()
 
 
 
