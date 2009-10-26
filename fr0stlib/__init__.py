@@ -572,17 +572,10 @@ class Xform(object):
         lst = ['   <%sxform '%("final" if self.isfinal() else "")]
         lst.extend('%s="%s" ' %i for i in self.iter_attributes())
         lst.append('coefs="%s %s %s %s %s %s" ' % self.screen_coefs)
-
-        # Write the post xform.
         lst.append(self.post.to_string())
-
-        # Write the chaos values.
-        xaos = self.chaos.get_list()
-        if xaos:
-            lst.append('chaos="%s " />\n' % " ".join(map(str,xaos)))
-        else:
-            lst.append('/>\n')
-
+        lst.append(self.chaos.to_string())
+        lst.append('/>\n')
+        
         return "".join(lst)
     
             
@@ -847,7 +840,10 @@ class Xform(object):
         if self.isfinal():
             self._parent.final = None            
         else:
+            index = self.index
             self._parent.xform.remove(self)
+            for x in self._parent.xform:
+                del x.chaos[index]
 
 
 
@@ -891,7 +887,10 @@ class Chaos(list):
     def __init__(self, parent, lst):
         self._parent = parent
         lst = map(float, lst)
-        lst.extend(1.0 for i in range(100-len(lst)))
+        # HACK: 100 extra items could run out in theory. However, it's
+        # complicated to do a "proper" implementation of this, due to the slice
+        # methods.
+        lst.extend(1.0 for i in xrange(100))
         list.__init__(self, lst)
 
     def __len__(self):
@@ -900,7 +899,7 @@ class Chaos(list):
         return len(self._parent._parent.xform)
 
     def __iter__(self):
-        return (self[i] for i in range(len(self)))
+        return (self[i] for i in xrange(len(self)))
         
     def __getitem__(self,pos):
         if abs(pos) > len(self)-1:
@@ -927,17 +926,15 @@ class Chaos(list):
             raise NotImplementedError, "Negative slicing not supported"
         list.__setslice__(self,pos,pos2,val)
 
-    def get_list(self):
-        lst = list.__getslice__(self,0,len(self))
+    def to_string(self):
+        lst = self[:]
         for i in reversed(lst):
-            if i != 1: break
+            if i != 1:
+                break
             lst.pop()
-        return lst
+        return 'chaos="%s " ' % " ".join(str(i) for i in lst) if lst else ""
 
-#-------------------------------------------------------------------------------
-"""
-File functions from functions to avoid circular import
-"""
+
 
 def save_flames(filename,*flames):
     lst = [f.to_string() if isinstance(f,Flame) else f for f in flames]
