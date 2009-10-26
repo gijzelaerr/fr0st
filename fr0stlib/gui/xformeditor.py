@@ -71,7 +71,7 @@ class XformPanel(wx.Panel):
     _scale = 1.25
 
     choices = {"rotate": map(str, (5, 15, 30, 45, 60, 90, 120, 180)),
-               "translate": map(str,(1.0, 0.5, 0.25, 0.1, 0.05, 0.025, 0.001)),
+               "translate": map(str,(1.0, 0.5, 0.25, 0.1, 0.05, 0.025, 0.01)),
                "scale": map(str, (1.1, 1.25, 1.5, 1.75, 2.0))}
 
     @BindEvents
