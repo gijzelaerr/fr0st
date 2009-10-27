@@ -58,13 +58,18 @@ class Flame(object):
 
 
     @classmethod
-    def load_file(cls,filename):
+    def load_file(cls, filename):
         """Retrieves all flame data from a flame file and turns it
         into strings."""
-        f = open(filename,"r")
-        flamestrings = cls.re_flame.findall(f.read())
-        f.close()
-        return flamestrings
+        with open(filename) as f:
+            return cls.from_strings(f.read(), type=str)
+        
+
+    @classmethod
+    def from_strings(cls, string, type=None):
+        """Parses an xml string and returns a list of flames."""
+        type = type or cls
+        return [type(i) for i in cls.re_flame.findall(string)]
 
             
     def from_string(self,string):
