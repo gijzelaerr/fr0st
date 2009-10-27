@@ -457,7 +457,6 @@ class XformCanvas(FC.FloatCanvas):
         else:
             self.ZoomToBB(DrawFlag=False)
         self.AdjustZoom()
-        self.SetFocus() # Otherwise focus stays on Button.
 
 
     @Bind(wx.EVT_ENTER_WINDOW)
