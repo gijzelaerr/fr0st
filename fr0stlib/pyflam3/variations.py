@@ -123,11 +123,10 @@ VAR_TANH = 92
 VAR_SECH = 93
 VAR_CSCH = 94
 VAR_COTH = 95
-VAR_FLIP = 96
 
 
 variations = {}
-variation_list = [None] * 97 #flam3_nvariations
+variation_list = [None] * 96 #flam3_nvariations
 for k,v in locals().items():
     if k.startswith("VAR_"):
         name = k[4:].lower()
