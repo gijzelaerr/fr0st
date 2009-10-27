@@ -351,7 +351,7 @@ class MainWindow(wx.Frame):
             flame.gradient.random(**config["Gradient-Settings"])
         data = ItemData(flame.to_string())
 
-        self.tree.GetChildren((0,)).append((data,[]))
+        self.tree.GetChildItems((0,)).append((data,[]))
         self.tree.RefreshItems()
 
         # This is needed to avoid an indexerror when getting child.

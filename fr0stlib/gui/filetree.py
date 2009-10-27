@@ -165,7 +165,7 @@ class TreePanel(wx.Panel):
     @Bind(wx.EVT_MENU, id=ID.DELETE)
     def OnDelete(self, e):
         index = self.tree.GetIndexOfItem(self.tree.item)[-1]
-        children = self.tree.GetChildren((0,))
+        children = self.tree.GetChildItems((0,))
         children.pop(index)
         if not children:
             # Make sure the flamefile is never empty.
@@ -277,7 +277,7 @@ class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
         if not dropindex:
             return
 
-        lst = self.GetChildren((0,))
+        lst = self.GetChildItems((0,))
 
         fromindex = dragindex[1] if len(dragindex) > 1 else 0
         toindex = dropindex[1] +1 if len(dropindex) > 1 else 0
@@ -301,7 +301,7 @@ class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
         return data, children
 
 
-    def GetChildren(self, indices):
+    def GetChildItems(self, indices):
         return self.GetItem(indices)[1]
 
 
@@ -323,7 +323,7 @@ class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
 
 
     def GetDataList(self):
-        return [i for i,_ in self.GetChildren((0,))]
+        return [i for i,_ in self.GetChildItems((0,))]
 
 
     def GetFlames(self, type=Flame):
@@ -339,7 +339,7 @@ class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
         return self.GetItem(indices)[0].name
 
     def OnGetChildrenCount(self, indices):
-        return len(self.GetChildren(indices))
+        return len(self.GetChildItems(indices))
 
     def OnGetItemImage(self, indices, *args):
         if len(indices) == 1:
