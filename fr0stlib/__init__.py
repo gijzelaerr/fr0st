@@ -892,8 +892,7 @@ class Chaos(list):
     def __getslice__(self,pos,pos2):
         if (pos<0) or (pos2<0):
             raise NotImplementedError, "Negative slicing not supported"
-        if pos2 > len(self): pos2 = len(self)
-        return list.__getslice__(self,pos,pos2)
+        return list.__getslice__(self,pos, min(pos2, len(self)))
     
     def __setitem__(self,pos,val):
         if val < 0:
@@ -907,7 +906,7 @@ class Chaos(list):
             raise ValueError(val)
         if (pos<0) or (pos2<0):
             raise NotImplementedError, "Negative slicing not supported"
-        list.__setslice__(self,pos,pos2,val)
+        list.__setslice__(self, pos, min(pos2, len(self)), val)
 
     def to_string(self):
         lst = self[:]
