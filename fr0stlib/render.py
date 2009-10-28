@@ -4,10 +4,10 @@ from fr0stlib import Flame
 
 def flam3_render(flame, size, quality, **kwds):
     """Passes render requests on to flam3."""
-    try:
-        genome = Genome.from_string(flame.to_string())[0]
-    except Exception:
-        raise ValueError("Error while parsing flame string.")
+#    try:
+    genome = Genome.from_string(flame.to_string())[0]
+#    except Exception:
+#        raise ValueError("Error while parsing flame string.")
         
     width,height = size
 
