@@ -169,7 +169,7 @@ excludes = [
     'ctypes.util', 'curses', 'datetime', 'difflib', 'difflib',
     'doctest', 'email', 'hashlib', 'multiprocessing',
     'numpy.core._dotblas', 'numpy.numarray', 'numpy.numarray.util',
-    'numpy.random', 'optparse', 'parser', 'pdb', 'pkgutil', 'pprint',
+    'numpy.random', 'optparse', 'parser', 'pdb', 'pkgutil', 
     'pydoc', 'pyexpat', 'pyreadline', 'pywin.debugger',
     'pywin.debugger.dbgcon', 'pywin.dialogs', 'readline', 'rfc822',
     'select', 'sets', 'shlex', 'signal', 'socket', 'ssl', 'subprocess',
