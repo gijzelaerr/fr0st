@@ -326,6 +326,10 @@ class Gradient(wx.Panel):
         dc.DrawBitmap(self.bmp, 2, 2, True)
 
 
+    @Bind(wx.EVT_MOUSE_CAPTURE_LOST)
+    def OnLostMouseCapture(self, e):
+        self._startpos = None
+
     @Bind(wx.EVT_LEFT_DOWN)
     def OnLeftDown(self, e):
         self.CaptureMouse()
