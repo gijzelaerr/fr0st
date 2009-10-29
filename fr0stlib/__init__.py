@@ -1,4 +1,8 @@
 import re, shutil, random, itertools, Image, numpy, ctypes
+import collections
+import xml.etree.cElementTree as etree
+import numpy as np
+from cStringIO import StringIO
 from fr0stlib import _utils as utils
 from fr0stlib.pyflam3 import Genome,RandomContext,flam3_estimate_bounding_box
 from fr0stlib.pyflam3.variations import variable_list,variation_list,variables
@@ -293,6 +297,60 @@ class Flame(object):
     def center(self, v):
         self.x_offset, self.y_offset = v
     
+
+class Palette2(collections.Sequence):
+    def __init__(self):
+        self.data = np.zeros((256, 3), dtype=np.uint8)
+
+    def __len__(self):
+        return 256
+
+    def __getitem__(self, key):
+        return self.data[key]
+
+    def __getslice__(self, slice):
+        return self.data[slice]
+
+    def __setitem__(self, key, value):
+        self.data[key] = value
+
+#    def __contains__(self, value):
+#        return NotImplementedError("contains makes no sense on palettes")
+
+    def __str__(self):
+        return ''.join((
+            '<color index="%s" rgb="%s %s %s"/>\n' % ((idx,) + tuple(self.data[idx])) for idx in range(256)))
+
+    @classmethod
+    def from_string(cls, string):
+        tree = etree.parse(StringIO(string))
+        return cls.from_flame_element(tree.getroot())
+
+    @classmethod
+    def from_flame_element(cls, flame):
+        palette_element = flame.find('palette')
+        palette = cls()
+
+        if palette_element is not None:
+            if int(palette_element.get('count')) != 256:
+                raise ParsingError('Palette must contain 256 entries')
+
+            if palette_element.get('format').strip().lower() != 'rgb':
+                raise ParsingError('Only rgb palettes are currently supported')
+
+            data = ''.join(palette_element.text.split())
+
+            for idx in range(0, len(data), 6):
+                palette.data[idx/6] = map(lambda x: int(x, 16),
+                        [data[idx:idx+2], data[idx+2:idx+4], data[idx+4:idx+6]])
+
+            if idx != 255 * 6:
+                raise ParsingError('Not enough palette entries specified: %s != %s' % (255 * 6, idx))
+
+            return palette
+        else:
+            pass
+
 
 
 class Palette(list):
