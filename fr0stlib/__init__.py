@@ -4,6 +4,7 @@ import itertools
 import ctypes
 import collections
 import xml.etree.cElementTree as etree
+import copy
 
 import Image
 import numpy
@@ -348,7 +349,6 @@ class Palette(collections.Sequence):
             h += value
             h = clip(h,0,1,True)
             rgb = hls2rgb((h,l,s))
-            print rgb
             self.data[i] = hls2rgb((h,l,s))
 
             
@@ -484,6 +484,7 @@ class Xform(object):
                 post = [1.0, 0.0, 0.0, 1.0, 0.0, 0.0]
             self._post = PostXform(self, screen_coefs=post)
 
+
     @classmethod
     def random(cls, parent, xv=range(flam3_nvariations), n=1, xw=0, fx=0, col=0, ident=0, **kwds):
 
@@ -549,11 +550,6 @@ class Xform(object):
 
         return x
 
-    @classmethod
-    def from_string(cls, parent, string):
-        tree = etree.parse(StringIO(string))
-        return cls.from_element(parent, tree.getroot())
-
     def to_string(self):
         lst = ['   <%sxform '%("final" if self.isfinal() else "")]
         lst.extend('%s="%s" ' %i for i in self.iter_attributes())
@@ -580,8 +576,16 @@ class Xform(object):
         """Returns a default value for non-existing attributes"""
         # __getattribute__ is the real lookup special method,  __getattr__ is
         # only called when it fails.
-        return 0.0
+        if v in variation_list:
+            return 0.0
 
+        if v in self._default:
+            return 0.0
+
+        if v in ('symmetry', 'plotmode', 'index'):
+            return 0.0
+
+        raise AttributeError()
 
     @property
     def chaos(self):
@@ -808,9 +812,22 @@ class Xform(object):
     
     def copy(self):
         if not self.isfinal():
-            xf = Xform.from_string(self._parent,
-                                   self.to_string())
+            self._parent, parent = None, self._parent
+            self._chaos, chaos = None, self._chaos
+            self.post._parent = None
+            xf = copy.deepcopy(self)
+
+            xf.post._parent = xf
+            xf._parent = parent
+
+            self._chaos = chaos
+            self._parent = parent
+            self.post._parent = self
+
+            xf._chaos = Chaos(xf, chaos)
+
             self._parent.xform.append(xf)
+
             return xf
 
 
