@@ -897,7 +897,7 @@ class Chaos(list):
         # HACK: 100 extra items could run out in theory. However, it's
         # complicated to do a "proper" implementation of this, due to the slice
         # methods.
-        lst.extend(1.0 for i in xrange(100))
+        lst.extend([1] * 100)
         list.__init__(self, lst)
 
     def __len__(self):
