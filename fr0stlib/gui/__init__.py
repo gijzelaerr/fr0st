@@ -282,9 +282,6 @@ class MainWindow(wx.Frame):
 
         # check for script diffs
         self.OnStopScript()
-##        while self.scriptrunning:
-####            self.log.oldstderr.write("sleeping\n")
-##            time.sleep(.01)
         if self.editorframe.CheckForChanges() == wx.ID_CANCEL:
             return
 
@@ -732,6 +729,10 @@ class ImagePanel(PreviewBase):
         self.__class__ = PreviewBase
         PreviewBase.__init__(self, parent)
         self.__class__ = ImagePanel
+
+        # Double buffering is needed to prevent flickering.
+        self.SetDoubleBuffered(True)
+
         self.SetSize((256, 220))
         self.bmp = wx.EmptyBitmap(400,300, 32)
 

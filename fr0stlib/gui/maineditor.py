@@ -151,6 +151,9 @@ class GradientPanel(wx.Panel):
         wx.Panel.__init__(self,parent,-1)
         self.parent = parent.parent
 
+        # Double buffering is needed to prevent flickering.
+        self.SetDoubleBuffered(True)
+
         self.config = config["Gradient-Settings"]
         self.dict = {}
 
