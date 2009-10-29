@@ -348,7 +348,7 @@ class Palette(collections.Sequence):
                 if color.get('rgba') is not None and color.get('rgb') is None:
                     raise ParsingError('Only rgb palettes are currently supported')
 
-                palette.data[int(color.get('index'))] = map(int, color.get('rgb').split())
+                palette.data[int(color.get('index'))] = map(float, color.get('rgb').split())
 
         return palette
 
