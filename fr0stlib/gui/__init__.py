@@ -392,7 +392,7 @@ class MainWindow(wx.Frame):
                 self.OnFlameNew2(string=flame.to_string())
             else:
                 if os.path.exists(newpath):
-                    lst = Flame.load_file(newpath)
+                    lst = fr0stlib.load_flame_strings(newpath)
                 else:
                     lst = []
                 lst.append(flame.to_string())
@@ -490,7 +490,7 @@ class MainWindow(wx.Frame):
 
         if os.path.exists(path):
             # scan the file to see if it's valid
-            flamestrings = Flame.load_file(path)
+            flamestrings = fr0stlib.load_flame_strings(path)
             if not flamestrings:
                 dlg = wx.MessageDialog(self, "It seems %s is not a valid flame file. Please choose a different flame." % path,
                                        'Fr0st',wx.OK)

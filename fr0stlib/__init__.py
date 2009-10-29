@@ -1,7 +1,12 @@
-import re, shutil, random, itertools, Image, numpy, ctypes
+import shutil
+import random
+import itertools
+import ctypes
 import collections
 import xml.etree.cElementTree as etree
-import numpy as np
+
+import Image
+import numpy
 from cStringIO import StringIO
 from fr0stlib import _utils as utils
 from fr0stlib.pyflam3 import Genome,RandomContext,flam3_estimate_bounding_box
@@ -28,12 +33,6 @@ class ParsingError(Exception):
 
 
 class Flame(object):
-    re_flame  = re.compile(r'<flame .*?</flame>',re.DOTALL)
-    re_header = re.compile(r'<flame .*?>')
-    re_symmetry = re.compile(r'<symmetry kind="(-?\d+)"\s*/>')
-    re_xform  = re.compile(r'<[a-zA-Z]*xform .*?/>')
-    re_attr   = re.compile(r'[^ ]*?=".*?(?=")') # Works for xforms and header  
-
     _default = set(("final", "gradient", "xform", "name",
                     "width", "height", "x_offset", "y_offset"))
     
@@ -60,44 +59,23 @@ class Flame(object):
         if string:
             self.from_string(string)
 
+    def from_element(self, element):
+        self.gradient = Palette.from_flame_element(element)
 
-    @classmethod
-    def load_file(cls, filename):
-        """Retrieves all flame data from a flame file and turns it
-        into strings."""
-        with open(filename) as f:
-            return cls.from_strings(f.read(), type=str)
-        
+        for xform in element.findall('xform'):
+            self.xform.append(Xform.from_element(self, xform))
 
-    @classmethod
-    def from_strings(cls, string, type=None):
-        """Parses an xml string and returns a list of flames."""
-        type = type or cls
-        return [type(i) for i in cls.re_flame.findall(string)]
+        self.final = None
 
-            
-    def from_string(self,string):
-        # Create the gradient
-        self.gradient = Palette.from_string(string)
-                
-        # Create the Xform objects
-        for xfstr in self.re_xform.findall(string):
-            x = Xform.from_string(self, xfstr)
-
-            # Assign the xform to the correct location, 
-            if x.weight:
-                self.xform.append(x)
-            elif not self.final:
-                self.final = x
-            else:
+        for final in element.findall('finalxform'):
+            if self.final is not None:
                 raise ParsingError("More than one final xform found")
 
-            
+            self.final = Xform.from_element(self, final)
+
         # Record the header data. This is done after loading xforms so the
         # soloxform fiasco can be safely defused.
-        for attr in self.re_attr.findall(self.re_header.search(string).group()):
-            name, val = attr.split('="')
-                
+        for name, val in element.items():
             # Convert value to the appropriate type
             try:
                 if " " in val: val = tuple(float(i) for i in val.split())
@@ -110,13 +88,18 @@ class Flame(object):
         # Scale needs to be converted. This is reversed in to_string.
         self.scale = self.scale * 100 / self.size[0]
             
-        sym = self.re_symmetry.findall(string)
-        if sym:
-            self.add_symmetry(int(sym[0]))
+        sym = element.find('symmetry')
+        if sym is not None:
+            self.add_symmetry(int(sym.get('kind')))
 
         if self.version != VERSION:
             compatibilize(self, VERSION)
 
+        return self
+
+    def from_string(self,string):
+        tree = etree.parse(StringIO(string))
+        self.from_element(tree.getroot())
         
     def to_string(self, omit_details=False):
         """Extracts parameters from a Flame object and converts them into
@@ -300,7 +283,7 @@ class Flame(object):
 
 class Palette(collections.Sequence):
     def __init__(self, string=None):
-        self.data = np.zeros((256, 3), dtype=np.uint8)
+        self.data = numpy.zeros((256, 3), dtype=numpy.uint8)
 
     def __len__(self):
         return 256
@@ -363,8 +346,8 @@ class Palette(collections.Sequence):
 
 
     def rotate(self, index):
-        self.data = np.array(
-                list(self.data[-index:]) + list(self.data[:-index]), dtype=np.uint8)
+        self.data = numpy.array(
+                list(self.data[-index:]) + list(self.data[:-index]), dtype=numpy.uint8)
 
     def hue(self, value):
         value = value/360.0
@@ -436,7 +419,7 @@ class Palette(collections.Sequence):
             b = utils.pblend(rspl[2], comp[2], (i/float(dist)), cur)
             gen.append((r, g, b))
         
-        self.data = np.array(gen, dtype=uint8)
+        self.data = numpy.array(gen, dtype=uint8)
 
 
     def from_seeds(self, seeds, curve='cos'):
@@ -457,7 +440,7 @@ class Palette(collections.Sequence):
                 s = utils.pblend(seeds[i-1][1], seeds[i][1], (j/float(ds[i])), cur)
                 v = utils.pblend(seeds[i-1][2], seeds[i][2], (j/float(ds[i])), cur)
                 gen.append(hsv2rgb((h,s,v)))
-        self.data = np.array(gen, dtype=uint8)
+        self.data = numpy.array(gen, dtype=uint8)
 
 
     def random(self, hue=(0,1), saturation=(0,1), value=(0,1),  nodes=(5,5),
@@ -558,10 +541,10 @@ class Xform(object):
         return x
 
     @classmethod
-    def from_string(cls, parent, string):
+    def from_element(cls, parent, element):
         kwds = {}
-        for s in parent.re_attr.findall(string):
-            name, val = s.split('="')
+
+        for name, val in element.items():
             try:
                 if " " in val: kwds[name] = map(float,val.split())
                 else:          kwds[name] = float(val)
@@ -571,10 +554,14 @@ class Xform(object):
         x = Xform(parent, **kwds)
         # Convert from screen to complex plane orientation
         x.coefs = x.screen_coefs
-            
+
         return x
 
-    
+    @classmethod
+    def from_string(cls, parent, string):
+        tree = etree.parse(StringIO(string))
+        return cls.from_element(parent, tree.getroot())
+
     def to_string(self):
         lst = ['   <%sxform '%("final" if self.isfinal() else "")]
         lst.extend('%s="%s" ' %i for i in self.iter_attributes())
@@ -946,6 +933,15 @@ def save_flames(filename,*flames):
     f.close()
 
 
+def load_flame_strings(filename):
+    with open(filename) as fd:
+        tree = etree.parse(fd)
+
+    return [etree.tostring(e) for e in tree.findall('flame')]
+
 def load_flames(filename):
     """Reads a flame file and returns a list of flame objects."""
-    return [Flame(string=i) for i in Flame.load_file(filename)]
+    with open(filename) as fd:
+        tree = etree.parse(fd)
+
+    return [Flame().from_element(e) for e in tree.findall('flame')]
