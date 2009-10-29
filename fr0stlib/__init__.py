@@ -78,7 +78,7 @@ class Flame(object):
             
     def from_string(self,string):
         # Create the gradient
-        self.gradient = Palette(string)
+        self.gradient = Palette.from_string(string)
                 
         # Create the Xform objects
         for xfstr in self.re_xform.findall(string):
@@ -298,8 +298,8 @@ class Flame(object):
         self.x_offset, self.y_offset = v
     
 
-class Palette2(collections.Sequence):
-    def __init__(self):
+class Palette(collections.Sequence):
+    def __init__(self, string=None):
         self.data = np.zeros((256, 3), dtype=np.uint8)
 
     def __len__(self):
@@ -307,9 +307,6 @@ class Palette2(collections.Sequence):
 
     def __getitem__(self, key):
         return self.data[key]
-
-    def __getslice__(self, slice):
-        return self.data[slice]
 
     def __setitem__(self, key, value):
         self.data[key] = value
@@ -320,6 +317,9 @@ class Palette2(collections.Sequence):
     def __str__(self):
         return ''.join((
             '<color index="%s" rgb="%s %s %s"/>\n' % ((idx,) + tuple(self.data[idx])) for idx in range(256)))
+
+    def to_string(self):
+        return str(self)
 
     @classmethod
     def from_string(cls, string):
@@ -347,101 +347,48 @@ class Palette2(collections.Sequence):
             if idx != 255 * 6:
                 raise ParsingError('Not enough palette entries specified: %s != %s' % (255 * 6, idx))
 
-            return palette
         else:
-            pass
+            for color in flame.findall('color'):
+                palette.data[int(color.get('index'))] = map(int, color.get('rgb').split())
+
+        return palette
+
 
     def rotate(self, index):
         self.data = np.array(
                 list(self.data[-index:]) + list(self.data[:-index]), dtype=np.uint8)
 
-
-class Palette(list):
-    re_grad = re.compile(r'[0-9A-F]{6}(?=[0-9A-F]*.?$)',re.MULTILINE)
-    re_old_grad  = re.compile(r'<color index="[\d]{1,3}" rgb="([\d\. ]*)"/>')
-    
-    formatstr = ('   <palette count="256" format="RGB">' +
-                 32 * ('\n      ' + 24 * '%02X') +
-                 '\n   </palette>\n')
-    old_formatstr = "".join('   <color index="%s" rgb="%%s %%s %%s"/>\n' %i
-                                for i in range(256))
-    
-    def __init__(self,string=""):
-        if string:
-            for i in self.re_grad.findall(string):
-                self.append((int(i[0:2],16),
-                             int(i[2:4],16),
-                             int(i[4:6],16)))
-            for i in self.re_old_grad.findall(string):
-                self.append(map(float, i.split()))
-            if len(self) != 256:
-                raise ParsingError("Palette data unreadable")
-        else:
-            self.extend((0, 0, 0) for i in xrange(256))
-
-
-    def to_string(self, newformat=True):
-        s = self.formatstr if newformat else self.old_formatstr
-        return s % tuple(itertools.chain(*self))
-
-
-    def rotate(self, index):
-        self[:] = self[-index:] + self[:-index]
-
-    
     def hue(self, value):
         value = value/360.0
         for i in xrange(256):
-            h,l,s = rgb2hls(self[i])
+            h,l,s = rgb2hls(self.data[i])
             h += value
             h = clip(h,0,1,True)
-            self[i] = hls2rgb((h,l,s))
+            rgb = hls2rgb((h,l,s))
+            print rgb
+            self.data[i] = hls2rgb((h,l,s))
 
             
     def saturation(self, value):
         value = value/100.0
         for i in xrange(256):
-            h,l,s = rgb2hls(self[i])
+            h,l,s = rgb2hls(self.data[i])
             s += value
             s = clip(s,0,1)
-            self[i] = hls2rgb((h,l,s))
+            self.data[i] = hls2rgb((h,l,s))
 
             
     def brightness(self, value):
         value = value/100.0
         for i in xrange(256):
-            h,l,s = rgb2hls(self[i])
+            h,l,s = rgb2hls(self.data[i])
             l += value
             l = clip(l,0,1)
-            self[i] = hls2rgb((h,l,s))
+            self.data[i] = hls2rgb((h,l,s))
 
             
     def invert(self):
-        self[:] = ((255 - i[0], 255 - i[1], 255 - i[2]) for i in self)
-
-  
-##    def blur(self, value, space='rgb'):
-##        value = clip(value,0,127)
-##        tmp = []
-##        for i in xrange(0, len(self)):
-##            a = self[i-1]
-##            b = self[i]
-##            if i==len(self)-1: c = self[0]
-##            else:            c = self[i+1]
-##            if space=='hls':
-##                a = rgb2hls(a)
-##                b = rgb2hls(b)
-##                c = rgb2hls(c)
-##            v = value
-##            w = 127 - value
-##            r = (v*a[0] + 2*w*b[0] + v*c[0])/(4.0*127)
-##            g = (v*a[1] + 2*w*b[1] + v*c[1])/(4.0*127)
-##            b = (v*a[2] + 2*w*b[2] + v*c[2])/(4.0*127)
-##            if space=='hls':
-##                color = (hls2rgb((r,g,b)))
-##            color = (r,g,b)
-##            tmp.append(color)
-##        self[:] = tmp
+        self.data = 255 - self.data
 
         
     def from_seed(self, seed, csplit=0, split=30,  dist=64, curve='lin'):
@@ -481,7 +428,7 @@ class Palette(list):
             b = utils.pblend(rspl[2], comp[2], (i/float(dist)), cur)
             gen.append((r, g, b))
         
-        self[:] = gen
+        self.data = np.array(gen, dtype=uint8)
 
 
     def from_seeds(self, seeds, curve='cos'):
@@ -502,7 +449,7 @@ class Palette(list):
                 s = utils.pblend(seeds[i-1][1], seeds[i][1], (j/float(ds[i])), cur)
                 v = utils.pblend(seeds[i-1][2], seeds[i][2], (j/float(ds[i])), cur)
                 gen.append(hsv2rgb((h,s,v)))
-        self[:] = gen
+        self.data = np.array(gen, dtype=uint8)
 
 
     def random(self, hue=(0,1), saturation=(0,1), value=(0,1),  nodes=(5,5),
@@ -525,7 +472,7 @@ class Palette(list):
 
         best = utils.palette_improve(grab, num_tries, try_size)
         for i in xrange(256):
-            self[i] = (best[i,0], best[i,1], best[i,2])
+            self.data[i] = (best[i,0], best[i,1], best[i,2])
 
 
 class Xform(object):

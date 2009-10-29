@@ -60,6 +60,8 @@ IconsDir: %(IconsDir)s
 ParametersDir: %(ParametersDir)s
 """ % exception_info
 
+    print msg
+
     dlg = ExceptionDialog(frame, exc_type, exc_value, exception_info, msg)
     rv = dlg.ShowModal()
     dlg.Destroy()

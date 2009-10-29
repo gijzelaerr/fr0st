@@ -1,4 +1,5 @@
 import wx, itertools
+import copy
 
 from fr0stlib.decorators import *
 from fr0stlib.gui.canvas import XformCanvas
@@ -170,6 +171,7 @@ class GradientPanel(wx.Panel):
         self.image = Gradient(self)
         #Controls - choice for method and slider
         self.Selector = wx.Choice(self, -1, choices=[i[0] for i in choicelist])
+        self.Selector.SetSelection(0)
         self.Selector.Bind(wx.EVT_CHOICE, self.OnChoice)
 
         self.slider = wx.Slider(self, -1, 0, -180, 180,
@@ -258,7 +260,7 @@ class GradientPanel(wx.Panel):
     def OnIdle(self, e):
         if self._new is not None:
 
-            self.parent.flame.gradient[:] = self._grad_copy
+            self.parent.flame.gradient = self._grad_copy
 
             self.func(self._new)
             self._new = None
@@ -282,7 +284,7 @@ class GradientPanel(wx.Panel):
 
 
     def OnSliderDown(self, e):
-        self._grad_copy = self.parent.flame.gradient[:]
+        self._grad_copy = copy.deepcopy(self.parent.flame.gradient)
         self._startval = self.slider.GetValue()
         e.Skip()
 
@@ -315,8 +317,7 @@ class Gradient(wx.Panel):
     def Update(self, flame=None):
         flame = flame or self.parent.flame
 
-        buff = self.formatstr % tuple(itertools.chain(*flame.gradient))
-        img = wx.ImageFromBuffer(256, 1, buff)
+        img = wx.ImageFromBuffer(256, 1, buffer(flame.gradient.data))
         img.Rescale(384, 50)
         self.bmp = wx.BitmapFromImage(img)
 

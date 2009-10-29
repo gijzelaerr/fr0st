@@ -4,7 +4,7 @@ from cStringIO import StringIO
 from functools import partial
 
 
-from fr0stlib import Palette2 as Palette
+from fr0stlib import Palette
 
 
 
