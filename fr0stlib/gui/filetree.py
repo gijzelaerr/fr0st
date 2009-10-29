@@ -230,11 +230,16 @@ class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
         self.RefreshItems()
         parent = self.itemparent
 
-        self.Expand(parent)
+        # cancel all outstanding thumbnails.
+        self.parent.parent.renderer.thumbqueue[:] = []
 
+        self.Expand(parent)
+        
+        flag = self.flag = wx.NewId()
+        
         for child, data in zip(self.GetItemChildren(parent),
                                (i[0] for i in lst)):
-            self.RenderThumbnail(child, data)
+            self.RenderThumbnail(child, data, flag)
             # Set item to default until thumbnail is ready.
             self.SetItemImage(child, 2)
 
@@ -244,22 +249,23 @@ class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
         return parent
 
 
-    def RenderThumbnail(self, child=None, data=None):
+    def RenderThumbnail(self, child=None, data=None, flag=None):
         if child is None:
             child = self.item
             data = self.GetFlameData(child)
-        data.imgindex = self.newimgindex()
-        # This is the only place where a request is made directly with a
-        # string. The _flam3_render function checks for this special case.
         req = self.parent.parent.renderer.ThumbnailRequest
-        req(partial(self.UpdateThumbnail, child=child, data=data),
-            data[-1], self.isz, quality=10, estimator=1,filter_radius=0)
+        req(partial(self.UpdateThumbnail, child=child, data=data, flag=flag),
+            data[-1], self.isz, quality=10, estimator=1, filter_radius=0)
 
 
-    def UpdateThumbnail(self, bmp, child, data):
+    def UpdateThumbnail(self, bmp, child, data, flag):
         """Callback function to process rendered thumbnails."""
-        self.il.Add(bmp)
-        self.SetItemImage(child, data.imgindex)
+        if flag and flag != self.flag:
+            # This means the current thumbnail was for a file that is no longer
+            # open. Trying to update with this itemid would cause a crash.
+            return
+        index = data.imgindex = self.il.Add(bmp)
+        self.SetItemImage(child, index)
 
 
     def GetFlameData(self, item):

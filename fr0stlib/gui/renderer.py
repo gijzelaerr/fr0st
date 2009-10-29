@@ -76,6 +76,7 @@ class Renderer():
                      or self.largepreviewqueue)
             if queue:
                 self.bgflag = 2 # Pauses the other thread
+                self.previewflag = 0
                 self.process(*queue.pop(0))
                 self.bgflag = 0
             else:
@@ -94,8 +95,6 @@ class Renderer():
 
     @Catches(PyDeadObjectError)
     def process(self, callback, args, kwds):
-        self.previewflag = 0
-
         renderer = kwds.pop("renderer")
         if renderer == "flam3":
             render = flam3_render
