@@ -7,7 +7,8 @@ from fr0stlib.gui.utils import LoadIcon, MultiSliderMixin, Box, NumberTextCtrl,\
                           SizePanel
 from fr0stlib.gui.config import config
 from fr0stlib.gui.constants import ID
-
+from fr0stlib.pyflam3 import flam3_colorhist, Genome
+from ctypes import c_double
 
 class MainNotebook(wx.Notebook):
 
@@ -311,7 +312,7 @@ class Gradient(wx.Panel):
         self.parent = parent.parent
         wx.Panel.__init__(self, parent, -1)
         self.bmp = wx.EmptyBitmap(1,1,32)
-        self.SetMinSize((390,60))
+        self.SetMinSize((390,95))
         self._startpos = None
 
     def Update(self, flame=None):
@@ -323,11 +324,23 @@ class Gradient(wx.Panel):
 
         self.Refresh()
 
+        
+    def DrawHistogram(self, dc=None):
+        """ Create and draw the color histogram."""
+        dc = dc or wx.ClientDC(self)
+        genome = Genome.from_string(self.parent.flame.to_string(True))[0]
+        array = (c_double *256)()
+        flam3_colorhist(genome, 1, array)
+        dc.DrawLines([(i*1.5, 30-j*500) for i,j in enumerate(array)], 2, 2)
+
 
     @Bind(wx.EVT_PAINT)
     def OnPaint(self, evt):
         dc = wx.PaintDC(self)
-        dc.DrawBitmap(self.bmp, 2, 2, True)
+        dc.DrawBitmap(self.bmp, 2, 37, True)
+        self.DrawHistogram(dc)
+
+
 
 
     @Bind(wx.EVT_MOUSE_CAPTURE_LOST)
