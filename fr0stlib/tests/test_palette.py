@@ -108,7 +108,10 @@ class TestPalette(TestCase):
         palette = Palette.from_string(self.xml)
         palette.rotate(128)
 
-        self.assertEquals(True, False)
+        rotated = self.data[-128:] + self.data[:-128]
+
+        for idx in range(256):
+            self.check_index(palette, idx, rotated[idx])
 
 
 

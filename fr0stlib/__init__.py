@@ -351,6 +351,9 @@ class Palette2(collections.Sequence):
         else:
             pass
 
+    def rotate(self, index):
+        self.data = np.array(
+                list(self.data[-index:]) + list(self.data[:-index]), dtype=np.uint8)
 
 
 class Palette(list):
