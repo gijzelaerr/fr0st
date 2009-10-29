@@ -312,7 +312,7 @@ class Palette(collections.Sequence):
 
     def __str__(self):
         return ''.join((
-            '<color index="%s" rgb="%s %s %s"/>\n' % ((idx,) + tuple(self.data[idx])) for idx in range(256)))
+            '   <color index="%s" rgb="%s %s %s"/>\n' % ((idx,) + tuple(self.data[idx])) for idx in range(256)))
 
     def to_string(self):
         return str(self)
