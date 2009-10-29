@@ -123,10 +123,11 @@ VAR_TANH = 92
 VAR_SECH = 93
 VAR_CSCH = 94
 VAR_COTH = 95
+VAR_AUGER = 96
 
 
 variations = {}
-variation_list = [None] * 96 #flam3_nvariations
+variation_list = [None] * 97 #flam3_nvariations
 for k,v in locals().items():
     if k.startswith("VAR_"):
         name = k[4:].lower()
@@ -229,7 +230,11 @@ variable_list = [('blob_low', 0.2, 0.7, float),
                  ('waves2_freqx', 0, 4, float),                   
                  ('waves2_scalex', 0.5, 1.5, float),                   
                  ('waves2_freqy', 0, 4, float),                   
-                 ('waves2_scaley', 0.5, 1.5, float)]         
+                 ('waves2_scaley', 0.5, 1.5, float),         
+                 ('auger_freq', 3, 6, int),
+                 ('auger_scale', .1, .8, float),
+                 ('auger_sym', 0, 1, float),
+                 ('auger_weight', 0, 1, float)]         
 
 variables = defaultdict(list)
 for k,l,h,t in variable_list:
