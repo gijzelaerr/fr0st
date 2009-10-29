@@ -57,7 +57,8 @@ class Flame(object):
         self.gradient = Palette()
           
         if string:
-            self.from_string(string)
+            tree = etree.parse(StringIO(string))
+            self.from_element(tree.getroot())
 
     def from_element(self, element):
         self.gradient = Palette.from_flame_element(element)
@@ -97,10 +98,6 @@ class Flame(object):
 
         return self
 
-    def from_string(self,string):
-        tree = etree.parse(StringIO(string))
-        self.from_element(tree.getroot())
-        
     def to_string(self, omit_details=False):
         """Extracts parameters from a Flame object and converts them into
         string format."""
@@ -303,11 +300,6 @@ class Palette(collections.Sequence):
 
     def to_string(self):
         return str(self)
-
-    @classmethod
-    def from_string(cls, string):
-        tree = etree.parse(StringIO(string))
-        return cls.from_flame_element(tree.getroot())
 
     @classmethod
     def from_flame_element(cls, flame):
