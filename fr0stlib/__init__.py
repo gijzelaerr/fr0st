@@ -162,6 +162,21 @@ class Flame(object):
     def copy(self):
         return Flame(string=self.to_string())
 
+#    def copy(self):
+#        self.xform, xforms = [], self.xform
+#
+#        new_flame = copy.deepcopy(self)
+#
+#        for xform in xforms:
+#            new_xform = xform.copy()
+#            new_xform._parent = new_flame
+#            new_flame.xform.append(new_xform)
+#
+#        self.xform = xforms
+#
+#        return new_flame
+    
+
 
     def iter_xforms(self):
         for i in self.xform:
@@ -277,7 +292,7 @@ class Flame(object):
     @center.setter
     def center(self, v):
         self.x_offset, self.y_offset = v
-    
+
 
 class Palette(collections.Sequence):
     def __init__(self, string=None):
@@ -411,7 +426,7 @@ class Palette(collections.Sequence):
             b = utils.pblend(rspl[2], comp[2], (i/float(dist)), cur)
             gen.append((r, g, b))
         
-        self.data = numpy.array(gen, dtype=uint8)
+        self.data = numpy.array(gen, dtype=numpy.uint8)
 
 
     def from_seeds(self, seeds, curve='cos'):
@@ -432,7 +447,7 @@ class Palette(collections.Sequence):
                 s = utils.pblend(seeds[i-1][1], seeds[i][1], (j/float(ds[i])), cur)
                 v = utils.pblend(seeds[i-1][2], seeds[i][2], (j/float(ds[i])), cur)
                 gen.append(hsv2rgb((h,s,v)))
-        self.data = numpy.array(gen, dtype=uint8)
+        self.data = numpy.array(gen, dtype=numpy.uint8)
 
 
     def random(self, hue=(0,1), saturation=(0,1), value=(0,1),  nodes=(5,5),
