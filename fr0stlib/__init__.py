@@ -8,7 +8,6 @@ import copy
 
 import Image
 import numpy
-from cStringIO import StringIO
 from fr0stlib import _utils as utils
 from fr0stlib.pyflam3 import Genome,RandomContext,flam3_estimate_bounding_box
 from fr0stlib.pyflam3.variations import variable_list,variation_list,variables
@@ -58,7 +57,7 @@ class Flame(object):
         self.gradient = Palette()
           
         if string:
-            tree = etree.parse(StringIO(string))
+            tree = etree.fromstring(string)
             self.from_element(tree.getroot())
 
     def from_element(self, element):
