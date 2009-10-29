@@ -328,8 +328,9 @@ class Palette(collections.Sequence):
             data = ''.join(palette_element.text.split())
 
             for idx in range(0, len(data), 6):
-                palette.data[idx/6] = map(lambda x: int(x, 16),
-                        [data[idx:idx+2], data[idx+2:idx+4], data[idx+4:idx+6]])
+                palette.data[idx/6, 0] = int(data[idx+0:idx+2], 16)
+                palette.data[idx/6, 1] = int(data[idx+2:idx+4], 16)
+                palette.data[idx/6, 2] = int(data[idx+4:idx+6], 16)
 
             if idx != 255 * 6:
                 raise ParsingError('Not enough palette entries specified: %s != %s' % (255 * 6, idx))
