@@ -310,12 +310,9 @@ class Palette(collections.Sequence):
 #    def __contains__(self, value):
 #        return NotImplementedError("contains makes no sense on palettes")
 
-    def __str__(self):
+    def to_string(self):
         return ''.join((
             '   <color index="%s" rgb="%s %s %s"/>\n' % ((idx,) + tuple(self.data[idx])) for idx in range(256)))
-
-    def to_string(self):
-        return str(self)
 
     @classmethod
     def from_flame_element(cls, flame):
