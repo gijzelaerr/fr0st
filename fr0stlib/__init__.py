@@ -348,7 +348,15 @@ class Palette(collections.Sequence):
                 raise ParsingError('Not enough palette entries specified: %s != %s' % (255 * 6, idx))
 
         else:
+            colors = flame.findall('color')
+
+            if len(colors) != 256:
+                raise ParsingError('Interpolated palettes not yet supported')
+
             for color in flame.findall('color'):
+                if color.get('rgba') is not None and color.get('rgb') is None:
+                    raise ParsingError('Only rgb palettes are currently supported')
+
                 palette.data[int(color.get('index'))] = map(int, color.get('rgb').split())
 
         return palette
