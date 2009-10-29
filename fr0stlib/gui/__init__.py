@@ -484,6 +484,10 @@ class MainWindow(wx.Frame):
                 # User cancelled when prompted to save changes.
                 return
 
+            # Parent needs to be selected to avoid a possible indexerror when
+            # reducing the size of the tree.
+            self.tree.SelectItem(self.tree.itemparent)
+
         if os.path.exists(path):
             # scan the file to see if it's valid
             flamestrings = Flame.load_file(path)
@@ -732,7 +736,7 @@ class ImagePanel(PreviewBase):
 
         # Double buffering is needed to prevent flickering.
         self.SetDoubleBuffered(True)
-
+        
         self.SetSize((256, 220))
         self.bmp = wx.EmptyBitmap(400,300, 32)
 
