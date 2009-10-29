@@ -57,8 +57,8 @@ class Flame(object):
         self.gradient = Palette()
           
         if string:
-            tree = etree.fromstring(string)
-            self.from_element(tree.getroot())
+            root = etree.fromstring(string)
+            self.from_element(root)
 
     def from_element(self, element):
         self.gradient = Palette.from_flame_element(element)
