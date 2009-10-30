@@ -602,10 +602,10 @@ class Xform(object):
         if v in self._default:
             return 0.0
 
-        if v in ('symmetry', 'plotmode', 'index'):
+        if v in ('symmetry', 'plotmode', 'index', 'weight'):
             return 0.0
 
-        raise AttributeError()
+        raise AttributeError(v)
 
     @property
     def chaos(self):
