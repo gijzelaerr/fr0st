@@ -5,6 +5,7 @@ import ctypes
 import collections
 import xml.etree.cElementTree as etree
 import copy
+import re
 
 import Image
 import numpy
@@ -33,6 +34,8 @@ class ParsingError(Exception):
 
 
 class Flame(object):
+    re_flame  = re.compile(r'<flame .*?</flame>',re.DOTALL)
+
     _default = set(("final", "gradient", "xform", "name",
                     "width", "height", "x_offset", "y_offset"))
     
@@ -60,6 +63,13 @@ class Flame(object):
             root = etree.fromstring(string)
             self.from_element(root)
 
+    @classmethod 	 
+    def from_strings(cls, string, type=None): 	 
+        """Parses an xml string and returns a list of flames.""" 	 
+        type = type or cls 	 
+        return [type(i) for i in cls.re_flame.findall(string)]
+
+
     def from_element(self, element):
         self.gradient = Palette.from_flame_element(element)
 
@@ -85,6 +95,8 @@ class Flame(object):
                 pass   # Keep as string
             
             setattr(self,name,val)
+
+        self.name = str(self.name) if hasattr(self, 'name') else None
 
         # Scale needs to be converted. This is reversed in to_string.
         self.scale = self.scale * 100 / self.size[0]
@@ -336,16 +348,12 @@ class Palette(collections.Sequence):
                 raise ParsingError('Not enough palette entries specified: %s != %s' % (255 * 6, idx))
 
         else:
-            colors = flame.findall('color')
-
-            if len(colors) != 256:
-                raise ParsingError('Interpolated palettes not yet supported')
-
             for color in flame.findall('color'):
-                if color.get('rgba') is not None and color.get('rgb') is None:
-                    raise ParsingError('Only rgb palettes are currently supported')
-
-                palette.data[int(color.get('index'))] = map(float, color.get('rgb').split())
+                r, g, b = color.get('rgb').split()
+                index = int(color.get('index'))
+                palette.data[index, 0] = float(r)
+                palette.data[index, 1] = float(g)
+                palette.data[index, 2] = float(b)
 
         return palette
 
@@ -956,9 +964,9 @@ def save_flames(filename,*flames):
 
 def load_flame_strings(filename):
     with open(filename) as fd:
-        tree = etree.parse(fd)
+        s = fd.read()
 
-    return [etree.tostring(e) for e in tree.findall('flame')]
+    return Flame.from_strings(s, str)
 
 def load_flames(filename):
     """Reads a flame file and returns a list of flame objects."""
