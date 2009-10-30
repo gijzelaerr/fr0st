@@ -261,7 +261,7 @@ class GradientPanel(wx.Panel):
     def OnIdle(self, e):
         if self._new is not None:
 
-            self.parent.flame.gradient = self._grad_copy
+            self.parent.flame.gradient = copy.deepcopy(self._grad_copy)
 
             self.func(self._new)
             self._new = None
