@@ -30,6 +30,9 @@ class Editmenu(wx.Menu):
         self.Append(ID.UNDOALL, "U&ndo All\tCtrl-Shift-Z", " Undo all changes to the current flame.")
         self.Append(ID.REDO, "&Redo\tCtrl-Y", " Redo last change to the current flame.")
         self.Append(ID.REDOALL, "R&edo All\tCtrl-Shift-Y", "Redo all changes to the current flame.")
+        self.AppendSeparator()
+        self.Append(wx.ID_COPY, "&Copy\tCtrl-C", "Copy a flame to the clipboard.")
+        self.Append(wx.ID_PASTE, "&Paste\tCtrl-V", "Open a flame from the clipboard.")
 
 class Viewmenu(wx.Menu):
     name = "&View"

@@ -361,6 +361,31 @@ class MainWindow(wx.Frame):
 
         return child
 
+    @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=wx.ID_PASTE)
+    def OnPaste(self, e):
+        if not wx.TheClipboard.Open():
+            return
+
+        data = wx.TextDataObject()
+        success = wx.TheClipboard.GetData(data)
+        wx.TheClipboard.Close()
+
+        if not success:
+            return
+
+        return self.OnFlameNew2(string=data.GetText())
+
+    @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=wx.ID_COPY)
+    def OnCopy(self, e):
+        s = self.flame.to_string()
+
+        data = wx.TextDataObject()
+        data.SetText(s)
+
+        if wx.TheClipboard.Open():
+            wx.TheClipboard.SetData(data)
+            wx.TheClipboard.Flush()
+            wx.TheClipboard.Close()
 
     @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=ID.FOPEN)
     def OnFlameOpen(self,e):
