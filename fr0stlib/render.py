@@ -1,15 +1,17 @@
 from fr0stlib.pyflam3 import Genome
-from fr0stlib import Flame
+from fr0stlib import Flame, needs_conversion
 
 
 def flam3_render(flame, size, quality, **kwds):
     """Passes render requests on to flam3."""
-    flame = flame if type(flame) is Flame else Flame(flame)
-#    try:
-    genome = Genome.from_string(flame.to_string())[0]
-#    except Exception:
-#        raise ValueError("Error while parsing flame string.")
-        
+    if isinstance(flame, basestring):
+        if needs_conversion(flame):
+            genome = Genome.from_string(Flame(flame).to_string())[0]
+        else:
+            genome = Genome.from_string(flame)[0]
+    else:
+        genome = Genome.from_string(flame.to_string())[0]
+
     width,height = size
 
     try:
