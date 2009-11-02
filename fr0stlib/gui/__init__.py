@@ -573,6 +573,7 @@ class MainWindow(wx.Frame):
         # Note that tempsave returns if scriptrunning == True, so it needs to
         # come after unblocking the GUI.
         self.BlockGUI(False)
+        self.SetStatusText("")
         if update:
             self.TreePanel.TempSave()
 
@@ -638,6 +639,7 @@ class MainWindow(wx.Frame):
                               load_flames = self.load_flames,
                               preview = self.preview,
                               large_preview = self.large_preview,
+                              show_status = self.show_status,
                               dialog = self.editorframe.make_dialog,
                               get_file_path = self.tree.GetFilePath,
                               VERSION = fr0stlib.VERSION,
@@ -705,6 +707,11 @@ class MainWindow(wx.Frame):
         if self.previewframe.IsShown():
             self.previewframe.RenderPreview()
 
+
+    @InMain
+    def show_status(self, s):
+        self.SetStatusText(s)
+        
 
     @InMain
     def OnPreview(self):

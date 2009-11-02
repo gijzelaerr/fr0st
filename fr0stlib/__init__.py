@@ -974,3 +974,7 @@ def load_flames(filename):
         tree = etree.parse(fd)
 
     return [Flame().from_element(e) for e in tree.findall('flame')]
+
+
+def show_status(s):
+    sys.stdout.write("%s\r" %s)
