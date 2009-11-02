@@ -962,6 +962,17 @@ def save_flames(filename,*flames):
     f.close()
 
 
+def needs_conversion(string):
+    root = etree.fromstring(string)
+
+    version = root.get('version', None)
+
+    if version is None or version != VERSION:
+        return True
+    else:
+        return False
+
+
 def load_flame_strings(filename):
     with open(filename) as fd:
         s = fd.read()
