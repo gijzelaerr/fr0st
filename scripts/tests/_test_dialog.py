@@ -3,8 +3,8 @@ res = dialog("please choose some stuff.",
              ("integer", int),
              ("float", float),
              ("boolean", bool),
-             ("Including a default", 42),
-             ("choices", ["spam", "ham", "eggs"]),
+             ("Including a default", int, 42),
+             ("choices", ["spam", "ham", "eggs"], 1),
              ("Select between xforms.\nCool, isn't it?", flame.xform)
              )
 
