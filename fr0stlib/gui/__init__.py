@@ -28,6 +28,10 @@ from fr0stlib.threadinterrupt import ThreadInterrupt, interruptall
 # Don't write .pyc files to keep script folder clean
 sys.dont_write_bytecode = True
 
+# Let scripts know that they're being run in a graphical environment.
+fr0stlib.GUI = True
+
+
 class Fr0stApp(wx.App):
     def __init__(self):
         wx.App.__init__(self, redirect=False)

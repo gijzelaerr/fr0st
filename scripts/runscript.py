@@ -15,5 +15,10 @@ if sys.path[0] == os.path.dirname(__file__):
     sys.path[0] = os.path.join(os.path.dirname(__file__),'..')
 
 sys.dont_write_bytecode = True
-from fr0stlib import *
+
+# Control what names will be passed to the script.
+import fr0stlib
+if not fr0stlib.GUI:
+    from fr0stlib import *
+del sys, os
 
