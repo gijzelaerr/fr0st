@@ -231,7 +231,7 @@ class MyLog(wx.TextCtrl):
         wx.TextCtrl.__init__(self,parent,-1,
                              style = wx.TE_MULTILINE|wx.TE_READONLY|wx.HSCROLL)
         self.SetFont(wx.Font(8, wx.MODERN, wx.NORMAL, wx.NORMAL))
-        self.oldstderr = sys.stderr   # For debugging purposes!
+        sys.oldstderr = sys.stderr   # For debugging purposes!
         if "-debug" not in sys.argv:
             # TODO: remove this, it's to supress the editor and get a
             # decent traceback.        
@@ -252,7 +252,7 @@ class MyLog(wx.TextCtrl):
         self._write(*e.Args)
 
     def _write(self, message):
-        self.oldstderr.write(message) # For debugging purposes!
+        sys.oldstderr.write(message) # For debugging purposes!
 
         if not message.startswith("Exception"):
             self.AppendText(message)
