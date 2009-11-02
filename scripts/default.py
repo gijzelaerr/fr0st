@@ -1,4 +1,6 @@
 
+update_flame = False
+
 while True:
     for x in flame.xform:
         if x.animate:
