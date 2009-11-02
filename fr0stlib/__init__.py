@@ -542,7 +542,11 @@ class Xform(object):
         # Select the variations to use
         use_vars = random.sample(xv,n)
         for uv in use_vars:
-            setattr(x,variation_list[uv],random.uniform(-1,1))
+            if not ident:
+                setattr(x,variation_list[uv],random.uniform(-1,1))
+            else:
+                setattr(x,variation_list[uv],1.0)
+                
             for p,v in variables[variation_list[uv]]:
                 setattr(x, "%s_%s" % (variation_list[uv],p), v())
             
