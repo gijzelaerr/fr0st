@@ -47,7 +47,7 @@ class DynamicDialog(wx.Dialog):
                                       initialValue=default or "")
             widget.SetMinSize((300, widget.GetSize()[1]))
         elif type(ty) in (list, tuple):
-            widget = ValidChoice(self, choices=ty)
+            widget = ValidChoice(self, choices=ty, default=default or 0)
         else:
             widget = ValidTextCtrl(self, ty, default)
         return wx.StaticText(self, -1, name), widget      
@@ -72,10 +72,11 @@ class ValidTextCtrl(wx.TextCtrl):
 
 
 class ValidChoice(wx.Choice):
-    def __init__(self, parent, choices):
+    def __init__(self, parent, choices, default=0):
         self.choices = choices
-        self.index = 0
         wx.Choice.__init__(self, parent, -1, choices=map(str, choices))
+        self.index = default
+        self.SetSelection(default)
         self.Bind(wx.EVT_CHOICE, self.OnChoice)
 
     def GetValue(self):
