@@ -168,7 +168,18 @@ class Flame(object):
     def clear(self):
         self.xform = []
         self.final = None
-
+        
+    def swap_xforms(self, ix1, ix2):
+        if max(ix1,ix2)>len(self.xform):
+            raise IndexError("Xform swap index out of range")
+            return
+        
+        # Swap xforms
+        self.xform[ix1],self.xform[ix2] = self.xform[ix2],self.xform[ix1]
+        
+        # Swap columns of chaos table
+        for x in self.xform:
+            x.chaos[ix1],x.chaos[ix2] = x.chaos[ix2],x.chaos[ix1]
 
     def copy(self):
         return Flame(string=self.to_string())
