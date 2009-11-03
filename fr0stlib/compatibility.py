@@ -1,4 +1,6 @@
-from math import log10, log
+from math import log10
+
+
 
 
 def percent2log(prc):
@@ -44,8 +46,8 @@ def apo2fr0st(flame):
         del flame.soloxform
          
     # chaos is converted from linear scale to log scale.
+    from fr0stlib import Chaos
     for x in flame.iter_xforms():
-        
-        x.chaos[:] = map(log2percent, x.chaos)
+        x.chaos = Chaos(x, map(log2percent, x.chaos))
 
 

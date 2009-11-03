@@ -6,6 +6,8 @@ import collections
 import xml.etree.cElementTree as etree
 import copy
 import re
+from collections import defaultdict
+from functools import partial
 
 import Image
 import numpy
@@ -893,10 +895,7 @@ class Xform(object):
         if self.isfinal():
             self._parent.final = None            
         else:
-            index = self.index
             self._parent.xform.remove(self)
-            for x in self._parent.xform:
-                del x.chaos[index]
 
 
 
@@ -930,21 +929,16 @@ class PostXform(Xform):
 
 
 
-class Chaos(list):
-    """ A list which returns 1 for unassigned items, and pads the list when
-    necessary to store values in their correct locations."""
-
+class Chaos(object):
     def __repr__(self):
-        return "Chaos(%s)" %self[:]
-
+        return "Chaos(%s)" % list(self)
+    
     def __init__(self, parent, lst):
+        if not parent._parent:
+            return
         self._parent = parent
-        lst = map(float, lst)
-        # HACK: 100 extra items could run out in theory. However, it's
-        # complicated to do a "proper" implementation of this, due to the slice
-        # methods.
-        lst.extend([1] * 100)
-        list.__init__(self, lst)
+        self._dict = defaultdict(partial(float, 1.0),
+                                 zip(parent._parent.xform, lst))
 
     def __len__(self):
         if self._parent.isfinal():
@@ -952,34 +946,18 @@ class Chaos(list):
         return len(self._parent._parent.xform)
 
     def __iter__(self):
-        return (self[i] for i in xrange(len(self)))
-        
-    def __getitem__(self,pos):
-        if pos > len(self) -1 or pos < -len(self):
-            raise IndexError
-        return list.__getitem__(self,pos)
+        return (self._dict[i] for i in self._parent._parent.xform)
 
-    def __getslice__(self,pos,pos2):
-        if (pos<0) or (pos2<0):
-            raise NotImplementedError, "Negative slicing not supported"
-        return list.__getslice__(self,pos, min(pos2, len(self)))
-    
-    def __setitem__(self,pos,val):
-        if val < 0:
-            raise ValueError(val)
-        if pos > len(self) -1 or pos < -len(self):
-            raise IndexError
-        list.__setitem__(self,pos,val)
-      
-    def __setslice__(self,pos,pos2,val):
-        if any(i < 0 for i in val):
-            raise ValueError(val)
-        if (pos<0) or (pos2<0):
-            raise NotImplementedError, "Negative slicing not supported"
-        list.__setslice__(self, pos, min(pos2, len(self)), val)
+    def __getitem__(self, pos):
+        if isinstance(pos, slice):
+            raise NotImplementedError()
+        return self._dict[self._parent._parent.xform[pos]]
+
+    def __setitem__(self, pos, val):
+        self._dict[self._parent._parent.xform[pos]] = val
 
     def to_string(self):
-        lst = self[:]
+        lst = list(self)
         for i in reversed(lst):
             if i != 1:
                 break
