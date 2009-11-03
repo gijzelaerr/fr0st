@@ -26,6 +26,8 @@ except ImportError:
 
 VERSION = "fr0st 0.5 alpha"
 
+GUI = False
+
 _variables = dict([i[0:2] for i in variable_list])
 
 class ParsingError(Exception):
@@ -1021,3 +1023,8 @@ def load_flames(filename):
         tree = etree.parse(fd)
 
     return [Flame().from_element(e) for e in tree.findall('flame')]
+
+
+def show_status(s):
+    sys.stdout.write("%s\r" %s)
+    sys.stdout.flush()

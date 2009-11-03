@@ -28,6 +28,10 @@ from fr0stlib.threadinterrupt import ThreadInterrupt, interruptall
 # Don't write .pyc files to keep script folder clean
 sys.dont_write_bytecode = True
 
+# Let scripts know that they're being run in a graphical environment.
+fr0stlib.GUI = True
+
+
 class Fr0stApp(wx.App):
     def __init__(self):
         wx.App.__init__(self, redirect=False)
@@ -573,6 +577,7 @@ class MainWindow(wx.Frame):
         # Note that tempsave returns if scriptrunning == True, so it needs to
         # come after unblocking the GUI.
         self.BlockGUI(False)
+        self.SetStatusText("")
         if update:
             self.TreePanel.TempSave()
 
@@ -638,6 +643,7 @@ class MainWindow(wx.Frame):
                               load_flames = self.load_flames,
                               preview = self.preview,
                               large_preview = self.large_preview,
+                              show_status = self.show_status,
                               dialog = self.editorframe.make_dialog,
                               get_file_path = self.tree.GetFilePath,
                               VERSION = fr0stlib.VERSION,
@@ -705,6 +711,11 @@ class MainWindow(wx.Frame):
         if self.previewframe.IsShown():
             self.previewframe.RenderPreview()
 
+
+    @InMain
+    def show_status(self, s):
+        self.SetStatusText(s)
+        
 
     @InMain
     def OnPreview(self):
