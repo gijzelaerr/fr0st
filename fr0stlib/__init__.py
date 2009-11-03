@@ -919,7 +919,7 @@ class Chaos(list):
         return (self[i] for i in xrange(len(self)))
         
     def __getitem__(self,pos):
-        if abs(pos) > len(self)-1:
+        if pos > len(self) -1 or pos < -len(self):
             raise IndexError
         return list.__getitem__(self,pos)
 
@@ -931,8 +931,8 @@ class Chaos(list):
     def __setitem__(self,pos,val):
         if val < 0:
             raise ValueError(val)
-        if abs(pos) > len(self)-1:
-            raise IndexError(pos)
+        if pos > len(self) -1 or pos < -len(self):
+            raise IndexError
         list.__setitem__(self,pos,val)
       
     def __setslice__(self,pos,pos2,val):
