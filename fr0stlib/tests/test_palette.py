@@ -53,6 +53,8 @@ class TestPalette(TestCase):
         </flame>
         """ % self.colorblock
 
+        self.hex_flame_element = etree.fromstring(self.xml)
+
         self.data = []
         s = ''.join(self.colorblock.split())
 
@@ -87,25 +89,14 @@ class TestPalette(TestCase):
         self.check_index(palette, 1, c2)
         self.check_index(palette, 2, c3)
 
-    def testFromString(self):
-        palette = Palette.from_string(self.xml)
-
-        for idx in range(256):
-            self.check_index(palette, idx, self.data[idx])
-
     def testFromFlameElement(self):
-        sfd = StringIO(self.xml)
-        tree = etree.parse(sfd)
-
-        self.assertEquals(tree.getroot().tag, 'flame')
-
-        palette = Palette.from_flame_element(tree.getroot())
+        palette = Palette.from_flame_element(self.hex_flame_element)
 
         for idx in range(256):
             self.check_index(palette, idx, self.data[idx])
 
     def testRotate(self):
-        palette = Palette.from_string(self.xml)
+        palette = Palette.from_flame_element(self.hex_flame_element)
         palette.rotate(128)
 
         rotated = self.data[-128:] + self.data[:-128]
