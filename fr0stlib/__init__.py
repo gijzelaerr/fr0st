@@ -954,6 +954,8 @@ class Chaos(object):
         return self._dict[self._parent._parent.xform[pos]]
 
     def __setitem__(self, pos, val):
+        if isinstance(pos, slice):
+            raise NotImplementedError()
         self._dict[self._parent._parent.xform[pos]] = val
 
     def to_string(self):
