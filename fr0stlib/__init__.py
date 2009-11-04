@@ -942,6 +942,12 @@ class PostXform(Xform):
 
 
 class Chaos(object):
+    """Handles the chaos values between xforms (as a directed graph).
+
+    The order of xforms could be changed (deletions, insertions, reordering)
+    and we need to keep the graph aligned, so the implementation is based on
+    identity checks of xform objects. This implies that this class can't be
+    instantiated until the flame object has populated its xform list."""
     def __repr__(self):
         return "Chaos(%s)" % list(self)
     
