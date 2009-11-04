@@ -88,7 +88,8 @@ class Flame(object):
         for final in element.findall('finalxform'):
             if self.final is not None:
                 raise ParsingError("More than one final xform found")
-            self.final = Xform(self, chaos=[])
+            self.final = Xform(self, chaos=[])
+
             self.final.from_element(final)
 
         # Record the header data.
@@ -594,26 +595,37 @@ class Xform(object):
 
     def from_element(self, element):
         for name, val in element.items():
-            if name in ('chaos', 'post'):
+            if name in ('chaos', 'post'):
+
                 continue
             try:
-                if " " in val: 
-                    setattr(self, name, map(float, val.split()))
-                else:          
+                if " " in val: 
+
+                    setattr(self, name, map(float, val.split()))
+
+                else:          
+
                     setattr(self, name, float(val))
             except ValueError:
-                setattr(self, name, val)
-
+                setattr(self, name, val)
+
+
+
         if not isinstance(self, PostXform):
             # Chaos and post were already set unconditionally at xform init
             # so they're set here only if they're not None.
-            chaos = element.get('chaos', None)
+            chaos = element.get('chaos', None)
+
             if chaos is not None:
-                self._chaos = Chaos(self, map(float, chaos.split()))
+                self._chaos = Chaos(self, map(float, chaos.split()))
+
                 
-            post = element.get('post', None)
+            post = element.get('post', None)
+
             if post is not None:
-              self._post = PostXform(self,
+
+
+              self._post = PostXform(self,
                                        screen_coefs=map(float, post.split()))
 
         # Convert from screen to complex plane orientation
@@ -966,10 +978,10 @@ class Chaos(object):
         return self._dict[self._parent._parent.xform[pos]]
 
     def __setitem__(self, pos, val):
-        if isinstance(pos, slice) or pos < 0:
-            raise NotImplementedError()
-        if val < 0:
-            raise ValueError(val)
+        if isinstance(pos, slice) or pos < 0:
+            raise NotImplementedError()
+        if val < 0:
+            raise ValueError(val)
         self._dict[self._parent._parent.xform[pos]] = val
 
     def to_string(self):
