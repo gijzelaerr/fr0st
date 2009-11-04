@@ -596,20 +596,14 @@ class Xform(object):
     def from_element(self, element):
         for name, val in element.items():
             if name in ('chaos', 'post'):
-
                 continue
             try:
                 if " " in val: 
-
                     setattr(self, name, map(float, val.split()))
-
                 else:          
-
                     setattr(self, name, float(val))
             except ValueError:
                 setattr(self, name, val)
-
-
 
         if not isinstance(self, PostXform):
             # Chaos and post were already set unconditionally at xform init
@@ -618,13 +612,9 @@ class Xform(object):
 
             if chaos is not None:
                 self._chaos = Chaos(self, map(float, chaos.split()))
-
                 
             post = element.get('post', None)
-
             if post is not None:
-
-
               self._post = PostXform(self,
                                        screen_coefs=map(float, post.split()))
 
