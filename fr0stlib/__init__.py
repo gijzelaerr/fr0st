@@ -77,19 +77,21 @@ class Flame(object):
     def from_element(self, element):
         self.gradient = Palette.from_flame_element(element)
 
-        for xform in element.findall('xform'):
-            self.xform.append(Xform.from_element(self, xform))
+        xml_xforms = element.findall('xform')
+        self.xform = [Xform(self) for i in xrange(len(xml_xforms))]
+
+        for xform, xform_element in zip(self.xform, xml_xforms):
+            xform.from_element(xform_element)
 
         self.final = None
 
         for final in element.findall('finalxform'):
             if self.final is not None:
                 raise ParsingError("More than one final xform found")
+            self.final = Xform(self, chaos=[])
+            self.final.from_element(final)
 
-            self.final = Xform.from_element(self, final)
-
-        # Record the header data. This is done after loading xforms so the
-        # soloxform fiasco can be safely defused.
+        # Record the header data.
         for name, val in element.items():
             # Convert value to the appropriate type
             try:
@@ -525,20 +527,16 @@ class Xform(object):
     color_speed = 0.5
     animate = 1.0
 
-    def __init__(self, parent=None, chaos=None, post=None, **kwds):
+    def __init__(self, parent=None, chaos=(), post=None, **kwds):
         self._parent = parent
-
-        map(self.__setattr__, *zip(*kwds.iteritems()))
         
-        # Create default values. Subclasses ignore this.
-        if type(self) is Xform:
-            if chaos is None:
-                chaos = [1.0]
+        if kwds:
+            map(self.__setattr__, *zip(*kwds.iteritems()))
+        
+        if not isinstance(self, PostXform):
             self._chaos = Chaos(self, chaos)
-            
-            if post is None:
-                post = [1.0, 0.0, 0.0, 1.0, 0.0, 0.0]
-            self._post = PostXform(self, screen_coefs=post)
+            self._post = PostXform(self, screen_coefs=[1., 0., 0., 1., 0., 0.]
+                                   if post is None else post)
 
 
     @classmethod
@@ -593,22 +591,34 @@ class Xform(object):
             
         return x
 
-    @classmethod
-    def from_element(cls, parent, element):
-        kwds = {}
 
+    def from_element(self, element):
         for name, val in element.items():
+            if name in ('chaos', 'post'):
+                continue
             try:
-                if " " in val: kwds[name] = map(float,val.split())
-                else:          kwds[name] = float(val)
+                if " " in val: 
+                    setattr(self, name, map(float, val.split()))
+                else:          
+                    setattr(self, name, float(val))
             except ValueError:
-                kwds[name] = val
+                setattr(self, name, val)
+
+        if not isinstance(self, PostXform):
+            # Chaos and post were already set unconditionally at xform init
+            # so they're set here only if they're not None.
+            chaos = element.get('chaos', None)
+            if chaos is not None:
+                self._chaos = Chaos(self, map(float, chaos.split()))
+                
+            post = element.get('post', None)
+            if post is not None:
+              self._post = PostXform(self,
+                                       screen_coefs=map(float, post.split()))
 
-        x = Xform(parent, **kwds)
         # Convert from screen to complex plane orientation
-        x.coefs = x.screen_coefs
+        self.coefs = self.screen_coefs
 
-        return x
 
     def to_string(self):
         lst = ['   <%sxform '%("final" if self.isfinal() else "")]
@@ -933,12 +943,14 @@ class Chaos(object):
     def __repr__(self):
         return "Chaos(%s)" % list(self)
     
-    def __init__(self, parent, lst):
-        if not parent._parent:
-            return
+    def __init__(self, parent, lst=()):
         self._parent = parent
-        self._dict = defaultdict(partial(float, 1.0),
-                                 zip(parent._parent.xform, lst))
+        self._dict = defaultdict(partial(float, 1.0))
+        if lst:
+            xform = parent._parent.xform
+            if len(xform) < len(lst):
+                raise ValueError("Number of chaos values exceed xforms.")
+            self._dict.update(zip(xform, lst))
 
     def __len__(self):
         if self._parent.isfinal():
@@ -949,11 +961,15 @@ class Chaos(object):
         return (self._dict[i] for i in self._parent._parent.xform)
 
     def __getitem__(self, pos):
-        if isinstance(pos, slice):
+        if isinstance(pos, slice) or pos < 0:
             raise NotImplementedError()
         return self._dict[self._parent._parent.xform[pos]]
 
     def __setitem__(self, pos, val):
+        if isinstance(pos, slice) or pos < 0:
+            raise NotImplementedError()
+        if val < 0:
+            raise ValueError(val)
         self._dict[self._parent._parent.xform[pos]] = val
 
     def to_string(self):
