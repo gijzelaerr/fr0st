@@ -345,8 +345,6 @@ class VarPanel(wx.Panel):
                                         | wx.TR_FULL_ROW_HIGHLIGHT
                                    )
 
-        _ = gizmos.TreeListCtrl(self, -1)
-
         self.tree.AddColumn("Var")
         self.tree.AddColumn("Value")
 
@@ -481,6 +479,19 @@ class VarPanel(wx.Panel):
         key = e.GetKeyCode()
         if key in (wx.WXK_NUMPAD_ENTER, wx.WXK_RETURN):
             self.tree.EditLabel(self.item, 1)
+
+            #HACK: See http://trac.wxwidgets.org/ticket/11418
+            # Find the edit TextCtrl so we can modify it
+            child_texts = filter(lambda x: x.GetClassName() == 'wxTextCtrl',
+                    self.tree.GetMainWindow().GetChildren())
+
+            if len(child_texts) == 1:
+                # If we find more than one TextCtrl, something is wrong.
+                # Silenty ignore that.  Worst that happens is the old behavior
+                # of the control having to lose focus to end editing
+                child_texts[0].SetWindowStyle(
+                        child_texts[0].GetWindowStyle()|wx.TE_PROCESS_ENTER)
+
             self._editing = True
         else:
             e.Skip()
@@ -491,6 +502,19 @@ class VarPanel(wx.Panel):
         item, _, col =  self.tree.HitTest(e.Position)
         if col == 1:
             self.tree.EditLabel(item, 1)
+
+            #HACK: See http://trac.wxwidgets.org/ticket/11418
+            # Find the edit TextCtrl so we can modify it
+            child_texts = filter(lambda x: x.GetClassName() == 'wxTextCtrl',
+                    self.tree.GetMainWindow().GetChildren())
+
+            if len(child_texts) == 1:
+                # If we find more than one TextCtrl, something is wrong.
+                # Silenty ignore that.  Worst that happens is the old behavior
+                # of the control having to lose focus to end editing
+                child_texts[0].SetWindowStyle(
+                        child_texts[0].GetWindowStyle()|wx.TE_PROCESS_ENTER)
+
         elif col == -1:
             text = self.tree.GetItemText(item, 1)
             if text == '0.0':
@@ -631,7 +655,6 @@ class ChaosPanel(wx.Panel):
 
         self.tree1 = self.init_tree("To")
         self.tree2 = self.init_tree("From")
-        _ = gizmos.TreeListCtrl(self, -1)
 
         sizer = wx.BoxSizer(wx.HORIZONTAL)
         sizer.Add(self.tree1, 1, wx.EXPAND)
@@ -750,6 +773,19 @@ class ChaosPanel(wx.Panel):
         key = e.GetKeyCode()
         if key in (wx.WXK_NUMPAD_ENTER, wx.WXK_RETURN):
             tree.EditLabel(self.item, 1)
+
+            #HACK: See http://trac.wxwidgets.org/ticket/11418
+            # Find the edit TextCtrl so we can modify it
+            child_texts = filter(lambda x: x.GetClassName() == 'wxTextCtrl',
+                    tree.GetMainWindow().GetChildren())
+
+            if len(child_texts) == 1:
+                # If we find more than one TextCtrl, something is wrong.
+                # Silenty ignore that.  Worst that happens is the old behavior
+                # of the control having to lose focus to end editing
+                child_texts[0].SetWindowStyle(
+                        child_texts[0].GetWindowStyle()|wx.TE_PROCESS_ENTER)
+
         else:
             e.Skip()
             
@@ -758,6 +794,18 @@ class ChaosPanel(wx.Panel):
         item, _, col =  tree.HitTest(e.Position)
         if col == 1:
             tree.EditLabel(item, 1)
+
+            #HACK: See http://trac.wxwidgets.org/ticket/11418
+            # Find the edit TextCtrl so we can modify it
+            child_texts = filter(lambda x: x.GetClassName() == 'wxTextCtrl',
+                    tree.GetMainWindow().GetChildren())
+
+            if len(child_texts) == 1:
+                # If we find more than one TextCtrl, something is wrong.
+                # Silenty ignore that.  Worst that happens is the old behavior
+                # of the control having to lose focus to end editing
+                child_texts[0].SetWindowStyle(
+                        child_texts[0].GetWindowStyle()|wx.TE_PROCESS_ENTER)
         else:
             text = tree.GetItemText(item, 1)
             new = 1.0 if text == '0.0' else 0.0
