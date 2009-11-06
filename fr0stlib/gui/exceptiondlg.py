@@ -3,6 +3,7 @@ import wx
 import traceback
 import pprint
 from wx.lib.scrolledpanel import ScrolledPanel
+from threading import current_thread
 
 
 from fr0stlib.gui.config import config
@@ -10,6 +11,10 @@ from fr0stlib.decorators import *
 
 
 def unhandled_exception_handler(exc_type, exc_value, exc_traceback):
+    if current_thread().name != 'MainThread':
+        sys.__excepthook__(exc_type, exc_value, exc_traceback)
+        return
+
     exception_info = {}
 
     frame = wx.GetApp().GetTopWindow()
@@ -69,6 +74,9 @@ ParametersDir: %(ParametersDir)s
     # Pass it on to python to crash or not
     sys.__excepthook__(exc_type, exc_value, exc_traceback)
 
+    if rv == wx.ID_EXIT:
+        sys.exit(1)
+
 
 
 class ExceptionDialog(wx.Dialog):
@@ -125,11 +133,27 @@ class ExceptionDialog(wx.Dialog):
 
         sizer.Add(self.collapsible, 0, wx.EXPAND|wx.ALL, 5)
 
-        buttons = self.CreateButtonSizer(wx.OK)
+        quit_button = wx.Button(self, label='Exit fr0st', id=wx.ID_EXIT)
+        self.Bind(wx.EVT_BUTTON, self.OnExitFr0st, quit_button)
+
+        ok_button = wx.Button(self, label='OK', id=wx.ID_OK)
+        self.Bind(wx.EVT_BUTTON, self.OnOK, ok_button)
+
+        button_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        button_sizer.Add(ok_button, 0, wx.ALL, 5)
+        button_sizer.Add(quit_button, 0, wx.ALL, 5)
+
+        #buttons = self.CreateButtonSizer(wx.OK)
         #buttons = self.CreateSeparatedButtonSizer(wx.OK)
-        sizer.Add(buttons, 0, wx.ALL|wx.EXPAND, 5)
+        sizer.Add(button_sizer, 0, wx.ALIGN_RIGHT)
 
         self.SetSizerAndFit(sizer)
+
+    def OnOK(self, evt):
+        self.EndModal(evt.GetId())
+
+    def OnExitFr0st(self, evt):
+        self.EndModal(evt.GetId())
 
     def OnCopyClipboard(self, evt):
         data = wx.TextDataObject()
