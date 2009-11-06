@@ -83,9 +83,9 @@ class XformPanel(wx.Panel):
         self.parent = parent.parent
 
         def cb(tc, tempsave=True):
+            self.UpdateFlame(tempsave=tempsave)
             self.parent.image.RenderPreview()
             self.parent.canvas.ShowFlame(rezoom=False)
-            self.UpdateFlame(tempsave=tempsave)
 
         self.weight = NumberTextCtrl(self, callback=cb)
         self.weight.SetAllowedRange(low=0)
