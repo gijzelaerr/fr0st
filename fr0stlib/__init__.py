@@ -176,39 +176,6 @@ class Flame(object):
         self.xform = []
         self.final = None
         
-    def swap_xforms(self, ix1, ix2):
-        if max(ix1,ix2)>=len(self.xform):
-            raise IndexError("Xform swap index out of range")
-            return
-        
-        # Swap xforms
-        self.xform[ix1],self.xform[ix2] = self.xform[ix2],self.xform[ix1]
-        
-        # Swap columns of chaos table
-        for x in self.xform:
-            x.chaos[ix1],x.chaos[ix2] = x.chaos[ix2],x.chaos[ix1]
-
-    def insert_xform(self, pos, **kwds):
-    
-        if pos>=len(self.xform):
-            raise IndexError("Xform insert index out of range")
-            return
-            
-        defaults = dict(coefs=[1.0, 0.0, 0.0, 1.0, 0.0, 0.0],
-                        linear=1, color=0, weight=1)
-        defaults.update(kwds)
-        
-        # Note that chaos is inited with 1.0 for all vals, which makes the next line ok
-        self.xform.insert(pos,Xform(self, **defaults)) 
-        
-        # ...but it adds a 1.0 on the end of the chaos rows instead of at position pos
-        # so let's put it in the right location.  inserting will push the added values 
-        # past the # of xforms and will be ignored.
-        for x in self.xform:
-            x.chaos.insert(pos,1.0)
-            
-        return self.xform[pos]
-
     def copy(self):
         return Flame(string=self.to_string())
 

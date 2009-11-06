@@ -790,8 +790,13 @@ class ImagePanel(PreviewBase):
 
         ratio = 200. / max(flame.size)
         size = [int(i * ratio) for i in flame.size]
-        self.parent.renderer.PreviewRequest(self.UpdateBitmap, flame, size,
-                                            **config["Preview-Settings"])
+        # We can't pass in the flame itself to the render request, since this
+        # function is usually called on the same flame repeatedly, with changes
+        # in rapid succession. To ensure correct rendering, the flame is
+        # converted to string. Should be no big deal performance-wise.
+        req = self.parent.renderer.PreviewRequest
+        req(self.UpdateBitmap, flame.to_string(), size,
+            **config["Preview-Settings"])
 
 
     def UpdateBitmap(self, bmp):
