@@ -363,6 +363,8 @@ class Palette(collections.Sequence):
 
         return palette
 
+    def reverse(self):
+        self.data = numpy.array(self.data[::-1], dtype=numpy.uint8)
 
     def rotate(self, index):
         self.data = numpy.array(
