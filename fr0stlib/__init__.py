@@ -949,6 +949,10 @@ class Chaos(object):
             raise ValueError(val)
         self._dict[self._parent._parent.xform[pos]] = val
 
+    def set(self, *args):
+        for xform, chaos in zip(self._parent._parent.xform, args):
+            self._dict[xform] = float(chaos)
+
     def to_string(self):
         lst = list(self)
         for i in reversed(lst):
