@@ -108,9 +108,9 @@ def gnarloscope():
         x.post.c = uniform(-0.5, 0.5)
         x.post.f = uniform(-0.5, 0.5)
         
-    f.xform[0].chaos.set(0,1,1)
-    f.xform[1].chaos.set(1,0,1)
-    f.xform[2].chaos.set(1,0,1)
+    f.xform[0].chaos[:] = 0,1,1
+    f.xform[1].chaos[:] = 1,0,1
+    f.xform[2].chaos[:] = 1,0,1
     
     f.gamma = 3
     f.brightness = 25

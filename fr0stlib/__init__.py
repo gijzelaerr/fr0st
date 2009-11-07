@@ -938,20 +938,30 @@ class Chaos(object):
         return (self._dict[i] for i in self._parent._parent.xform)
 
     def __getitem__(self, pos):
-        if isinstance(pos, slice) or pos < 0:
-            raise NotImplementedError()
+        if isinstance(pos, slice):
+            xform = self._parent._parent.xform
+            return [self._dict[xform[i]] for i in range(len(self))[pos]]
+        if pos < 0:
+            len_ = len(self)
+            # We let the list itself raise the error if index is wrong.
+            if abs(pos) <= len_:
+                pos += len_
         return self._dict[self._parent._parent.xform[pos]]
 
     def __setitem__(self, pos, val):
-        if isinstance(pos, slice) or pos < 0:
-            raise NotImplementedError()
+        if isinstance(pos, slice):
+            indices = range(len(self))[pos]
+            if len(indices) != len(val):
+                raise IndexError("Assigned values don't match length of slice")
+            map(self.__setitem__, indices, val)
+            return
+        if pos < 0:
+            len_ = len(self)
+            if abs(pos) <= len_:
+                pos += len_
         if val < 0:
             raise ValueError(val)
         self._dict[self._parent._parent.xform[pos]] = val
-
-    def set(self, *args):
-        for xform, chaos in zip(self._parent._parent.xform, args):
-            self._dict[xform] = float(chaos)
 
     def to_string(self):
         lst = list(self)
