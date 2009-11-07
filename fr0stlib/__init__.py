@@ -941,11 +941,9 @@ class Chaos(object):
         if isinstance(pos, slice):
             xform = self._parent._parent.xform
             return [self._dict[xform[i]] for i in range(len(self))[pos]]
-        if pos < 0:
-            len_ = len(self)
-            # We let the list itself raise the error if index is wrong.
-            if abs(pos) <= len_:
-                pos += len_
+        # We let the list itself raise the error if index is wrong.
+        if pos < 0 and abs(pos) <= len(self):
+            pos += len(self)
         return self._dict[self._parent._parent.xform[pos]]
 
     def __setitem__(self, pos, val):
@@ -955,10 +953,8 @@ class Chaos(object):
                 raise IndexError("Assigned values don't match length of slice")
             map(self.__setitem__, indices, val)
             return
-        if pos < 0:
-            len_ = len(self)
-            if abs(pos) <= len_:
-                pos += len_
+        if pos < 0 and abs(pos) <= len(self):
+            pos += len(self)
         if val < 0:
             raise ValueError(val)
         self._dict[self._parent._parent.xform[pos]] = val
@@ -987,13 +983,7 @@ def save_flames(filename,*flames):
 
 def needs_conversion(string):
     root = etree.fromstring(string)
-
-    version = root.get('version', None)
-
-    if version is None or version != VERSION:
-        return True
-    else:
-        return False
+    return root.get('version', None) != VERSION
 
 
 def load_flame_strings(filename):
@@ -1001,6 +991,7 @@ def load_flame_strings(filename):
         s = fd.read()
 
     return Flame.from_strings(s, str)
+
 
 def load_flames(filename):
     """Reads a flame file and returns a list of flame objects."""
