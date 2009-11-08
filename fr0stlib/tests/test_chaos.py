@@ -296,18 +296,21 @@ class TestChaos(TestCase):
         self.assertEquals(x.chaos[2], 0.0)
         self.assertEquals(x.chaos[3], 1.0)
 
-        self.assertRaises(NotImplementedError, 
-                lambda: operator.getitem(x.chaos, -1))
+        self.assertEquals(x.chaos[-4], 1.0)
+        self.assertEquals(x.chaos[-3], 0.0)
+        self.assertEquals(x.chaos[-2], 0.0)
+        self.assertEquals(x.chaos[-1], 1.0)
 
         self.assertRaises(IndexError, 
                 lambda: operator.getitem(x.chaos, 4))
 
-        self.assertRaises(NotImplementedError, 
-                lambda: operator.getitem(x.chaos, slice(0, 1, 1)))
+        self.assertRaises(IndexError, 
+                lambda: operator.getitem(x.chaos, -5))
 
-    def test_getslice(self):
-        self.assertRaises(NotImplementedError, 
-                lambda: self.flame.xform[0].chaos[0:])
+        self.assertEquals(x.chaos[:], [1.0, 0.0, 0.0, 1.0])
+        self.assertEquals(x.chaos[2:], [0.0, 1.0])
+        self.assertEquals(x.chaos[:2], [1.0, 0.0])
+        self.assertEquals(x.chaos[::3], [1.0, 1.0])
 
     def test_setitem(self):
         x = self.flame.xform[3]
@@ -317,14 +320,10 @@ class TestChaos(TestCase):
         self.assertEquals(x.chaos[2], 0.0)
         self.assertEquals(x.chaos[3], 1.0)
 
-        self.assertRaises(NotImplementedError, 
-                lambda: operator.getitem(x.chaos, -1))
-
-        self.assertRaises(IndexError, 
-                lambda: operator.getitem(x.chaos, 4))
-
-        self.assertRaises(NotImplementedError, 
-                lambda: operator.getitem(x.chaos, slice(0, 1, 1)))
+        self.assertEquals(x.chaos[-4], 1.0)
+        self.assertEquals(x.chaos[-3], 0.0)
+        self.assertEquals(x.chaos[-2], 0.0)
+        self.assertEquals(x.chaos[-1], 1.0)
 
         x.chaos[0] = 2.0
         self.assertEquals(x.chaos[0], 2.0)
@@ -333,19 +332,31 @@ class TestChaos(TestCase):
         self.assertEquals(x.chaos[0], 2.0)
         x.chaos[0] = 1.0
         x.chaos[1] = 0.0
-
-        self.assertRaises(ValueError,
-                lambda: operator.setitem(x.chaos, 0, -1))
+        x.chaos[2] = 2.0
+        x.chaos[3] = 3.0
+        self.assertEquals(x.chaos[-1], 3.0)
+        self.assertEquals(x.chaos[-2], 2.0)
+        x.chaos[2] = 0.0
+        x.chaos[3] = 1.0
 
         self.assertRaises(IndexError, 
                 lambda: operator.setitem(x.chaos, 4, 0))
 
-        self.assertRaises(NotImplementedError, 
-                lambda: operator.setitem(x.chaos, -1, 0))
+        self.assertRaises(IndexError, 
+                lambda: operator.setitem(x.chaos, -5, 0))
 
-    def test_setslice(self):
-        self.assertRaises(NotImplementedError, 
-                lambda: operator.setitem(self.flame.xform[0].chaos, slice(0, 1, 2), [0]))
+
+        x.chaos[1:] = [2.0, 3.0, 4.0]
+        self.assertEquals(x.chaos[:], [1.0, 2.0, 3.0, 4.0])
+
+        x.chaos[:2] = [5.0, 6.0]
+        self.assertEquals(x.chaos[:], [5.0, 6.0, 3.0, 4.0])
+
+        x.chaos[::2] = [8.0, 9.0]
+        self.assertEquals(x.chaos[:], [8.0, 6.0, 9.0, 4.0])
+
+        x.chaos[:] = [1.0, 0.0, 0.0, 1.0]
+        self.assertEquals(x.chaos[:], [1.0, 0.0, 0.0, 1.0])
 
     def test_to_string(self):
         self.assertEquals(self.flame.xform[0].chaos.to_string(), 'chaos="1.0 1.0 1.0 0.0 " ')
