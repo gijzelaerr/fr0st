@@ -1,7 +1,7 @@
 from unittest import TestCase
 import xml.etree.cElementTree as etree
 import operator
-from fr0stlib import Chaos, Flame
+from fr0stlib import Chaos, Flame, Xform, PostXform
 from fr0stlib.pyflam3.variations import variation_list
 
 
@@ -321,6 +321,17 @@ class TestXform(TestCase):
 
     def test_post(self):
         x = self.flame.xform[0]
+        self.assertEquals(list(x.post.coefs), [1.0, 0.0, 0.0, 1.0, 0.0, 0.0])
+
+        self.assertRaises(TypeError, lambda: setattr(x, 'post', 1))
+
+        orig = x.post
+        p = PostXform(x, coefs=[1.0, 2.0, 3.0, 4.0, 5.0, 6.0])
+        x.post = p
+
+        self.assertEquals(list(x.post.coefs), [1.0, 2.0, 3.0, 4.0, 5.0, 6.0])
+
+        x.post = orig
         self.assertEquals(list(x.post.coefs), [1.0, 0.0, 0.0, 1.0, 0.0, 0.0])
 
     def test_index(self):
@@ -663,6 +674,16 @@ class TestXform(TestCase):
         self.assertTupleAlmostEquals(x.y, (0, 1))
         self.assertTupleAlmostEquals(x.o, (0, 0))
 
+        x.orbit(90, pivot=(1,1))
+        self.assertTupleAlmostEquals(x.x, (3, 0))
+        self.assertTupleAlmostEquals(x.y, (2, 1))
+        self.assertTupleAlmostEquals(x.o, (2, 0))
+
+        x.orbit(-90, pivot=(1,1))
+        self.assertTupleAlmostEquals(x.x, (1, 0))
+        self.assertTupleAlmostEquals(x.y, (0, 1))
+        self.assertTupleAlmostEquals(x.o, (0, 0))
+
     def test_ispost(self):
         self.assertEquals(self.flame.xform[0].ispost(), False)
         self.assertEquals(self.flame.xform[1].ispost(), False)
@@ -712,5 +733,48 @@ class TestXform(TestCase):
         c.delete()
         self.assertTrue(c not in self.flame.xform)
 
+    def test_random(self):
+        x = Xform.random(self.flame, fx=1)
+        self.assertEquals(x, None)
+
+        x = Xform.random(self.flame, fx=0)
+        self.assertNotEquals(x, None)
+        self.assertTrue(x in self.flame.xform)
+        self.assertTrue(x.index, 5)
+        x.delete()
+
+        f = self.flame.final
+        self.flame.final = None
+
+        x = Xform.random(self.flame, fx=1)
+        self.assertNotEquals(x, None)
+
+        if x.isfinal():
+            self.assertTrue(x is self.flame.final)
+            self.assertEquals(x.index, None)
+        else:
+            self.assertTrue(x in self.flame.xform)
+            self.assertEquals(x.index, 5)
+
+        x.delete()
+
+        self.flame.final = f
+
+        x = Xform.random(self.flame, fx=0, ident=1)
+        self.assertNotEquals(x, None)
+        self.assertTrue(x in self.flame.xform)
+        self.assertTrue(x.index, 5)
+
+        #for k in x.list_variations():
+        #    self.assertEquals(getattr(x, k), 1.0, '%s = %s' % (k, getattr(x, k)))
+
+        x.delete()
+
+
+        x = Xform.random(self.flame, fx=0, xw=1)
+        self.assertNotEquals(x, None)
+        self.assertTrue(x in self.flame.xform)
+        self.assertTrue(x.index, 5)
+        x.delete()
 
 
