@@ -9,7 +9,6 @@ import re
 from collections import defaultdict
 from functools import partial
 
-import Image
 import numpy
 from fr0stlib import _utils as utils
 from fr0stlib.pyflam3 import Genome,RandomContext,flam3_estimate_bounding_box
