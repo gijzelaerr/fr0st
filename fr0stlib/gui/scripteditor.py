@@ -2,6 +2,8 @@ from __future__ import with_statement
 import wx, os, sys, re
 from wx import stc
 
+from wx.lib.newevent import NewEvent
+
 from fr0stlib.decorators import *
 from fr0stlib.gui.toolbar import CreateEditorToolBar
 from fr0stlib.gui.menu import CreateEditorMenu
@@ -50,9 +52,6 @@ class EditorFrame(wx.Frame):
         if self.CheckForChanges() == wx.ID_CANCEL:
             return
         self.Show(False)
-        if self.editor._changed:
-            self.Title = self.Title[1:]
-            self.editor._changed = False
         self.Parent.Raise()
 
 
@@ -62,7 +61,6 @@ class EditorFrame(wx.Frame):
             return
         self.editor.Clear()
         self._new = True
-        self.editor._changed = False
 
         # Load the default script
         self.scriptpath = '<unknown>'
@@ -161,8 +159,6 @@ class EditorFrame(wx.Frame):
         if os.path.exists(path):
             with open(path) as f:
                 self.editor.SetValue(f.read())
-        self.SetTitle("%s - Script Editor" % os.path.basename(path))
-        self.editor._changed = False
         
 
     def SaveScript(self, path, confirm=True):
@@ -182,8 +178,7 @@ class EditorFrame(wx.Frame):
             wx.MessageDialog(self, "Unable to save file or destination not writable.", 'Fr0st',
                              wx.OK).ShowModal()
 
-        self.SetTitle("%s - Script Editor" % os.path.basename(path))
-        self.editor._changed = False
+        self.editor.SetSavePoint()
 
 
     def make_dialog(self, *a):
@@ -216,6 +211,12 @@ class EditorFrame(wx.Frame):
         except Exception as e:
             return e
             
+    @Bind(wx.EVT_IDLE)
+    def OnIdle(self, e):
+        if self.editor.IsModified():
+            self.Title = '*%s - Script Editor' % os.path.basename(self.scriptpath)
+        else:
+            self.Title = '%s - Script Editor' % os.path.basename(self.scriptpath)
 
 
 class MyLog(wx.TextCtrl):
@@ -284,18 +285,7 @@ class CodeEditor(stc.StyledTextCtrl):
     def __init__(self, parent, frame):
         stc.StyledTextCtrl.__init__(self, parent, -1)
         self.parent = frame
-        self._changed = False
         self.SetUpEditor()
-
-
-    @Bind(wx.stc.EVT_STC_CHANGE)
-    def OnChange(self, e):
-        """This method is here to make the editor show if there have been
-        changes to the script."""
-        if not self._changed:
-            self._changed = True
-            self.parent.Title = '*' + self.parent.Title
-            
 
     # Some methods to make it compatible with how the wxTextCtrl is used
     def SetValue(self, value):
