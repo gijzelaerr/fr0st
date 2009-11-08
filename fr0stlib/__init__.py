@@ -25,7 +25,6 @@ try:
 except ImportError:
     wx = False
 
-
 VERSION = "fr0st 0.5 alpha"
 
 GUI = False
@@ -471,15 +470,13 @@ class Palette(collections.Sequence):
         self.from_seeds(seeds, curve)
 
         
-    def from_image(self, filename, num_tries=50, try_size=1000):
-        img = Image.open(filename)
-        bin = map(ord, img.tostring())
+    def from_image(self, data, size, num_tries=50, try_size=1000):
         grab = numpy.zeros((256, 3), numpy.float32)
         for i in xrange(256):
-            x = random.randint(0, img.size[0]-1)
-            y = random.randint(0, img.size[1]-1)
-            idx = 3*(x + img.size[0]*y)
-            grab[i] = bin[idx:idx+3]
+            x = random.randint(0, size[0]-1)
+            y = random.randint(0, size[1]-1)
+            idx = 3*(x + size[0]*y)
+            grab[i] = data[idx:idx+3]
 
         best = utils.palette_improve(grab, num_tries, try_size)
         for i in xrange(256):
