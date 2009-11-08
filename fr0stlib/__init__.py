@@ -675,7 +675,7 @@ class Xform(object):
 
 
     def list_variations(self):
-        return [i for i in variations if i in self.__dict__]
+        return [i for i in variation_list if i in self.__dict__]
 
 
     def iter_attributes(self):
@@ -1004,3 +1004,4 @@ def load_flames(filename):
 def show_status(s):
     sys.stdout.write("%s\r" %s)
     sys.stdout.flush()
+
