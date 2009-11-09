@@ -1,11 +1,10 @@
 ##############################################################################
-#  The Combustion Flame Engine - pyflam3ng
-#  http://combustion.sourceforge.net
-#  http://github.com/bobbyrward/pyflam3ng/tree/master
+#  Fractal Fr0st - fr0st
+#  https://launchpad.net/fr0st
 #
-#  Copyright (C) 2007-2008 by Bobby R. Ward <bobbyrward@gmail.com>
+#  Copyright (C) 2009 by Vitor Bosshard <algorias@gmail.com>
 #
-#  The Combustion Flame Engine is free software; you can redistribute
+#  Fractal Fr0st is free software; you can redistribute
 #  it and/or modify it under the terms of the GNU General Public
 #  License as published by the Free Software Foundation; either
 #  version 3 of the License, or (at your option) any later version.
@@ -20,7 +19,6 @@
 #  the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 #  Boston, MA 02111-1307, USA.
 ##############################################################################
-
 from distutils.core import setup
 from distutils.extension import Extension
 from Cython.Distutils import build_ext
