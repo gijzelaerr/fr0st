@@ -45,14 +45,7 @@ try:
 except ImportError:
     utils = None
 
-
-try:
-    import wx
-except ImportError:
-    wx = False
-
 VERSION = "fr0st 0.5 alpha"
-
 GUI = False
 
 _variables = dict([i[0:2] for i in variable_list])
