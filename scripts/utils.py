@@ -22,13 +22,13 @@ def normalize_weights(flame, norm=1.0):
         xf.weight /= ws
 
         
-def batch(func, nflames):
+def batch(func, nflames, *a, **k):
     """Takes a flame-generating function, and calls it multiple
     times to generate a batch."""
     name = func.__name__ + "%03d"
     lst = []
     for i in range(nflames):
-        flame = func()
+        flame = func(*a, **k)
         flame.name = name % i
         lst.append(flame)
     return lst
