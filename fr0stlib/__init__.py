@@ -6,18 +6,23 @@ import collections
 import xml.etree.cElementTree as etree
 import copy
 import re
+from math import *
 from collections import defaultdict
 from functools import partial
 
 import numpy
-from fr0stlib import _utils as utils
 from fr0stlib.pyflam3 import Genome,RandomContext,flam3_estimate_bounding_box
 from fr0stlib.pyflam3.variations import variable_list,variation_list,variables
 from fr0stlib.pyflam3.constants import flam3_nvariations
 from fr0stlib.compatibility import compatibilize
-from math import *
-
 from fr0stlib.functions import *
+
+
+try:
+    from fr0stlib import _utils as utils
+except ImportError:
+    utils = None
+
 
 try:
     import wx
@@ -30,9 +35,16 @@ GUI = False
 
 _variables = dict([i[0:2] for i in variable_list])
 
+
 class ParsingError(Exception):
     pass
 
+
+class MissingUtilsModuleError(Exception):
+    def __init__(self):
+        super(Exception, self).__init__(
+                'This method requires the cython module '
+                '`fr0stlib._utils` which is not available')
 
 
 class Flame(object):
@@ -401,6 +413,9 @@ class Palette(collections.Sequence):
 
         
     def from_seed(self, seed, csplit=0, split=30,  dist=64, curve='lin'):
+        if utils is None:
+            raise MissingUtilsModuleError()
+
         (h,l,s) = rgb2hls(seed)
         split /= 360.0
         csplit /= 360.0
@@ -441,6 +456,9 @@ class Palette(collections.Sequence):
 
 
     def from_seeds(self, seeds, curve='cos'):
+        if utils is None:
+            raise MissingUtilsModuleError()
+
         if curve=='lin': cur = 0
         elif curve=='cos': cur = 1
         else: raise ValueError('Curve must be lin or cos')
@@ -470,6 +488,9 @@ class Palette(collections.Sequence):
 
         
     def from_image(self, data, size, num_tries=50, try_size=1000):
+        if utils is None:
+            raise MissingUtilsModuleError()
+
         grab = numpy.zeros((256, 3), numpy.float32)
         for i in xrange(256):
             x = random.randint(0, size[0]-1)
