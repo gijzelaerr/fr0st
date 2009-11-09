@@ -24,6 +24,7 @@ import random
 import itertools
 import ctypes
 import collections
+import xml.etree.ElementTree
 import xml.etree.cElementTree as etree
 import copy
 import re

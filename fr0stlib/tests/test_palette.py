@@ -20,6 +20,7 @@
 #  Boston, MA 02111-1307, USA.
 ##############################################################################
 from unittest import TestCase
+import xml.etree.ElementTree
 import xml.etree.cElementTree as etree
 from cStringIO import StringIO
 from functools import partial

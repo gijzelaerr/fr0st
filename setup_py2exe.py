@@ -179,7 +179,13 @@ data_files = [('', [ 'changelog.txt', 'license.txt' ] + glob.glob(fr0st_package_
               ('scripts', glob.glob('scripts/*.py')),
              ]
 
-includes = []
+includes = [
+        'xml',
+        'xml.etree',
+        'xml.etree.ElementTree', 
+        'xml.etree.cElementTree', 
+        'pyexpat'
+        ]
 
 excludes = [
     'BaseHTTPServer', 'ConfigParser', 'Queue',
@@ -191,12 +197,11 @@ excludes = [
     'doctest', 'email', 'hashlib', 'multiprocessing',
     'numpy.core._dotblas', 'numpy.numarray', 'numpy.numarray.util',
     'numpy.random', 'optparse', 'parser', 'pdb', 'pkgutil', 
-    'pydoc', 'pyexpat', 'pyreadline', 'pywin.debugger',
+    'pydoc', 'pyreadline', 'pywin.debugger',
     'pywin.debugger.dbgcon', 'pywin.dialogs', 'readline', 'rfc822',
     'select', 'sets', 'shlex', 'signal', 'socket', 'ssl', 'subprocess',
     'symbol', 'symtable', 'tcl', 'textwrap', 'tty', 'uu', 'weakref',
-    'webbrowser', 'xml', 'xml.parsers', 'xml.parsers.expat', 'xmllib',
-    'xmlrpclib', 'zipfile', 'zipimport',
+    'webbrowser', 'xmlrpclib', 'zipfile', 'zipimport',
 ]
 
 packages = [fr0st_package_name]
