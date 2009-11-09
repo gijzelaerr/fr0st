@@ -864,6 +864,10 @@ class ChaosPanel(wx.Panel):
         self.SetFocus() # Makes sure OnKeyUp gets called.
         
         item = tree.HitTest(e.GetPosition())[0]
+
+        if not item.IsOk():
+            return
+
         name = tree.GetItemText(item)
         val = tree.GetItemText(item, 1) or "0.0"
         
