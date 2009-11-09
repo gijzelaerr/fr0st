@@ -326,8 +326,6 @@ class GradientPanel(wx.Panel):
 
 
 class Gradient(wx.Panel):
-    formatstr = "%c" * 256 * 3
-
     @BindEvents
     def __init__(self,parent):
         self.parent = parent.parent

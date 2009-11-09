@@ -211,21 +211,6 @@ class Flame(object):
     def copy(self):
         return Flame(string=self.to_string())
 
-#    def copy(self):
-#        self.xform, xforms = [], self.xform
-#
-#        new_flame = copy.deepcopy(self)
-#
-#        for xform in xforms:
-#            new_xform = xform.copy()
-#            new_xform._parent = new_flame
-#            new_flame.xform.append(new_xform)
-#
-#        self.xform = xforms
-#
-#        return new_flame
-    
-
 
     def iter_xforms(self):
         for i in self.xform:
@@ -255,7 +240,6 @@ class Flame(object):
         nsamples = 10000
         genome = Genome.from_string(self.to_string(False))[0]
         flam3_estimate_bounding_box(genome, b_eps, nsamples, b_min, b_max, RandomContext())
-        #print "%f %f" % ((b_min[0]+b_max[0])/2,(b_min[1]+b_max[1])/2)
         bxoff = (b_min[0]+b_max[0])/2
         if abs(bxoff)<5:
             self.x_offset = bxoff
