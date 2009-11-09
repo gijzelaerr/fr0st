@@ -135,7 +135,7 @@ class Flame(object):
             
             setattr(self,name,val)
 
-        self.name = str(self.name) if hasattr(self, 'name') else None
+        self.name = str(self.name)
 
         # Scale needs to be converted. This is reversed in to_string.
         self.scale = self.scale * 100 / self.size[0]
