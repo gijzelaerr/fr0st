@@ -533,20 +533,14 @@ class Xform(object):
 
 
     @classmethod
-    def random(cls, parent, xv=range(flam3_nvariations), n=1, xw=0, fx=0, col=0, ident=0, **kwds):
-
-        # We can't add a final xform if one already exists
-        if parent.final and fx>0:
-            return None
-        
-        # Add a standard xform, or a final if the randomness permits
-        if fx==0:
-            x = parent.add_xform()
-        elif random.uniform(0,1)<=fx:
+    def random(cls, parent, xv=range(flam3_nvariations), n=1, xw=0, fx=False, col=0, ident=0, **kwds):
+        if fx:
+            if parent.final:
+                parent.final = None    
             x = parent.add_final()
         else:
-            return None
-        
+            x = parent.add_xform()
+
         # Clear out the linearness
         x.linear=0
         
