@@ -223,7 +223,6 @@ class MainWindow(wx.Frame):
 
         self.SetSizer(sizer)
 
-        self._namespace = self.CreateNamespace()
         self.flame = Flame()
         self.flame.add_xform()
 
@@ -592,37 +591,6 @@ class MainWindow(wx.Frame):
             return result
 
 
-    @InMain
-    def EndOfScript(self, update):
-        self.SetFlame(self.flame, rezoom=False)
-        # Note that tempsave returns if scriptrunning == True, so it needs to
-        # come after unblocking the GUI.
-        self.BlockGUI(False)
-        self.SetStatusText("")
-        if update:
-            self.TreePanel.TempSave()
-
-
-    @CallableFrom('MainThread')
-    def BlockGUI(self, flag=False):
-        """Called before and after a script runs."""
-        # TODO: prevent file opening, etc
-        self.Enable(ID.RUN, not flag, editor=True)
-        self.Enable(ID.STOP, flag, editor=True)
-        self.editor.SetEditable(not flag)
-        self.scriptrunning = flag
-
-
-    @CallableFrom('MainThread')
-    def Enable(self, id, flag, editor=False):
-        """Enables/Disables toolbar and menu items."""
-        flag = bool(flag)
-        self.tb.EnableTool(id, flag)
-        self.menu.Enable(id, flag)
-        if editor:
-            self.editorframe.tb.EnableTool(id, flag)
-
-
     @CallableFrom('MainThread')
     def SetFlame(self, flame, rezoom=True):
         """Changes the active flame and updates all relevant widgets.
@@ -659,6 +627,7 @@ class MainWindow(wx.Frame):
         namespace = {}
         exec("from fr0stlib import *; __name__='__main__'",namespace)
         namespace.update(dict(self = self, # for debugging only!
+                              flame = self.flame,
                               get_flames = self.tree.GetFlames,
                               save_flames = self.save_flames,
                               load_flames = self.load_flames,
@@ -684,11 +653,12 @@ class MainWindow(wx.Frame):
         script = "\n".join(text) +'\n'
         self.log._script = text
         flame = Flame(self.flame.to_string())
-
+        namespace = self.CreateNamespace()
+        
         try:
-            # _namespace is used as globals and locals, to emulate top level
+            # namespace is used as globals and locals, to emulate top level
             # module behaviour.
-            exec(script,self._namespace)
+            exec(script, namespace)
         except SystemExit:
             pass
         except ThreadInterrupt:
@@ -696,11 +666,10 @@ class MainWindow(wx.Frame):
         finally:
             # Restore the scripting environment to its default state.
             # self.flame is stored in the dict, needs to be transferred.
-            update = self._namespace["update_flame"]
-            if update:
-                flame = self.flame
-            self._namespace = self.CreateNamespace()
-            self.flame = flame
+            update = namespace["update_flame"]
+            if not update:
+                # Revert to state of flame before script ran.
+                self.flame = flame
 
             # This lets the GUI know that the script has finished.
             self.EndOfScript(update)
@@ -709,15 +678,36 @@ class MainWindow(wx.Frame):
         print "\nSCRIPT STATS:\n"\
               "Running time %.2f seconds\n" %(time.time()-start)
 
+        
+    @InMain
+    def EndOfScript(self, update):
+        self.SetFlame(self.flame, rezoom=False)
+        # Note that tempsave returns if scriptrunning == True, so it needs to
+        # come after unblocking the GUI.
+        self.BlockGUI(False)
+        self.SetStatusText("")
+        if update:
+            self.TreePanel.TempSave()
 
-    @property
-    def flame(self):
-        return self._namespace['flame']
-    @flame.setter
-    def flame(self, flame):
-        if not isinstance(flame,Flame):
-            raise TypeError("Argument must be a Flame object")
-        self._namespace['flame'] = flame
+
+    @CallableFrom('MainThread')
+    def BlockGUI(self, flag=False):
+        """Called before and after a script runs."""
+        # TODO: prevent file opening, etc
+        self.Enable(ID.RUN, not flag, editor=True)
+        self.Enable(ID.STOP, flag, editor=True)
+        self.editor.SetEditable(not flag)
+        self.scriptrunning = flag
+
+
+    @CallableFrom('MainThread')
+    def Enable(self, id, flag, editor=False):
+        """Enables/Disables toolbar and menu items."""
+        flag = bool(flag)
+        self.tb.EnableTool(id, flag)
+        self.menu.Enable(id, flag)
+        if editor:
+            self.editorframe.tb.EnableTool(id, flag)
 
 
     def preview(self):
