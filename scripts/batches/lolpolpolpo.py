@@ -52,6 +52,6 @@ def lolpolpolpo():
 
 if __name__ == "__main__":
     lst = utils.batch(lolpolpolpo, 20)
-    save_flames("parameters/lolpolpolpo_batch.flame", *lst)
+    save_flames("lolpolpolpo_batch.flame", *lst)
 
 

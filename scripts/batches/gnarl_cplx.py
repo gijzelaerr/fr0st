@@ -87,6 +87,6 @@ def gnarlcomplex():
 
 if __name__ == "__main__":
     lst = batch(gnarlcomplex, 20)
-    save_flames("parameters/gnarlcomplex.flame", *lst)
+    save_flames("gnarlcomplex.flame", *lst)
 
 

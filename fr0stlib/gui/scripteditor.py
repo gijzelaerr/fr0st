@@ -59,11 +59,7 @@ class EditorFrame(wx.Frame):
                         "All files (*.*)|*.*"
 
         # Load the default script
-        self.scriptpath = os.path.join(wx.GetApp().AppBaseDir, 'scripts', 'default.py')
-
-        if not os.path.exists(self.scriptpath):
-            self.scriptpath = os.path.join(wx.GetApp().ScriptsDir, 'default.py')
-
+        self.scriptpath = os.path.join(wx.GetApp().UserScriptsDir, 'default.py')
         self.OpenScript(self.scriptpath)
 
 
@@ -183,10 +179,6 @@ class EditorFrame(wx.Frame):
         
 
     def SaveScript(self, path, confirm=True):
-        if not os.access(path, os.W_OK):
-            basename = os.path.split(path)[1]
-            path = os.path.join(wx.GetApp().UserScriptsDir, basename)
-
         if os.path.exists(path) and confirm:
             dlg = wx.MessageDialog(self, '%s already exists.\nDo You want to replace it?'
                                    %path,'Fr0st',wx.YES_NO)

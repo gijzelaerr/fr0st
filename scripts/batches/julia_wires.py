@@ -98,7 +98,7 @@ def julia_wires():
 
 if __name__ == "__main__":
     lst = batch(julia_wires, 20)
-    save_flames("parameters/julia_wires.flame", *lst)
+    save_flames("julia_wires.flame", *lst)
         
         
     

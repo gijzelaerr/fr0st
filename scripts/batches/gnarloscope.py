@@ -120,6 +120,6 @@ def gnarloscope():
 
 if __name__ == "__main__":
     lst = batch(gnarloscope, 20)
-    save_flames("parameters/gnarloscopes.flame", *lst)
+    save_flames("gnarloscopes.flame", *lst)
 
 
