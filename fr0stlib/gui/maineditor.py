@@ -20,6 +20,7 @@
 #  Boston, MA 02111-1307, USA.
 ##############################################################################
 import wx, itertools
+import wx.lib.colourselect as csel
 import copy
 
 from fr0stlib.decorators import *
@@ -413,9 +414,15 @@ class AdjustPanel(MultiSliderMixin, wx.Panel):
         self.parent = parent.parent
         super(AdjustPanel, self).__init__(parent, -1)
 
-        sizer = wx.BoxSizer(wx.VERTICAL)
+        self.bg_color_select = csel.ColourSelect(self, colour=(0,0,0), label='Background Color...')
+
         self.sizepanel = SizePanel(self, self.__size_callback)
-        sizer.Add(self.sizepanel)
+
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        hsizer = wx.BoxSizer(wx.HORIZONTAL)
+        hsizer.Add(self.sizepanel)
+        hsizer.Add(self.bg_color_select)
+        sizer.Add(hsizer)
         sizer.Add(Box(self, "Camera Settings",
                       *((self.MakeSlider(*i),0, wx.EXPAND) for i in
                       (("scale", 25, 1, 100, False),
@@ -436,12 +443,17 @@ class AdjustPanel(MultiSliderMixin, wx.Panel):
         self.UpdateFlame()
         self.parent.TreePanel.TempSave()
 
+    @Bind(csel.EVT_COLOURSELECT)
+    def OnBackgroundChanged(self, e):
+        self.UpdateFlame()
+        self.parent.TreePanel.TempSave()
 
     def UpdateView(self):
         flame = self.parent.flame
         for name in self.sliders:
             self.UpdateSlider(name, getattr(flame, name))
         self.sizepanel.UpdateSize(flame.size)
+        self.bg_color_select.SetColour(tuple(map(lambda x: x*255.0, flame.background)))
 
 
     def UpdateFlame(self):
@@ -449,6 +461,7 @@ class AdjustPanel(MultiSliderMixin, wx.Panel):
         for name, val in self.IterSliders():
             setattr(flame, name, val)
         flame.size = self.sizepanel.GetInts()
+        flame.background = tuple(map(lambda x: x/255.0, self.bg_color_select.GetColour()))
         self.UpdateView()
         self.parent.image.RenderPreview()
 
