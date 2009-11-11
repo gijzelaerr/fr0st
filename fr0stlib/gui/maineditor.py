@@ -413,15 +413,27 @@ class AdjustPanel(MultiSliderMixin, wx.Panel):
         self.parent = parent.parent
         super(AdjustPanel, self).__init__(parent, -1)
 
-        self.bg_color_select = csel.ColourSelect(self, colour=(0,0,0), label='Background Color...')
+        self.bgcolor_panel = wx.Panel(self, style=wx.BORDER_SUNKEN)
+        self.bgcolor_panel.SetBackgroundColour((0,0,0))
+        self.bgcolor_panel.SetMinSize((64, 10))
+        self.bgcolor_change = wx.Button(self, label='Change...')
+        bgcolor_box = Box(self, 'Background Color', 
+                (self.bgcolor_panel, 0, wx.EXPAND|wx.ALL, 5),
+                (self.bgcolor_change, 0, wx.ALL, 5),
+                orient=wx.HORIZONTAL
+                )
+        self.Bind(wx.EVT_BUTTON, self.OnChangeBGColor, self.bgcolor_change)
 
         self.sizepanel = SizePanel(self, self.__size_callback)
 
+        topsizer = wx.GridBagSizer(5, 5)
+        topsizer.Add(self.sizepanel, (0, 0), (1, 1), wx.ALIGN_CENTER)
+        topsizer.Add(bgcolor_box, (0, 1), (1, 1), wx.ALIGN_CENTER)
+        topsizer.AddGrowableCol(0)
+        topsizer.AddGrowableCol(1)
+
         sizer = wx.BoxSizer(wx.VERTICAL)
-        hsizer = wx.BoxSizer(wx.HORIZONTAL)
-        hsizer.Add(self.sizepanel)
-        hsizer.Add(self.bg_color_select)
-        sizer.Add(hsizer)
+        sizer.Add(topsizer, 0, wx.EXPAND)
         sizer.Add(Box(self, "Camera Settings",
                       *((self.MakeSlider(*i),0, wx.EXPAND) for i in
                       (("scale", 25, 1, 100, False),
@@ -442,17 +454,25 @@ class AdjustPanel(MultiSliderMixin, wx.Panel):
         self.UpdateFlame()
         self.parent.TreePanel.TempSave()
 
-    @Bind(csel.EVT_COLOURSELECT)
-    def OnBackgroundChanged(self, e):
-        self.UpdateFlame()
-        self.parent.TreePanel.TempSave()
+    def OnChangeBGColor(self, e):
+        dlg = wx.ColourDialog(self)
+        dlg.GetColourData().SetChooseFull(True)
+        dlg.GetColourData().SetColour(self.bgcolor_panel.GetBackgroundColour())
+
+        if dlg.ShowModal() == wx.ID_OK:
+            self.bgcolor_panel.SetBackgroundColour(dlg.GetColourData().GetColour())
+            self.UpdateFlame()
+            self.parent.TreePanel.TempSave()
+
+        dlg.Destroy()
 
     def UpdateView(self):
         flame = self.parent.flame
         for name in self.sliders:
             self.UpdateSlider(name, getattr(flame, name))
         self.sizepanel.UpdateSize(flame.size)
-        self.bg_color_select.SetColour(tuple(map(lambda x: x*255.0, flame.background)))
+        self.bgcolor_panel.SetBackgroundColour(
+                tuple(map(lambda x: x*255.0, flame.background)))
 
 
     def UpdateFlame(self):
@@ -460,7 +480,8 @@ class AdjustPanel(MultiSliderMixin, wx.Panel):
         for name, val in self.IterSliders():
             setattr(flame, name, val)
         flame.size = self.sizepanel.GetInts()
-        flame.background = tuple(map(lambda x: x/255.0, self.bg_color_select.GetColour()))
+        flame.background = tuple(map(lambda x: x/255.0, 
+            self.bgcolor_panel.GetBackgroundColour()))
         self.UpdateView()
         self.parent.image.RenderPreview()
 
