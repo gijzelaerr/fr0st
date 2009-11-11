@@ -19,8 +19,25 @@
 #  the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 #  Boston, MA 02111-1307, USA.
 ##############################################################################
+import wx, os
+
 from fr0stlib.pyflam3 import Genome
 from fr0stlib import Flame, needs_conversion
+
+
+types = {".bmp": wx.BITMAP_TYPE_BMP,
+         ".png": wx.BITMAP_TYPE_PNG,
+         ".jpg": wx.BITMAP_TYPE_JPEG}
+
+
+def save_image(path, bmp):
+    if isinstance(bmp, buffer):
+        img = wx.ImageFromBuffer(bmp)
+    else:
+        img = wx.ImageFromBitmap(bmp)
+    ty = types[os.path.splitext(path)[1]]
+    img.SaveFile(path, ty)
+
 
 
 def flam3_render(flame, size, quality, **kwds):

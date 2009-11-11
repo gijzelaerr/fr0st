@@ -31,6 +31,7 @@ from fr0stlib.gui.config import config
 from fr0stlib.gui.constants import ID
 from fr0stlib.gui._events import InMain
 from fr0stlib.decorators import *
+from fr0stlib.render import save_image
 
 
 
@@ -92,9 +93,6 @@ class RenderDialog(wx.Frame):
     buffer_depth_dict = {"32-bit int": 32,
               "32-bit float": 33,
               "64-bit int": 64}
-    types = {".bmp": wx.BITMAP_TYPE_BMP,
-             ".png": wx.BITMAP_TYPE_PNG,
-             ".jpg": wx.BITMAP_TYPE_JPEG}
     filter_kernel_dict = {"Gaussian": 0,
                           "Hermite": 1,
                           "Box": 2,
@@ -374,7 +372,7 @@ class RenderDialog(wx.Frame):
 
         destination = self.fbb.GetValue()
         ty= os.path.splitext(destination)[1].lower()
-        if ty not in self.types:
+        if ty not in (".bmp", ".png", ".jpg"):
             wx.MessageDialog(self, "File extension must be png, jpg or bmp.",
                              'Fr0st', wx.OK).ShowModal()
             return
@@ -506,8 +504,7 @@ class RenderDialog(wx.Frame):
             self.CleanProg()
             self.progflag = 0
             return
-        ty = config["Img-Type"]
-        wx.ImageFromBitmap(bmp).SaveFile(path, self.types[ty])
+        save_image(path, bmp)
 
         if index == self.selections[-1]:
             self.CleanProg()
