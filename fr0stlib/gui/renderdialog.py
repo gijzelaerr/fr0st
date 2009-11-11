@@ -463,23 +463,19 @@ class RenderDialog(wx.Frame):
         string = "rendering %s/%s (%s): %%.2f %%%% \t" %(index, lenght, name)
         str_iter = string + "ETA: %02d:%02d:%02d"
         str_de = string + "running density estimation"
+        @InMain
         @Catches(wx.PyDeadObjectError)
-        def prog(*args):
-            self.OnProgress(str_iter, str_de, *args)
+        def prog(py_object, fraction, stage, eta):
+            if stage == 0:
+                h = eta/3600
+                m = eta%3600/60
+                s = eta%60
+                self.SetStatusText(str_iter % (fraction,h,m,s))
+                self.gauge.SetValue(fraction)
+            else:
+                self.SetStatusText(str_de % fraction)
             return self.progflag
         return prog
-        
-
-    @InMain
-    def OnProgress(self, str_iter, str_de, py_object, fraction, stage, eta):
-        if stage == 0:
-            h = eta/3600
-            m = eta%3600/60
-            s = eta%60
-            self.SetStatusText(str_iter % (fraction,h,m,s))
-            self.gauge.SetValue(fraction)
-        else:
-            self.SetStatusText(str_de % fraction)
 
             
     def CancelRender(self):
