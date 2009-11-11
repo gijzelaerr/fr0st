@@ -19,13 +19,6 @@
 #  the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 #  Boston, MA 02111-1307, USA.
 ##############################################################################
-#Render Dialog Script for Fr0st
-#(Re)Started by Brad on April 6th at 8:00 pm.
-#Designed to be a basic dialog that will render the current flame to an image file.
-#Changelog:
-#   Started April 6th.
-#   Basic Operations completed April 10th -
-#     Currently supports PNG and JPG images, will support more.
 
 import wx, os, time, sys, itertools
 from  wx.lib.filebrowsebutton import FileBrowseButton
@@ -474,9 +467,6 @@ class RenderDialog(wx.Frame):
         str_de = string + "running density estimation"
         @Catches(wx.PyDeadObjectError)
         def prog(*args):
-            if self.progflag == 1:
-                self.rendering = False
-                return 1
             self.OnProgress(str_iter, str_de, *args)
             return self.progflag
         return prog
@@ -495,12 +485,15 @@ class RenderDialog(wx.Frame):
 
             
     def CancelRender(self):
+        # Make progress function return exit status to flam3 next time it
+        # is called.
         self.progflag = 1
         # HACK: prevent future renders from being passed to flame.
         del self.parent.renderer.bgqueue[:]
         
 
     def CleanProg(self):
+        self.rendering = False
         self.render.Label = "Render"
         self.close.Label = "Close"
         self.gauge.SetValue(0)
@@ -517,5 +510,4 @@ class RenderDialog(wx.Frame):
         wx.ImageFromBitmap(bmp).SaveFile(path, self.types[ty])
 
         if index == self.selections[-1]:
-            self.rendering = False
             self.CleanProg()
