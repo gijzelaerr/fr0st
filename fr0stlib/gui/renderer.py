@@ -26,6 +26,7 @@ from wx import PyDeadObjectError
 from fr0stlib.decorators import Catches, Threaded
 from fr0stlib.render import flam3_render, flam4_render
 from fr0stlib.gui.config import config
+from fr0stlib.gui._events import InMain
 
 
 class Renderer():
@@ -140,7 +141,7 @@ class Renderer():
         else:
             channels = kwds.get('transparent', False) + 3
         # args[1] is always size...
-        self.parent.OnImageReady(callback, args[1], output_buffer, channels)
+        self.OnImageReady(callback, args[1], output_buffer, channels)
         
 
     def prog_wrapper(self, f, flag):
@@ -149,4 +150,13 @@ class Renderer():
             return self.exitflag or f(*args) or getattr(self, flag)
         return prog_func
 
-    
+
+    @InMain
+    def OnImageReady(self, callback, (w,h), output_buffer, channels):
+        if channels == 3:
+            fun = wx.BitmapFromBuffer
+        elif channels == 4:
+            fun = wx.BitmapFromBufferRGBA
+        else:
+            raise ValueError("need 3 or 4 channels, not %s" % channels)
+        callback(fun(w, h, output_buffer))

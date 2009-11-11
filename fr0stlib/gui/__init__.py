@@ -768,17 +768,6 @@ class MainWindow(wx.Frame):
         self.OpenFlame(path)
 
 
-    @InMain
-    def OnImageReady(self, callback, (w,h), output_buffer, channels):
-        if channels == 3:
-            fun = wx.BitmapFromBuffer
-        elif channels == 4:
-            fun = wx.BitmapFromBufferRGBA
-        else:
-            raise ValueError("need 3 or 4 channels, not %s" % channels)
-        callback(fun(w, h, output_buffer))
-
-
 
 class ImagePanel(PreviewBase):
 

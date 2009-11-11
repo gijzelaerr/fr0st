@@ -50,18 +50,18 @@ def InMain(f):
     flag = Event()
     ID = wx.NewId()
     def callback(e):
-        self, a, k = e.Args
+        a, k = e.Args
         try:
-            res[0] = f(self, *a, **k)
+            res[0] = f(*a, **k)
         except Exception as e:
             res[0] = e
         flag.set()
-    def inner(self, *a, **k):
+    def inner(*a, **k):
         if not bound.is_set():
             wx.GetApp().Bind(EVT_THREAD_MESSAGE, callback, id=ID)
             bound.set()
         flag.clear()
-        wx.PostEvent(self, ThreadMessageEvent(ID, self, a, k))
+        wx.PostEvent(wx.GetApp(), ThreadMessageEvent(ID, a, k))
         flag.wait()
         result, res[0] = res[0], None
         if isinstance(result, Exception):
