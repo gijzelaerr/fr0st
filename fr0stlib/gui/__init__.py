@@ -21,7 +21,7 @@
 ##############################################################################
 from __future__ import with_statement
 import imp, os, sys, wx, time, re, threading, itertools
-from wx import PyDeadObjectError
+from functools import partial
 
 from fr0stlib.gui.scripteditor import EditorFrame
 from fr0stlib.gui.preview import PreviewFrame, PreviewBase
@@ -41,10 +41,11 @@ from fr0stlib.gui.savedialog import SaveDialog
 from fr0stlib.gui.exceptiondlg import unhandled_exception_handler
 
 import fr0stlib
-from fr0stlib import Flame
+from fr0stlib import Flame, render
 from fr0stlib.pyflam3 import Genome
 from fr0stlib.decorators import *
 from fr0stlib.threadinterrupt import ThreadInterrupt, interruptall
+
 
 # Don't write .pyc files to keep script folder clean
 sys.dont_write_bytecode = True
@@ -757,6 +758,24 @@ class MainWindow(wx.Frame):
     def load_flames(self, path):
         self.OpenFlame(path)
 
+
+    def render(self, flame, size, quality, path, **kwds):
+        @InMain
+        def prog(py_object, fraction, stage, eta):
+            showstatus("Rendering: %s%%" % fraction)
+        done = [False]
+        def save(bmp):
+            save_image(path, bmp)
+            done[0] = True
+        # HACK: large preview request is used because:
+        # -it cancels previews in progress
+        # -it pauses renders in progress
+        # -bgqueue might be cleared by a canceled render
+        req = self.renderer.LargePreviewRequest
+        req(save, flame, size, quality,
+            progress_func=prog, **kwds)
+        while not done[0]:
+            time.sleep(.01)
 
 
 class ImagePanel(PreviewBase):
