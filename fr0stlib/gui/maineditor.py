@@ -358,8 +358,7 @@ class Gradient(wx.Panel):
     def OnPaint(self, evt):
         dc = wx.PaintDC(self)
         dc.DrawBitmap(self.bmp, 2, 37, True)
-        if hasattr(self.parent, '_namespace'):
-            self.DrawHistogram(dc)
+        self.DrawHistogram(dc)
 
 
 
