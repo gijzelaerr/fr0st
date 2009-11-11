@@ -455,9 +455,11 @@ class AdjustPanel(MultiSliderMixin, wx.Panel):
         self.parent.TreePanel.TempSave()
 
     def OnChangeBGColor(self, e):
-        dlg = wx.ColourDialog(self)
-        dlg.GetColourData().SetChooseFull(True)
-        dlg.GetColourData().SetColour(self.bgcolor_panel.GetBackgroundColour())
+        color_data = wx.ColourData()
+        color_data.SetChooseFull(True)
+        color_data.SetColour(self.bgcolor_panel.GetBackgroundColour())
+
+        dlg = wx.ColourDialog(self, color_data)
 
         if dlg.ShowModal() == wx.ID_OK:
             self.bgcolor_panel.SetBackgroundColour(dlg.GetColourData().GetColour())
