@@ -319,6 +319,71 @@ def array_hsv2rgb(np.ndarray[ndim=2, dtype=np.uint8_t] rgb not None,
             rgb[pixel, 2] = q * 255
 
 
+def array_rgb2hsv(np.ndarray[ndim=2, dtype=np.uint8_t] rgb not None, 
+                  np.ndarray[ndim=2, dtype=np.float32_t] hsv not None):
+    """RGB -> HSV color conversion of 1D images
+
+    """
+    cdef float maxc, minc, diff
+    cdef float rc, gc, bc, h
+
+    for pixel in range(3):
+        r = rgb[pixel, 0] / 255.0
+        g = rgb[pixel, 1] / 255.0
+        b = rgb[pixel, 2] / 255.0
+
+        if r > g:
+            if r > b:
+                maxc = r
+            else:
+                maxc = b
+        else:
+            if g > b:
+                maxc = g
+            else:
+                maxc = b
+
+        if r < g:
+            if r < b:
+                minc = r
+            else:
+                minc = b
+        else:
+            if g < b:
+                minc = g
+            else:
+                minc = b
+
+        hsv[pixel, 2] = maxc
+
+        if minc == maxc:
+            hsv[pixel, 0] = 0.0
+            hsv[pixel, 1] = 0.0
+            continue
+
+        diff = maxc - minc
+
+        if max == 0.0:
+            hsv[pixel, 1] = 0.0
+            hsv[pixel, 0] = 0.0
+            continue
+
+        hsv[pixel, 1] = diff / maxc
+
+        rc = (maxc - r) / diff
+        gc = (maxc - g) / diff
+        bc = (maxc - b) / diff
+
+        if r == maxc:
+            h = bc - gc
+        elif g == maxc:
+            h = 2.0 + rc - bc
+        else:
+            h = 4.0 + gc - rc
+
+        hsv[pixel, 0] = (h/6) % 1.0
+
+
 def interp_update_rgb(np.ndarray[ndim=2, dtype=np.float32_t] palette not None,
         int r_index, int g_index, int b_index,
         int h_index, int s_index, int v_index):
