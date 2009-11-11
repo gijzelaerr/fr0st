@@ -160,8 +160,8 @@ class Fr0stApp(wx.App):
             else:
                 icons.AddIconFromFile(os.path.join(self.IconsDir, 'fr0st.ico'), wx.BITMAP_TYPE_ICO)
 
-        if os.path.exists('icons'):
-            icons.AddIconFromFile('icons/fr0st.png', wx.BITMAP_TYPE_PNG)
+        if os.path.exists(os.path.join(self.AppBaseDir, 'icons')):
+            icons.AddIconFromFile(os.path.join(self.AppBaseDir, 'icons',  'fr0st.png'), wx.BITMAP_TYPE_PNG)
         else:
             icons.AddIconFromFile(os.path.join(self.IconsDir, 'fr0st.png'), wx.BITMAP_TYPE_PNG)
 
