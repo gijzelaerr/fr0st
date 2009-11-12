@@ -21,7 +21,6 @@
 ##############################################################################
 from __future__ import with_statement
 import imp, os, sys, wx, time, re, threading, itertools
-from functools import partial
 
 from fr0stlib.gui.scripteditor import EditorFrame
 from fr0stlib.gui.preview import PreviewFrame, PreviewBase
@@ -41,11 +40,10 @@ from fr0stlib.gui.savedialog import SaveDialog
 from fr0stlib.gui.exceptiondlg import unhandled_exception_handler
 
 import fr0stlib
-from fr0stlib import Flame, render
+from fr0stlib import Flame
 from fr0stlib.pyflam3 import Genome
 from fr0stlib.decorators import *
 from fr0stlib.threadinterrupt import ThreadInterrupt, interruptall
-from fr0stlib.render import save_image, flam3_render, flam4_render
 
 # Don't write .pyc files to keep script folder clean
 sys.dont_write_bytecode = True
@@ -174,7 +172,6 @@ class MainWindow(wx.Frame):
                "All files (*.*)|*.*"
     newfilename = ("Untitled%s.flame" % i for i in itertools.count(1)).next
     scriptrunning = False
-    scriptexitflag = False
 
 
     @BindEvents
@@ -465,7 +462,6 @@ class MainWindow(wx.Frame):
     @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=ID.STOP)
     def OnStopScript(self,e=None):
         interruptall("Execute")
-        self.scriptexitflag = True
 
 
     @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=ID.EDITOR)
@@ -636,7 +632,6 @@ class MainWindow(wx.Frame):
                               load_flames = self.load_flames,
                               preview = self.preview,
                               large_preview = self.large_preview,
-                              render = self.render,
                               show_status = self.show_status,
                               dialog = self.editorframe.make_dialog,
                               get_file_path = self.tree.GetFilePath,
@@ -689,7 +684,6 @@ class MainWindow(wx.Frame):
         # Note that tempsave returns if scriptrunning == True, so it needs to
         # come after unblocking the GUI.
         self.BlockGUI(False)
-        self.scriptexitflag = 0
         self.SetStatusText("")
         if update:
             self.TreePanel.TempSave()
@@ -762,20 +756,6 @@ class MainWindow(wx.Frame):
     def load_flames(self, path):
         self.OpenFlame(path)
 
-
-    def render(self, flame, size, quality, path, renderer="flam3", **kwds):
-        def prog(py_object, fraction, stage, eta):
-            self.show_status("Rendering: %.2f%%" % fraction)
-            return self.scriptexitflag
-        render = flam3_render
-        buf = render(flame, size, quality, progress_func=prog, **kwds)
-        if self.scriptexitflag:
-            return
-        self.save_image(path, size[0], size[1], buf)
-        
-    @InMain
-    def save_image(self, path, *a):
-        save_image(path, wx.BitmapFromBuffer(*a))
 
 
 class ImagePanel(PreviewBase):
