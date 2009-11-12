@@ -51,13 +51,10 @@ def unhandled_exception_handler(exc_type, exc_value, exc_traceback):
 
     exception_info['platform'] = sys.platform
 
-    exception_info['UserDataDir'] = wx.GetApp().UserDataDir
     exception_info['UserParametersDir'] = wx.GetApp().UserParametersDir
     exception_info['RendersDir'] = wx.GetApp().RendersDir
     exception_info['UserScriptsDir'] = wx.GetApp().UserScriptsDir
-    exception_info['ParametersDir'] = wx.GetApp().ParametersDir
     exception_info['ConfigDir'] = wx.GetApp().ConfigDir
-    exception_info['ScriptsDir'] = wx.GetApp().ScriptsDir
     exception_info['Frozen'] = wx.GetApp().Frozen
     exception_info['AppBaseDir'] = wx.GetApp().AppBaseDir
     exception_info['IconsDir'] = wx.GetApp().IconsDir
@@ -74,16 +71,13 @@ Config:
 Flame Path:
 %(flamepath)s
 
-UserDataDir: %(UserDataDir)s
 UserParametersDir: %(UserParametersDir)s
 RendersDir: %(RendersDir)s
 UserScriptsDir: %(UserScriptsDir)s
 ConfigDir: %(ConfigDir)s
-ScriptsDir: %(ScriptsDir)s
 Frozen: %(Frozen)s
 AppBaseDir: %(AppBaseDir)s
 IconsDir: %(IconsDir)s
-ParametersDir: %(ParametersDir)s
 """ % exception_info
 
     print msg
