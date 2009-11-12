@@ -30,10 +30,11 @@ types = {".bmp": wx.BITMAP_TYPE_BMP,
          ".jpg": wx.BITMAP_TYPE_JPEG}
 
 
-def save_image(path, bmp):
-    img = wx.ImageFromBitmap(bmp)
+def save_image(path, img):
+    if isinstance(img, wx.Bitmap):
+        img = wx.ImageFromBitmap(img)
     ty = types[os.path.splitext(path)[1]]
-    dirname = os.path.dirname(path)
+    dirname = os.path.abspath(os.path.dirname(path))
     if not os.path.exists(dirname):
         os.makedirs(dirname)
     img.SaveFile(path, ty)
