@@ -87,27 +87,48 @@ class Fr0stApp(wx.App):
         else:
             self.user_dir = os.path.join(self.user_dir, 'fr0st')
 
+        # Create the user directory
         if not os.path.exists(self.user_dir):
             os.makedirs(self.user_dir)
-            os.makedirs(os.path.join(self.user_dir, 'renders'))
 
-            basepath = self.AppBaseDir
+        # make sure renders subdirectory exists
+        if not os.path.exists(self.RendersDir):
+            os.makedirs(self.RendersDir)
 
-            print basepath
+        # Find out where we need to copy from
+        basepath = self.AppBaseDir
 
-            if not os.path.exists(os.path.join(basepath, 'parameters')):
-                basepath = self.resource_dir
+        if not os.path.exists(os.path.join(basepath, 'parameters')):
+            # installed, copy from /usr/share/.... or whatever
+            basepath = self.resource_dir
 
-            print basepath
+        def mirror_directory(source, dest, directory):
+            """Mirror all files and directories in source/directory to dest/directory"""
 
-            # Copy standard parameters
-            shutil.copytree(os.path.join(basepath, 'parameters'),
-                    self.UserParametersDir)
+            # Ensure destination path exists
+            if not os.path.exists(os.path.join(dest, directory)):
+                os.makedirs(os.path.join(dest, directory))
 
-            # Copy standard scripts
-            shutil.copytree(
-                    os.path.join(basepath, 'scripts'),
-                    self.UserScriptsDir)
+            # get the list of files and folders
+            source_all = [ x for x in os.listdir(os.path.join(source, directory)) ]
+            source_files = [ x for x in source_all if os.path.isfile(os.path.join(source, directory, x)) ]
+            source_dirs = [ x for x in source_all if os.path.isdir(os.path.join(source, directory, x)) ]
+
+            for file in source_files:
+                # Skip it if it's already there
+                if os.path.exists(os.path.join(dest, directory, file)):
+                    continue
+
+                # Otherwise copy it over
+                shutil.copy(os.path.join(source, directory, file), os.path.join(dest, directory))
+
+            # Recurse into subdirectories
+            for child_dir in source_dirs:
+                mirror_directory(source, dest, os.path.join(directory, child_dir))
+
+        # Mirror app standard scripts/parameters to user dir
+        mirror_directory(basepath, self.user_dir, 'parameters')
+        mirror_directory(basepath, self.user_dir, 'scripts')
 
     def MainLoop(self):
         single_instance_name = 'fr0st-%s' % wx.GetUserId()
