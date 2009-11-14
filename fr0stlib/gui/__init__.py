@@ -540,6 +540,8 @@ class MainWindow(wx.Frame):
 
 
     def MakeFlameFile(self, path):
+        if not os.path.exists(os.path.dirname(path)):
+            os.makedirs(os.path.dirname(path))
         fr0stlib.save_flames(path, self.MakeFlame())
         self.OpenFlame(path)
         
