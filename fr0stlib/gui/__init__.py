@@ -19,10 +19,7 @@
 #  the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 #  Boston, MA 02111-1307, USA.
 ##############################################################################
-from __future__ import with_statement
-import imp, os, sys, wx, time, re, threading, itertools
-import shutil
-from wx import PyDeadObjectError
+import imp, os, sys, wx, time, shutil
 
 from fr0stlib.gui.scripteditor import EditorFrame
 from fr0stlib.gui.preview import PreviewFrame, PreviewBase
