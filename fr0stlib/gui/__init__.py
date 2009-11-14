@@ -38,7 +38,7 @@ from fr0stlib.gui.itemdata import ItemData
 from fr0stlib.gui.renderdialog import RenderDialog
 from fr0stlib.gui.config import config, init_config
 from fr0stlib.gui.configdlg import ConfigDialog
-from fr0stlib.gui.savedialog import SaveDialog
+from fr0stlib.gui.filedialogs import SaveDialog, NewFileDialog
 from fr0stlib.gui.exceptiondlg import unhandled_exception_handler
 
 import fr0stlib
@@ -198,7 +198,6 @@ class Fr0stApp(wx.App):
 class MainWindow(wx.Frame):
     wildcard = "Flame file (*.flame)|*.flame|" \
                "All files (*.*)|*.*"
-    newfilename = ("Untitled%s.flame" % i for i in itertools.count(1)).next
     scriptrunning = False
 
 
@@ -371,16 +370,24 @@ class MainWindow(wx.Frame):
         self.Destroy()
 
 
-##    @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=ID.FNEW)
+    @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=ID.FNEW)
     def OnFlameNew(self, e):
-        path = self.newfilename()
-        self.tree.item = self.tree.SetFlames(path)
-
-##        with open('paths.temp','a') as f:
-##            f.write(path + '\n')
-
-        return self.tree.item
-
+        path = self.tree.GetFilePath()
+        dlg = NewFileDialog(self, path=path)
+        if dlg.ShowModal() == wx.ID_OK:
+            newpath = dlg.GetPath()
+            if os.path.exists(newpath):
+                wx.MessageDialog(self, "%s already exists. "
+                                 "Please choose a different file." % newpath,
+                                 "Fr0st", wx.OK).ShowModal()
+                self.OnFlameNew(e)
+                return                    
+            flame = Flame()
+            flame.add_xform()
+            flame.gradient.random(**config["Gradient-Settings"])
+            fr0stlib.save_flames(newpath, flame)
+            self.OpenFlame(newpath)
+        
 
     @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=ID.FNEW2)
     def OnFlameNew2(self, e=None, string=None):

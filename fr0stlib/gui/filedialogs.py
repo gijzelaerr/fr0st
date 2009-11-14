@@ -58,3 +58,32 @@ class SaveDialog(wx.Dialog):
 
     def GetName(self):
         return self.nametc.GetValue()
+
+
+
+class NewFileDialog(wx.Dialog):
+    def __init__(self, parent, path):
+        wx.Dialog.__init__(self, parent, -1, "Create new flame file")
+
+        ok = wx.Button(self, wx.ID_OK)
+        cancel = wx.Button(self, wx.ID_CANCEL)
+        ok.SetDefault()
+        btnsizer = wx.StdDialogButtonSizer()
+        btnsizer.AddButton(ok)
+        btnsizer.AddButton(cancel)
+        btnsizer.Realize()
+        
+        self.fbb = FileBrowseButton(self, -1, fileMask=parent.wildcard,
+                                    labelText='File:  ', initialValue=path)
+                     
+        szr = wx.BoxSizer(wx.VERTICAL)
+        szr.AddMany(((self.fbb, 0, wx.EXPAND), btnsizer))
+        
+        self.SetMinSize((400,1))
+        self.SetSizer(szr)
+        szr.Fit(self)
+
+
+    def GetPath(self):
+        return self.fbb.GetValue()
+    
