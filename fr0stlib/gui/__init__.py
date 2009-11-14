@@ -244,8 +244,7 @@ class MainWindow(wx.Frame):
 
         self.SetSizer(sizer)
 
-        self.flame = Flame()
-        self.flame.add_xform()
+        self.flame = self.MakeFlame()
 
         self.previewframe = PreviewFrame(self)
 
@@ -265,7 +264,8 @@ class MainWindow(wx.Frame):
         # Set up paths
         sys.path.append(wx.GetApp().UserScriptsDir)
 
-        self.flamepath = os.path.join(wx.GetApp().UserParametersDir, 'samples.flame')
+        self.flamepath = os.path.join(wx.GetApp().UserParametersDir,
+                                      config["flamepath"])
         recover_file = os.path.join(wx.GetApp().ConfigDir, 'paths.temp')
 
         if os.path.exists(recover_file):
@@ -279,13 +279,11 @@ class MainWindow(wx.Frame):
 
         else:
             # Normal startup
-            try:
+            if os.path.exists(self.flamepath):
                 self.OpenFlame(self.flamepath)
-            except:
-                self.OnFlameNew(e=None)
-##                self.OnFlameNew2(e=None)
+            else:
+                self.MakeFlameFile(self.flamepath)
 
-##        self.tree.ExpandAll()
         self.tree.SelectItem(self.tree.GetItemByIndex((0,0)))
 
         self.Enable(ID.STOP, False, editor=True)
@@ -374,12 +372,8 @@ class MainWindow(wx.Frame):
                                  "Please choose a different file." % newpath,
                                  "Fr0st", wx.OK).ShowModal()
                 self.OnFlameNew(e)
-                return                    
-            flame = Flame()
-            flame.add_xform()
-            flame.gradient.random(**config["Gradient-Settings"])
-            fr0stlib.save_flames(newpath, flame)
-            self.OpenFlame(newpath)
+                return
+            self.MakeFlameFile(newpath)
         
 
     @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=ID.FNEW2)
@@ -387,9 +381,7 @@ class MainWindow(wx.Frame):
         if string:
             flame = Flame(string)
         else:
-            flame = Flame()
-            flame.add_xform()
-            flame.gradient.random(**config["Gradient-Settings"])
+            flame = self.MakeFlame()
         data = ItemData(flame.to_string())
 
         self.tree.GetChildItems((0,)).append((data,[]))
@@ -540,6 +532,18 @@ class MainWindow(wx.Frame):
 
 #------------------------------------------------------------------------------
 
+    def MakeFlame(self):
+        flame = Flame()
+        flame.add_xform()
+        flame.gradient.random(**config["Gradient-Settings"])
+        return flame
+
+
+    def MakeFlameFile(self, path):
+        fr0stlib.save_flames(path, self.MakeFlame())
+        self.OpenFlame(path)
+        
+
     def OpenFlame(self, path):
         if self.tree.flamefiles:
             filedata, lst = self.tree.flamefiles[0]
@@ -567,12 +571,10 @@ class MainWindow(wx.Frame):
                 self.OnFlameOpen(None)
                 return
         else:
-            flamestrings = []
+            flamestrings = [self.MakeFlame()]
 
         # Add flames to the tree
         item = self.tree.SetFlames(path, *flamestrings)
-        if not flamestrings:
-            self.OnFlameNew2(None)
 
         # Dump the path to file for bookkeeping
 ##        with open('paths.temp','a') as f:
