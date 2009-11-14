@@ -135,11 +135,9 @@ class Fr0stApp(wx.App):
         single_instance = wx.SingleInstanceChecker(single_instance_name)
 
         if single_instance.IsAnotherRunning():
-            dlg = wx.MessageDialog(None, 
-                    "Another instance of fr0st is already running.  Multiple instances are not supported",
-                    "fr0st", wx.OK|wx.ICON_ERROR)
-            dlg.ShowModal()
-            dlg.Destroy()
+            wx.MessageDialog(None, "Another instance of fr0st is already "
+                             "running. Multiple instances are not supported.",
+                             "fr0st", wx.OK|wx.ICON_ERROR).ShowModal()
             return
 
         MainWindow(None, wx.ID_ANY)
@@ -302,10 +300,8 @@ class MainWindow(wx.Frame):
 
     @Bind(wx.EVT_MENU,id=ID.ABOUT)
     def OnAbout(self,e):
-        d= wx.MessageDialog(self,"......",
-                            " TODO", wx.OK)
-        d.ShowModal()
-        d.Destroy()
+        wx.MessageDialog(self,"......",
+                         " TODO", wx.OK).ShowModal()
 
     @Bind(wx.EVT_MENU, id=wx.ID_PREFERENCES)
     def OnPreferences(self, evt):
@@ -568,9 +564,9 @@ class MainWindow(wx.Frame):
             # scan the file to see if it's valid
             flamestrings = fr0stlib.load_flame_strings(path)
             if not flamestrings:
-                dlg = wx.MessageDialog(self, "It seems %s is not a valid flame file. Please choose a different flame." % path,
-                                       'Fr0st',wx.OK)
-                dlg.ShowModal()
+                wx.MessageDialog(self, "It seems %s is not a valid flame file."
+                                 " Please choose a different flame." % path,
+                                 'Fr0st',wx.OK).ShowModal()
                 self.OnFlameOpen(None)
                 return
         else:
