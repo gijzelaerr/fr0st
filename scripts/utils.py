@@ -6,8 +6,9 @@ from other scripts, through the standard python import mechanism.
 
 def calculate_colors(flame):
     """Distribute color values evenly among xforms."""
+    len_ = len(flame.xform) - 1.0
     for xf in flame.xform:
-        xf.color = xf.index / float(len(flame.xform))
+        xf.color = xf.index / len_
 
 
 def normalize_weights(flame, norm=1.0):
