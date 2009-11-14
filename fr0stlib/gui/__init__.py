@@ -74,7 +74,7 @@ class Fr0stApp(wx.App):
         self.CreateUserDirectory()
 
         if not os.path.exists(self.ConfigDir):
-            os.makedirs(ConfigDir)
+            os.makedirs(self.ConfigDir)
 
         init_config()
 
