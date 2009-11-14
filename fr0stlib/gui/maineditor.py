@@ -347,6 +347,9 @@ class Gradient(wx.Panel):
         
     def DrawHistogram(self, dc=None):
         """ Create and draw the color histogram."""
+        if not hasattr(self.parent, 'flame'):
+            return
+
         dc = dc or wx.ClientDC(self)
         genome = Genome.from_string(self.parent.flame.to_string(True))[0]
         array = (c_double *256)()
