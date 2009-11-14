@@ -21,6 +21,8 @@
 ##############################################################################
 from __future__ import with_statement
 import imp, os, sys, wx, time, re, threading, itertools
+import shutil
+from wx import PyDeadObjectError
 
 from fr0stlib.gui.scripteditor import EditorFrame
 from fr0stlib.gui.preview import PreviewFrame, PreviewBase
@@ -69,26 +71,64 @@ class Fr0stApp(wx.App):
         else:
             self.resource_dir = self.standard_paths.GetResourcesDir()
 
+        self.CreateUserDirectory()
+
+        if not os.path.exists(self.ConfigDir):
+            os.makedirs(ConfigDir)
+
+        init_config()
+
+    def CreateUserDirectory(self):
         self.user_dir = self.standard_paths.GetDocumentsDir()
-        
+
         # On *nix, GetDocumentsDir returns ~.  use .fr0st rather than fr0st
         if os.path.realpath(os.path.expanduser('~')) == os.path.realpath(self.user_dir):
             self.user_dir = os.path.join(self.user_dir, '.fr0st')
         else:
             self.user_dir = os.path.join(self.user_dir, 'fr0st')
 
-        paths_to_check = [
-                self.ConfigDir,
-                self.RendersDir,
-                self.UserScriptsDir,
-                self.UserParametersDir,
-            ]
+        # Create the user directory
+        if not os.path.exists(self.user_dir):
+            os.makedirs(self.user_dir)
 
-        for path in paths_to_check:
-            if not os.path.isdir(path):
-                os.makedirs(path)
+        # make sure renders subdirectory exists
+        if not os.path.exists(self.RendersDir):
+            os.makedirs(self.RendersDir)
 
-        init_config()
+        # Find out where we need to copy from
+        basepath = self.AppBaseDir
+
+        if not os.path.exists(os.path.join(basepath, 'parameters')):
+            # installed, copy from /usr/share/.... or whatever
+            basepath = self.resource_dir
+
+        def mirror_directory(source, dest, directory):
+            """Mirror all files and directories in source/directory to dest/directory"""
+
+            # Ensure destination path exists
+            if not os.path.exists(os.path.join(dest, directory)):
+                os.makedirs(os.path.join(dest, directory))
+
+            # get the list of files and folders
+            source_all = [ x for x in os.listdir(os.path.join(source, directory)) ]
+            source_files = [ x for x in source_all if os.path.isfile(os.path.join(source, directory, x)) ]
+            source_dirs = [ x for x in source_all if os.path.isdir(os.path.join(source, directory, x)) ]
+
+            for file in source_files:
+                # Skip it if it's already there
+                if os.path.exists(os.path.join(dest, directory, file)):
+                    continue
+
+                # Otherwise copy it over
+                shutil.copy(os.path.join(source, directory, file), os.path.join(dest, directory))
+
+            # Recurse into subdirectories
+            for child_dir in source_dirs:
+                mirror_directory(source, dest, os.path.join(directory, child_dir))
+
+        # Mirror app standard scripts/parameters to user dir
+        mirror_directory(basepath, self.user_dir, 'parameters')
+        mirror_directory(basepath, self.user_dir, 'scripts')
 
     def MainLoop(self):
         single_instance_name = 'fr0st-%s' % wx.GetUserId()
@@ -106,28 +146,20 @@ class Fr0stApp(wx.App):
         wx.App.MainLoop(self)
 
     @property
-    def UserDataDir(self):
-        return self.user_dir
-
-    @property
     def UserParametersDir(self):
-        return os.path.join(self.user_dir, 'Parameters')
+        return os.path.join(self.user_dir, 'parameters')
 
     @property
     def RendersDir(self):
-        return os.path.join(self.user_dir, 'Renders')
+        return os.path.join(self.user_dir, 'renders')
 
     @property
     def UserScriptsDir(self):
-        return os.path.join(self.user_dir, 'Scripts')
+        return os.path.join(self.user_dir, 'scripts')
 
     @property
     def ConfigDir(self):
         return self.config_dir
-
-    @property
-    def ScriptsDir(self):
-        return os.path.join(self.resource_dir, 'scripts')
 
     @property
     def Frozen(self):
@@ -138,13 +170,9 @@ class Fr0stApp(wx.App):
     @property
     def AppBaseDir(self):
         if self.Frozen:
-            return os.path.dirname(sys.executable)
+            return os.path.abspath(os.path.dirname(sys.executable))
         else:
-            return os.path.dirname(sys.argv[0])
-
-    @property
-    def ParametersDir(self):
-        return os.path.join(self.resource_dir, 'parameters')
+            return os.path.abspath(os.path.dirname(sys.argv[0]))
 
     @property
     def IconsDir(self):
@@ -241,17 +269,10 @@ class MainWindow(wx.Frame):
                 window.Maximize(maximize)
 
         # Set up paths
-        sys.path.append(os.path.join(wx.GetApp().AppBaseDir, 'scripts'))
-        sys.path.append(wx.GetApp().ScriptsDir)
-        self.flamepath = config["flamepath"]
+        sys.path.append(wx.GetApp().UserScriptsDir)
 
-        if not os.path.exists(self.flamepath):
-            self.flamepath = os.path.join(wx.GetApp().AppBaseDir, 'parameters', config["flamepath"])
-
-        if not os.path.exists(self.flamepath):
-            self.flamepath = os.path.join(wx.GetApp().ParametersDir, config["flamepath"])
-
-        recover_file = os.path.join(wx.GetApp().UserDataDir, 'paths.temp')
+        self.flamepath = os.path.join(wx.GetApp().UserParametersDir, 'samples.flame')
+        recover_file = os.path.join(wx.GetApp().ConfigDir, 'paths.temp')
 
         if os.path.exists(recover_file):
             # TODO: check if another fr0st process is running.
@@ -320,7 +341,7 @@ class MainWindow(wx.Frame):
         self.renderer.exitflag = True
 
         # Remove all temp files
-        recover_file = os.path.join(wx.GetApp().UserDataDir, 'paths.temp')
+        recover_file = os.path.join(wx.GetApp().ConfigDir, 'paths.temp')
 
         if os.path.exists(recover_file):
             with open(recover_file) as fd:
@@ -738,15 +759,24 @@ class MainWindow(wx.Frame):
 
     @InMain
     def save_flames(self, path, *flames):
+        print 'In overridden save_flames:', path, os.path.split(path)
+
         if not flames:
             raise ValueError("You must specify at least 1 flame to set.")
         
+        dir, file = os.path.split(path)
+
+        if dir:
+            path = path
+        else:
+            path = os.path.join(wx.GetApp().UserParametersDir, path)
+
         if os.path.exists(path):
             dlg = wx.MessageDialog(self, "%s already exists. Do you want to overwrite?" % path,
                                    'Fr0st',wx.YES_NO)
             if dlg.ShowModal() != wx.ID_YES:
                 return
-            
+
         lst = [s if type(s) is str else s.to_string() for s in flames]
         self.tree.SetFlames(path, *lst)
         fr0stlib.save_flames(path, *lst)

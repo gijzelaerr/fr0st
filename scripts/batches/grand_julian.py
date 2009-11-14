@@ -35,6 +35,6 @@ def grand_julian():
 
 if __name__ == "__main__":
     lst = batch(grand_julian, 20)
-    save_flames("parameters/grand_julian.flame", *lst)
+    save_flames("grand_julian.flame", *lst)
     
 
