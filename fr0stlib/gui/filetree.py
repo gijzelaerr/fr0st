@@ -19,7 +19,6 @@
 #  the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 #  Boston, MA 02111-1307, USA.
 ##############################################################################
-from __future__ import with_statement
 import wx, sys, os, shutil, time, cPickle, itertools, pickle as cPickle
 from functools import partial
 from wx.lib.mixins import treemixin
