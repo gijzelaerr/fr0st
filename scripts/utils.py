@@ -4,21 +4,17 @@ from other scripts, through the standard python import mechanism.
 """
 
 
-def calculate_colors(flame):
-    """Distribute color values evenly among xforms."""
-    len_ = len(flame.xform) - 1.0
-    for xf in flame.xform:
+def calculate_colors(xforms):
+    """Distribute color values evenly among xforms. You can pass the entire
+    xform list as an argument, or just a slice of it."""
+    len_ = len(xforms) - 1.0 or 1.0
+    for xf in xforms:
         xf.color = xf.index / len_
 
 
 def normalize_weights(flame, norm=1.0):
     """Normalize the weights of the xforms so that they total 1.0"""
-    ws = 0.0
-    for xf in flame.xform:
-        ws += xf.weight
-
-    ws /= norm
-
+    ws = sum(xf.weight for xf in flame.xform) / norm
     for xf in flame.xform:
         xf.weight /= ws
 

@@ -1,4 +1,4 @@
-#from utils import calculate_colors
+from utils import calculate_colors
 
 settings = dialog("Please enter the settings for this script:",
                   ("Number of spiral xforms", int, 6),
@@ -15,5 +15,5 @@ for i in range(1, numspiral + 1):
     xform.scale(initial - i * shrink)
     xform.rotate(rotation * i)
 
-#if calc:
-    #calculate_colors(flame)
+if calc:
+    calculate_colors(flame.xform)

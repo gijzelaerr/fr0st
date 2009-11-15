@@ -11,7 +11,7 @@ def GenRandom(*args):
             Xform.random(f, **a)
             
     f.reframe()
-    calculate_colors(f)
+    calculate_colors(f.xform)
     f.gradient.random(hue=(0, 1),saturation=(0, 1),value=(.25, 1),nodes=(4, 6))
     
     return f
