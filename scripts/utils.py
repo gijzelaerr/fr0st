@@ -8,8 +8,8 @@ def calculate_colors(xforms):
     """Distribute color values evenly among xforms. You can pass the entire
     xform list as an argument, or just a slice of it."""
     len_ = len(xforms) - 1.0 or 1.0
-    for xf in xforms:
-        xf.color = xf.index / len_
+    for i, xf in enumerate(xforms):
+        xf.color = i / len_
 
 
 def normalize_weights(flame, norm=1.0):
