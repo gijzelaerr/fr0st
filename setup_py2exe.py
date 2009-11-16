@@ -241,7 +241,7 @@ setup(
                           "excludes": excludes,
                           "packages": packages,
                           "dll_excludes": dll_excludes,
-                          "bundle_files": 3,
+                          "bundle_files": 2,
                           "dist_dir": "dist",
                           #"xref": True,
                           "skip_archive": False,
