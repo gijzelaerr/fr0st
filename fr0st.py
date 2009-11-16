@@ -20,12 +20,6 @@
 #  the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 #  Boston, MA 02111-1307, USA.
 ##############################################################################
-import wx, os, sys
-
-#TODO: Not sure what this was for.  Causes problems with 
-#TODO: py2exe because sys.path[0] is a zip file.
-#os.chdir(sys.path[0])
-
 from fr0stlib.gui import Fr0stApp
 
 
