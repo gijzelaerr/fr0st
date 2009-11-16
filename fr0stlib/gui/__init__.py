@@ -763,8 +763,6 @@ class MainWindow(wx.Frame):
 
     @InMain
     def save_flames(self, path, *flames):
-        print 'In overridden save_flames:', path, os.path.split(path)
-
         if not flames:
             raise ValueError("You must specify at least 1 flame to set.")
         
