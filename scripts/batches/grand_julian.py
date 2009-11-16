@@ -4,20 +4,19 @@ def grand_julian():
     flame = Flame()
     flame.gradient.random(**config["Gradient-Settings"])
 
-    # First xform: random variation for center goodness
+    # First xform: blur for center goodness
     flame.add_xform(linear=0, gaussian_blur=.4, color_speed=1)
 
     # Make a julian xform with power = -2
     x = flame.add_xform(linear=0, julian=random.uniform(0.725, 1),
                         julian_power=-2, julian_dist=1,
-                        color=random.uniform(0, 1),
-                        color_speed=.25, weight=5)
+                        color=1, color_speed=.2, weight=5)
     x.c = 0.25 + random.uniform(0, 0.2)
     x.scale(0.25)
     x.post.scale(1.5)
     
     # Add additional julians
-    for i in range(random.randint(2, 5)):
+    for i in range(random.randint(2, 4)):
         x = flame.add_xform(linear=0, color=random.uniform(0, 1))
         x.c = random.uniform(-0.5, 0.5)
         x.scale(random.uniform(0.5, .8))
