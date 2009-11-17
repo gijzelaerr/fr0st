@@ -620,9 +620,8 @@ class ColorPanel(MultiSliderMixin, wx.Panel):
         self.animflag = wx.CheckBox(self,-1,"animate")
         
         sizer.Add(self.animflag)
-        
-
         self.SetSizer(sizer)
+        self.SetDoubleBuffered(True)
 
 
     def UpdateView(self):

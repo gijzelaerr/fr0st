@@ -50,6 +50,7 @@ class TreePanel(wx.Panel):
         sizer.Add(self.tree, 1, wx.EXPAND)
         self.SetSizer(sizer)
         self.Layout()
+        self.SetDoubleBuffered(True)
 
 
     def TempSave(self, force=False):
