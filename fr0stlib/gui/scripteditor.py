@@ -265,7 +265,7 @@ class MyLog(wx.TextCtrl):
         self._write(*e.Args)
 
     def _write(self, message):
-        sys.oldstderr.write(message) # For debugging purposes!
+##        sys.oldstderr.write(message) # For debugging purposes!
 
         if not message.startswith("Exception"):
             self.AppendText(message)
