@@ -57,9 +57,6 @@ class Fr0stApp(wx.App):
         self.SetAppName('fr0st')
         self.standard_paths = wx.StandardPaths.Get()
 
-        self.config_dir = os.path.join(self.standard_paths.GetUserConfigDir(),
-                                       '.fr0st')
-
         if 'win32' in sys.platform:
             # On windows, GetResourcesDir returns something like
             #   "c:\Python26\lib\site-packages\wx-2.8-msw-unicode\wx\"
@@ -69,6 +66,11 @@ class Fr0stApp(wx.App):
             self.resource_dir = self.standard_paths.GetResourcesDir()
 
         self.CreateUserDirectory()
+
+        # Put the config file into the same folder where everything else is.
+##        self.config_dir = os.path.join(self.standard_paths.GetUserConfigDir(),
+##                                       '.fr0st')
+        self.config_dir = self.user_dir
 
         if not os.path.exists(self.ConfigDir):
             os.makedirs(self.ConfigDir)
