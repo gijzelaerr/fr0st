@@ -305,14 +305,14 @@ class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
         lst.insert(toindex, lst.pop(fromindex))
 
         self.RefreshItems()
-        index = (0, min(toindex, len(lst)-1))
-        self.item = self.GetItemByIndex(index)
-        self.SelectItem(self.item)
 
+        # _dragging has done its job (preventing OnSelChanged from triggering
+        # multiple times) The SelectItem below DOES need to trigger, however.
         self._dragging = False
+        self.item = self.GetItemByIndex((0, min(toindex, len(lst)-1)))
+        self.SelectItem(self.item)
         
-        save_flames(self.GetFilePath(),
-                    *(data[0] for data in self.GetDataList()))
+        save_flames(self.GetFilePath(), *(i[0] for i in self.GetDataList()))
 
 
     def GetItem(self, indices):
