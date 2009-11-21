@@ -19,14 +19,13 @@
 #  the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 #  Boston, MA 02111-1307, USA.
 ##############################################################################
-import wx, sys, os, shutil, time, cPickle, itertools, pickle as cPickle
+import wx, sys, os, shutil, time, cPickle, itertools
 from functools import partial
 from wx.lib.mixins import treemixin
 
 from fr0stlib.gui.constants import ID
-from fr0stlib import Flame
+from fr0stlib import Flame, save_flames
 from fr0stlib.decorators import *
-import fr0stlib
 from fr0stlib.gui.itemdata import ItemData
 
 
@@ -76,7 +75,7 @@ class TreePanel(wx.Panel):
         self.tree.RenderThumbnail()
         self.parent.SetFlame(self.parent.flame,rezoom=False)
 
-        data = self.tree.GetFlameData(self.tree.itemparent)
+##        data = self.tree.GetFlameData(self.tree.itemparent)
 ##        self.tree.SetItemText(self.tree.itemparent, '* ' + data.name)
 
         # Create the temp file.
@@ -205,16 +204,10 @@ class TreePanel(wx.Panel):
 
         if parent == self.tree.root:
             evt.Veto()
-            
 
-
-
-        
 
 
 class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
-    newimgindex = itertools.count(3).next
-
     def __init__(self, parent, *args, **kwargs):
         self.parent = parent
         super(FlameTree, self).__init__(parent, *args, **kwargs)
@@ -227,15 +220,12 @@ class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
         self.Indent = 8 # default is 15
         self.Spacing = 12 # default is 18
 
-        isz = (23,23)
-        il = wx.ImageList(*isz)
-        il.Add(wx.ArtProvider_GetBitmap(wx.ART_FOLDER,      wx.ART_OTHER, isz))
-        il.Add(wx.ArtProvider_GetBitmap(wx.ART_FILE_OPEN,   wx.ART_OTHER, isz))
-        il.Add(wx.ArtProvider_GetBitmap(wx.ART_NORMAL_FILE, wx.ART_OTHER, isz))
-
+        self.isz = (23,23)
+        self.il = il = wx.ImageList(*self.isz)
+        il.Add(wx.ArtProvider_GetBitmap(wx.ART_FOLDER,      wx.ART_OTHER))
+        il.Add(wx.ArtProvider_GetBitmap(wx.ART_FILE_OPEN,   wx.ART_OTHER))
+        il.Add(wx.ArtProvider_GetBitmap(wx.ART_NORMAL_FILE, wx.ART_OTHER))
         self.SetImageList(il)
-        self.il = il
-        self.isz = isz
 
         self.root = self.AddRoot("The Root Item")
         self.item = None
@@ -249,25 +239,23 @@ class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
         self.flamefiles = [(ItemData(path, name=name),lst),]
 
         self.RefreshItems()
-        parent = self.itemparent
+        self.Expand(self.itemparent)
 
         # cancel all outstanding thumbnails.
         self.parent.parent.renderer.thumbqueue[:] = []
-
-        self.Expand(parent)
         
         flag = self.flag = wx.NewId()
         
-        for child, data in zip(self.GetItemChildren(parent),
+        for child, data in zip(self.GetItemChildren(self.itemparent),
                                (i[0] for i in lst)):
             self.RenderThumbnail(child, data, flag)
             # Set item to default until thumbnail is ready.
             self.SetItemImage(child, 2)
 
-        self.SelectItem(parent)
+        self.SelectItem(self.itemparent)
         self.SelectItem(self.GetItemByIndex((0,0)))
 
-        return parent
+        return self.itemparent
 
 
     def RenderThumbnail(self, child=None, data=None, flag=None):
@@ -285,8 +273,13 @@ class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
             # This means the current thumbnail was for a file that is no longer
             # open. Trying to update with this itemid would cause a crash.
             return
-        index = data.imgindex = self.il.Add(bmp)
-        self.SetItemImage(child, index)
+
+        if data.imgindex == -1:
+            data.imgindex = self.il.Add(bmp)
+        else:
+            self.il.Replace(data.imgindex, bmp)
+        
+        self.SetItemImage(child, data.imgindex)
 
 
     def GetFlameData(self, item):
@@ -313,12 +306,13 @@ class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
 
         self.RefreshItems()
         index = (0, min(toindex, len(lst)-1))
-        self.SelectItem(self.GetItemByIndex(index))
+        self.item = self.GetItemByIndex(index)
+        self.SelectItem(self.item)
 
         self._dragging = False
         
-        fr0stlib.save_flames(self.GetFilePath(),
-                             *(data[0] for data in self.GetDataList()))
+        save_flames(self.GetFilePath(),
+                    *(data[0] for data in self.GetDataList()))
 
 
     def GetItem(self, indices):
