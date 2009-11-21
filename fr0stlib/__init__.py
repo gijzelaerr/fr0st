@@ -45,7 +45,7 @@ try:
 except ImportError:
     utils = None
 
-VERSION = "fr0st 0.5 alpha"
+VERSION = "Fr0st 1.0 beta"
 GUI = False
 
 _variables = dict([i[0:2] for i in variable_list])
