@@ -181,6 +181,7 @@ class RenderDialog(wx.Frame):
 	
         self.Center(wx.CENTER_ON_SCREEN)
         self.SetBackgroundColour(wx.NullColour)
+        self.SetDoubleBuffered(True)
         self.Show(True)
 
         prev = self.flame_select_all
