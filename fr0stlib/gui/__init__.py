@@ -20,6 +20,7 @@
 #  Boston, MA 02111-1307, USA.
 ##############################################################################
 import imp, os, sys, wx, time, shutil
+from copy import deepcopy
 
 from fr0stlib.gui.scripteditor import EditorFrame
 from fr0stlib.gui.preview import PreviewFrame, PreviewBase
@@ -664,7 +665,9 @@ class MainWindow(wx.Frame):
                               get_file_path = self.tree.GetFilePath,
                               VERSION = fr0stlib.VERSION,
                               update_flame = True,
-                              config = config))
+                              # Scripts aren't allowed to change config, so
+                              # we make a copy of it.
+                              config = deepcopy(config)))
         return namespace
 
 
