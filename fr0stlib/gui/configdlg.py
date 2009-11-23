@@ -41,7 +41,9 @@ class ConfigDialog(wx.Dialog):
         self.controls = {}
 
         notebook = wx.Notebook(self, style=wx.BK_DEFAULT)
-        notebook.AddPage(self.CreatePreviewSettings(notebook), 'Preview Quality', select=True)
+        notebook.AddPage(self.CreatePreviewSettings(notebook),
+                         'Preview Quality', select=True)
+        notebook.AddPage(RenderPanel(notebook), 'Renderer')
 
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(notebook, 0, wx.ALL, 5)
@@ -69,6 +71,7 @@ class ConfigDialog(wx.Dialog):
         gbs.Add(self.CreateLargePreviewSettings(panel), (0, 1), (2, 1))
         panel.SetSizerAndFit(gbs)
         return panel
+        
 
     def number_text(self, parent, sizer, row, label, config_section, config_key, min, max, is_int=False):
         ntc = NumberTextCtrl(parent, min, max)
@@ -141,3 +144,23 @@ class ConfigDialog(wx.Dialog):
 
 
 
+class RenderPanel(wx.Panel):
+    @BindEvents
+    def __init__(self, parent):
+        self.parent = parent.Parent
+        wx.Panel.__init__(self, parent, -1)
+        choices = ["flam3", "flam4"]
+        
+        self.rb = wx.RadioBox(self, -1, label="Renderer", choices=choices,
+                              style=wx.RA_VERTICAL)
+        self.rb.SetStringSelection(self.parent.local_config["renderer"])
+
+        szr = wx.BoxSizer(wx.VERTICAL)
+        szr.Add(self.rb)
+        self.SetSizerAndFit(szr)
+        
+
+    @Bind(wx.EVT_RADIOBOX)
+    def OnRadio(self, e):
+        self.parent.local_config["renderer"] = self.rb.GetStringSelection()
+        
