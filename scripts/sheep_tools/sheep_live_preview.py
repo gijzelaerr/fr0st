@@ -10,12 +10,12 @@ def ScriptHack(func):
 
     # Prevent normal updates to the preview window.
     global preview
-    preview = self.image.RenderPreview
-    self.image.RenderPreview = lambda *a, **k: None
+    preview = _self.image.RenderPreview
+    _self.image.RenderPreview = lambda *a, **k: None
 
     # Make the GUI believe the script is not running, so it'll
     # allow us to modify things on the canvas.
-    self.scriptrunning = False
+    _self.scriptrunning = False
 
     # On to the actual script
     try:
@@ -23,7 +23,7 @@ def ScriptHack(func):
     finally:
         # Undo the hackery. Stopping the script raises an
         # exception, so we need the finally clause.
-        self.image.RenderPreview = preview
+        _self.image.RenderPreview = preview
         preview()
         large_preview()
 
@@ -34,7 +34,7 @@ def main():
     rot = 0
     while True:
         rot = (rot-3) % 360
-        f = flame.copy()
+        f = _self.flame.copy()
         for x in f.xform:
             if x.animate:
                 x.rotate(rot)

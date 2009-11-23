@@ -653,8 +653,7 @@ class MainWindow(wx.Frame):
         the flame variable, etc."""
         namespace = {}
         exec("from fr0stlib import *; __name__='__main__'",namespace)
-        namespace.update(dict(self = self, # for debugging only!
-                              flame = self.flame,
+        namespace.update(dict(flame = self.flame,
                               get_flames = self.tree.GetFlames,
                               save_flames = self.save_flames,
                               load_flames = self.load_flames,
@@ -667,7 +666,8 @@ class MainWindow(wx.Frame):
                               update_flame = True,
                               # Scripts aren't allowed to change config, so
                               # we make a copy of it.
-                              config = deepcopy(config)))
+                              config = deepcopy(config),
+                              _self = self))
         return namespace
 
 
@@ -685,8 +685,7 @@ class MainWindow(wx.Frame):
         namespace = self.CreateNamespace()
         
         try:
-            # namespace is used as globals and locals, to emulate top level
-            # module behaviour.
+            # namespace is used as globals and locals, same as top level
             exec(script, namespace)
         except SystemExit:
             pass
@@ -694,7 +693,6 @@ class MainWindow(wx.Frame):
             print("\n\nScript Interrupted")
         finally:
             # Restore the scripting environment to its default state.
-            # self.flame is stored in the dict, needs to be transferred.
             update = namespace["update_flame"]
             if not update:
                 # Revert to state of flame before script ran.
