@@ -681,7 +681,7 @@ class MainWindow(wx.Frame):
         text = string.splitlines()
         script = "\n".join(text) +'\n'
         self.log._script = text
-        flame = Flame(self.flame.to_string())
+        oldflame = Flame(self.flame.to_string())
         namespace = self.CreateNamespace()
         
         try:
@@ -692,29 +692,33 @@ class MainWindow(wx.Frame):
         except ThreadInterrupt:
             print("\n\nScript Interrupted")
         finally:
-            # Restore the scripting environment to its default state.
             update = namespace["update_flame"]
-            if not update:
-                # Revert to state of flame before script ran.
-                self.flame = flame
-
-            # This lets the GUI know that the script has finished.
-            self.EndOfScript(update)
+            # Check if changes made to the flame by the script are legal.
+            try:
+                Flame(self.flame.to_string())
+            except Exception as e:
+                print "Error updating flame:"
+                print e
+                update = False
+                
+            # Let the GUI know that the script has finished.
+            self.EndOfScript(oldflame, update)
 
         # Keep this out of the finally clause!
         print "\nSCRIPT STATS:\n"\
               "Running time %.2f seconds\n" %(time.time()-start)
 
-        
+
     @InMain
-    def EndOfScript(self, update):
-        self.SetFlame(self.flame, rezoom=False)
+    def EndOfScript(self, oldflame, update):
         # Note that tempsave returns if scriptrunning == True, so it needs to
         # come after unblocking the GUI.
         self.BlockGUI(False)
         self.SetStatusText("")
         if update:
             self.TreePanel.TempSave()
+        else:
+            self.SetFlame(oldflame, rezoom=False)
 
 
     @CallableFrom('MainThread')
