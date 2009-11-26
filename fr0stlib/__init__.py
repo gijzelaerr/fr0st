@@ -951,9 +951,8 @@ class Chaos(object):
         if isinstance(pos, slice):
             xform = self._parent._parent.xform
             return [self._dict[xform[i]] for i in range(len(self))[pos]]
-        # We let the list itself raise the error if index is wrong.
-        if pos < 0 and abs(pos) <= len(self):
-            pos += len(self)
+        if isinstance(pos, Xform):
+            return self._dict[pos]
         return self._dict[self._parent._parent.xform[pos]]
 
     def __setitem__(self, pos, val):
@@ -963,10 +962,11 @@ class Chaos(object):
                 raise IndexError("Assigned values don't match length of slice")
             map(self.__setitem__, indices, val)
             return
-        if pos < 0 and abs(pos) <= len(self):
-            pos += len(self)
         if val < 0:
             raise ValueError(val)
+        if isinstance(pos, Xform):
+            self._dict[pos] = val
+            return
         self._dict[self._parent._parent.xform[pos]] = val
 
     def to_string(self):
