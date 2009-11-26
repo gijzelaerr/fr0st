@@ -282,6 +282,7 @@ class MyLog(wx.TextCtrl):
         lines = (self._script[int(i)-1].strip()
                  for i in self.re_linenum.findall(message))
         message = self.re_line.sub('\g<1>\n    %s',message) %tuple(lines)
+        self.AppendText("Traceback (most recent call last):\n")
         self.AppendText(message)
 
 
