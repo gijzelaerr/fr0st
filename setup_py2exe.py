@@ -37,8 +37,9 @@ if len(sys.argv) == 1:
     sys.argv.append('-q') # quiet mode
 
 
-# Remove the build folder
+# Remove build and dist folders
 shutil.rmtree("build", ignore_errors=True)
+shutil.rmtree("dist", ignore_errors=True)
 
 fr0st_package_name = 'fr0stlib'
 
@@ -143,20 +144,20 @@ class build_exe_plus_extension(py2exe):
 
         py2exe.run(self)
 
-        lib_dir = self.lib_dir
-        dist_dir = self.dist_dir
-        
-        # create the Installer, using the files py2exe has created.
-        script = InnoScript("fr0st",
-                            lib_dir,
-                            dist_dir,
-                            self.windows_exe_files + self.console_exe_files,
-                            self.lib_files)
-
-        print "*** creating the inno setup script***"
-        script.create()
-        print "*** compiling the inno setup script***"
-        script.compile()
+##        lib_dir = self.lib_dir
+##        dist_dir = self.dist_dir
+##        
+##        # create the Installer, using the files py2exe has created.
+##        script = InnoScript("fr0st",
+##                            lib_dir,
+##                            dist_dir,
+##                            self.windows_exe_files + self.console_exe_files,
+##                            self.lib_files)
+##
+##        print "*** creating the inno setup script***"
+##        script.create()
+##        print "*** compiling the inno setup script***"
+##        script.compile()
 
 ###########################################################################
 #  Now define all the py2exe stuff...
@@ -177,6 +178,7 @@ data_files = [('', [ 'license.txt' ] + glob.glob(fr0st_package_name + '/pyflam3/
               ('scripts/batches', glob.glob('scripts/batches/*.py')),
               ('scripts/tests', glob.glob('scripts/tests/*.py')),
               ('scripts', glob.glob('scripts/*.py')),
+              ('Microsoft.VC90.CRT', glob.glob('Microsoft.VC90.CRT/*')),
              ]
 
 includes = [
@@ -211,25 +213,69 @@ dll_excludes = [
     'tcl84.dll', 'tk84.dll',
 ]
 
-icon_resources = [(1, 'icons/fr0st.ico')]
-bitmap_resources = []
-other_resources = []
 
+manifest = '''
+<assembly xmlns="urn:schemas-microsoft-com:asm.v1"
+manifestVersion="1.0">
+  <assemblyIdentity
+    version="0.6.8.0"
+    processorArchitecture="x86"
+    name="{name}"
+    type="win32"
+  />
+  <description>{name} Program</description>
+  <trustInfo xmlns="urn:schemas-microsoft-com:asm.v3">
+    <security>
+      <requestedPrivileges>
+        <requestedExecutionLevel
+          level="asInvoker"
+          uiAccess="false"
+        />
+      </requestedPrivileges>
+    </security>
+  </trustInfo>
+  <dependency>
+    <dependentAssembly>
+      <assemblyIdentity
+        type="win32"
+        name="Microsoft.VC90.CRT"
+        version="9.0.21022.8"
+        processorArchitecture="x86"
+        publicKeyToken="1fc8b3b9a1e18e3b"
+      />
+    </dependentAssembly>
+  </dependency>
+  <dependency>
+    <dependentAssembly>
+      <assemblyIdentity
+        type="win32"
+        name="Microsoft.Windows.Common-Controls"
+        version="6.0.0.0"
+        processorArchitecture="x86"
+        publicKeyToken="6595b64144ccf1df"
+        language="*"
+      />
+    </dependentAssembly>
+  </dependency>
+</assembly>
+'''.format(name="fr0st")
 
 fr0st_target = Target(
     # what to build
     script = "fr0st.py",
-    icon_resources = icon_resources,
-    bitmap_resources = bitmap_resources,
-    other_resources = other_resources,
+    icon_resources = [(1, 'icons/fr0st.ico')],
+    bitmap_resources = [],
+    other_resources = [(24, 1, manifest)],
+##    other_resources = [],
     dest_base = "fr0st",    
-    version = "0.1",
+    version = "1.0",
     name = "fr0st"
     )
 
 
 ###########################################################################
 #  Finally, hand it off to distutils
+
 
 setup(
 
@@ -254,9 +300,7 @@ setup(
             include_dirs=[numpy.get_include()]
         ),
     ],
-    zipfile = r'fr0st.zip',
-    #console = [fr0st_target],
-    #windows = [],
+    zipfile = None,
     console = [],
     windows = [fr0st_target],
     cmdclass = {"py2exe": build_exe_plus_extension},
