@@ -30,6 +30,7 @@ import zlib
 import shutil
 import numpy
 import sys
+import _winreg
 
 
 if len(sys.argv) == 1:
@@ -62,6 +63,14 @@ if not os.path.exists(c_sources[0]):
     #TODO: This doesn't honor any of the cython compile options. Meh?
     for source_file in cython_sources:
         cython_compile(source_file)
+
+
+###########################################################################
+#  Find VC9 redistributable path
+
+key = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, r'SOFTWARE\Microsoft\VCExpress\9.0\Setup\VC')
+VC_REDIST_DIR = os.path.join(_winreg.QueryValueEx(key, 'ProductDir')[0], 'redist', 'x86', 'Microsoft.VC90.CRT')
+
 
 ###########################################################################
 #  And some InnoSetup stuff
@@ -178,7 +187,7 @@ data_files = [('', [ 'license.txt' ] + glob.glob(fr0st_package_name + '/pyflam3/
               ('scripts/batches', glob.glob('scripts/batches/*.py')),
               ('scripts/tests', glob.glob('scripts/tests/*.py')),
               ('scripts', glob.glob('scripts/*.py')),
-              ('Microsoft.VC90.CRT', glob.glob('Microsoft.VC90.CRT/*')),
+              ('Microsoft.VC90.CRT', glob.glob(VC_REDIST_DIR + '\\*')),
              ]
 
 includes = [
