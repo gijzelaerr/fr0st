@@ -71,9 +71,8 @@ class Flame(object):
     def __init__(self, string=""):
         # Set minimum required attributes.
         self.name = "Untitled"
-        self.version = VERSION
         self.xform = []
-        self.size = 512, 384
+        self.size = 640, 480
         self.center = [0.0, 0.0]
         self.rotate = 0.0
         self.background = (0.0, 0.0, 0.0)
@@ -91,6 +90,7 @@ class Flame(object):
         if string:
             root = etree.fromstring(string)
             self.from_element(root)
+        
 
     @classmethod 	 
     def from_strings(cls, string, type=None): 	 
@@ -137,7 +137,7 @@ class Flame(object):
         if sym is not None:
             self.add_symmetry(int(sym.get('kind')))
 
-        if self.version != VERSION:
+        if getattr(self, "version", "") != VERSION:
             compatibilize(self, VERSION)
 
         return self
