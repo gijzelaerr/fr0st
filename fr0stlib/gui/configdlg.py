@@ -151,14 +151,14 @@ class RenderPanel(wx.Panel):
         self.parent = parent.Parent
         wx.Panel.__init__(self, parent, -1)
 
-        if is_cuda_capable():
-            choices = ["flam3", "flam4"]
-        else:
-            choices = ["flam3"]
+        choices = ["flam3", "flam4"]
         
         self.rb = wx.RadioBox(self, -1, label="Renderer", choices=choices,
                               style=wx.RA_VERTICAL)
         self.rb.SetStringSelection(self.parent.local_config["renderer"])
+
+        if not is_cuda_capable():
+            self.rb.EnableItem(1, False)
 
         szr = wx.BoxSizer(wx.VERTICAL)
         szr.Add(self.rb)
