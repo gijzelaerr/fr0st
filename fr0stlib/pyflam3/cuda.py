@@ -18,7 +18,7 @@ def is_cuda_capable():
     version = c_int()
     cudart.cudaDriverGetVersion(byref(version))
 
-    return version != 0
+    return bool(version)
 
 
 
