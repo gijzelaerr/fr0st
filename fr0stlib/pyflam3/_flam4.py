@@ -1,23 +1,11 @@
 import sys
 from ctypes import *
+from fr0stlib.pyflam3.find_dll import find_dll
 
-try:
-    libflam4 = CDLL('Flam4CUDA_LIB.dll')
-except WindowsError:
-    # Assume file not found
-    import os.path
-    # Find the win32_dlls sub directory
-    this_dir = os.path.dirname(__file__)
-    dll_dir = os.path.join(this_dir, 'win32_dlls')
-    # Not add it to the PATH
-    sys_path = os.environ['PATH']
-    os.environ['PATH'] = ';'.join((sys_path, dll_dir))
-    # Try again
-    try:
-        libflam4 = CDLL('Flam4CUDA_LIB.dll')
-    except WindowsError:
-        print("An error has occured loading flam4")
+
+libflam4 = find_dll('Flam4CUDA_LIB', omit_lib_in_windows=True)
         
+
 LastRenderWidth = 0
 LastRenderHeight = 0
 cudaRunning = 0

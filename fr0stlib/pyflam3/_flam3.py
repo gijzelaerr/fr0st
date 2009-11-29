@@ -23,29 +23,10 @@ import itertools, sys, os
 from ctypes import *
 from fr0stlib.pyflam3.constants import *
 from fr0stlib.pyflam3.variations import *
+from fr0stlib.pyflam3.find_dll import find_dll
 
 
-if 'win32' not in sys.platform:
-    try:
-        libflam3 = CDLL('fr0stlib/pyflam3/linux_so/libflam3.so')
-    except OSError:
-        libflam3 = CDLL('libflam3.so')
-
-else:
-    dll_name = 'libflam3.dll'
-    dll_dir = os.getcwd()
-
-    try:
-        if os.path.exists(os.path.join(dll_dir, dll_name)):
-            libflam3 = CDLL('libflam3.dll')
-        else:
-            dll_dir = os.path.join(os.path.dirname(__file__), 'win32_dlls')
-            sys_path = os.environ['PATH']
-            os.environ['PATH'] = ';'.join((sys_path, dll_dir))
-            libflam3 = CDLL(dll_name)
-    except WindowsError:
-        print >>sys.stderr, 'ERROR: Unable to load "%s" from "%s"' % (dll_name, dll_dir)
-        raise
+libflam3 = find_dll('libflam3')
 
 
 IteratorFunction = CFUNCTYPE(None, c_void_p, c_double)
