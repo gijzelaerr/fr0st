@@ -27,6 +27,7 @@ from copy import deepcopy
 from fr0stlib.decorators import *
 from fr0stlib.gui.config import config, update_dict
 from fr0stlib.gui.utils import NumberTextCtrl, Box
+from fr0stlib.pyflam3.cuda import is_cuda_capable
 
 
 class ConfigDialog(wx.Dialog):
@@ -149,7 +150,11 @@ class RenderPanel(wx.Panel):
     def __init__(self, parent):
         self.parent = parent.Parent
         wx.Panel.__init__(self, parent, -1)
-        choices = ["flam3", "flam4"]
+
+        if is_cuda_capable():
+            choices = ["flam3", "flam4"]
+        else:
+            choices = ["flam3"]
         
         self.rb = wx.RadioBox(self, -1, label="Renderer", choices=choices,
                               style=wx.RA_VERTICAL)
@@ -164,3 +169,4 @@ class RenderPanel(wx.Panel):
     def OnRadio(self, e):
         self.parent.local_config["renderer"] = self.rb.GetStringSelection()
         
+

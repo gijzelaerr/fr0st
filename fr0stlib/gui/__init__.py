@@ -38,6 +38,7 @@ from fr0stlib.gui.config import config, init_config
 from fr0stlib.gui.configdlg import ConfigDialog
 from fr0stlib.gui.filedialogs import SaveDialog, NewFileDialog
 from fr0stlib.gui.exceptiondlg import unhandled_exception_handler
+from fr0stlib.pyflam3.cuda import is_cuda_capable
 
 import fr0stlib
 from fr0stlib import Flame
@@ -77,6 +78,10 @@ class Fr0stApp(wx.App):
             os.makedirs(self.ConfigDir)
 
         init_config()
+
+        if config['renderer'] == 'flam4' and not is_cuda_capable():
+            config['renderer'] = 'flam3'
+
 
     def CreateUserDirectory(self):
         self.user_dir = self.standard_paths.GetDocumentsDir()
