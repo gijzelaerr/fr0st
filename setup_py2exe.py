@@ -68,9 +68,11 @@ if not os.path.exists(c_sources[0]):
 ###########################################################################
 #  Find VC9 redistributable path
 
-key = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, r'SOFTWARE\Microsoft\VCExpress\9.0\Setup\VC')
-VC_REDIST_DIR = os.path.join(_winreg.QueryValueEx(key, 'ProductDir')[0], 'redist', 'x86', 'Microsoft.VC90.CRT')
+##key = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, r'SOFTWARE\Microsoft\VCExpress\9.0\Setup\VC')
+##VC_REDIST_DIR = os.path.join(_winreg.QueryValueEx(key, 'ProductDir')[0], 'redist', 'x86', 'Microsoft.VC90.CRT')
 
+# Add it manually until we can fix the manifest stuff.
+VC_REDIST_DIR = "Microsoft.VC90.CRT"
 
 ###########################################################################
 #  And some InnoSetup stuff
@@ -153,20 +155,20 @@ class build_exe_plus_extension(py2exe):
 
         py2exe.run(self)
 
-##        lib_dir = self.lib_dir
-##        dist_dir = self.dist_dir
-##        
-##        # create the Installer, using the files py2exe has created.
-##        script = InnoScript("fr0st",
-##                            lib_dir,
-##                            dist_dir,
-##                            self.windows_exe_files + self.console_exe_files,
-##                            self.lib_files)
-##
-##        print "*** creating the inno setup script***"
-##        script.create()
-##        print "*** compiling the inno setup script***"
-##        script.compile()
+        lib_dir = self.lib_dir
+        dist_dir = self.dist_dir
+        
+        # create the Installer, using the files py2exe has created.
+        script = InnoScript("fr0st",
+                            lib_dir,
+                            dist_dir,
+                            self.windows_exe_files + self.console_exe_files,
+                            self.lib_files)
+
+        print "*** creating the inno setup script***"
+        script.create()
+        print "*** compiling the inno setup script***"
+        script.compile()
 
 ###########################################################################
 #  Now define all the py2exe stuff...
