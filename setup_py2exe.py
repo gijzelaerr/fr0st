@@ -187,7 +187,6 @@ data_files = [('', [ 'license.txt' ] + glob.glob(fr0st_package_name + '/pyflam3/
               ('parameters', glob.glob('parameters/*.flame')),
               ('scripts/sheep_tools', glob.glob('scripts/sheep_tools/*.py')),
               ('scripts/batches', glob.glob('scripts/batches/*.py')),
-              ('scripts/tests', glob.glob('scripts/tests/*.py')),
               ('scripts', glob.glob('scripts/*.py')),
               ('Microsoft.VC90.CRT', glob.glob(VC_REDIST_DIR + '\\*')),
              ]
