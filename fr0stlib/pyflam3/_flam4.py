@@ -210,8 +210,7 @@ def loadFlam4(flame):
         loadXform(flame.final, flam4Flame.finalXform)
     return flam4Flame
     
-def loadXform(inxform, outxform):
-    xform = outxform
+def loadXform(inxform, xform):
     for x in xform._fields_:
         try:
             object.__setattr__(xform, x[0],inxform.__getattribute__(x[0]))
@@ -227,6 +226,9 @@ def loadXform(inxform, outxform):
     xform.pd = -post.d
     xform.pe = post.e
     xform.pf = -post.f
+    # Convert from flam3 color_speed back to symmetry, so flam4 will interpret
+    # the color correctly.
+    xform.symmetry = 1. - inxform.color_speed * 2
     return xform
     
 def setTransAff(transAff, xform):
