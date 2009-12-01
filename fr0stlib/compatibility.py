@@ -22,8 +22,6 @@
 from math import log10
 
 
-
-
 def percent2log(prc):
     return 10.0 ** (-log10(1.0/prc)/log10(2.0))
 
@@ -34,10 +32,8 @@ def log2percent(logval):
 def compatibilize(flame, version):
     if getattr(flame, "version", "").startswith("fr0st"):
         return
-    
     # Assume the flame is compatible with apo and flam3 < 2.8
     apo2fr0st(flame)
-
     flame.version = version
     
 

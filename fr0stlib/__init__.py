@@ -137,8 +137,7 @@ class Flame(object):
         if sym is not None:
             self.add_symmetry(int(sym.get('kind')))
 
-        if getattr(self, "version", "") != VERSION:
-            compatibilize(self, VERSION)
+        compatibilize(self, VERSION)
 
         return self
 
