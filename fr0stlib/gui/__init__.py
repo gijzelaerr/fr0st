@@ -42,7 +42,7 @@ from fr0stlib.gui.exceptiondlg import unhandled_exception_handler
 from fr0stlib.pyflam3.cuda import is_cuda_capable
 
 import fr0stlib
-from fr0stlib import Flame
+from fr0stlib import Flame, save_flames
 from fr0stlib.pyflam3 import Genome
 from fr0stlib.decorators import *
 from fr0stlib.threadinterrupt import ThreadInterrupt, interruptall
@@ -270,8 +270,9 @@ class MainWindow(wx.Frame):
                 window.SetDimensions(*rect)
                 window.Maximize(maximize)
 
-        # Set up paths
+        # Set up environment for scripts.
         sys.path.append(wx.GetApp().UserScriptsDir)
+        self.PatchFr0stlib()
 
         self.flamepath = os.path.join(wx.GetApp().UserParametersDir,
                                       config["flamepath"])
@@ -480,7 +481,7 @@ flam4 - © 2009 Steven Broadhead""" % fr0stlib.VERSION,
                 else:
                     lst = []
                 lst.append(flame.to_string())
-                fr0stlib.save_flames(newpath, *lst)
+                save_flames(newpath, *lst)
         dlg.Destroy()
 
 
@@ -565,7 +566,7 @@ flam4 - © 2009 Steven Broadhead""" % fr0stlib.VERSION,
     def MakeFlameFile(self, path):
         if not os.path.exists(os.path.dirname(path)):
             os.makedirs(os.path.dirname(path))
-        fr0stlib.save_flames(path, self.MakeFlame())
+        save_flames(path, self.MakeFlame())
         self.OpenFlame(path)
         
 
@@ -621,7 +622,7 @@ flam4 - © 2009 Steven Broadhead""" % fr0stlib.VERSION,
             data.Reset()
             self.tree.SetItemText(self.tree.item, data.name)
                 
-        fr0stlib.save_flames(path, *(data[0] for data in lst))
+        save_flames(path, *(data[0] for data in lst))
         # Make sure Undo and Redo get set correctly.
         self.SetFlame(self.flame, rezoom=False)
         
@@ -633,7 +634,7 @@ flam4 - © 2009 Steven Broadhead""" % fr0stlib.VERSION,
                                    'Fr0st',wx.YES_NO|wx.CANCEL)
             result = dlg.ShowModal()
             if result == wx.ID_YES:
-                fr0stlib.save_flames(path, *(data[-1] for data,_ in lst))
+                save_flames(path, *(data[-1] for data,_ in lst))
             dlg.Destroy()
             return result
 
@@ -668,26 +669,49 @@ flam4 - © 2009 Steven Broadhead""" % fr0stlib.VERSION,
         self.Enable(ID.REDOALL, data.redo)
 
 
+    def PatchFr0stlib(self):
+        """Override some fr0stlib functions with equivalent GUI versions.
+        References to the old functions must be explicitly kept for internal
+        use ('from fr0stlib import ...')."""
+        def new_save_flames(path, *flames):
+            if not flames:
+                raise ValueError("You must specify at least 1 flame to set.")
+
+            if not os.path.split(path)[0]:
+                path = os.path.join(wx.GetApp().UserParametersDir, path)
+
+            if os.path.exists(path):
+                dlg = wx.MessageDialog(self, "%s already exists. Do you want to overwrite?" % path,
+                                       'Fr0st',wx.YES_NO)
+                if dlg.ShowModal() != wx.ID_YES:
+                    return
+
+            lst = [s if type(s) is str else s.to_string() for s in flames]
+            self.tree.SetFlames(path, *lst)
+            save_flames(path, *lst)
+
+        # These functions overwrite existing functions.
+        fr0stlib.save_flames = InMain(new_save_flames)
+        fr0stlib.load_flames = InMain(self.OpenFlame)
+        fr0stlib.show_status = InMain(self.SetStatusText)
+
+        # These are new, added functions.
+        fr0stlib.get_flames = self.tree.GetFlames
+        fr0stlib.get_file_path = self.tree.GetFilePath
+        fr0stlib.preview = self.preview
+        fr0stlib.large_preview = self.large_preview
+        fr0stlib.dialog = self.editorframe.make_dialog
+        
+
     def CreateNamespace(self):
         """Recreates the namespace each time the script is run to reassign
         the flame variable, etc."""
-        namespace = {}
-        exec("from fr0stlib import *; __name__='__main__'",namespace)
-        namespace.update(dict(flame = self.flame,
-                              get_flames = self.tree.GetFlames,
-                              save_flames = self.save_flames,
-                              load_flames = self.load_flames,
-                              preview = self.preview,
-                              large_preview = self.large_preview,
-                              show_status = self.show_status,
-                              dialog = self.editorframe.make_dialog,
-                              get_file_path = self.tree.GetFilePath,
-                              VERSION = fr0stlib.VERSION,
-                              update_flame = True,
-                              # Scripts aren't allowed to change config, so
-                              # we make a copy of it.
-                              config = deepcopy(config),
-                              _self = self))
+        namespace = dict(flame = self.flame,
+                         update_flame = True,
+                         # Make a copy of config, so it can't be modified.
+                         config = deepcopy(config),
+                         _self = self)
+        exec("from fr0stlib import *; __name__='__main__'", namespace)
         return namespace
 
 
@@ -762,8 +786,6 @@ flam4 - © 2009 Steven Broadhead""" % fr0stlib.VERSION,
 
 
     def preview(self):
-        # WARNING: This function is called from the script thread, so it's not
-        # Allowed to change any shared state.
         self.image.RenderPreview()
         self.OnPreview()
         time.sleep(.01) # Avoids spamming too many requests.
@@ -772,11 +794,6 @@ flam4 - © 2009 Steven Broadhead""" % fr0stlib.VERSION,
     def large_preview(self):
         if self.previewframe.IsShown():
             self.previewframe.RenderPreview()
-
-
-    @InMain
-    def show_status(self, s):
-        self.SetStatusText(s)
         
 
     @InMain
@@ -786,34 +803,6 @@ flam4 - © 2009 Steven Broadhead""" % fr0stlib.VERSION,
 ##        self.notebook.UpdateView()
         self.canvas.ShowFlame(rezoom=False)
         self.grad.UpdateView()
-
-
-    @InMain
-    def save_flames(self, path, *flames):
-        if not flames:
-            raise ValueError("You must specify at least 1 flame to set.")
-        
-        dir, file = os.path.split(path)
-
-        if dir:
-            path = path
-        else:
-            path = os.path.join(wx.GetApp().UserParametersDir, path)
-
-        if os.path.exists(path):
-            dlg = wx.MessageDialog(self, "%s already exists. Do you want to overwrite?" % path,
-                                   'Fr0st',wx.YES_NO)
-            if dlg.ShowModal() != wx.ID_YES:
-                return
-
-        lst = [s if type(s) is str else s.to_string() for s in flames]
-        self.tree.SetFlames(path, *lst)
-        fr0stlib.save_flames(path, *lst)
-
-
-    @InMain
-    def load_flames(self, path):
-        self.OpenFlame(path)
 
 
 
