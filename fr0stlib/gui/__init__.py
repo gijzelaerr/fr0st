@@ -727,6 +727,7 @@ flam4 - © 2009 Steven Broadhead""" % fr0stlib.VERSION,
         self.log._script = text
         oldflame = Flame(self.flame.to_string())
         namespace = self.CreateNamespace()
+        modules = dict(sys.modules)
         
         try:
             # namespace is used as globals and locals, same as top level
@@ -737,6 +738,7 @@ flam4 - © 2009 Steven Broadhead""" % fr0stlib.VERSION,
             print("\n\nScript Interrupted")
         finally:
             update = namespace["update_flame"]
+            
             # Check if changes made to the flame by the script are legal.
             try:
                 Flame(self.flame.to_string())
@@ -744,6 +746,11 @@ flam4 - © 2009 Steven Broadhead""" % fr0stlib.VERSION,
                 print "Error updating flame:"
                 print e
                 update = False
+                
+            # Remove any modules imported by the script, so they can be changed
+            # without needing to restart fr0st.
+            sys.modules.clear()
+            sys.modules.update(modules)
                 
             # Let the GUI know that the script has finished.
             self.EndOfScript(oldflame, update)
