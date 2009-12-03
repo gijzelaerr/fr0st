@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 ##############################################################################
 #  Fractal Fr0st - fr0st
 #  https://launchpad.net/fr0st
@@ -307,7 +306,7 @@ class MainWindow(wx.Frame):
     def OnAbout(self,e):
         wx.MessageDialog(self,"""%s
 
-Copyright © 2008 - 2009 Vitor Bosshard
+Copyright (c) 2008 - 2009 Vitor Bosshard
 
 This program is free software.
 View license.txt for more details.
@@ -318,8 +317,8 @@ Erik Reckase
 John Miller
 
 Built on top of:
-flam3 - © 1992 - 2009 Scott Draves
-flam4 - © 2009 Steven Broadhead""" % fr0stlib.VERSION,
+flam3 - (c) 1992 - 2009 Scott Draves
+flam4 - (c) 2009 Steven Broadhead""" % fr0stlib.VERSION,
                          "About Fractal Fr0st", wx.OK).ShowModal()
 
     @Bind(wx.EVT_MENU, id=wx.ID_PREFERENCES)
