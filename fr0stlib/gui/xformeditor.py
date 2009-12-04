@@ -534,6 +534,9 @@ class VarPanel(wx.Panel):
     def OnLeftDClick(self, e):
         # HACK: col is either -1 or 1. I don't know what the 2 param is.
         item, _, col =  self.tree.HitTest(e.Position)
+        if not item.IsOk():
+            return
+        
         if col == 1:
             self.tree.EditLabel(item, 1)
 
@@ -577,6 +580,9 @@ class VarPanel(wx.Panel):
         self.SetFocus() # Makes sure OnKeyUp gets called.
         
         item = self.tree.HitTest(e.GetPosition())[0]
+        if not item.IsOk():
+            return
+        
         try:
             name = self.tree.GetItemText(item)
         except wx.PyAssertionError:
@@ -825,6 +831,9 @@ class ChaosPanel(wx.Panel):
 
     def OnLeftDClick(self, tree, e):
         item, _, col =  tree.HitTest(e.Position)
+        if not item.IsOk():
+            return
+        
         if col == 1:
             tree.EditLabel(item, 1)
 
@@ -863,7 +872,6 @@ class ChaosPanel(wx.Panel):
         self.SetFocus() # Makes sure OnKeyUp gets called.
         
         item = tree.HitTest(e.GetPosition())[0]
-
         if not item.IsOk():
             return
 
