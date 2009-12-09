@@ -139,7 +139,7 @@ class TestPalette(TestCase):
 
     def testSaturation(self):
         palette = Palette.from_flame_element(self.hex_flame_element)
-        palette.saturation(0.5)
+        palette.saturation(5)
 
         def adjust_saturation(c, v):
             h, l, s = functions.rgb2hls(c)
@@ -148,7 +148,7 @@ class TestPalette(TestCase):
         adjusted = self.data[:]
         
         for idx, c in enumerate(adjusted):
-            adjusted[idx] = adjust_saturation(c, 0.5)
+            adjusted[idx] = adjust_saturation(c, 0.05)
 
         for idx in range(256):
             self.check_index(palette, idx, adjusted[idx])
