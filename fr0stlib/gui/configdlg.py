@@ -139,8 +139,10 @@ class ConfigDialog(wx.Dialog):
 
     def CommitChanges(self):
         update_dict(config, self.local_config)
-        # Immediately update canvas to see eventual changes in var preview.
+        # Immediately update GUI to see changes in quality, etc.
         self.Parent.canvas.ShowFlame(rezoom=False)
+        self.Parent.image.RenderPreview()
+        self.Parent.previewframe.RenderPreview()
 
 
 
