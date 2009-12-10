@@ -47,9 +47,10 @@ def convert(flame):
         return
     for x in flame.xform:
         x.symmetry = 1. - x.color_speed * 2
-        del x.color_speed
-
+        del x.color_speed, x.animate, x.opacity
+    
+    del flame.highlight_power
     flame.version = "flam3 2.7"
-
+    
 
 map(convert, get_flames())
