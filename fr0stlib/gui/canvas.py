@@ -384,7 +384,7 @@ class XformCanvas(FC.FloatCanvas):
         If hittest is set to true, this func doubles as a hittest, and checks
         if the point is inside the line's hitbox."""
 
-        xf = Xform(points=points)
+        xf = Xform(None, points=points)
         a,d,b,e,c,f = xf.coefs
 
         # Get angle of the hypothenuse

@@ -48,8 +48,6 @@ except ImportError:
 VERSION = "Fr0st 1.0 beta"
 GUI = False
 
-_variables = dict([i[0:2] for i in variable_list])
-
 
 class ParsingError(Exception):
     pass
@@ -505,23 +503,22 @@ class Xform(object):
     """Container for transform parameters."""
 
     _default = set(("_parent","a","b","c","d","e","f","chaos","post"))
-    # We need to specify attributes with an explicit default value.
-    # See iter_attributes for more details.
-    opacity = 1.0
-    color = 0.0
-    color_speed = 0.5
-    animate = 1.0
+    _always_write = set(("opacity", "color", "color_speed", "animate")
+                        ).union(i[0] for i in variable_list)
 
-    def __init__(self, parent=None, chaos=(), post=None, **kwds):
+    def __init__(self, parent, chaos=(), post=(1.,0.,0.,1.,0.,0.), **kwds):
         self._parent = parent
-        
+    
         if kwds:
             map(self.__setattr__, *zip(*kwds.iteritems()))
         
         if not isinstance(self, PostXform):
+            self.opacity = 1.0
+            self.color = 0.0
+            self.color_speed = 0.5
+            self.animate = 1.0
             self.chaos = Chaos(self, chaos)
-            self.post = PostXform(self, screen_coefs=[1., 0., 0., 1., 0., 0.]
-                                  if post is None else post)
+            self.post = PostXform(self, screen_coefs=post)
 
 
     @classmethod
@@ -670,8 +667,7 @@ class Xform(object):
 
     def iter_attributes(self):
         return ((k,v) for (k,v) in self.__dict__.iteritems()
-                if k not in self._default and v or hasattr(self.__class__, k)
-                or k in _variables)
+                if k not in self._default and v or k in self._always_write)
 
 #----------------------------------------------------------------------
 
