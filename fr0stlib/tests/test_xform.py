@@ -747,7 +747,7 @@ class TestXform(TestCase):
         self.assertEquals(c.index, 4)
 
         for key in x.__dict__:
-            if key in ('_post', '_chaos'):
+            if key in ('post', 'chaos'):
                 continue
 
             self.assertEquals(getattr(x, key), getattr(c, key))

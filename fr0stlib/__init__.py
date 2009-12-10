@@ -72,8 +72,8 @@ class Flame(object):
         # Set minimum required attributes.
         self.name = "Untitled"
         self.xform = []
-        self.size = 640, 480
-        self.center = [0.0, 0.0]
+        self.size = 640, 480 # property
+        self.center = 0.0, 0.0 # property
         self.rotate = 0.0
         self.background = (0.0, 0.0, 0.0)
         self.final = None
@@ -504,7 +504,7 @@ class Palette(collections.Sequence):
 class Xform(object):
     """Container for transform parameters."""
 
-    _default = set(("_parent","a","b","c","d","e","f","_chaos","_post"))
+    _default = set(("_parent","a","b","c","d","e","f","chaos","post"))
     # We need to specify attributes with an explicit default value.
     # See iter_attributes for more details.
     opacity = 1.0
@@ -519,9 +519,9 @@ class Xform(object):
             map(self.__setattr__, *zip(*kwds.iteritems()))
         
         if not isinstance(self, PostXform):
-            self._chaos = Chaos(self, chaos)
-            self._post = PostXform(self, screen_coefs=[1., 0., 0., 1., 0., 0.]
-                                   if post is None else post)
+            self.chaos = Chaos(self, chaos)
+            self.post = PostXform(self, screen_coefs=[1., 0., 0., 1., 0., 0.]
+                                  if post is None else post)
 
 
     @classmethod
@@ -589,12 +589,12 @@ class Xform(object):
             chaos = element.get('chaos', None)
 
             if chaos is not None:
-                self._chaos = Chaos(self, map(float, chaos.split()))
+                self.chaos = Chaos(self, map(float, chaos.split()))
                 
             post = element.get('post', None)
             if post is not None:
-              self._post = PostXform(self,
-                                       screen_coefs=map(float, post.split()))
+                self.post = PostXform(self,
+                                      screen_coefs=map(float, post.split()))
 
         # Convert from screen to complex plane orientation
         self.coefs = self.screen_coefs
@@ -636,25 +636,6 @@ class Xform(object):
             return 0.0
 
         raise AttributeError(v)
-
-    @property
-    def chaos(self):
-        return self._chaos
-    @chaos.setter
-    def chaos(self,v):
-        if type(v) is not Chaos:
-            raise TypeError, "The chaos attribute requires a Chaos object"
-        self._chaos = v
-
-
-    @property
-    def post(self):
-        return self._post
-    @post.setter
-    def post(self,v):
-        if type(v) is not PostXform:
-            raise TypeError, "The post attribute requires a PostXform object"
-        self._post = v
 
 
     @property
@@ -863,18 +844,18 @@ class Xform(object):
     def copy(self):
         if not self.isfinal():
             self._parent, parent = None, self._parent
-            self._chaos, chaos = None, self._chaos
+            self.chaos, chaos = None, self.chaos
             self.post._parent = None
             xf = copy.deepcopy(self)
 
             xf.post._parent = xf
             xf._parent = parent
 
-            self._chaos = chaos
+            self.chaos = chaos
             self._parent = parent
             self.post._parent = self
 
-            xf._chaos = Chaos(xf, chaos)
+            xf.chaos = Chaos(xf, chaos)
 
             self._parent.xform.append(xf)
 
