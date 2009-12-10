@@ -19,6 +19,14 @@ def check_compatibility(flame):
             problems.append("  -chaos not supported")
             break
 
+    for x in flame.xform:
+        if x.animate:
+            if x.color_speed >= .5:
+                continue
+        elif x.color_speed < .5:
+            continue
+        problems.append("  -%s animate doesn't match symmetry." % x)
+
     if flame.highlight_power != -1:
         problems.append("  -highlight power not supported")
 
