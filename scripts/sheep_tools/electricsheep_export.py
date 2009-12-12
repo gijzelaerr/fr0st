@@ -51,6 +51,12 @@ def convert(flame):
     
     del flame.highlight_power
     flame.version = "flam3 2.7"
-    
+    return flame
 
-map(convert, get_flames())
+
+flames = get_flames()
+map(convert, flames)
+
+base, ext = os.path.splitext(get_file_path())
+
+save_flames(base + ".converted" + ext, *flames)
