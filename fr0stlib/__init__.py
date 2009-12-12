@@ -503,8 +503,8 @@ class Xform(object):
     """Container for transform parameters."""
 
     _default = set(("_parent","a","b","c","d","e","f","chaos","post"))
-    _always_write = set(("opacity", "color", "color_speed", "animate")
-                        ).union(i[0] for i in variable_list)
+    _always_write = set(("opacity", "color", "color_speed", "animate",
+                         "symmetry")).union(i[0] for i in variable_list)
 
     def __init__(self, parent, chaos=(), post=(1.,0.,0.,1.,0.,0.), **kwds):
         self._parent = parent
@@ -623,13 +623,7 @@ class Xform(object):
         """Returns a default value for non-existing attributes"""
         # __getattribute__ is the real lookup special method,  __getattr__ is
         # only called when it fails.
-        if v in variation_list:
-            return 0.0
-
-        if v in self._default:
-            return 0.0
-
-        if v in ('symmetry', 'plotmode', 'index', 'weight'):
+        if v in variation_list or v in self._default:
             return 0.0
 
         raise AttributeError(v)

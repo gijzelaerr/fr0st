@@ -46,13 +46,14 @@ def apo2fr0st(flame):
         
     # Symmetry is deprecated, so we factor it into the equivalent attrs.
     for x in flame.iter_xforms():
-        x.color_speed = x.__dict__.get("color_speed", (1 - x.symmetry) / 2.0)
-        x.animate = x.__dict__.get("animate", float(x.symmetry <= 0))
-        x.symmetry = 0.0
+        if hasattr(x, "symmetry"):
+            x.color_speed = (1 - x.symmetry) / 2.0
+            x.animate = float(x.symmetry <= 0)
+            del x.symmetry
         
     # plotmode was never a good idea
     for x in flame.xform:
-        if type(x.plotmode) is str and x.plotmode.lower() == "off":
+        if hasattr(x, "plotmode") and x.plotmode.lower() == "off":
             x.opacity = 0.0
             del x.plotmode
     
