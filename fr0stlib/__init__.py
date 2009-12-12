@@ -19,20 +19,11 @@
 #  the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 #  Boston, MA 02111-1307, USA.
 ##############################################################################
-import shutil
-import random
-import itertools
-import ctypes
-import collections
-import xml.etree.ElementTree
+import shutil, random, itertools, ctypes, collections, copy, re, numpy
 import xml.etree.cElementTree as etree
-import copy
-import re
 from math import *
-from collections import defaultdict
 from functools import partial
 
-import numpy
 from fr0stlib.pyflam3 import Genome,RandomContext,flam3_estimate_bounding_box
 from fr0stlib.pyflam3.variations import variable_list,variation_list,variables
 from fr0stlib.pyflam3.constants import flam3_nvariations
@@ -902,7 +893,7 @@ class Chaos(object):
     
     def __init__(self, parent, lst=()):
         self._parent = parent
-        self._dict = defaultdict(partial(float, 1.0))
+        self._dict = collections.defaultdict(partial(float, 1.0))
         if lst:
             xform = parent._parent.xform
             if len(xform) < len(lst):
