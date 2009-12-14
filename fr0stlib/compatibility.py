@@ -30,10 +30,9 @@ def log2percent(logval):
 
 
 def compatibilize(flame, version):
-    if getattr(flame, "version", "").startswith("fr0st"):
-        return
-    # Assume the flame is compatible with apo and flam3 < 2.8
-    apo2fr0st(flame)
+    if not getattr(flame, "version", "").startswith("fr0st"):
+        # Assume the flame is compatible with apo and flam3 < 2.8
+        apo2fr0st(flame)
     flame.version = version
     
 

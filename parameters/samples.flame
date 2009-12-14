@@ -520,10 +520,10 @@
    <color index="254" rgb="158 24 228"/>
    <color index="255" rgb="155 23 230"/>
 </flame>
-<flame name="heart" size="640 480" center="-0.577967 -0.078581" scale="231.202048" rotate="-20.07" brightness="4" quality="5" oversample="1" background="0 0 0" filter="0.2" version="fr0st 0.5 alpha" gamma_threshold="0.04" highlight_power="3" gamma="4" >
-   <xform weight="0.25" heart="1.0" color="0.0" color_speed="0.5" animate="1.0" coefs="-0.622777942251 1.18418889023 -0.342414701958 0.23289937912 -0.612945134727 1.17149027377" />
+<flame name="heart" size="640 480" center="-0.577967 -0.078581" rotate="-20.07" brightness="4" quality="5" oversample="1" version="Fr0st 1.0 beta" background="0 0 0" filter="0.2" scale="231.202048" gamma_threshold="0.04" highlight_power="3" gamma="4" >
+   <xform opacity="1.0" heart="1.0" weight="0.25" color="0.0" color_speed="0.5" animate="1.0" coefs="-0.622777942251 1.18418889023 -0.342414701958 0.23289937912 -0.612945134727 1.17149027377" />
    <xform opacity="1.0" linear="1.0" weight="1.0" color="0.75" color_speed="0.5" animate="1.0" coefs="0.78237652143 -0.209637157094 0.209637157094 0.78237652143 0.0 -0.0" chaos="0.8 " />
-   <xform linear="1.0" weight="1.0" color="0.0" coefs="0.988051925719 -0.154121355049 0.154121355049 0.988051925719 0.0 -0.0" />
+   <xform opacity="1.0" linear="1.0" weight="1.0" color="0.0" color_speed="0.5" animate="1.0" coefs="0.988051925719 -0.154121355049 0.154121355049 0.988051925719 0.0 -0.0" />
    <color index="0" rgb="111 123 138"/>
    <color index="1" rgb="111 123 138"/>
    <color index="2" rgb="111 123 138"/>
