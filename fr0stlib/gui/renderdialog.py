@@ -461,6 +461,7 @@ class RenderDialog(wx.Frame):
 
 
     def MakeProg(self, name, index, lenght):
+        name = name if len(name) < 20 else name[:17] + "..."
         string = "rendering %s/%s (%s): %%.2f %%%% \t" %(index, lenght, name)
         str_iter = string + "ETA: %02d:%02d:%02d"
         str_de = string + "running density estimation"
