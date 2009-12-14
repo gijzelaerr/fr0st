@@ -23,5 +23,5 @@ if __name__ == "__main__":
                 { 'xv':range(6,9), 'n':1, 'fx':True, "chance":.5} ]
                 
     lst = batch(GenRandom, 20, *randopt)
-    save_flames("parameters/random_batch.flame", *lst)
+    save_flames("random_batch.flame", *lst)
 
