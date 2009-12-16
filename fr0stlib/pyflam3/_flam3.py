@@ -134,6 +134,7 @@ class BaseFrame(Structure):
                , ('progress_parameter', py_object) # or c_void_p?
                , ('rc', RandomContext)
                , ('nthreads', c_int)
+               , ('sub_batch_size', c_int)
                ]
 
 
