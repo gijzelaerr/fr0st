@@ -278,7 +278,7 @@ class MyLog(wx.TextCtrl):
         # prevent '%' occurring in code from screwing up string formatting
         message = message.replace('%', '%%')
         
-        lines = (self._script[int(i)-1].strip()
+        lines = (self._lines[int(i)-1].strip()
                  for i in self.re_linenum.findall(message))
         message = self.re_line.sub('\g<1>\n    %s',message) %tuple(lines)
         self.AppendText("Traceback (most recent call last):\n")

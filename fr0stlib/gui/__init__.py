@@ -720,9 +720,8 @@ flam4 - (c) 2009 Steven Broadhead""" % fr0stlib.VERSION,
         start = time.time()
 
         # split and join fixes linebreak issues between windows and linux
-        text = string.splitlines()
-        script = "\n".join(text) +'\n'
-        self.log._script = text
+        lines = self.log._lines = string.splitlines()
+        script = "\n".join(lines) +'\n'
         oldflame = Flame(self.flame.to_string())
         namespace = self.CreateNamespace()
         modules = dict(sys.modules)
