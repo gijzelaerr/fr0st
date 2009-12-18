@@ -722,10 +722,13 @@ flam4 - (c) 2009 Steven Broadhead""" % fr0stlib.VERSION,
         # split and join fixes linebreak issues between windows and linux
         lines = self.log._lines = string.splitlines()
         script = "\n".join(lines) +'\n'
+
+        modules = dict(sys.modules)
+        sys.path.insert(0, os.path.dirname(self.editor.scriptpath))
+        
         oldflame = Flame(self.flame.to_string())
         namespace = self.CreateNamespace()
-        modules = dict(sys.modules)
-        
+
         try:
             # namespace is used as globals and locals, same as top level
             exec(script, namespace)
@@ -745,9 +748,10 @@ flam4 - (c) 2009 Steven Broadhead""" % fr0stlib.VERSION,
                 update = False
                 
             # Remove any modules imported by the script, so they can be changed
-            # without needing to restart fr0st.
+            # without needing to restart fr0st. Also revert path.
             sys.modules.clear()
             sys.modules.update(modules)
+            sys.path.pop(0)
                 
             # Let the GUI know that the script has finished.
             self.EndOfScript(oldflame, update)
