@@ -58,8 +58,7 @@ class EditorFrame(wx.Frame):
                         "All files (*.*)|*.*"
 
         # Load the default script
-        self.scriptpath = os.path.join(wx.GetApp().UserScriptsDir, 'default.py')
-        self.OpenScript(self.scriptpath)
+        self.OpenScript(os.path.join(wx.GetApp().UserScriptsDir, 'default.py'))
 
 
     @Bind(wx.EVT_CLOSE)
@@ -93,9 +92,8 @@ class EditorFrame(wx.Frame):
         dlg = wx.FileDialog(
             self, message="Choose a file", defaultDir=dDir,
             defaultFile=dFile, wildcard=self.wildcard, style=wx.OPEN)
-        if dlg.ShowModal() == wx.ID_OK:
-            self.scriptpath = dlg.GetPath()
-            self.OpenScript(self.scriptpath)
+        if dlg.ShowModal() == wx.ID_OK: 
+            self.OpenScript(dlg.GetPath())
         dlg.Destroy()
 
 
@@ -173,6 +171,7 @@ class EditorFrame(wx.Frame):
 
     def OpenScript(self, path):
         if os.path.exists(path):
+            self.scriptpath = path
             with open(path) as f:
                 self.editor.SetValue(f.read())
         
