@@ -298,7 +298,7 @@ class XformPanel(wx.Panel):
         xform, view = self.GetActive()
 
         # Update weight tc.
-        if xform.ispost():
+        if xform.ispost() or xform.isfinal():
             self.weight.Disable()
             self.weight.SetValue("--")
         else:
@@ -326,7 +326,7 @@ class XformPanel(wx.Panel):
         xform, view = self.GetActive()
 
         # Update weight.
-        if not xform.ispost():
+        if not (xform.ispost() or xform.isfinal()):
             xform.weight = self.weight.GetFloat()
 
         if view == "triangle":
