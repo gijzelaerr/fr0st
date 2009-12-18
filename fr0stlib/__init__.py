@@ -170,7 +170,7 @@ class Flame(object):
     def add_final(self, **kwds):
         if self.final:
             return
-        defaults = dict(coefs=[1.0, 0.0, 0.0, 1.0, 0.0, 0.0],
+        defaults = dict(coefs=(1.0, 0.0, 0.0, 1.0, 0.0, 0.0),
                         linear=1, color=0, color_speed=0)
         defaults.update(kwds)
         self.final = Xform(self, **defaults)
@@ -178,7 +178,7 @@ class Flame(object):
 
 
     def add_xform(self, **kwds):
-        defaults = dict(coefs=[1.0, 0.0, 0.0, 1.0, 0.0, 0.0],
+        defaults = dict(coefs=(1.0, 0.0, 0.0, 1.0, 0.0, 0.0),
                         linear=1, color=0, weight=1)
         defaults.update(kwds)
         self.xform.append(Xform(self, **defaults))
@@ -499,10 +499,7 @@ class Xform(object):
 
     def __init__(self, parent, chaos=(), post=(1.,0.,0.,1.,0.,0.), **kwds):
         self._parent = parent
-    
-        if kwds:
-            map(self.__setattr__, *zip(*kwds.iteritems()))
-        
+           
         if not isinstance(self, PostXform):
             self.opacity = 1.0
             self.color = 0.0
@@ -510,6 +507,9 @@ class Xform(object):
             self.animate = 1.0
             self.chaos = Chaos(self, chaos)
             self.post = PostXform(self, screen_coefs=post)
+            
+        if kwds:
+            map(self.__setattr__, *zip(*kwds.iteritems()))
 
 
     @classmethod
