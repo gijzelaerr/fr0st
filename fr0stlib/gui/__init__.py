@@ -230,9 +230,8 @@ class MainWindow(wx.Frame):
         self.canvas = self.notebook.canvas
         self.adjust = self.notebook.adjust
 
-        self.editorframe = EditorFrame(self)
-        self.editor = self.editorframe.editor
-        self.log = self.editorframe.log
+        self.editor = EditorFrame(self)
+        self.log = self.editor.log
 
         self.TreePanel = TreePanel(self)
         self.tree = self.TreePanel.tree
@@ -262,7 +261,7 @@ class MainWindow(wx.Frame):
 
         # Load frame positions from file
         for window, k in ((self, "Rect-Main"),
-                          (self.editorframe, "Rect-Editor"),
+                          (self.editor, "Rect-Editor"),
                           (self.previewframe, "Rect-Preview")):
             if config[k]:
                 rect, maximize = config[k]
@@ -339,7 +338,7 @@ flam4 - (c) 2009 Steven Broadhead""" % fr0stlib.VERSION,
 
         # check for script diffs
         self.OnStopScript()
-        if self.editorframe.CheckForChanges() == wx.ID_CANCEL:
+        if self.editor.CheckForChanges() == wx.ID_CANCEL:
             return
 
         # check for flame diffs
@@ -368,7 +367,7 @@ flam4 - (c) 2009 Steven Broadhead""" % fr0stlib.VERSION,
 
         # Save size and pos of each window
         for window, k in ((self, "Rect-Main"),
-                          (self.editorframe, "Rect-Editor"),
+                          (self.editor, "Rect-Editor"),
                           (self.previewframe, "Rect-Preview")):
             maximize = window.IsMaximized()
             # HACK: unmaximizing doesn't seem to work properly in this context,
@@ -486,13 +485,13 @@ flam4 - (c) 2009 Steven Broadhead""" % fr0stlib.VERSION,
 
     @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=ID.SOPEN)
     def OnScriptOpen(self,e):
-        self.editorframe.OnScriptOpen(e)
+        self.editor.OnScriptOpen(e)
 
 
     @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=ID.RUN)
     def OnRunScript(self,e):
         self.BlockGUI(flag=True)
-        self.Execute(self.editor.GetText())
+        self.Execute(self.editor.tc.GetText())
 
 
     @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=ID.STOP)
@@ -502,9 +501,9 @@ flam4 - (c) 2009 Steven Broadhead""" % fr0stlib.VERSION,
 
     @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=ID.EDITOR)
     def OnEditorOpen(self,e):
-        self.editorframe.Show(True)
-        self.editorframe.Raise()
-        self.editorframe.SetFocus() # In case it's already open in background
+        self.editor.Show(True)
+        self.editor.Raise()
+        self.editor.SetFocus() # In case it's already open in background
 
 
     @Bind(wx.EVT_TOOL, id=ID.PREVIEW)
@@ -699,7 +698,7 @@ flam4 - (c) 2009 Steven Broadhead""" % fr0stlib.VERSION,
         fr0stlib.get_file_path = self.tree.GetFilePath
         fr0stlib.preview = self.preview
         fr0stlib.large_preview = self.large_preview
-        fr0stlib.dialog = self.editorframe.make_dialog
+        fr0stlib.dialog = self.editor.make_dialog
         
 
     def CreateNamespace(self):
@@ -777,7 +776,7 @@ flam4 - (c) 2009 Steven Broadhead""" % fr0stlib.VERSION,
         # TODO: prevent file opening, etc
         self.Enable(ID.RUN, not flag, editor=True)
         self.Enable(ID.STOP, flag, editor=True)
-        self.editor.SetEditable(not flag)
+        self.editor.tc.SetEditable(not flag)
         self.scriptrunning = flag
         
 
@@ -788,7 +787,7 @@ flam4 - (c) 2009 Steven Broadhead""" % fr0stlib.VERSION,
         self.tb.EnableTool(id, flag)
         self.menu.Enable(id, flag)
         if editor:
-            self.editorframe.tb.EnableTool(id, flag)
+            self.editor.tb.EnableTool(id, flag)
 
 
     def preview(self):

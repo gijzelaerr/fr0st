@@ -49,9 +49,9 @@ class EditorFrame(wx.Frame):
         self.SetSize((865,500))
 
         splitter = wx.SplitterWindow(self, -1)
-        self.editor = CodeEditor(splitter, self)
+        self.tc = CodeEditor(splitter, self)
         self.log = MyLog(splitter)
-        splitter.SplitVertically(self.editor, self.log, -264)
+        splitter.SplitVertically(self.tc, self.log, -264)
         splitter.SetSashGravity(1.0) # Keeps the log constant when resizing
 
         self.wildcard = "Python source (*.py;*.pyw)|*.py;*.pyw|" \
@@ -74,7 +74,7 @@ class EditorFrame(wx.Frame):
     def OnScriptNew(self,e):
         if self.CheckForChanges() == wx.ID_CANCEL:
             return
-        self.editor.Clear()
+        self.tc.Clear()
         self._new = True
 
         # Load the default script
@@ -130,12 +130,12 @@ class EditorFrame(wx.Frame):
 
     @Bind(wx.EVT_MENU,id=ID.UNDO)
     def OnUndo(self, e):
-        self.editor.Undo()
+        self.tc.Undo()
 
 
     @Bind(wx.EVT_MENU,id=ID.REDO)
     def OnRedo(self, e):
-        self.editor.Redo()
+        self.tc.Redo()
 
         
     def CheckForChanges(self):
@@ -143,7 +143,7 @@ class EditorFrame(wx.Frame):
             filetext = open(self.scriptpath).read()
         else:
             filetext = ""
-        if self.editor.GetText() != filetext:
+        if self.tc.GetText() != filetext:
             self.parent.OnStopScript()
             self.SetFocus() # So the user sees where the dialog comes from.
             dlg = wx.MessageDialog(self, 'Save changes to %s?'
@@ -164,7 +164,7 @@ class EditorFrame(wx.Frame):
             elif result == wx.ID_NO:
                 # Reset the script to the saved version, so that it looks like
                 # the editor was closed.
-                self.editor.SetValue(filetext)
+                self.tc.SetValue(filetext)
             dlg.Destroy()
             return result
 
@@ -173,7 +173,7 @@ class EditorFrame(wx.Frame):
         if os.path.exists(path):
             self.scriptpath = path
             with open(path) as f:
-                self.editor.SetValue(f.read())
+                self.tc.SetValue(f.read())
         
 
     def SaveScript(self, path, confirm=True):
@@ -184,12 +184,12 @@ class EditorFrame(wx.Frame):
             dlg.Destroy()
         try:
             with open(path,"w") as f:
-                f.write(self.editor.GetText())
+                f.write(self.tc.GetText())
         except Exception:
             wx.MessageDialog(self, "Unable to save file or destination not writable.", 'Fr0st',
                              wx.OK).ShowModal()
 
-        self.editor.SetSavePoint()
+        self.tc.SetSavePoint()
 
 
     def make_dialog(self, *a):
@@ -224,7 +224,7 @@ class EditorFrame(wx.Frame):
             
     @Bind(wx.EVT_IDLE)
     def OnIdle(self, e):
-        if self.editor.IsModified():
+        if self.tc.IsModified():
             self.Title = '*%s - Script Editor' % os.path.basename(self.scriptpath)
         else:
             self.Title = '%s - Script Editor' % os.path.basename(self.scriptpath)
