@@ -211,8 +211,8 @@ class RenderDialog(wx.Frame):
         mask = "PNG File (*.png)|*.png|" \
                "JPG File (*.jpg)|*.jpg|" \
                "BMP File (*.bmp)|*.bmp"
-        initial = os.path.join(wx.GetApp().RendersDir,
-                               self.parent.flame.name+config["Img-Type"])
+        initial = os.path.join(config["Img-Dir"], 
+                               self.parent.flame.name + config["Img-Type"])
         fbb = FileBrowseButton(parent, -1, fileMask=mask, labelText='File:',
                                initialValue=initial, fileMode=wx.SAVE)
         self.fbb = fbb

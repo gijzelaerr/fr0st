@@ -21,7 +21,34 @@
 ##############################################################################
 import os, atexit, wx
 
-config = {"active-vars": ('linear',
+
+def get_config_path():
+    return os.path.join(wx.GetApp().ConfigDir, 'config.cfg')
+
+def load():
+    with open(get_config_path(), 'rb') as f:
+        return eval("{%s}" % ",".join(i for i in f))
+
+def dump():
+    # HACK: take out some stuff that's not supposed to be here.
+    config['Edit-Post-Xform'] = False
+    del config["active-vars"]
+    
+    with open(get_config_path(), 'wb') as f:
+        f.write("\n".join("%r: %r" %i for i in config.iteritems()))
+
+def update_dict(old, new):
+    for k,v in new.iteritems():
+        if type(v) == dict:
+            update_dict(old[k], v)
+        else:
+            old[k] = v
+
+config = {}
+
+def init_config():
+    config.update(
+         {"active-vars": ('linear',
                           'sinusoidal',
                           'spherical',
                           'swirl',
@@ -148,44 +175,14 @@ config = {"active-vars": ('linear',
                                 "saturation": (0, 1),
                                 "value": (.25, 1),
                                 "nodes": (4, 6)},
-          "Img-Dir": "renders",
+          "Img-Dir": wx.GetApp().RendersDir,
           "Img-Type": ".png",
           "Bits": 0,
           "renderer": "flam3",
           "Rect-Main": None,
           "Rect-Editor": None,
           "Rect-Preview": None,
-          }
-
-
-def get_config_path():
-    return os.path.join(wx.GetApp().ConfigDir, 'config.cfg')
-
-
-def load():
-    with open(get_config_path(), 'rb') as f:
-        return eval("{%s}" % ",".join(i for i in f))
-
-def dump():
-    # HACK: take out some stuff that's not supposed to be here.
-    config['Edit-Post-Xform'] = False
-    del config["active-vars"]
-    
-    with open(get_config_path(), 'wb') as f:
-        f.write("\n".join("%r: %r" %i for i in config.iteritems()))
-
-
-def update_dict(old, new):
-    for k,v in new.iteritems():
-##        if k in old:
-            if type(v) == dict:
-                update_dict(old[k], v)
-            else:
-                old[k] = v
-
-
-def init_config():
+          })
     if os.path.exists(get_config_path()):
-        _old_config = config.copy()
         update_dict(config, load())
     atexit.register(dump)
