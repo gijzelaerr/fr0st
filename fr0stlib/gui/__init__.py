@@ -338,19 +338,6 @@ flam4 - (c) 2009 Steven Broadhead""" % fr0stlib.VERSION,
 
         self.renderer.exitflag = True
 
-        # Remove all temp files
-        recover_file = os.path.join(wx.GetApp().ConfigDir, 'paths.temp')
-
-        if os.path.exists(recover_file):
-            with open(recover_file) as fd:
-                lst = [i.strip()+'.temp' for i in fd]
-
-            for i in lst:
-                if os.path.exists(i):
-                    os.remove(i)
-
-            os.remove(recover_file)
-
         # Save size and pos of each window
         for window, k in ((self, "Rect-Main"),
                           (self.editor, "Rect-Editor"),
