@@ -77,9 +77,7 @@ class EditorFrame(wx.Frame):
         self.tc.Clear()
         self._new = True
 
-        # Load the default script
         self.scriptpath = '<unknown>'
-
         self.Title = "untitled - Script Editor"
 
 
