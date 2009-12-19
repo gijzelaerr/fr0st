@@ -274,23 +274,11 @@ class MainWindow(wx.Frame):
 
         self.flamepath = os.path.join(wx.GetApp().UserParametersDir,
                                       config["flamepath"])
-        recover_file = os.path.join(wx.GetApp().ConfigDir, 'paths.temp')
 
-        if os.path.exists(recover_file):
-            # TODO: check if another fr0st process is running.
-            # Previous session was interrupted
-            # TODO: display a message to user explaining situation.
-            with open(recover_file) as fd:
-                paths = [i.strip() for i in fd]
-
-            self.TreePanel.RecoverSession(paths)
-
+        if os.path.exists(self.flamepath):
+            self.OpenFlame(self.flamepath)
         else:
-            # Normal startup
-            if os.path.exists(self.flamepath):
-                self.OpenFlame(self.flamepath)
-            else:
-                self.MakeFlameFile(self.flamepath)
+            self.MakeFlameFile(self.flamepath)
 
         self.tree.SelectItem(self.tree.GetItemByIndex((0,0)))
 

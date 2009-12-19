@@ -75,63 +75,7 @@ class TreePanel(wx.Panel):
         self.tree.RenderThumbnail()
         self.parent.SetFlame(self.parent.flame,rezoom=False)
 
-##        data = self.tree.GetFlameData(self.tree.itemparent)
-##        self.tree.SetItemText(self.tree.itemparent, '* ' + data.name)
 
-        # Create the temp file.
-##        lst = [self.tree.GetFlameData(i)[1:]
-##               for i in self.tree.GetItemChildren()]
-##        with open(data[-1] + '.temp',"wb") as f:
-##            cPickle.dump(lst,f,cPickle.HIGHEST_PROTOCOL)
-
-
-    def RecoverSession(self,paths):
-        """Restores a working session based on the temp files left by a
-        previous run of the program. Creates backups of the temp files in case
-        manual recovery becomes necessary."""
-        # Get this data now to be used later.
-        temppaths = [i+'.temp' for i in paths]
-        undolists = []
-        for path in temppaths:
-            if os.path.exists(path):
-                lst = cPickle.load(open(path,"rb"))
-            else:
-                lst = []
-            undolists.append(lst)
-
-        # Create the backup files.
-        targetdir = os.path.join(sys.path[0], 'recovery',
-                                 time.strftime("%Y%m%d-%H%M%S"))
-        os.makedirs(targetdir)
-        shutil.move('paths.temp',os.path.join(targetdir,'paths.temp'))
-        for path in filter(os.path.exists,temppaths):
-            newpath = os.path.join(targetdir,os.path.basename(path))
-            if os.path.exists(newpath):
-                # Make sure different files with the same basename don't clash.
-                number = 2
-                while os.path.exists(newpath):
-                    head, ext = os.path.splitext(newpath)
-                    newpath = '%s (%s)%s' %(head,number,ext)
-                    number += 1
-            shutil.copy(path,newpath)
-
-        # Finally, recover the actual session
-        for path,undolist in zip(paths,undolists):
-            if os.path.exists(path):
-                self.tree.item = self.parent.OpenFlame(path)
-            else:
-                self.tree.item = self.parent.OnFlameNew(None)
-
-            # This is an ad-hoc izip_longest (2.6 feature!)
-            itr = itertools.chain(self.tree.GetItemChildren(),
-                                  itertools.repeat(None))
-            for child,lst in zip(itr, undolist):
-                if child is None:
-                    child = self.parent.OnFlameNew2(None)
-                data = self.tree.GetFlameData(child)
-                data.extend(lst)
-                self.tree.SetItemText(child,data.name)
-                self.tree.RenderThumbnail(child)
 
 
     @Bind(wx.EVT_TREE_SEL_CHANGED)
