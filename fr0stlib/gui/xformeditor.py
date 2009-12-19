@@ -377,7 +377,7 @@ class VarPanel(wx.Panel):
         self.root = self.tree.AddRoot("The Root Item")
         self.item = self.root
 
-        for i in config["active-vars"]:
+        for i in pyflam3.variation_list:
             child = self.tree.AppendItem(self.root, i)
 
             for k,v in pyflam3.variables[i]:
