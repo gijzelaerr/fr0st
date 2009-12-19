@@ -24,9 +24,8 @@ import xml.etree.cElementTree as etree
 from math import *
 from functools import partial
 
-from fr0stlib.pyflam3 import Genome,RandomContext,flam3_estimate_bounding_box
-from fr0stlib.pyflam3.variations import variable_list,variation_list,variables
-from fr0stlib.pyflam3.constants import flam3_nvariations
+from fr0stlib.pyflam3 import Genome, RandomContext, flam3_nvariations, \
+  variable_list, variation_list, variables, flam3_estimate_bounding_box
 from fr0stlib.compatibility import compatibilize
 from fr0stlib.functions import *
 
