@@ -272,13 +272,11 @@ class MainWindow(wx.Frame):
         sys.path.append(wx.GetApp().UserScriptsDir)
         self.PatchFr0stlib()
 
-        self.flamepath = os.path.join(wx.GetApp().UserParametersDir,
-                                      config["flamepath"])
-
-        if os.path.exists(self.flamepath):
-            self.OpenFlame(self.flamepath)
+        flamepath = config["flamepath"]
+        if os.path.exists(flamepath):
+            self.OpenFlame(flamepath)
         else:
-            self.MakeFlameFile(self.flamepath)
+            self.MakeFlameFile(flamepath)
 
         self.tree.SelectItem(self.tree.GetItemByIndex((0,0)))
 
@@ -435,20 +433,20 @@ flam4 - (c) 2009 Steven Broadhead""" % fr0stlib.VERSION,
 
     @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=ID.FOPEN)
     def OnFlameOpen(self,e):
-        dDir,dFile = os.path.split(self.flamepath)
+        dDir,dFile = os.path.split(config["flamepath"])
         dlg = wx.FileDialog(
             self, message="Choose a file", defaultDir=dDir,
             defaultFile=dFile, wildcard=self.wildcard, style=wx.OPEN)
         if dlg.ShowModal() == wx.ID_OK:
-            self.flamepath = dlg.GetPath()
-            self.OpenFlame(self.flamepath)
+            config["flamepath"] = dlg.GetPath()
+            self.OpenFlame(config["flamepath"])
         dlg.Destroy()
 
 
     @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=ID.FSAVE)
     def OnFlameSave(self,e):
-        self.flamepath = self.tree.GetFlameData(self.tree.itemparent)[-1]
-        self.SaveFlame(self.flamepath, confirm=False)
+        config["flamepath"] = self.tree.GetFlameData(self.tree.itemparent)[-1]
+        self.SaveFlame(config["flamepath"], confirm=False)
 
 
     @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=ID.FSAVEAS)
