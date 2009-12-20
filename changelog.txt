@@ -1,0 +1,27 @@
+Fr0st 1.0 beta2
+---------------
+
+-Flame coloring is now passed correctly to flam4.
+
+-Imported scripts are now reloaded on each run.
+
+-Remember last open flame and render dir.
+
+-Fixed a bug in version check that messed up chaos values.
+
+-changed flam3 batch size, making for faster rendering on some systems.
+
+-Limit displayed length of flame name in render progress bar.
+  
+-File selection of render dialog is now in save mode.
+
+-Update previews after changing quality settings.
+
+-Many small bugfixes.
+
+
+
+Fr0st 1.0 beta
+--------------
+
+-First release.
