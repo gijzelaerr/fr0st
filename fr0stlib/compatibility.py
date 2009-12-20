@@ -19,6 +19,7 @@
 #  the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 #  Boston, MA 02111-1307, USA.
 ##############################################################################
+import re
 from math import log10
 
 
@@ -30,7 +31,9 @@ def log2percent(logval):
 
 
 def compatibilize(flame, version):
-    if not getattr(flame, "version", "").startswith("fr0st"):
+    oldversion = getattr(flame, "version", "").lower()
+    if not (oldversion.startswith("fr0st") or
+            re.match("flam3.*2\.8", oldversion)):
         # Assume the flame is compatible with apo and flam3 < 2.8
         apo2fr0st(flame)
     flame.version = version
@@ -38,20 +41,20 @@ def compatibilize(flame, version):
 
 def apo2fr0st(flame):
     """Convert all attributes to be compatible with flam3 2.8."""
-    # zoom is deprecated, so scale is adjusted by the zoom value
-    if hasattr(flame, "zoom"):
-        flame.scale *= 2**flame.zoom
-        del flame.zoom
-        
-    # Symmetry is deprecated, so we factor it into the equivalent attrs.
+    # HACK: Avoid circular import.
+    from fr0stlib import Chaos
+    
     for x in flame.iter_xforms():
+        # chaos is converted from linear to log scale.
+        x.chaos = Chaos(x, map(log2percent, x.chaos))
+        
+        # Symmetry is deprecated, so we factor it into the equivalent attrs.
         if hasattr(x, "symmetry"):
             x.color_speed = (1 - x.symmetry) / 2.0
             x.animate = float(x.symmetry <= 0)
             del x.symmetry
-        
-    # plotmode was never a good idea
-    for x in flame.xform:
+
+        # plotmode was never a good idea
         if hasattr(x, "plotmode") and x.plotmode.lower() == "off":
             x.opacity = 0.0
             del x.plotmode
@@ -62,9 +65,7 @@ def apo2fr0st(flame):
             x.opacity = float(x.index == flame.soloxform)
         del flame.soloxform
          
-    # chaos is converted from linear scale to log scale.
-    from fr0stlib import Chaos
-    for x in flame.iter_xforms():
-        x.chaos = Chaos(x, map(log2percent, x.chaos))
-
-
+    # zoom is deprecated, so scale is adjusted by the zoom value
+    if hasattr(flame, "zoom"):
+        flame.scale *= 2**flame.zoom
+        del flame.zoom
