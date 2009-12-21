@@ -93,6 +93,6 @@ def gnarl():
 
 if __name__ == "__main__":
     lst = batch(gnarl, 20)
-    save_flames("gnarls.flame", *lst)
+    save_flames("parameters/gnarl.flame", *lst)
 
 

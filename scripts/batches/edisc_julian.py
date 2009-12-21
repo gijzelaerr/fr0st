@@ -59,6 +59,6 @@ def edisc_julian():
 
 if __name__ == "__main__":
     lst = batch(edisc_julian, 20)
-    save_flames("edisc_julians.flame", *lst)
+    save_flames("parameters/edisc_julian.flame", *lst)
 
 

@@ -88,6 +88,6 @@ def gnarlbasefoci():
 
 if __name__ == "__main__":
     lst = batch(gnarlbasefoci, 20)
-    save_flames("gnarlbasefoci.flame", *lst)
+    save_flames("parameters/gnarlbase_foci.flame", *lst)
 
 

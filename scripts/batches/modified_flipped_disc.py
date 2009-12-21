@@ -65,6 +65,6 @@ def modified_flipped_disc():
 
 if __name__ == "__main__":
     lst = batch(modified_flipped_disc, 20)
-    save_flames("mod_flipped_discs.flame", *lst)
+    save_flames("parameters/mod_flipped_disc.flame", *lst)
 
 
