@@ -69,6 +69,10 @@ class Fr0stApp(wx.App):
 
         self.CreateUserDirectory()
 
+        # set the cwd to user dir so relative paths will work as expected and
+        # not depend on the platform.
+        os.chdir(self.user_dir)
+
         # Put the config file into the same folder where everything else is.
 ##        self.config_dir = os.path.join(self.standard_paths.GetUserConfigDir(),
 ##                                       '.fr0st')
@@ -648,9 +652,6 @@ flam4 - (c) 2009 Steven Broadhead""" % fr0stlib.VERSION,
         def new_save_flames(path, *flames):
             if not flames:
                 raise ValueError("You must specify at least 1 flame to set.")
-
-            if not os.path.split(path)[0]:
-                path = os.path.join(wx.GetApp().UserParametersDir, path)
 
             if os.path.exists(path):
                 dlg = wx.MessageDialog(self, "%s already exists. Do you want to overwrite?" % path,
