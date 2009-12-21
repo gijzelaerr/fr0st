@@ -535,6 +535,7 @@ flam4 - (c) 2009 Steven Broadhead""" % fr0stlib.VERSION,
 
 
     def MakeFlameFile(self, path):
+        path = os.path.abspath(path)
         if not os.path.exists(os.path.dirname(path)):
             os.makedirs(os.path.dirname(path))
         save_flames(path, self.MakeFlame())

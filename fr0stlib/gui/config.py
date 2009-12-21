@@ -88,4 +88,11 @@ def init_config():
           })
     if os.path.exists(get_config_path()):
         update_dict(config, load())
+
+    # HACK: if a plain samples.flame is in the config file instead of an
+    # absolute path, we need to fix it so it finds the correct location.
+    if config["flamepath"] == u"samples.flame":
+        config["flamepath"] = os.path.join(wx.GetApp().UserParametersDir,
+                                           "samples.flame")
+
     atexit.register(dump)
