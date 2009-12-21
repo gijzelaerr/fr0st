@@ -180,7 +180,8 @@ class Target(object):
         self.__dict__.update(kw)
         
 
-data_files = [('', [ 'license.txt' ] + glob.glob(fr0st_package_name + '/pyflam3/win32_dlls/*.dll')),
+data_files = [('', ['license.txt', 'changelog.txt']
+               + glob.glob(fr0st_package_name + '/pyflam3/win32_dlls/*.dll')),
               ('icons/toolbar', glob.glob('icons/toolbar/*.png')),
               ('icons/xformtab', glob.glob('icons/xformtab/*.png')),
               ('icons', ['icons/fr0st.png', 'icons/fr0st.ico']),
