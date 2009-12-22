@@ -256,7 +256,7 @@ class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
         self.item = self.GetItemByIndex((0, min(toindex, len(lst)-1)))
         self.SelectItem(self.item)
         
-        save_flames(self.GetFilePath(), *(i[0] for i in self.GetDataList()))
+        save_flames(self.GetFilePath(), *(i[0] for i in self.GetDataGen()))
 
 
     def GetItem(self, indices):
@@ -287,14 +287,15 @@ class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
             return self.GetFlameData(self.item)
 
 
-    def GetDataList(self):
-        return [i for i,_ in self.GetChildItems((0,))]
+    def GetDataGen(self):
+        """Returns all itemdata instances as a generator."""
+        return (i for i,_ in self.GetChildItems((0,)))
 
 
     def GetFlames(self, type=Flame):
         """Returns all flames in the currently selected file. Type can be Flame
         (default) or str. Meant to be called from a script."""
-        return [type(i[-1]) for i in self.GetDataList()]
+        return [type(i[-1]) for i in self.GetDataGen()]
 
 
     #-------------------------------------------------------------------------

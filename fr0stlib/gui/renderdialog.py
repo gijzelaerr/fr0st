@@ -240,7 +240,7 @@ class RenderDialog(wx.Frame):
         for i in range(len(self.lb.GetItems())):
             self.lb.Delete(0)
         data = self.parent.tree.itemdata
-        self.choices = choices = list(self.parent.tree.GetDataList())
+        self.choices = choices = list(self.parent.tree.GetDataGen())
         self.lb.InsertItems([f.name for f in choices], pos=0)
         self.lb.SetSelection(choices.index(data))
 

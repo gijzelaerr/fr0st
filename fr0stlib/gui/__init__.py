@@ -583,7 +583,7 @@ flam4 - (c) 2009 Steven Broadhead""" % fr0stlib.VERSION,
         if path is None:
             path = self.tree.GetFilePath()
 
-        lst = self.tree.GetDataList()
+        lst = list(self.tree.GetDataGen())
     
         if self.tree.parentselected:
             for data, item in zip(lst, self.tree.GetItemChildren()):
