@@ -578,10 +578,6 @@ flam4 - (c) 2009 Steven Broadhead""" % fr0stlib.VERSION,
         # Add flames to the tree
         item = self.tree.SetFlames(path, *flamestrings)
 
-        # Dump the path to file for bookkeeping
-##        with open('paths.temp','a') as f:
-##            f.write(path + '\n')
-
 
     def SaveFlame(self, path=None, confirm=True):
         if path is None:
