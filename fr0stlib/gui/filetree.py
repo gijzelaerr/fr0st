@@ -244,10 +244,10 @@ class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
         lst = self.GetChildItems((0,))
 
         fromindex = dragindex[1] if len(dragindex) > 1 else 0
-        toindex = dropindex[1] +1 if len(dropindex) > 1 else 0
+        toindex = dropindex[1] if len(dropindex) > 1 else -1
+        toindex += fromindex > toindex
 
         lst.insert(toindex, lst.pop(fromindex))
-
         self.RefreshItems()
 
         # _dragging has done its job (preventing OnSelChanged from triggering
