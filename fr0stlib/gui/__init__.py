@@ -322,24 +322,15 @@ flam4 - (c) 2009 Steven Broadhead""" % fr0stlib.VERSION,
     @Bind(wx.EVT_CLOSE)
     @Bind(wx.EVT_MENU,id=ID.EXIT)
     def OnExit(self,e):
-        # check for renders in progress
+        # Check all widgets that might want to avoid closing the app.
         if self.renderdialog and self.renderdialog.OnExit() == wx.ID_NO:
             return
-
-        # check for script diffs
         self.OnStopScript()
         if self.editor.CheckForChanges() == wx.ID_CANCEL:
             return
-
-        # check for flame diffs
-        for itemdata,lst in self.tree.flamefiles:
-            if self.CheckForChanges(itemdata, lst) == wx.ID_CANCEL:
-                return
-            head,ext = os.path.splitext(itemdata[-1])
-            path = os.path.join(head + '.temp')
-            if os.path.exists(path):
-                os.remove(path)
-
+        if self.tree.CheckForChanges() == wx.ID_CANCEL:
+            return
+        
         self.renderer.exitflag = True
 
         # Save size and pos of each window
@@ -347,9 +338,8 @@ flam4 - (c) 2009 Steven Broadhead""" % fr0stlib.VERSION,
                           (self.editor, "Rect-Editor"),
                           (self.previewframe, "Rect-Preview")):
             maximize = window.IsMaximized()
-            # HACK: unmaximizing doesn't seem to work properly in this context,
-            # so we just use the previous config settings, even if it's not
-            # ideal.
+            # HACK: unmaximizing doesn't work properly in this context, so we
+            # just use the previous config settings, even if it's not ideal.
 ##            window.Maximize(False)
             if maximize:
                 (x,y,w,h), _ = config[k]
@@ -357,6 +347,7 @@ flam4 - (c) 2009 Steven Broadhead""" % fr0stlib.VERSION,
                 x,y = window.GetPosition()
                 w,h = window.GetSize()
             config[k] = (x,y,w,h), maximize
+            
         self.Destroy()
 
 
@@ -548,14 +539,13 @@ flam4 - (c) 2009 Steven Broadhead""" % fr0stlib.VERSION,
 
     def OpenFlame(self, path):
         if self.tree.flamefiles:
-            filedata, lst = self.tree.flamefiles[0]
-            if path == filedata[-1]:
+            if path == self.tree.GetFilePath():
                 # File is already open
                 dlg = wx.MessageDialog(self, "%s is already open. Do you want to revert to its saved status?" % path,
                                        'Fr0st',wx.YES_NO|wx.CANCEL)
                 if dlg.ShowModal() != wx.ID_YES:
                     return
-            elif self.CheckForChanges(filedata, lst) == wx.ID_CANCEL:
+            elif self.tree.CheckForChanges() == wx.ID_CANCEL:
                 # User cancelled when prompted to save changes.
                 return
 
@@ -597,18 +587,6 @@ flam4 - (c) 2009 Steven Broadhead""" % fr0stlib.VERSION,
         save_flames(path, *(data[0] for data in lst))
         # Make sure Undo and Redo get set correctly.
         self.SetFlame(self.flame, rezoom=False)
-        
-
-    def CheckForChanges(self, itemdata, lst):
-        if any(data.HasChanged() for data,_ in lst):
-            path = itemdata[-1]
-            dlg = wx.MessageDialog(self, 'Save changes to %s?' % path,
-                                   'Fr0st',wx.YES_NO|wx.CANCEL)
-            result = dlg.ShowModal()
-            if result == wx.ID_YES:
-                save_flames(path, *(data[-1] for data,_ in lst))
-            dlg.Destroy()
-            return result
 
 
     @CallableFrom('MainThread')

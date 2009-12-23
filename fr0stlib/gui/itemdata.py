@@ -19,18 +19,25 @@
 #  the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 #  Boston, MA 02111-1307, USA.
 ##############################################################################
-import re
-        
-    
+import os, re
+
+
+class ParentData(object):
+    def __init__(self, path):
+        self.path = path
+        self.name = os.path.basename(path)
+        self.imgindex = 0
+
+
 class ItemData(list):
     re_name = re.compile(r'(?<= name=").*?(?=")')
     
-    def __init__(self, string, name=None):
+    def __init__(self, string):
         self.append(string)
         self.redo = []
-        self._name = name or self.re_name.findall(string)[0]
+        self._name = self.re_name.findall(string)[0]
         self.imgindex = -1
-
+        
 
     def append(self,v):
         list.append(self,v)

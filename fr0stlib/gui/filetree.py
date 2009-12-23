@@ -26,7 +26,7 @@ from wx.lib.mixins import treemixin
 from fr0stlib.gui.constants import ID
 from fr0stlib import Flame, save_flames
 from fr0stlib.decorators import *
-from fr0stlib.gui.itemdata import ItemData
+from fr0stlib.gui.itemdata import ItemData, ParentData
 
 
 class TreePanel(wx.Panel):
@@ -74,8 +74,6 @@ class TreePanel(wx.Panel):
         self.tree.SetItemText(self.tree.item, data.name)
         self.tree.RenderThumbnail()
         self.parent.SetFlame(self.parent.flame,rezoom=False)
-
-
 
 
     @Bind(wx.EVT_TREE_SEL_CHANGED)
@@ -137,7 +135,6 @@ class TreePanel(wx.Panel):
         self.tree.RefreshItems()
         if index >= len(children):
             index = len(children) - 1
-        self.tree.SelectItem(self.tree.itemparent)
         self.tree.SelectItem(self.tree.GetItemByIndex((0,index)))
         self.parent.SaveFlame()
 
@@ -179,8 +176,7 @@ class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
 
     def SetFlames(self, path, *flamestrings):
         lst = [(ItemData(s), []) for s in flamestrings]
-        name = os.path.basename(path)
-        self.flamefiles = [(ItemData(path, name=name),lst),]
+        self.flamefiles = [(ParentData(path), lst),]
 
         self.RefreshItems()
         self.Expand(self.itemparent)
@@ -190,13 +186,11 @@ class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
         
         flag = self.flag = wx.NewId()
         
-        for child, data in zip(self.GetItemChildren(self.itemparent),
-                               (i[0] for i in lst)):
+        for child, data in zip(self.GetItemChildren(), (i[0] for i in lst)):
             self.RenderThumbnail(child, data, flag)
             # Set item to default until thumbnail is ready.
             self.SetItemImage(child, 2)
 
-        self.SelectItem(self.itemparent)
         self.SelectItem(self.GetItemByIndex((0,0)))
 
         return self.itemparent
@@ -226,13 +220,26 @@ class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
         self.SetItemImage(child, data.imgindex)
 
 
+    def CheckForChanges(self):
+        datalist = list(self.GetDataGen())
+        if any(i.HasChanged() for i in datalist):
+            path = self.GetFilePath()
+            dlg = wx.MessageDialog(self, 'Save changes to %s?' % path,
+                                   'Fr0st',wx.YES_NO|wx.CANCEL)
+            result = dlg.ShowModal()
+            if result == wx.ID_YES:
+                save_flames(path, *(i[-1] for i in datalist))
+            dlg.Destroy()
+            return result
+        
+
     def GetFlameData(self, item):
         """Gets the ItemData instance corresponding to item."""
         return self.GetItem(self.GetIndexOfItem(item))[0]
 
 
     def GetFilePath(self):
-        return self.GetItem((0,))[0][-1]
+        return self.GetItem((0,))[0].path
 
 
     def OnDrop(self, *args):
@@ -276,6 +283,11 @@ class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
         return treemixin.VirtualTree.GetItemChildren(self, item)
 
 
+    def SelectItem(self, item):
+        wx.TreeCtrl.SelectItem(self, self.itemparent)
+        wx.TreeCtrl.SelectItem(self, item)
+
+
     @property
     def itemparent(self):
         return self.GetItemByIndex((-1,))
@@ -296,7 +308,7 @@ class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
         """Returns all flames in the currently selected file. Type can be Flame
         (default) or str. Meant to be called from a script."""
         return [type(i[-1]) for i in self.GetDataGen()]
-
+            
 
     #-------------------------------------------------------------------------
     # These Methods are used by the VirtualTreeMixin.
@@ -308,9 +320,6 @@ class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
         return len(self.GetChildItems(indices))
 
     def OnGetItemImage(self, indices, *args):
-        if len(indices) == 1:
-            # It's a flamefile
-            return 0
         return self.GetItem(indices)[0].imgindex
 
 
@@ -322,7 +331,6 @@ class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
         parent is visible, making it impossible to drop on lower items.
         Therefore, we don't bind EVT_MOTION to avoid calling OnDragging.
         Also, self._dragging is set to let OnSelChanged know how to behave."""
-##        self.GetMainWindow().Bind(wx.EVT_MOTION, self.OnDragging)
         self.Bind(wx.EVT_TREE_END_DRAG, self.OnEndDrag)
         self.SetCursorToDragging()
         self._dragging = True
