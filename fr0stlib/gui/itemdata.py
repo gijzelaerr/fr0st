@@ -24,7 +24,7 @@ import os, re
 
 class ParentData(object):
     def __init__(self, path):
-        self.path = path
+        self.path = os.path.abspath(path)
         self.name = os.path.basename(path)
         self.imgindex = 0
 

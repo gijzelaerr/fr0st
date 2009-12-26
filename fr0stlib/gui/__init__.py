@@ -427,7 +427,7 @@ flam4 - (c) 2009 Steven Broadhead""" % fr0stlib.VERSION,
 
     @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=ID.FSAVE)
     def OnFlameSave(self,e):
-        config["flamepath"] = self.tree.GetFlameData(self.tree.itemparent)[-1]
+        config["flamepath"] = self.tree.GetFilePath()
         self.SaveFlame(config["flamepath"], confirm=False)
 
 
