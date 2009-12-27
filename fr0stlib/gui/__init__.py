@@ -36,7 +36,7 @@ from fr0stlib.gui.itemdata import ItemData
 from fr0stlib.gui.renderdialog import RenderDialog
 from fr0stlib.gui.config import config, init_config
 from fr0stlib.gui.configdlg import ConfigDialog
-from fr0stlib.gui.filedialogs import SaveDialog, NewFileDialog
+from fr0stlib.gui.filedialogs import SaveDialog
 from fr0stlib.gui.exceptiondlg import unhandled_exception_handler
 from fr0stlib.pyflam3.cuda import is_cuda_capable
 
@@ -345,21 +345,6 @@ flam4 - (c) 2009 Steven Broadhead""" % fr0stlib.VERSION,
             config[k] = (x,y,w,h), maximize
             
         self.Destroy()
-
-
-    @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=ID.FNEW)
-    def OnFlameNew(self, e):
-        path = self.tree.GetFilePath()
-        dlg = NewFileDialog(self, path=path)
-        if dlg.ShowModal() == wx.ID_OK:
-            newpath = dlg.GetPath()
-            if os.path.exists(newpath):
-                wx.MessageDialog(self, "%s already exists. "
-                                 "Please choose a different file." % newpath,
-                                 "Fr0st", wx.OK).ShowModal()
-                self.OnFlameNew(e)
-                return
-            self.MakeFlameFile(newpath)
         
 
     @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=ID.FNEW2)
