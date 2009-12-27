@@ -58,7 +58,14 @@ class Fr0stApp(wx.App):
         wx.App.__init__(self, redirect=False)
         self.SetAppName('fr0st')
         self.standard_paths = wx.StandardPaths.Get()
-
+        
+        # AppBaseDir needs to be set before any path manipulation so abspath
+        # works as expected.
+        if self.Frozen:
+            self.AppBaseDir = os.path.abspath(os.path.dirname(sys.executable))
+        else:
+            self.AppBaseDir = os.path.abspath(os.path.dirname(sys.argv[0]))
+        
         if 'win32' in sys.platform:
             # On windows, GetResourcesDir returns something like
             #   "c:\Python26\lib\site-packages\wx-2.8-msw-unicode\wx\"
@@ -173,13 +180,6 @@ class Fr0stApp(wx.App):
         return (hasattr(sys, 'frozen') or
                 hasattr(sys, 'importers') or
                 imp.is_frozen('__main__'))
-
-    @property
-    def AppBaseDir(self):
-        if self.Frozen:
-            return os.path.abspath(os.path.dirname(sys.executable))
-        else:
-            return os.path.abspath(os.path.dirname(sys.argv[0]))
 
     @property
     def IconsDir(self):
