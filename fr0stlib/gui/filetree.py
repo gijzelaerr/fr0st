@@ -131,7 +131,7 @@ class TreePanel(wx.Panel):
         children.pop(index)
         if not children:
             # Make sure the flamefile is never empty.
-            self.parent.OnFlameNew2()
+            self.parent.OnFlameNew()
         self.tree.RefreshItems()
         if index >= len(children):
             index = len(children) - 1
