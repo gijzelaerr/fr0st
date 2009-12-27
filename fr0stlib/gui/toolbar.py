@@ -28,9 +28,7 @@ def GetBMP(name,client=wx.ART_TOOLBAR,size=(16,16)):
 
 
 def CreateToolBar(parent):
-    tb = parent.CreateToolBar(wx.TB_HORIZONTAL |
-                              wx.TB_FLAT)
-    parent.tb = tb
+    parent.tb = tb = parent.CreateToolBar(wx.TB_HORIZONTAL | wx.TB_FLAT)
     add = tb.AddSimpleTool
     
     add(ID.FNEW2, GetBMP(wx.ART_NEW),
@@ -65,9 +63,7 @@ def CreateToolBar(parent):
 
 
 def CreateEditorToolBar(parent):
-    tb = parent.CreateToolBar(wx.TB_HORIZONTAL |
-                              wx.TB_FLAT)
-    parent.tb = tb
+    parent.tb = tb = parent.CreateToolBar(wx.TB_HORIZONTAL | wx.TB_FLAT)
     add = tb.AddSimpleTool
  
     add(ID.SNEW, GetBMP(wx.ART_NEW),
