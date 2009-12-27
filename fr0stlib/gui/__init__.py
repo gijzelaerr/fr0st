@@ -276,11 +276,7 @@ class MainWindow(wx.Frame):
         sys.path.append(wx.GetApp().UserScriptsDir)
         self.PatchFr0stlib()
 
-        flamepath = config["flamepath"]
-        if os.path.exists(flamepath):
-            self.OpenFlame(flamepath)
-        else:
-            self.MakeFlameFile(flamepath)
+        self.OpenFlame(config["flamepath"])          
 
         self.tree.SelectItem(self.tree.GetItemByIndex((0,0)))
 
@@ -530,11 +526,9 @@ flam4 - (c) 2009 Steven Broadhead""" % fr0stlib.VERSION,
 
 
     def MakeFlameFile(self, path):
-        path = os.path.abspath(path)
         if not os.path.exists(os.path.dirname(path)):
             os.makedirs(os.path.dirname(path))
         save_flames(path, self.MakeFlame())
-        self.OpenFlame(path)
         
 
     def OpenFlame(self, path):
@@ -553,17 +547,17 @@ flam4 - (c) 2009 Steven Broadhead""" % fr0stlib.VERSION,
             # reducing the size of the tree.
             self.tree.SelectItem(self.tree.itemparent)
 
-        if os.path.exists(path):
-            # scan the file to see if it's valid
-            flamestrings = fr0stlib.load_flame_strings(path)
-            if not flamestrings:
-                wx.MessageDialog(self, "It seems %s is not a valid flame file."
-                                 " Please choose a different flame." % path,
-                                 'Fr0st',wx.OK).ShowModal()
-                self.OnFlameOpen(None)
-                return
-        else:
-            flamestrings = [self.MakeFlame()]
+        if not os.path.exists(path):
+            self.MakeFlameFile(path)
+            
+        # scan the file to see if it's valid
+        flamestrings = fr0stlib.load_flame_strings(path)
+        if not flamestrings:
+            wx.MessageDialog(self, "It seems %s is not a valid flame file."
+                             " Please choose a different flame." % path,
+                             'Fr0st',wx.OK).ShowModal()
+            self.OnFlameOpen(None)
+            return
 
         # Add flames to the tree
         item = self.tree.SetFlames(path, *flamestrings)
