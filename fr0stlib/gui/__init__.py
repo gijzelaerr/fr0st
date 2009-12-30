@@ -569,6 +569,7 @@ flam4 - (c) 2009 Steven Broadhead""" % fr0stlib.VERSION,
 
 
     @CallableFrom('MainThread')
+    @Catches(wx.PyDeadObjectError)
     def SetFlame(self, flame, rezoom=True):
         """Changes the active flame and updates all relevant widgets.
         This function can only be called from the main thread, because wx is
