@@ -380,7 +380,7 @@ flam4 - (c) 2009 Steven Broadhead""" % fr0stlib.VERSION,
         if not success:
             return
 
-        return self.onflamenew(string=data.GetText())
+        return self.OnFlameNew(string=data.GetText())
 
     @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=wx.ID_COPY)
     def OnCopy(self, e):
@@ -421,7 +421,7 @@ flam4 - (c) 2009 Steven Broadhead""" % fr0stlib.VERSION,
             newpath = dlg.GetPath()
             flame.name = str(dlg.GetName())
             if path == newpath:
-                self.onflamenew(string=flame.to_string())
+                self.OnFlameNew(string=flame.to_string())
             else:
                 if os.path.exists(newpath):
                     lst = fr0stlib.load_flame_strings(newpath)
