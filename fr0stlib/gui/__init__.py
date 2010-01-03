@@ -409,7 +409,7 @@ flam4 - (c) 2009 Steven Broadhead""" % fr0stlib.VERSION,
     @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=ID.FSAVE)
     def OnFlameSave(self,e):
         config["flamepath"] = self.tree.GetFilePath()
-        self.SaveFlame(config["flamepath"], confirm=False)
+        self.SaveFlame(config["flamepath"])
 
 
     @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=ID.FSAVEAS)
@@ -548,9 +548,8 @@ flam4 - (c) 2009 Steven Broadhead""" % fr0stlib.VERSION,
         item = self.tree.SetFlames(path, *flamestrings)
 
 
-    def SaveFlame(self, path=None, confirm=True):
-        if path is None:
-            path = self.tree.GetFilePath()
+    def SaveFlame(self, path=None):
+        path = path or self.tree.GetFilePath()
 
         lst = list(self.tree.GetDataGen())
     
