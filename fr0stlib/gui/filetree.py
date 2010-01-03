@@ -136,7 +136,9 @@ class TreePanel(wx.Panel):
         if index >= len(children):
             index = len(children) - 1
         self.tree.SelectItem(self.tree.GetItemByIndex((0,index)))
-        self.parent.SaveFlame()
+        save_flames(self.tree.GetFilePath(),
+                    *(i[0] for i in self.tree.GetDataGen()))
+
 
     @Bind(wx.EVT_TREE_ITEM_COLLAPSING)
     def OnTreeItemCollapsing(self, evt):
