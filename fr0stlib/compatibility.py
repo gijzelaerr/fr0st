@@ -40,19 +40,16 @@ def compatibilize(flame, version):
     
 
 def apo2fr0st(flame):
-    """Convert all attributes to be compatible with flam3 2.8."""
-    # HACK: Avoid circular import.
-    from fr0stlib import Chaos
-    
-    for x in flame.iter_xforms():
-        # chaos is converted from linear to log scale.
-        x.chaos = Chaos(x, map(log2percent, x.chaos))
-        
+    """Convert all attributes to be compatible with flam3 2.8."""   
+    for x in flame.iter_xforms():      
         # Symmetry is deprecated, so we factor it into the equivalent attrs.
         if hasattr(x, "symmetry"):
             x.color_speed = (1 - x.symmetry) / 2.0
             x.animate = float(x.symmetry <= 0)
             del x.symmetry
+
+        # Opacity needs to be converted because flam3 uses log scale
+        x.opacity = log2percent(x.opacity)
 
         # plotmode was never a good idea
         if hasattr(x, "plotmode") and x.plotmode.lower() == "off":
