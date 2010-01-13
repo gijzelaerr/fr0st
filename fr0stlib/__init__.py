@@ -35,7 +35,7 @@ try:
 except ImportError:
     utils = None
 
-VERSION = "Fr0st 1.0 beta"
+VERSION = "Fr0st 1.1 beta"
 GUI = False
 
 
