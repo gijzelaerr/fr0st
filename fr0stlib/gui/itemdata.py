@@ -35,7 +35,7 @@ class ItemData(list):
     def __init__(self, string):
         self.append(string)
         self.redo = []
-        self._name = self.re_name.findall(string)[0]
+        self._name = (self.re_name.findall(string) or ("Untitled",))[0]
         self.imgindex = -1
         
 
