@@ -63,15 +63,13 @@ class TreePanel(wx.Panel):
 
         data = self.tree.itemdata
 
-        string = self.parent.flame.to_string()
         # Check if flame has changed. to_string is needed to detect identical
         # flames saved in different apps. This comparison takes about 5ms.
-        if not force and Flame(data[-1]).to_string() == string:
-            return
+        string = self.parent.flame.to_string()
+        if force or Flame(data[-1]).to_string() != string:
+            data.append(string)
+            self.tree.SetItemText(self.tree.item, data.name)
 
-        # Update the child
-        data.append(string)
-        self.tree.SetItemText(self.tree.item, data.name)
         self.tree.RenderThumbnail()
         self.parent.SetFlame(self.parent.flame,rezoom=False)
 
