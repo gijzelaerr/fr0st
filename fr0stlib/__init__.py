@@ -91,30 +91,26 @@ class Flame(object):
         self.gradient = Palette.from_flame_element(element)
 
         xml_xforms = element.findall('xform')
-        self.xform = [Xform(self) for i in xrange(len(xml_xforms))]
+        self.xform = [Xform(self) for i in xml_xforms]
 
         for xform, xform_element in zip(self.xform, xml_xforms):
             xform.from_element(xform_element)
 
-        self.final = None
-
         for final in element.findall('finalxform'):
             if self.final is not None:
                 raise ParsingError("More than one final xform found")
-            self.final = Xform(self, chaos=[])
-
+            self.final = Xform(self)
             self.final.from_element(final)
 
         # Record the header data.
         for name, val in element.items():
-            # Convert value to the appropriate type
             try:
-                if " " in val: val = tuple(float(i) for i in val.split())
-                else:          val = float(val)
+                if " " in val: 
+                    setattr(self, name, map(float, val.split()))
+                else:          
+                    setattr(self, name, float(val))
             except ValueError:
-                pass   # Keep as string
-            
-            setattr(self,name,val)
+                setattr(self, name, val)
 
         self.name = str(self.name)
 
@@ -168,7 +164,7 @@ class Flame(object):
 
     def add_final(self, **kwds):
         if self.final:
-            return
+            return self.final
         defaults = dict(coefs=(1.0, 0.0, 0.0, 1.0, 0.0, 0.0),
                         linear=1, color=0, color_speed=0)
         defaults.update(kwds)
@@ -574,7 +570,6 @@ class Xform(object):
             # Chaos and post were already set unconditionally at xform init
             # so they're set here only if they're not None.
             chaos = element.get('chaos', None)
-
             if chaos is not None:
                 self.chaos = Chaos(self, map(float, chaos.split()))
                 
