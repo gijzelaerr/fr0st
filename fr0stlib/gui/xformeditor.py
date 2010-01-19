@@ -850,7 +850,7 @@ class ChaosPanel(wx.Panel):
                         child_texts[0].GetWindowStyle()|wx.TE_PROCESS_ENTER)
         else:
             text = tree.GetItemText(item, 1)
-            new = 1.0 if text == '0.0' else 0.0
+            new = 0.0 if text == '1.0' else 1.0
             tree.SetItemText(item, str(new), 1)
             self.SetFlameAttribute(tree, item, new)
             self.parent.TreePanel.TempSave()
