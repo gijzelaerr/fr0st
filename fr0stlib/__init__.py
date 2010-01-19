@@ -618,7 +618,10 @@ class Xform(object):
     def index(self):
         if self is self._parent.final:
             return None
-        return self._parent.xform.index(self)
+        try:
+            return self._parent.xform.index(self)
+        except ValueError:
+            return None
     
        
     @property

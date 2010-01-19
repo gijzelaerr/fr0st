@@ -664,17 +664,7 @@ flam4 - (c) 2009 Steven Broadhead""" % fr0stlib.VERSION,
             pass
         except ThreadInterrupt:
             print("\n\nScript Interrupted")
-        finally:
-            update = namespace["update_flame"]
-            
-            # Check if changes made to the flame by the script are legal.
-            try:
-                Flame(self.flame.to_string())
-            except Exception as e:
-                print "Error updating flame:"
-                print e
-                update = False
-                
+        finally:               
             # Remove any modules imported by the script, so they can be changed
             # without needing to restart fr0st. Also revert path.
             sys.modules.clear()
@@ -682,7 +672,7 @@ flam4 - (c) 2009 Steven Broadhead""" % fr0stlib.VERSION,
             sys.path.pop(0)
                 
             # Let the GUI know that the script has finished.
-            self.EndOfScript(oldflame, update)
+            self.EndOfScript(oldflame, update=namespace["update_flame"])
 
         # Keep this out of the finally clause!
         print "\nSCRIPT STATS:\n"\
@@ -696,7 +686,14 @@ flam4 - (c) 2009 Steven Broadhead""" % fr0stlib.VERSION,
         self.BlockGUI(False)
         self.SetStatusText("")
         if update:
-            self.TreePanel.TempSave()
+            try:
+                # Check if changes made to the flame by the script are legal.
+                self.SetFlame(self.flame, rezoom=False)
+                self.TreePanel.TempSave()
+            except Exception as e:
+                print "Error updating flame:"
+                print e
+                self.SetFlame(oldflame, rezoom=False)
         else:
             self.SetFlame(oldflame, rezoom=False)
 
