@@ -278,15 +278,25 @@ class MyLog(wx.TextCtrl):
         
         lines = (self._lines[int(i)-1].strip()
                  for i in self.re_linenum.findall(message))
-        message = self.re_line.sub('\g<1>\n    %s',message) %tuple(lines)
-        self.AppendText("Traceback (most recent call last):\n")
+        message = ("Traceback (most recent call last):\n" +
+                   self.re_line.sub('\g<1>\n    %s',message) %tuple(lines))
         self.AppendText(message)
+        self.ScriptErrorDialog(message)
+
+
+    def ScriptErrorDialog(self, message):
+        window = wx.GetApp().GetTopWindow()
+        if window.editor.IsShown():
+            window = window.editor
+        wx.MessageDialog(window,
+                         "" + message, "Fr0st", wx.ID_OK).ShowModal()
 
 
     # On windows, wx is threadsafe. This code skips all event processing
     # and sends prints directly to the tc, which is much faster.
     if "win32" in sys.platform:
         write = _write
+        ScriptErrorDialog = InMain(ScriptErrorDialog)
 
 
 
