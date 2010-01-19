@@ -688,6 +688,8 @@ flam4 - (c) 2009 Steven Broadhead""" % fr0stlib.VERSION,
         if update:
             try:
                 # Check if changes made to the flame by the script are legal.
+                if not self.flame.xform:
+                    raise ValueError("Flame has no xforms")
                 self.SetFlame(self.flame, rezoom=False)
                 self.TreePanel.TempSave()
             except Exception as e:
