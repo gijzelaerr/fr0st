@@ -51,8 +51,6 @@ class MissingUtilsModuleError(Exception):
 
 
 class Flame(object):
-    re_flame  = re.compile(r'<flame .*?</flame>',re.DOTALL)
-
     _default = set(("final", "gradient", "xform", "name",
                     "width", "height", "x_offset", "y_offset"))
     
@@ -78,14 +76,7 @@ class Flame(object):
         if string:
             root = etree.fromstring(string)
             self.from_element(root)
-        
-
-    @classmethod 	 
-    def from_strings(cls, string, type=None): 	 
-        """Parses an xml string and returns a list of flames.""" 	 
-        type = type or cls 	 
-        return [type(i) for i in cls.re_flame.findall(string)]
-
+    
 
     def from_element(self, element):
         self.gradient = Palette.from_flame_element(element)
@@ -955,10 +946,10 @@ def needs_conversion(string):
 
 
 def load_flame_strings(filename):
+    """Reads a flame file and returns a list of flame strings.""" 	 
     with open(filename) as fd:
         s = fd.read()
-
-    return Flame.from_strings(s, str)
+    return re.findall(r'<flame .*?</flame>', s, re.DOTALL)
 
 
 def load_flames(filename):
