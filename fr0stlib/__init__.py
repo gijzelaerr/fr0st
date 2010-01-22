@@ -19,7 +19,7 @@
 #  the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 #  Boston, MA 02111-1307, USA.
 ##############################################################################
-import shutil, random, itertools, ctypes, collections, copy, re, numpy
+import shutil, random, itertools, ctypes, collections, re, numpy
 import xml.etree.cElementTree as etree
 from math import *
 from functools import partial
@@ -74,8 +74,7 @@ class Flame(object):
         self.gradient = Palette()
           
         if string:
-            root = etree.fromstring(string)
-            self.from_element(root)
+            self.from_element(etree.fromstring(string))
     
 
     def from_element(self, element):
@@ -590,9 +589,7 @@ class Xform(object):
         except ValueError:
             # For some reason, the xform is not found inside the parent
             return "<xform>"
-        if index is None:
-            return "<finalxform>"
-        return "<xform %d>" %(index + 1)
+        return "<finalxform>" if index is None else "<xform %d>" %(index + 1)
 
       
     def __getattr__(self,v):
@@ -809,26 +806,13 @@ class Xform(object):
     def isfinal(self):
         return self.index is None
 
-    
+
     def copy(self):
-        if not self.isfinal():
-            self._parent, parent = None, self._parent
-            self.chaos, chaos = None, self.chaos
-            self.post._parent = None
-            xf = copy.deepcopy(self)
-
-            xf.post._parent = xf
-            xf._parent = parent
-
-            self.chaos = chaos
-            self._parent = parent
-            self.post._parent = self
-
-            xf.chaos = Chaos(xf, chaos)
-
-            self._parent.xform.append(xf)
-
-            return xf
+        if self.isfinal():
+            return self
+        xf = self._parent.add_xform(linear=0)
+        xf.from_element(etree.fromstring(self.to_string()))
+        return xf
 
 
     def delete(self):
