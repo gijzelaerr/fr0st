@@ -78,7 +78,7 @@ class Flame(object):
     
 
     def from_element(self, element):
-        self.gradient = Palette.from_flame_element(element)
+        self.gradient.from_flame_element(element)
 
         xml_xforms = element.findall('xform')
         self.xform = [Xform(self) for i in xml_xforms]
@@ -294,8 +294,10 @@ class Flame(object):
 
 
 class Palette(collections.Sequence):
-    def __init__(self, string=None):
+    def __init__(self, element=None):
         self.data = numpy.zeros((256, 3), dtype=numpy.uint8)
+        if element is not None:
+            self.from_flame_element(element)
 
     def __len__(self):
         return 256
@@ -313,37 +315,30 @@ class Palette(collections.Sequence):
         s = '   <color index="%s" rgb="%s %s %s"/>\n'
         return ''.join([s % (idx, int(self.data[idx, 0]), int(self.data[idx, 1]), int(self.data[idx, 2])) for idx in xrange(256)])
 
-    @classmethod
-    def from_flame_element(cls, flame):
+
+    def from_flame_element(self, flame):
         palette_element = flame.find('palette')
-        palette = cls()
 
         if palette_element is not None:
+            # Parse Apo-style palette (block of hex values)
             if int(palette_element.get('count')) != 256:
                 raise ParsingError('Palette must contain 256 entries')
 
             if palette_element.get('format').strip().lower() != 'rgb':
                 raise ParsingError('Only rgb palettes are currently supported')
 
-            data = ''.join(palette_element.text.split())
-
-            for idx in range(0, len(data), 6):
-                palette.data[idx/6, 0] = int(data[idx+0:idx+2], 16)
-                palette.data[idx/6, 1] = int(data[idx+2:idx+4], 16)
-                palette.data[idx/6, 2] = int(data[idx+4:idx+6], 16)
-
-            if idx != 255 * 6:
-                raise ParsingError('Not enough palette entries specified: %s != %s' % (255 * 6, idx))
-
+            lst = re.findall('[a-f0-9]{2}', palette_element.text, re.I)
+            data = zip(*[(int(i, 16) for i in lst)]*3)            
         else:
-            for color in flame.findall('color'):
-                r, g, b = color.get('rgb').split()
-                index = int(color.get('index'))
-                palette.data[index, 0] = float(r)
-                palette.data[index, 1] = float(g)
-                palette.data[index, 2] = float(b)
+            # parse flam3-style palette (list of <color> elements)
+            data = [map(float, color.get('rgb').split())
+                    for color in flame.findall('color')]
+            
+        if len(data) != 256:
+            raise ParsingError('Wrong number of palette entries specified: '
+                               '%s != %s' % (256, len(lst)))
+        self.data[:] = data
 
-        return palette
 
     def reverse(self):
         self.data = numpy.array(self.data[::-1], dtype=numpy.uint8)
