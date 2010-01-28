@@ -602,7 +602,11 @@ flam4 - (c) 2009 Steven Broadhead""" % fr0stlib.VERSION,
         """Override some fr0stlib functions with equivalent GUI versions.
         References to the old functions must be explicitly kept for internal
         use ('from fr0stlib import ...')."""
-        def new_save_flames(path, *flames):
+        def new_save_flames(path, *flames, **kwds):
+            refresh = kwds.pop('refresh', True)
+            if kwds:
+                raise TypeError('Got unexpected keyword argument: %s'
+                                % tuple(kwds)[0])
             if not flames:
                 raise ValueError("You must specify at least 1 flame to set.")
 
@@ -613,7 +617,8 @@ flam4 - (c) 2009 Steven Broadhead""" % fr0stlib.VERSION,
                     return
 
             lst = [s if type(s) is str else s.to_string() for s in flames]
-            self.tree.SetFlames(path, *lst)
+            if refresh:
+                self.tree.SetFlames(path, *lst)
             save_flames(path, *lst)
 
         # These functions overwrite existing functions.
