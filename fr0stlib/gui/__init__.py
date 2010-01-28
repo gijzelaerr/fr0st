@@ -604,13 +604,14 @@ flam4 - (c) 2009 Steven Broadhead""" % fr0stlib.VERSION,
         use ('from fr0stlib import ...')."""
         def new_save_flames(path, *flames, **kwds):
             refresh = kwds.pop('refresh', True)
+            confirm = kwds.pop('confirm', True)
             if kwds:
                 raise TypeError('Got unexpected keyword argument: %s'
                                 % tuple(kwds)[0])
             if not flames:
                 raise ValueError("You must specify at least 1 flame to set.")
 
-            if os.path.exists(path):
+            if os.path.exists(path) and confirm:
                 dlg = wx.MessageDialog(self, "%s already exists. Do you want to overwrite?" % path,
                                        'Fr0st',wx.YES_NO)
                 if dlg.ShowModal() != wx.ID_YES:
