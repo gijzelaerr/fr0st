@@ -494,6 +494,7 @@ class RenderDialog(wx.Frame):
         self.close.Label = "Close"
         self.gauge.SetValue(0)
         self.SetStatusText("")
+        self.UpdateView()
 
 
     def save(self, path, index, bmp):
