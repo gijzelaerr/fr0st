@@ -733,8 +733,7 @@ flam4 - (c) 2009 Steven Broadhead""" % fr0stlib.VERSION,
 
 
     def large_preview(self):
-        if self.previewframe.IsShown():
-            self.previewframe.RenderPreview()
+        self.previewframe.RenderPreview()
         
 
     @InMain
