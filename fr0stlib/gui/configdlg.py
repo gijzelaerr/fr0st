@@ -19,11 +19,8 @@
 #  the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 #  Boston, MA 02111-1307, USA.
 ##############################################################################
-import wx
-from operator import setitem
+import wx, copy
 
-
-from copy import deepcopy
 from fr0stlib.decorators import *
 from fr0stlib.gui.config import config, update_dict
 from fr0stlib.gui.utils import NumberTextCtrl, Box
@@ -38,7 +35,7 @@ class ConfigDialog(wx.Dialog):
 
         # save a copy of config to work with
         # allows us to implement cancel
-        self.local_config = deepcopy(config)
+        self.local_config = copy.deepcopy(config)
         self.controls = {}
 
         notebook = wx.Notebook(self, style=wx.BK_DEFAULT)
@@ -50,7 +47,6 @@ class ConfigDialog(wx.Dialog):
         sizer.Add(notebook, 0, wx.ALL, 5)
 
         btnsizer = self.CreateButtonSizer(wx.OK|wx.CANCEL)
-
         if btnsizer:
             sizer.Add(btnsizer, 0, wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, 5)
 
@@ -60,9 +56,15 @@ class ConfigDialog(wx.Dialog):
         
 
     @Bind(wx.EVT_BUTTON, id=wx.ID_OK)
-    @Bind(wx.EVT_BUTTON, id=wx.ID_CANCEL)
-    def OnOK(self, evt):
-        self.EndModal(evt.GetId())
+    def OnOK(self, e):
+        update_dict(config, self.local_config)
+        e.Skip()
+        
+        # Immediately update GUI to see changes in quality, etc.
+        self.Parent.canvas.ShowFlame(rezoom=False)
+        self.Parent.image.RenderPreview()
+        self.Parent.previewframe.RenderPreview()
+
 
     def CreatePreviewSettings(self, parent):
         panel = wx.Panel(parent)
@@ -80,11 +82,14 @@ class ConfigDialog(wx.Dialog):
         if is_int:
             ntc.MakeIntOnly()
 
-        section = self.local_config[config_section]
         self.controls[config_section + '->' + config_key] = ntc
 
+        section = self.local_config[config_section]
         ntc.SetFloat(section[config_key])
-        ntc.callback = lambda tempsave=False: setitem(section, config_key, ntc.GetFloat())
+
+        def cb(tempsave=False):
+            section[config_key] = ntc.GetFloat()
+        ntc.callback = cb
 
         sizer.Add(wx.StaticText(parent, label=label), (row, 0), flag=wx.ALIGN_CENTER_VERTICAL)
         sizer.Add(ntc, (row, 1))
@@ -136,14 +141,6 @@ class ConfigDialog(wx.Dialog):
                 'Large-Preview-Settings', 'spatial_oversample', 0, 5, is_int=True)
 
         return Box(parent, 'Large Preview', (gbs, 0, wx.EXPAND))
-
-    def CommitChanges(self):
-        update_dict(config, self.local_config)
-        # Immediately update GUI to see changes in quality, etc.
-        self.Parent.canvas.ShowFlame(rezoom=False)
-        self.Parent.image.RenderPreview()
-        self.Parent.previewframe.RenderPreview()
-
 
 
 

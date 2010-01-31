@@ -19,8 +19,7 @@
 #  the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 #  Boston, MA 02111-1307, USA.
 ##############################################################################
-import imp, os, sys, wx, time, shutil
-from copy import deepcopy
+import imp, os, sys, wx, time, shutil, copy
 
 from fr0stlib.gui.scripteditor import EditorFrame
 from fr0stlib.gui.preview import PreviewFrame, PreviewBase
@@ -308,12 +307,8 @@ flam4 - (c) 2009 Steven Broadhead""" % fr0stlib.VERSION,
 
     @Bind(wx.EVT_MENU, id=wx.ID_PREFERENCES)
     def OnPreferences(self, evt):
-        dlg = ConfigDialog(self)
+        ConfigDialog(self).ShowModal()
 
-        if dlg.ShowModal() == wx.ID_OK:
-            dlg.CommitChanges()
-
-        dlg.Destroy()
 
     @Bind(wx.EVT_CLOSE)
     @Bind(wx.EVT_MENU,id=ID.EXIT)
@@ -641,7 +636,7 @@ flam4 - (c) 2009 Steven Broadhead""" % fr0stlib.VERSION,
         namespace = dict(flame = self.flame,
                          update_flame = True,
                          # Make a copy of config, so it can't be modified.
-                         config = deepcopy(config),
+                         config = copy.deepcopy(config),
                          _self = self)
         exec("from fr0stlib import *; __name__='__main__'", namespace)
         return namespace
