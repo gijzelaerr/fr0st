@@ -44,6 +44,7 @@ def update_dict(old, new):
             old[k] = v
 
 config = {}
+original_config = {}
 
 def init_config():
     config.update(
@@ -86,13 +87,16 @@ def init_config():
           "Rect-Editor": None,
           "Rect-Preview": None,
           })
+
+    # Make a copy of default values, so they can be restored later.
+    original_config.update(config)
+    
     if os.path.exists(get_config_path()):
         update_dict(config, load())
 
     # HACK: if a plain samples.flame is in the config file instead of an
     # absolute path, we need to fix it so it finds the correct location.
     if config["flamepath"] == u"samples.flame":
-        config["flamepath"] = os.path.join(wx.GetApp().UserParametersDir,
-                                           "samples.flame")
+        config["flamepath"] = original_config["flamepath"]
 
     atexit.register(dump)
