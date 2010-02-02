@@ -36,8 +36,6 @@ class MainNotebook(wx.Notebook):
 
     def __init__(self, parent):
         self.parent = parent
-        # 390 is just the right width for the gradient to be entirely visible.
-        # 573 seems to be the right height for all sliders to be visible.
         wx.Notebook.__init__(self, parent, -1, style=wx.BK_DEFAULT)
 
         self.transform = TransformPanel(self)
@@ -170,7 +168,7 @@ class GradientPanel(wx.Panel):
 
     @BindEvents
     def __init__(self,parent):
-        wx.Panel.__init__(self,parent,-1)
+        wx.Panel.__init__(self, parent, -1)
         self.parent = parent.parent
 
         # Double buffering is needed to prevent flickering.
@@ -180,9 +178,9 @@ class GradientPanel(wx.Panel):
         self.dict = {}
 
         choicelist = (('rotate', (-128, 128)),
-                      ('hue',(-180,180)),
-                      ('saturation', (-100,100)),
-                      ('brightness', (-100,100)))
+                      ('hue',(-180, 180)),
+                      ('saturation', (-100, 100)),
+                      ('brightness', (-100, 100)))
         self.choices = dict(choicelist)
         self.choice = 'rotate'
         self.func = lambda x: getattr(self.parent.flame.gradient,
@@ -196,8 +194,7 @@ class GradientPanel(wx.Panel):
         self.Selector.Bind(wx.EVT_CHOICE, self.OnChoice)
 
         self.slider = wx.Slider(self, -1, 0, -180, 180,
-                                style=wx.SL_HORIZONTAL
-                                |wx.SL_LABELS)
+                                style=wx.SL_HORIZONTAL |wx.SL_LABELS)
         self.slider.Bind(wx.EVT_SLIDER, self.OnSlider)
         self.slider.Bind(wx.EVT_LEFT_DOWN, self.OnSliderDown)
         self.slider.Bind(wx.EVT_LEFT_UP, self.OnSliderUp)
@@ -206,7 +203,7 @@ class GradientPanel(wx.Panel):
                             low=0, high=1, callback=self.OptCallback)
         for i in self.dict["nodes"]:
             i.MakeIntOnly()
-            i.SetAllowedRange(1,256)
+            i.SetAllowedRange(1, 256)
         # Set Defaults for tcs.
         for k, tcs in self.dict.iteritems():
             [tc.SetFloat(i) for tc,i in zip(tcs, self.config[k])]
@@ -226,13 +223,12 @@ class GradientPanel(wx.Panel):
         szr2.AddMany((opts, (btnszr, 0 ,wx.ALIGN_RIGHT)))
 
         sizer1 = wx.BoxSizer(wx.VERTICAL)
-        sizer1.Add(self.image,0, wx.EXPAND)
+        sizer1.Add(self.image, 0, wx.EXPAND)
         sizer1.Add(self.Selector,0)
         sizer1.Add(self.slider,0,wx.EXPAND)
         sizer1.Add(szr2, 0, wx.EXPAND)
 
         self.SetSizer(sizer1)
-        self.Layout()
 
 
     def MakeTCs(self, *a, **k):
@@ -328,9 +324,8 @@ class Gradient(wx.Panel):
     @BindEvents
     def __init__(self,parent):
         self.parent = parent.parent
-        wx.Panel.__init__(self, parent, -1)
+        wx.Panel.__init__(self, parent, -1, size=(390, 95))
         self.bmp = wx.EmptyBitmap(1,1,32)
-        self.SetMinSize((390,95))
         self._startpos = None
 
     def Update(self, flame=None):
@@ -414,9 +409,9 @@ class AdjustPanel(MultiSliderMixin, wx.Panel):
         self.parent = parent.parent
         super(AdjustPanel, self).__init__(parent, -1)
 
-        self.bgcolor_panel = wx.Panel(self, style=wx.BORDER_SUNKEN)
+        self.bgcolor_panel = wx.Panel(self, size=(64,10),
+                                      style=wx.BORDER_SUNKEN)
         self.bgcolor_panel.SetBackgroundColour((0,0,0))
-        self.bgcolor_panel.SetMinSize((64, 10))
         self.bgcolor_change = wx.Button(self, label='Change...')
         bgcolor_box = Box(self, 'Background Color', 
                 (self.bgcolor_panel, 0, wx.EXPAND|wx.ALL, 5),

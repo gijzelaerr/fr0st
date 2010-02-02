@@ -177,7 +177,7 @@ class XformCanvas(FC.FloatCanvas):
     def __init__(self, parent):
         self.parent = parent.parent
         FC.FloatCanvas.__init__(self, parent,
-                                size=(300,300),
+                                size=(300,300), # HACK: This needs to be here.
                                 ProjectionFun=None,
                                 BackgroundColor="BLACK")
 
@@ -198,8 +198,6 @@ class XformCanvas(FC.FloatCanvas):
         self.edit_post = False
 
         self.MakeGrid()
-        self.ZoomToBB(DrawFlag=False)
-        self.AdjustZoom()
 
         # These are used in the OnIdle Method
         self._right_drag = None
