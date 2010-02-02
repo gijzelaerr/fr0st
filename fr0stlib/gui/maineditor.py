@@ -38,9 +38,7 @@ class MainNotebook(wx.Notebook):
         self.parent = parent
         # 390 is just the right width for the gradient to be entirely visible.
         # 573 seems to be the right height for all sliders to be visible.
-        wx.Notebook.__init__(self, parent, -1, size=(390,573), style=
-                             wx.BK_DEFAULT
-                             )
+        wx.Notebook.__init__(self, parent, -1, style=wx.BK_DEFAULT)
 
         self.transform = TransformPanel(self)
         self.canvas = self.transform.canvas
@@ -438,16 +436,17 @@ class AdjustPanel(MultiSliderMixin, wx.Panel):
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(topsizer, 0, wx.EXPAND)
         sizer.Add(Box(self, "Camera Settings",
-                      *((self.MakeSlider(*i),0, wx.EXPAND) for i in
+                      *((self.MakeSlider(*i), 0, wx.EXPAND) for i in
                       (("scale", 25, 1, 100, False),
                        ("x_offset", 0, -5, 5, False),
                        ("y_offset", 0, -5, 5, False),
                        ("rotate", 0, -360, 360, True)))), 0, wx.EXPAND)
         sizer.Add(Box(self, "Other Settings",
-                      *((self.MakeSlider(*i),0, wx.EXPAND) for i in
-                      (("gamma",4,1,10,False),
-                       ("brightness",4,0,100,False),
-                       ("gamma_threshold",0.01, 0, 1,False),
+                      *((self.MakeSlider(*i), 0, wx.EXPAND) for i in
+                      (("brightness", 4, 0, 100, False),
+                       ("gamma", 4, 1, 10, False),
+                       ("gamma_threshold", 0.01, 0, 1, False),
+                       ("vibrancy", 1, 0, 1, True),
                        ("highlight_power", -1, -1, 5, False)))), 0, wx.EXPAND)
         self.sliders["gamma_threshold"][1].SetAllowedRange(0, None)
         self.SetSizer(sizer)
@@ -456,6 +455,7 @@ class AdjustPanel(MultiSliderMixin, wx.Panel):
     def __size_callback(self):
         self.UpdateFlame()
         self.parent.TreePanel.TempSave()
+
 
     def OnChangeBGColor(self, e):
         color_data = wx.ColourData()
@@ -470,6 +470,7 @@ class AdjustPanel(MultiSliderMixin, wx.Panel):
             self.parent.TreePanel.TempSave()
 
         dlg.Destroy()
+
 
     def UpdateView(self):
         flame = self.parent.flame

@@ -58,20 +58,21 @@ class Flame(object):
         # Set minimum required attributes.
         self.name = "Untitled"
         self.xform = []
+        self.final = None
+        self.gradient = Palette()
         self.size = 640, 480 # property
         self.center = 0.0, 0.0 # property
+        self.scale = 25.
         self.rotate = 0.0
         self.background = (0.0, 0.0, 0.0)
-        self.final = None
-        self.scale = 25.
-        self.highlight_power = -1
-##        self.oversample = 1
-##        self.filter = 0.2
-##        self.quality = 100
         self.brightness = 4
         self.gamma = 4
         self.gamma_threshold = 0.04
-        self.gradient = Palette()
+        self.vibrancy = 1
+        self.highlight_power = -1
+##        self.oversample = 1
+##        self.filter = 0.2
+##        self.quality = 100        
           
         if string:
             self.from_element(etree.fromstring(string))
