@@ -123,7 +123,7 @@ class TransformPanel(wx.Panel):
     def modifyxform(f):
         """This decorator wraps away common code in the button functions."""
         def inner(self):
-            # TODO: does this pass post-xforms correctly?
+            # NOTE: passes in the xform, never the post xform.
             f(self, self.parent.ActiveXform)
             self.parent.TreePanel.TempSave()
         return inner
@@ -148,6 +148,10 @@ class TransformPanel(wx.Panel):
 
     @modifyxform
     def FuncDeleteXform(self, xform):
+        if config['Edit-Post-Xform']:
+            xform.post.coefs = 1.0, 0.0, 0.0, 1.0, 0.0, 0.0
+            config['Edit-Post-Xform'] = False
+            return
         lst = xform._parent.xform
         if not xform.isfinal() and len(lst) == 1:
             return #  Can't delete last remaining xform.
