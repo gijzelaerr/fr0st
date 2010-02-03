@@ -52,6 +52,7 @@ class VarPreview(FC.PointSet):
         FC.PointSet.__init__(self, lst, Color=Color)
 
     def var_preview(self, xform, range, numvals, depth):
+        xform = xform._parent if xform.ispost() else xform
         result = (c_double * (2* (2*numvals+1)**2))()
         genome = Genome.from_string(xform._parent.to_string(True))[0]
         index = xform.index
@@ -133,32 +134,6 @@ class XFormTriangle(BaseCoefsTriangle):
             return self.xform, partial(setattr, self.xform, "y")
 
 
-class PostTriangle(BaseCoefsTriangle):
-    def __init__(self, parent, xform, color, solid=False, fill=False):
-        BaseCoefsTriangle.__init__(self, parent, xform, xform.post.points, xform.post.coefs, color, solid, fill)
-
-        if solid:
-            parent._post_cornerpoints = parent.GetCornerPoints(xform, True)
-            corners = [FC.Line(i, LineColor=color) for i in parent._post_cornerpoints]
-            self._text.extend(corners)
-            self.AddObjects(corners)
-
-
-    def VertexHitTest(self, x, y):
-        v = BaseCoefsTriangle.VertexHitTest(self, x, y)
-
-        if v is None:
-            return None, None
-        elif v == 'o':
-            return (self.xform, partial(setattr, self.xform.post, "pos")
-                           if config["Lock-Axes"] else partial(setattr, self.xform.post, "o"))
-        elif v == 'x':
-            return self.xform, partial(setattr, self.xform.post, "x")
-
-        elif v == 'y':
-            return self.xform, partial(setattr, self.xform.post, "y")
-
-
 class XformCanvas(FC.FloatCanvas):
     colors = [( 255,   0,   0), # red
               ( 255, 255,   0), # yellow
@@ -192,7 +167,6 @@ class XformCanvas(FC.FloatCanvas):
 
         # Lists that hold draw objects
         self.xform_groups = []
-        self.post_groups = []
         self.objects = []
         self.shadow = []
         self.edit_post = False
@@ -219,25 +193,26 @@ class XformCanvas(FC.FloatCanvas):
         self.RemoveObjects(self.xform_groups)
         self.xform_groups = []
 
-        self.RemoveObjects(self.post_groups)
-        self.post_groups = []
-
         if self.preview is not None:
             self.RemoveObject(self.preview)
             self.preview = None
 
-        for i in flame.iter_xforms():
-            xf = self.AddXform(i, solid=i==self.parent.ActiveXform,
-                               fill=i==self.SelectedXform)
+        if config['Edit-Post-Xform']:
+            i = self.parent.ActiveXform
+            selected = self.SelectedXform
+            
+            xf = self.AddXform(i, solid=False, fill=i==self.SelectedXform)
             self.xform_groups.append(xf)
-
-            p = self.AddXform(i, solid=i==self.parent.ActiveXform,
-                               fill=i==self.SelectedXform, post=True)
-            self.post_groups.append(p)
-                
-            xf.Visible = not config['Edit-Post-Xform']
-            p.Visible = config['Edit-Post-Xform']
-
+            
+            pxf = self.AddXform(i.post, solid=True,
+                                fill=i.post==self.SelectedXform)
+            self.xform_groups.append(pxf)
+            
+        else:
+            for i in flame.iter_xforms():               
+                xf = self.AddXform(i, solid=i==self.parent.ActiveXform,
+                                   fill=i==self.SelectedXform)
+                self.xform_groups.append(xf)
 
         if rezoom:
             self.ZoomToFit()
@@ -246,17 +221,18 @@ class XformCanvas(FC.FloatCanvas):
             self.Draw()
 
 
-    def AddXform(self, xform, solid=False, fill=False, post=False):
-        color = ((255,255,255) if xform.isfinal()
-                 else self.colors[xform.index%len(self.colors)])
+    def AddXform(self, xform, solid=False, fill=False):
 
-        if post:
-            t = PostTriangle(self, xform, color, solid, fill)
+        if xform.ispost():
+            color = self.colors[xform._parent.index%len(self.colors)]
         else:
-            t = XFormTriangle(self, xform, color, solid, fill)
-            if solid and config["Variation-Preview"]:
-                self.preview = VarPreview(xform, Color=color)
-                self.AddObject(self.preview)            
+            color = ((255,255,255) if xform.isfinal()
+                     else self.colors[xform.index%len(self.colors)])
+            
+        t = XFormTriangle(self, xform, color, solid, fill)
+        if solid and config["Variation-Preview"]:
+            self.preview = VarPreview(xform, Color=color)
+            self.AddObject(self.preview)            
         self.AddObject(t)
 
         return t
@@ -314,9 +290,6 @@ class XformCanvas(FC.FloatCanvas):
         map(lambda x: x.SetDiameter(diameter),
             itertools.chain(*(i._circles for i in self.xform_groups)))
 
-        map(lambda x: x.SetDiameter(diameter),
-            itertools.chain(*(i._circles for i in self.post_groups)))
-
         # Refresh canvas
         self._BackgroundDirty = True
         self.Draw()
@@ -324,27 +297,10 @@ class XformCanvas(FC.FloatCanvas):
 
     def IterXforms(self):
         active = self.parent.ActiveXform
-        lst = [i for i in self.parent.flame.xform if i != active]
-        if active:
+        lst = [i.xform for i in self.xform_groups]
+        if active in lst:
+            lst.remove(active)
             lst.insert(0, active)
-        if self.parent.flame.final:
-            lst.append(self.parent.flame.final)
-        return lst
-
-
-    def IterXformGroups(self):
-        lst = []
-
-        for xform_group in self.xform_groups:
-            if xform_group.xform == self.parent.ActiveXform:
-                lst.insert(0, xform_group)
-            else:
-                lst.append(xform_group)
-
-        #TODO: Handle final xform as xformgroup
-        #if self.parent.flame.final:
-        #    lst.append(self.parent.flame.final)
-
         return lst
 
 
@@ -362,7 +318,7 @@ class XformCanvas(FC.FloatCanvas):
         """Checks if the given point is on top of a vertex."""
 
         for xform in self.IterXforms():
-            xf = xform if not config['Edit-Post-Xform'] else xform.post
+            xf = xform # TODO:refactor
             a,d,b,e,c,f = xf.coefs
 
             if polar((x - c, y - f))[0] < self.circle_radius:
@@ -429,7 +385,7 @@ class XformCanvas(FC.FloatCanvas):
         """Checks if the given point is near one of the triangle sides
         or corners."""
         for xform in self.IterXforms():
-            xf = xform if not config['Edit-Post-Xform'] else xform.post
+            xf = xform # TODO:refactor
             x,y,o = xf.points
             for points,func in (((x,y,o), 'scale'),
                                 ((x,o,y), 'rotate_x'),
@@ -441,10 +397,13 @@ class XformCanvas(FC.FloatCanvas):
         # TODO: detect the actual lines. Right now, it just checks a radius
         # from the middle point.
         radius = self.circle_radius * 3 # better too big than too small.
-        for i,j,k in (self._cornerpoints if not config['Edit-Post-Xform'] else self._post_cornerpoints):
+        for i,j,k in (self._cornerpoints):
             if polar((h - j[0], v - j[1]))[0] < radius:
-                xform = self.parent.ActiveXform
-                return ((i,j,k), xform, self.side_helper(xform if not config['Edit-Post-Xform'] else xform.post, 'rotate', h,v))
+                if config["Edit-Post-Xform"]:
+                    xform = self.parent.ActiveXform.post
+                else:
+                    xform = self.parent.ActiveXform
+                return ((i,j,k), xform, self.side_helper(xform, 'rotate', h,v))
 
         return None, None, None
 
@@ -455,7 +414,7 @@ class XformCanvas(FC.FloatCanvas):
         at least 2 of its vertices."""
 
         for xform in self.IterXforms():
-            xf = xform if not config['Edit-Post-Xform'] else xform.post
+            xf = xform #TODO:refactor
             a,d,b,e,c,f = xf.coefs
 
             if angle_helper((x-c, y-f), (a, d), (b, e)) and \
@@ -521,17 +480,24 @@ class XformCanvas(FC.FloatCanvas):
     def OnLeftDown(self,e):
         self.CaptureMouse()
         if self.SelectedXform:
-            self.parent.ActiveXform = self.SelectedXform
+            if config['Edit-Post-Xform']:
+                if self.SelectedXform.ispost():
+                    self.parent.ActiveXform = self.SelectedXform._parent
+                else:
+                    # If the parent is selected, we move back into normal
+                    # editing mode. UpdateView is required to refresh toggle
+                    # in toolbar.
+                    self.parent.ActiveXform = self.SelectedXform
+                    config['Edit-Post-Xform'] = False
+                    self.parent.notebook.UpdateView()
+            else:
+                self.parent.ActiveXform = self.SelectedXform
             self.ShowFlame(rezoom=False)
             self.parent.XformTabs.UpdateView()
 
             # EXPERIMENT!
-            if config['Edit-Post-Xform']:
-                t = self.AddXform(self.parent.ActiveXform, post=True)
-            else:
-                t = self.AddXform(self.parent.ActiveXform)
-
-            self.shadow.extend((t,))
+            t = self.AddXform(self.SelectedXform)
+            self.shadow.append(t)
 
 
     @Bind(FC.EVT_LEFT_UP)
@@ -632,17 +598,20 @@ class XformCanvas(FC.FloatCanvas):
         self.SelectedXform = xform
         self._highlight = highlight
 
-        varlist = [i for i in pyflam3.variation_list if getattr(xform,i)]
-        color = ((255,255,255) if xform.isfinal()
-                 else self.colors[xform.index%len(self.colors)])
-        hor, ver = self.GetSize()
-        hor -= 5
-        ver -= 5
+        if xform.ispost():
+            color = self.colors[xform._parent.index%len(self.colors)]
+        else:
+            varlist = [i for i in pyflam3.variation_list if getattr(xform,i)]
+            color = ((255,255,255) if xform.isfinal()
+                     else self.colors[xform.index%len(self.colors)])
+            hor, ver = self.GetSize()
+            hor -= 5
+            ver -= 5
 
-        for i in reversed(varlist):
-            ver -= 12
-            self.objects.append(self.AddText(i, self.PixelToWorld((hor,ver)),
-                                Size = 8, Position = "tr", Color=color))
+            for i in reversed(varlist):
+                ver -= 12
+                self.objects.append(self.AddText(i, self.PixelToWorld((hor,ver)),
+                                    Size = 8, Position = "tr", Color=color))
 
         if highlight:
             self.objects.append(self.AddLine(highlight, LineColor=color,
