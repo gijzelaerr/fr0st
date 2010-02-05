@@ -98,13 +98,13 @@ class TreePanel(wx.Panel):
 
     @Bind(wx.EVT_TREE_END_LABEL_EDIT)
     def OnEndEdit(self, e):
-        item = e.GetItem()
-        data = self.tree.GetFlameData(item)
         newname = str(e.GetLabel())
+        newname = newname[2:] if newname[:2] == '* ' else newname
         # Make sure edits don't change the name to an empty string
         if newname:
-            data.name = newname
-        self.tree.SetItemText(item, data.name)
+            data = self.tree.GetFlameData(e.GetItem())
+            self.parent.flame.name = data.name = newname
+            self.TempSave()
         e.Veto()
 
 
