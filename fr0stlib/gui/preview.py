@@ -110,15 +110,13 @@ class PreviewFrame(wx.Frame):
         
         req = self.parent.renderer.LargePreviewRequest
         req(self.RenderCallback, flame, size, progress_func=self.prog_func,
-            **config["Large-Preview-Settings"])
+            can_cancel=True, **config["Large-Preview-Settings"])
 
 
     def RenderCallback(self, bmp):
         self.image.UpdateBitmap(bmp)
         self.SetTitle("%s - Flame Preview" % self.parent.flame.name)
         self.SetStatusText("rendering: 100.00 %")
-
-    RenderCallback._can_cancel = True
 
 
     @InMain
