@@ -123,7 +123,10 @@ class RenderDialog(wx.Frame):
 
         self.config = config["Render-Settings"]
         self.dict = {}
-
+        self.progflag = 0
+        self.rendering = False
+        self._titles = []
+        
         #NOTE: On windows, all child controls must not have a frame as their direct
         #NOTE: parent if you want to use tab traversal. There MUST be a panel between
         #NOTE: the control an the frame in the window heirarchy.
@@ -175,9 +178,6 @@ class RenderDialog(wx.Frame):
         sizer.Add(main_panel, 1, wx.EXPAND|wx.ALL, 5)
         self.SetSizerAndFit(sizer)
         #szr4.Fit(self)
-
-        self.progflag = 0
-        self.rendering = False
 	
         self.Center(wx.CENTER_ON_SCREEN)
         self.SetBackgroundColour(wx.NullColour)
@@ -378,8 +378,8 @@ class RenderDialog(wx.Frame):
                              'Fr0st', wx.OK).ShowModal()
             return
         
-        self.selections = self.lb.GetSelections()
-        if not self.selections:
+        selections = [self.choices[i] for i in self.lb.GetSelections()]
+        if not selections:
             wx.MessageDialog(self, "You must select at least 1 flame.",
                              'Fr0st', wx.OK).ShowModal()
             return
@@ -394,8 +394,7 @@ class RenderDialog(wx.Frame):
         # paths are legal by calling the os.
         paths = []
         d = defaultdict(lambda: itertools.count(2).next)
-        for i in self.selections:
-            data = self.choices[i]
+        for data in selections:
             try:
                 path = destination.format(name=data._name)
                 if path in paths:
@@ -433,6 +432,7 @@ class RenderDialog(wx.Frame):
 
         # All checks have been made, the render is confirmed.
         self.rendering = True
+        
         self.close.Label = "Cancel"
         self.render.Label = "Pause"
 
@@ -446,33 +446,34 @@ class RenderDialog(wx.Frame):
         config["Img-Dir"] = os.path.dirname(destination)
         config["Img-Type"] = ty
 
+        len_ = len(selections)
         req = self.parent.renderer.RenderRequest
         backup = open(os.path.join(wx.GetApp().ConfigDir,'renders.bak'), 'a')
-        for i, path in zip(self.selections, paths):
-            data = self.choices[i]
-            prog = self.MakeProg(data.name, self.selections.index(i)+1,
-                                 len(self.selections))
-            req(partial(self.save, path, i), data[-1], size,
+        for i, (data, path) in enumerate(zip(selections, paths)):
+            prog = self.MakeProg(data.name, i+1, len_)
+            req(partial(self.save, path), data[-1], size,
                 progress_func=prog, **kwds)
             backup.write(data[-1] + "\n")
         backup.close()
 
-        self.t = time.time()
+        self._titles.append(self.Title)
+        self.Title = self._titles.pop(0)
 
 
     def MakeProg(self, name, index, lenght):
         name = name if len(name) < 20 else name[:17] + "..."
-        string = "rendering %s/%s (%s): %%.2f %%%% \t" %(index, lenght, name)
-        str_iter = string + "ETA: %02d:%02d:%02d"
-        str_de = string + "running density estimation"
+        str_name = "Rendering %s/%s (%s)" %(index, lenght, name)
+        str_it = str_name + ": %.2f %% \tETA: %02d:%02d:%02d"
+        str_de = str_name + ": %.2f %% \tRunning density estimation"
+
+        self._titles.append(str_name)
+        
         @InMain
         @Catches(wx.PyDeadObjectError)
         def prog(py_object, fraction, stage, eta):
             if stage == 0:
-                h = eta/3600
-                m = eta%3600/60
-                s = eta%60
-                self.SetStatusText(str_iter % (fraction,h,m,s))
+                h, m, s = eta/3600, eta%3600/60, eta%60
+                self.SetStatusText(str_it % (fraction, h, m, s))
                 self.gauge.SetValue(fraction)
             else:
                 self.SetStatusText(str_de % fraction)
@@ -482,9 +483,8 @@ class RenderDialog(wx.Frame):
             
     def CancelRender(self):
         # Make progress function return exit status to flam3 next time it
-        # is called.
+        # is called, and prevent future renders from being passed to flame.
         self.progflag = 1
-        # HACK: prevent future renders from being passed to flame.
         del self.parent.renderer.bgqueue[:]
         
 
@@ -496,13 +496,16 @@ class RenderDialog(wx.Frame):
         self.SetStatusText("")
 
 
-    def save(self, path, index, bmp):
+    def save(self, path, bmp):
         if self.progflag:
             # Don't save image.
             self.CleanProg()
             self.progflag = 0
+            self.Title = self._titles.pop()
+            del self._titles[:]
             return
         save_image(path, bmp)
+        self.Title = self._titles.pop(0)
 
-        if index == self.selections[-1]:
+        if not self._titles:
             self.CleanProg()
