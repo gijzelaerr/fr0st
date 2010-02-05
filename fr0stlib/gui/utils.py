@@ -250,7 +250,7 @@ class NumberTextCtrl(wx.TextCtrl):
 
 class MultiSliderMixin(object):
     """Class to dynamically create and control sliders."""
-    _new = None
+    _new = False
     _changed = False
 
     def __init__(self, *a, **k):
@@ -311,9 +311,9 @@ class MultiSliderMixin(object):
 
 
     def OnIdle(self, e):
-        if self._new is not None:
+        if self._new:
             self.UpdateFlame()
-            self._new = None
+            self._new = False
             self._changed = True
 
 
