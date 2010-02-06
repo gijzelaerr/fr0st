@@ -22,7 +22,6 @@
 
 import wx, os, time, sys, itertools
 from  wx.lib.filebrowsebutton import FileBrowseButton
-from functools import partial
 from collections import defaultdict
 
 from fr0stlib import Flame
@@ -125,7 +124,6 @@ class RenderDialog(wx.Frame):
         self.dict = {}
         self.progflag = 0
         self.rendering = False
-        self._titles = []
         
         #NOTE: On windows, all child controls must not have a frame as their direct
         #NOTE: parent if you want to use tab traversal. There MUST be a panel between
@@ -346,17 +344,15 @@ class RenderDialog(wx.Frame):
             if res == wx.ID_NO:
                 return res
             
-        self.CancelRender()
-            
+        self.progflag = 1            
         self.parent.renderdialog = None
         self.Destroy()
 
 
     @Bind(wx.EVT_BUTTON, id=ID.CLOSE)
     def OnClose(self, e):
-        if self.close.Label == "Cancel":
-            self.CancelRender()
-        else:
+        self.progflag = 1
+        if self.close.Label == "Close":
             self.OnExit()
         
 
@@ -432,41 +428,56 @@ class RenderDialog(wx.Frame):
 
         # All checks have been made, the render is confirmed.
         self.rendering = True
-        
-        self.close.Label = "Cancel"
         self.render.Label = "Pause"
+        self.close.Label = "Cancel"
 
         kwds = dict((k,v.GetFloat()) for k,v in self.dict.iteritems())
         kwds["earlyclip"] = self.earlyclip
         if ty == ".png":
             kwds["transparent"] = self.transp
-        size = self.sizepanel.GetInts()
 
         self.config.update(kwds)
         config["Img-Dir"] = os.path.dirname(destination)
         config["Img-Type"] = ty
 
+        self._gen = self.render_gen(selections, paths, kwds)
+        self._gen.next()
+
+
+    def render_gen(self, selections, paths, kwds):
+        size = self.sizepanel.GetInts()
         len_ = len(selections)
+        old_title = self.Title
         req = self.parent.renderer.RenderRequest
         backup = open(os.path.join(wx.GetApp().ConfigDir,'renders.bak'), 'a')
+
         for i, (data, path) in enumerate(zip(selections, paths)):
-            prog = self.MakeProg(data.name, i+1, len_)
-            req(partial(self.save, path), data[-1], size,
-                progress_func=prog, **kwds)
+            name = data.name if len(data.name) < 20 else data.name[:17] + "..."
+            str_name = "Rendering %s/%s (%s)" %(i+1, len_, name)
+            req(self._gen.send, data[-1], size,
+                progress_func=self.MakeProg(str_name), **kwds)
             backup.write(data[-1] + "\n")
+            self.Title = str_name
+            bmp = yield
+            if self.progflag:
+                self.progflag = 0
+                break
+            save_image(path, bmp)
+            
         backup.close()
+        self.Title = old_title
+        self.gauge.SetValue(0)
+        self.SetStatusText("")
+        
+        self.rendering = False
+        self.render.Label = "Render"
+        self.close.Label = "Close"
+        yield
+        
 
-        self._titles.append(self.Title)
-        self.Title = self._titles.pop(0)
-
-
-    def MakeProg(self, name, index, lenght):
-        name = name if len(name) < 20 else name[:17] + "..."
-        str_name = "Rendering %s/%s (%s)" %(index, lenght, name)
+    def MakeProg(self, str_name):
         str_it = str_name + ": %.2f %% \tETA: %02d:%02d:%02d"
         str_de = str_name + ": %.2f %% \tRunning density estimation"
-
-        self._titles.append(str_name)
         
         @InMain
         @Catches(wx.PyDeadObjectError)
@@ -480,32 +491,3 @@ class RenderDialog(wx.Frame):
             return self.progflag
         return prog
 
-            
-    def CancelRender(self):
-        # Make progress function return exit status to flam3 next time it
-        # is called, and prevent future renders from being passed to flame.
-        self.progflag = 1
-        del self.parent.renderer.bgqueue[:]
-        
-
-    def CleanProg(self):
-        self.rendering = False
-        self.render.Label = "Render"
-        self.close.Label = "Close"
-        self.gauge.SetValue(0)
-        self.SetStatusText("")
-
-
-    def save(self, path, bmp):
-        if self.progflag:
-            # Don't save image.
-            self.CleanProg()
-            self.progflag = 0
-            self.Title = self._titles.pop()
-            del self._titles[:]
-            return
-        save_image(path, bmp)
-        self.Title = self._titles.pop(0)
-
-        if not self._titles:
-            self.CleanProg()
