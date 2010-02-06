@@ -38,10 +38,8 @@ class Renderer():
         self.exitflag = 0
         self.previewflag = 0
         self.bgflag = 0
-        if "-debug" not in sys.argv:
-            # TODO: remove this.
-            self.RenderLoop()
-            self.bgRenderLoop()
+        self.RenderLoop()
+        self.bgRenderLoop()
 
 
     def ThumbnailRequest(self, callback, *args, **kwds):
