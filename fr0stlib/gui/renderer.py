@@ -20,7 +20,6 @@
 #  Boston, MA 02111-1307, USA.
 ##############################################################################
 import time, sys, traceback, wx
-from collections import defaultdict
 
 from fr0stlib.decorators import Catches, Threaded
 from fr0stlib.render import flam3_render, flam4_render

@@ -209,8 +209,7 @@ class MainWindow(wx.Frame):
 
     @BindEvents
     def __init__(self,parent,id):
-        self.title = "Fractal Fr0st"
-        wx.Frame.__init__(self,parent,wx.ID_ANY, self.title)
+        wx.Frame.__init__(self, parent, wx.ID_ANY, "Fractal Fr0st")
 
         sys.excepthook = unhandled_exception_handler
 
