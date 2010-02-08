@@ -71,7 +71,7 @@ def init_config():
                               "estimator_curve": 0.4,
                               "estimator_minimum": 0,
                               "nthreads": 0,
-                              "buffer_depth": 33,
+                              "buffer_depth": 64,
                               "earlyclip": True,
                               "transparent": False,
                               "filter_kernel": 0},

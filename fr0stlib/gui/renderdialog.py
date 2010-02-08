@@ -91,7 +91,7 @@ class FreeMemoryPanel(wx.Panel):
 class RenderDialog(wx.Frame):
     buffer_depth_dict = {"32-bit int": 32,
               "32-bit float": 33,
-              "64-bit int": 64}
+              "64-bit double": 64}
     filter_kernel_dict = {"Gaussian": 0,
                           "Hermite": 1,
                           "Box": 2,

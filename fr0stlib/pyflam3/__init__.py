@@ -154,7 +154,7 @@ class Genome(BaseGenome):
 
 
 class Frame(BaseFrame):
-    def __init__(self, fixed_seed=False, aspect=1.0, buffer_depth=33, time=0,
+    def __init__(self, fixed_seed=False, aspect=1.0, buffer_depth=64, time=0,
                  bytes_per_channel=1, progress_func=None, nthreads=0,
                  earlyclip=False, sub_batch_size=100000):
         if not fixed_seed:
