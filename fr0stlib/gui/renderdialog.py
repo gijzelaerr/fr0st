@@ -79,11 +79,9 @@ class FreeMemoryPanel(wx.Panel):
     def GetRequired(self):
         w, h = self.GetParent().GetParent().sizepanel.GetInts()
         os = self.GetParent().GetParent().dict["spatial_oversample"].GetFloat()
-        int_size = 4
-        if self.depth.GetStringSelection() == "64-bit int":
-            int_size = 8
+        depth = int(self.depth.GetStringSelection().split("-")[0]) / 8
         # the *9 is for: 5 in bucket (RGBA+density) + 4 in abucket (RGBA)
-        return w * h * os**2 * int_size * 9 / 1024.**2
+        return w * h * os**2 * depth * 9 / 1024.**2
     
         
         
