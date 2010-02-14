@@ -193,18 +193,17 @@ class PreviewBase(wx.Panel):
     def OnWheel(self, e):
         if e.ControlDown():
             if e.AltDown():
-                diff = 0.01
+                diff = 1.01
             else:
-                diff = 0.1
+                diff = 1.1
         elif e.AltDown():
-            diff = 0.001
+            diff = 1.001
         else:
-            e.Skip()
             return
 
-        self.SetFocus() # Makes sure OnKeyUp gets called.
+        self._zoom *= diff**((e.GetWheelRotation() > 0)*2 -1)
 
-        self._zoom *= 1 + (diff if e.GetWheelRotation() > 0 else -diff)
+        self.SetFocus() # Makes sure OnKeyUp gets called.
          
 
     @Bind(wx.EVT_KEY_UP)
