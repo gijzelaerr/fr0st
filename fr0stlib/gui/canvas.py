@@ -187,32 +187,20 @@ class XformCanvas(FC.FloatCanvas):
         self.callback = None
 
     def ShowFlame(self, flame=None, rezoom=True, refresh=True):
-        if flame is None:
-            flame = self.parent.flame
-
-        self.RemoveObjects(self.xform_groups)
-        self.xform_groups = []
+        flame = flame or self.parent.flame
 
         if self.preview is not None:
             self.RemoveObject(self.preview)
             self.preview = None
 
+        active = self.parent.ActiveXform
+        self.RemoveObjects(self.xform_groups)
         if config['Edit-Post-Xform']:
-            i = self.parent.ActiveXform
-            selected = self.SelectedXform
-            
-            xf = self.AddXform(i, solid=False, fill=i==self.SelectedXform)
-            self.xform_groups.append(xf)
-            
-            pxf = self.AddXform(i.post, solid=True,
-                                fill=i.post==self.SelectedXform)
-            self.xform_groups.append(pxf)
-            
+            self.xform_groups = [self.AddXform(active, solid=False),
+                                 self.AddXform(active.post, solid=True)]
         else:
-            for i in flame.iter_xforms():               
-                xf = self.AddXform(i, solid=i==self.parent.ActiveXform,
-                                   fill=i==self.SelectedXform)
-                self.xform_groups.append(xf)
+            self.xform_groups = [self.AddXform(i, solid=i==active)
+                                 for i in flame.iter_xforms()]
 
         if rezoom:
             self.ZoomToFit()
@@ -221,14 +209,11 @@ class XformCanvas(FC.FloatCanvas):
             self.Draw()
 
 
-    def AddXform(self, xform, solid=False, fill=False):
-
-        if xform.ispost():
-            color = self.colors[xform._parent.index%len(self.colors)]
-        else:
-            color = ((255,255,255) if xform.isfinal()
-                     else self.colors[xform.index%len(self.colors)])
-            
+    def AddXform(self, xform, solid=False, fill=None):
+        color = self.color_helper(xform)
+        if fill is None:
+            fill = xform == self.SelectedXform
+           
         t = XFormTriangle(self, xform, color, solid, fill)
         if solid and config["Variation-Preview"]:
             self.preview = VarPreview(xform, Color=color)
@@ -236,6 +221,14 @@ class XformCanvas(FC.FloatCanvas):
         self.AddObject(t)
 
         return t
+
+
+    def color_helper(self, xform):
+        xform = xform._parent if xform.ispost() else xform
+        if xform.isfinal():
+            return (255, 255, 255)
+        return self.colors[xform.index%len(self.colors)]
+
 
     def GetCornerPoints(self, xform, post=False):
         """Calculate the lines making up the corners of the triangle."""
@@ -297,11 +290,10 @@ class XformCanvas(FC.FloatCanvas):
 
     def IterXforms(self):
         active = self.parent.ActiveXform
-        lst = [i.xform for i in self.xform_groups]
-        if active in lst:
-            lst.remove(active)
-            lst.insert(0, active)
-        return lst
+        if config['Edit-Post-Xform']:
+            return active.post, active
+        lst = [i.xform for i in self.xform_groups if i.xform != active]
+        return [active] + lst
 
 
     def ActivateCallback(self,coords):
@@ -496,7 +488,7 @@ class XformCanvas(FC.FloatCanvas):
             self.parent.XformTabs.UpdateView()
 
             # EXPERIMENT!
-            t = self.AddXform(self.SelectedXform)
+            t = self.AddXform(self.SelectedXform, fill=False)
             self.shadow.append(t)
 
 
@@ -598,16 +590,13 @@ class XformCanvas(FC.FloatCanvas):
         self.SelectedXform = xform
         self._highlight = highlight
 
-        if xform.ispost():
-            color = self.colors[xform._parent.index%len(self.colors)]
-        else:
+        color = self.color_helper(xform)
+
+        if not xform.ispost():
             varlist = [i for i in pyflam3.variation_list if getattr(xform,i)]
-            color = ((255,255,255) if xform.isfinal()
-                     else self.colors[xform.index%len(self.colors)])
             hor, ver = self.GetSize()
             hor -= 5
             ver -= 5
-
             for i in reversed(varlist):
                 ver -= 12
                 self.objects.append(self.AddText(i, self.PixelToWorld((hor,ver)),
