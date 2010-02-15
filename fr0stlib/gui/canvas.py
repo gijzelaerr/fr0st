@@ -337,7 +337,10 @@ class XformCanvas(FC.FloatCanvas):
                 return xform.scale(self.CalcScale(xform.points, h, v))
             return cb
 
-        if funcname == "rotate" or config["Lock-Axes"]:
+        if funcname == "rotate":
+            pivot = xform.o
+            func = partial(xform.rotate, pivot=pivot)
+        elif config["Lock-Axes"]:
             pivot = (0,0) if config["World-Pivot"] else xform.o
             func = partial(xform.rotate, pivot=pivot)
         else:
