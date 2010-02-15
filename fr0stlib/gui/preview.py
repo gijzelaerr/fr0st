@@ -111,6 +111,7 @@ class PreviewFrame(wx.Frame):
         req = self.parent.renderer.LargePreviewRequest
         req(self.RenderCallback, flame, size, progress_func=self.prog_func,
             can_cancel=True, **config["Large-Preview-Settings"])
+        self.SetTitle("Rendering - Flame Preview")
 
 
     def RenderCallback(self, bmp):
