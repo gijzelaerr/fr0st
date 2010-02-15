@@ -45,7 +45,6 @@ def angle_helper(*points):
 
 
 class VarPreview(FC.PointSet):
-
     def __init__(self, xform, Color):
         self.xform = xform
         lst = self.var_preview(xform, **config["Var-Preview-Settings"])
@@ -70,14 +69,13 @@ class VarPreview(FC.PointSet):
 ##        self.BoundingBox = BBox.fromPoints(self.xform.points)
 
 
-class BaseCoefsTriangle(FC.Group):
-    def __init__(self, parent, xform, points, coefs, color, solid, fill):
-        
+
+class XFormTriangle(FC.Group):
+    def __init__(self, parent, xform, color, solid, fill):
         self.xform = xform
+        self.coefs = xform.coefs
         self.parent = parent
-        self.points = points
-        self.coefs = coefs
-        self.color = color
+        points = xform.points
 
         self.triangle = FC.Polygon(points,
                          LineColor=color,
@@ -86,52 +84,58 @@ class BaseCoefsTriangle(FC.Group):
                          LineStyle="Solid" if solid else parent.style)
 
         diameter = parent.circle_radius * 2
-
-        circles = [FC.Circle(i, Diameter=diameter, LineColor=color) for i in points]
-
-        text = map(lambda x,y: FC.Text(x,y,Size=10,Color=color), "XYO",points)
-
+        circles = map(partial(FC.Circle, Diameter=diameter, LineColor=color),
+                      points)
+        text = map(partial(FC.Text, Size=10,Color=color), "XYO", points)
         self._circles = circles
-        self._text = text
+        
+        if solid:
+            parent._cornerpoints = self.GetCornerPoints()
+            corners = [FC.Line(i, LineColor=color)
+                       for i in parent._cornerpoints]
+            text.extend(corners)
 
         FC.Group.__init__(self, [self.triangle] + circles + text)
-
+            
 
     def VertexHitTest(self, x, y):
         a,d,b,e,c,f = self.coefs
 
         if polar((x - c, y - f))[0] < self.parent.circle_radius:
-            return 'o'
+            attr = "pos" if config["Lock-Axes"] else "o"
+            return self.xform, partial(setattr, self.xform, attr)
         elif polar((x - a - c, y - d - f))[0] < self.parent.circle_radius:
-            return 'x'
-        elif polar((x - b - c, y - e - f))[0] < self.parent.circle_radius:
-            return 'y'
-
-
-class XFormTriangle(BaseCoefsTriangle):
-    def __init__(self, parent, xform, color, solid=False, fill=False):
-        BaseCoefsTriangle.__init__(self, parent, xform, xform.points, xform.coefs, color, solid, fill)
-
-        if solid:
-            parent._cornerpoints = parent.GetCornerPoints(xform)
-            corners = [FC.Line(i, LineColor=color) for i in parent._cornerpoints]
-            self._text.extend(corners)
-            self.AddObjects(corners)
-
-
-    def VertexHitTest(self, x, y):
-        v = BaseCoefsTriangle.VertexHitTest(self, x, y)
-
-        if v is None:
-            return None, None
-        elif v == 'o':
-            return (self.xform, partial(setattr, self.xform, "pos")
-                           if config["Lock-Axes"] else partial(setattr, self.xform, "o"))
-        elif v == 'x':
             return self.xform, partial(setattr, self.xform, "x")
+        elif polar((x - b - c, y - e - f))[0] < self.parent.circle_radius:
+            return self.xform, partial(setattr, self.xform, "y")            
+        return None, None
 
-        elif v == 'y':
-            return self.xform, partial(setattr, self.xform, "y")
+
+    def GetCornerPoints(self):
+        """Calculate the lines making up the corners of the triangle."""
+        a,d,b,e,c,f = self.xform.coefs
+
+        # Get the 4 corner points
+        p1 = c + a + b, f + d + e
+        p2 = c + a - b, f + d - e
+        p3 = c - a + b, f - d + e
+        p4 = c - a - b, f - d - e
+
+        # define towards which other corners the corner lines will point.
+        # (p1, p4) and (p2, p3) are opposing corners.
+        combinations = ((p1,p2,p3),
+                        (p2,p1,p4),
+                        (p3,p1,p4),
+                        (p4,p2,p3))
+
+        # Make the length of the corner lines 1/10th of the distance to the
+        # respective corner. The lists of points returned will be drawn as
+        # multilines.
+        return [((x1+(x2-x1)/10, y1+(y2-y1)/10),
+                 (x1, y1),
+                 (x1+(x3-x1)/10, y1+(y3-y1)/10))
+                for (x1,y1),(x2,y2),(x3,y3) in combinations]            
+
 
 
 class XformCanvas(FC.FloatCanvas):
@@ -186,6 +190,7 @@ class XformCanvas(FC.FloatCanvas):
         self.StartMove = None
         self.callback = None
 
+
     def ShowFlame(self, flame=None, rezoom=True, refresh=True):
         flame = flame or self.parent.flame
 
@@ -228,32 +233,6 @@ class XformCanvas(FC.FloatCanvas):
         if xform.isfinal():
             return (255, 255, 255)
         return self.colors[xform.index%len(self.colors)]
-
-
-    def GetCornerPoints(self, xform, post=False):
-        """Calculate the lines making up the corners of the triangle."""
-        a,d,b,e,c,f = xform.coefs if not post else xform.post.coefs
-
-        # Get the 4 corner points
-        p1 = c + a + b, f + d + e
-        p2 = c + a - b, f + d - e
-        p3 = c - a + b, f - d + e
-        p4 = c - a - b, f - d - e
-
-        # define towards which other corners the corner lines will point.
-        # (p1, p4) and (p2, p3) are opposing corners.
-        combinations = ((p1,p2,p3),
-                        (p2,p1,p4),
-                        (p3,p1,p4),
-                        (p4,p2,p3))
-
-        # Make the length of the corner lines 1/10th of the distance to the
-        # respective corner. The lists of points returned will be drawn as
-        # multilines.
-        return [((x1+(x2-x1)/10, y1+(y2-y1)/10),
-                 (x1, y1),
-                 (x1+(x3-x1)/10, y1+(y3-y1)/10))
-                for (x1,y1),(x2,y2),(x3,y3) in combinations]
 
 
     def MakeGrid(self):
