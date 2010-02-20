@@ -53,7 +53,10 @@ class VarPreview(FC.PointSet):
     def var_preview(self, xform, range, numvals, depth):
         xform = xform._parent if xform.ispost() else xform
         result = (c_double * (2* (2*numvals+1)**2))()
-        genome = Genome.from_string(xform._parent.to_string(True))[0]
+        try:
+            genome = Genome.from_string(xform._parent.to_string(True))[0]
+        except Exception:
+            return [(0,0)]
         index = xform.index
         if index is None:
             index = genome.final_xform_index
