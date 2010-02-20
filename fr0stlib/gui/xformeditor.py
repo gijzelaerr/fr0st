@@ -413,7 +413,7 @@ class VarPanel(wx.Panel):
             attr = str(getattr(xform, name))
             if self.tree.GetItemText(i, 1) != attr:
                 self.SetItemText(i, attr, 1)
-            if not float(attr):
+            if attr == '0.0':
                 continue
             for j, name2 in self.itervars(i):
                 # Looping through variables
