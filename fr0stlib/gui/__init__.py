@@ -693,8 +693,7 @@ flam4 - (c) 2009 Steven Broadhead""" % fr0stlib.VERSION,
                 self.SetFlame(self.flame, rezoom=False)
                 self.TreePanel.TempSave()
             except Exception as e:
-                print "Error updating flame:"
-                print e
+                print "Exception updating flame:\n%s" %e
                 self.SetFlame(oldflame, rezoom=False)
         else:
             self.SetFlame(oldflame, rezoom=False)
