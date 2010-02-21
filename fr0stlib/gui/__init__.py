@@ -456,36 +456,19 @@ flam4 - (c) 2009 Steven Broadhead""" % fr0stlib.VERSION,
         self.previewframe.RenderPreview()
 
 
-    @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=ID.UNDO)
-    def OnUndo(self,e):
-        data = self.tree.itemdata
-        self.SetFlame(Flame(string=data.Undo()), rezoom=False)
-        self.tree.RenderThumbnail()
-        self.tree.SetItemText(self.tree.item, data.name)
+    def _undo(name, id):
+        @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=id)
+        def _handler(self, e):
+            data = self.tree.itemdata
+            self.SetFlame(Flame(string=getattr(data, name)()), rezoom=False)
+            self.tree.RenderThumbnail()
+            self.tree.SetItemText(self.tree.item, data.name)
+        return _handler
 
-
-    @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=ID.UNDOALL)
-    def OnUndoAll(self, e):
-        data = self.tree.itemdata
-        self.SetFlame(Flame(string=data.UndoAll()), rezoom=False)
-        self.tree.RenderThumbnail()
-        self.tree.SetItemText(self.tree.item, data.name)
-
-
-    @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=ID.REDO)
-    def OnRedo(self,e):
-        data = self.tree.itemdata
-        self.SetFlame(Flame(string=data.Redo()), rezoom=False)
-        self.tree.RenderThumbnail()
-        self.tree.SetItemText(self.tree.item, data.name)
-
-
-    @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=ID.REDOALL)
-    def OnRedoAll(self,e):
-        data = self.tree.itemdata
-        self.SetFlame(Flame(string=data.RedoAll()), rezoom=False)
-        self.tree.RenderThumbnail()
-        self.tree.SetItemText(self.tree.item, data.name)
+    OnUndoOne = _undo('Undo', ID.UNDO)
+    OnUndoAll = _undo('UndoAll', ID.UNDOALL)
+    OnRedoOne = _undo('Redo', ID.REDO)
+    OnRedoAll = _undo('RedoAll', ID.REDOALL)
 
 
     @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=ID.RENDER)
@@ -577,8 +560,8 @@ flam4 - (c) 2009 Steven Broadhead""" % fr0stlib.VERSION,
                 index = min(self.ActiveXform.index, len(flame.xform)-1)
                 self.ActiveXform = flame.xform[index]
 
-        self.image.RenderPreview(flame)
-        self.large_preview()
+        self.image.RenderPreview()
+        self.previewframe.RenderPreview()
         self.XformTabs.UpdateView()
         self.notebook.UpdateView(rezoom=rezoom)
         if self.renderdialog:
@@ -625,7 +608,7 @@ flam4 - (c) 2009 Steven Broadhead""" % fr0stlib.VERSION,
         fr0stlib.get_flames = self.tree.GetFlames
         fr0stlib.get_file_path = self.tree.GetFilePath
         fr0stlib.preview = self.preview
-        fr0stlib.large_preview = self.large_preview
+        fr0stlib.large_preview = self.previewframe.RenderPreview
         fr0stlib.dialog = self.editor.make_dialog
         
 
@@ -723,10 +706,6 @@ flam4 - (c) 2009 Steven Broadhead""" % fr0stlib.VERSION,
         self.image.RenderPreview()
         self.OnPreview()
         time.sleep(.01) # Avoids spamming too many requests.
-
-
-    def large_preview(self):
-        self.previewframe.RenderPreview()
         
 
     @InMain
@@ -761,12 +740,12 @@ class ImagePanel(PreviewBase):
         return self.Size
 
 
-    def RenderPreview(self, flame=None):
+    def RenderPreview(self):
         """Renders a preview version of the flame and displays it in the gui.
 
         The renderer takes care of denying repeated requests so that at most
         one redundant preview is rendered."""
-        flame = flame or self.parent.flame
+        flame = self.parent.flame
 
         ratio = 200. / max(flame.size)
         size = [int(i * ratio) for i in flame.size]
