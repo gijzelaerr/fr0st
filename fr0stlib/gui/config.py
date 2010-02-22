@@ -94,9 +94,9 @@ def init_config():
     if os.path.exists(get_config_path()):
         update_dict(config, load())
 
-    # HACK: if a plain samples.flame is in the config file instead of an
-    # absolute path, we need to fix it so it finds the correct location.
-    if config["flamepath"] == u"samples.flame":
+    # We always want to open an existing flame file. This also takes care of
+    # older (1.0beta) config files, where a plain 'samples.flame' was included.
+    if not os.path.exists(config["flamepath"]):
         config["flamepath"] = original_config["flamepath"]
 
     atexit.register(dump)
