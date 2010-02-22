@@ -908,16 +908,17 @@ class Chaos(object):
 
 
 
-def save_flames(filename,*flames):
-    lst = [f.to_string() if isinstance(f,Flame) else f for f in flames]
-    lst.insert(0, """<flames name="Fr0st Batch">""")
-    lst.append("""</flames>""")
-    head, ext = os.path.splitext(filename)
-    if os.path.exists(filename) and ext == ".flame":
-        shutil.copy(filename,head + ".bak")
-    f = open(filename,"w")
-    f.write("\n".join(lst))
-    f.close()
+def save_flames(path, *flames):
+    lst = [f.to_string() if isinstance(f, Flame) else f for f in flames]
+    head, ext = os.path.splitext(path)
+    if os.path.exists(path) and ext == ".flame":
+        shutil.copy(path, head + ".bak")
+    if not os.path.exists(os.path.dirname(path)):
+        os.makedirs(os.path.dirname(path))
+    with open(path, "w") as f:
+        f.write("""<flames version="%s">\n""" %VERSION)
+        f.write("\n".join(lst))
+        f.write("""</flames>""")
 
 
 def needs_conversion(string):
