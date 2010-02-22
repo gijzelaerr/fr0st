@@ -485,12 +485,6 @@ flam4 - (c) 2009 Steven Broadhead""" % fr0stlib.VERSION,
         flame.add_xform()
         flame.gradient.random(**config["Gradient-Settings"])
         return flame
-
-
-    def MakeFlameFile(self, path):
-        if not os.path.exists(os.path.dirname(path)):
-            os.makedirs(os.path.dirname(path))
-        save_flames(path, self.MakeFlame())
         
 
     def OpenFlame(self, path):
@@ -509,17 +503,17 @@ flam4 - (c) 2009 Steven Broadhead""" % fr0stlib.VERSION,
             # reducing the size of the tree.
             self.tree.SelectItem(self.tree.itemparent)
 
-        if not os.path.exists(path):
-            self.MakeFlameFile(path)
-            
-        # scan the file to see if it's valid
-        flamestrings = fr0stlib.load_flame_strings(path)
-        if not flamestrings:
-            wx.MessageDialog(self, "It seems %s is not a valid flame file."
-                             " Please choose a different flame." % path,
-                             'Fr0st',wx.OK).ShowModal()
-            self.OnFlameOpen(None)
-            return
+        if os.path.exists(path):
+            # scan the file to see if it's valid
+            flamestrings = fr0stlib.load_flame_strings(path)
+            if not flamestrings:
+                wx.MessageDialog(self, "It seems %s is not a valid flame file."
+                                 " Please choose a different flame." % path,
+                                 'Fr0st',wx.OK).ShowModal()
+                self.OnFlameOpen(None)
+                return
+        else:
+            flamestrings = (self.MakeFlame().to_string(),)
 
         # Add flames to the tree
         item = self.tree.SetFlames(path, *flamestrings)
