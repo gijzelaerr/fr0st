@@ -941,6 +941,7 @@ def load_flames(filename):
 
 
 def show_status(s):
-    sys.stdout.write("%s\r" %s)
+    sys.stdout.write("\r" + " " *80)
+    sys.stdout.write("\r%s\r" %s)
     sys.stdout.flush()
 
