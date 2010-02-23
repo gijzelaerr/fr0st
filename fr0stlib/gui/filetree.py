@@ -244,6 +244,8 @@ class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
 
     def OnDrop(self, *args):
         """This method is used by the DragAndDrop mixin."""
+        self._dragging = False
+        
         dropindex, dragindex = map(self.GetIndexOfItem, args)
         if not dropindex:
             return
@@ -257,9 +259,6 @@ class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
         lst.insert(toindex, lst.pop(fromindex))
         self.RefreshItems()
 
-        # _dragging has done its job (preventing OnSelChanged from triggering
-        # multiple times) The SelectItem below DOES need to trigger, however.
-        self._dragging = False
         self.item = self.GetItemByIndex((0, min(toindex, len(lst)-1)))
         self.SelectItem(self.item)
         
