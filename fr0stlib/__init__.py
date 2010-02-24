@@ -913,8 +913,9 @@ def save_flames(path, *flames):
     head, ext = os.path.splitext(path)
     if os.path.exists(path) and ext == ".flame":
         shutil.copy(path, head + ".bak")
-    if not os.path.exists(os.path.dirname(path)):
-        os.makedirs(os.path.dirname(path))
+    dirname = os.path.dirname(path)
+    if dirname and not os.path.exists(dirname):
+        os.makedirs(dirname)
     with open(path, "w") as f:
         f.write("""<flames version="%s">\n""" %VERSION)
         f.write("\n".join(lst))
