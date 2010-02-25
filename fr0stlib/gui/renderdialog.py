@@ -384,17 +384,23 @@ class RenderDialog(wx.Frame):
                              'Fr0st', wx.OK).ShowModal()
             return
 
-        # Interpolate flame names, make repeated names unique, and ensure all
-        # paths are legal by calling the os.
-        paths = []
-        d = defaultdict(lambda: itertools.count(2).next)
-        for data in selections:
-            try:
-                path = destination.format(name=data._name)
-                if path in paths:
+        # Interpolate flame names, make repeated names unique.
+        paths = [destination.format(name=data._name) for data in selections]
+        check = defaultdict(int)
+        for path in paths:
+            check[path] += 1
+        if len(check) < len(paths):
+            d = defaultdict(lambda: itertools.count(1).next)
+            def uniq(path):
+                if check[path] > 1:
                     base, ext = os.path.splitext(path)
-                    path = "%s (%s)%s" %(base, d[path](), ext)
-                # Check if path is valid and user has write permission.
+                    return "%s (%04d)%s" %(base, d[path](), ext)
+                return path
+            paths = map(uniq, paths)
+
+        # Check if each path is valid and user has write permission.
+        for path in paths:
+            try:
                 if os.path.exists(path):
                     open(path, 'a').close()
                 else:
@@ -407,9 +413,8 @@ class RenderDialog(wx.Frame):
                 wx.MessageDialog(self, "Invalid path name.", 'Fr0st',
                                  wx.OK).ShowModal()
                 return
-            paths.append(path)
 
-        clashes = [path for path in paths if os.path.exists(path)]
+        clashes = filter(os.path.exists, paths)
         if clashes:
             if len(clashes) > 3:
                 middle = "%%s\n... (%s more)\n\n" %len(clashes[3:])
