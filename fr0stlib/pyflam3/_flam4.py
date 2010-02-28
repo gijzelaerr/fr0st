@@ -236,7 +236,8 @@ def setTransAff(transAff, xform):
     transAff.d = xform.d
     transAff.e = xform.e
     
-def renderFlam4(flame, size, quality, progress_func, **kwds):
+def renderFlam4(flame, size, quality, progress_func, transparent=False,
+                **kwds):
     global LastRenderSize, cudaRunning
     w,h = size
     outputBuffer = (c_ubyte*(w*h*4))()
@@ -261,6 +262,6 @@ def renderFlam4(flame, size, quality, progress_func, **kwds):
         sys.stdout.write("")
         if flag:
             return
-    libflam4.cuFinishFrame(pointer(flame), outputBuffer, kwds['transparent'])
+    libflam4.cuFinishFrame(pointer(flame), outputBuffer, transparent)
     return outputBuffer
 
