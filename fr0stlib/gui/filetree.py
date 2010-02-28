@@ -172,6 +172,7 @@ class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
         self.item = None
         self.flamefiles = []
         self._dragging = False
+        self._render_thumbnails = True
 
 
     def SetFlames(self, path, *flamestrings):
@@ -183,9 +184,15 @@ class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
 
         # cancel all outstanding thumbnails.
         self.parent.parent.renderer.thumbqueue[:] = []
-        
+
+        if len(flamestrings) > 1000:
+            self._render_thumbnails = False
+            self.parent.parent.SetStatusText("Thumbnail rendering disabled (too many flames)")
+        else:
+            self._render_thumbnails = True
+            self.parent.parent.SetStatusText("")
+
         flag = self.flag = wx.NewId()
-        
         for child, data in zip(self.GetItemChildren(), (i[0] for i in lst)):
             self.RenderThumbnail(child, data, flag)
             # Set item to default until thumbnail is ready.
@@ -197,6 +204,8 @@ class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
 
 
     def RenderThumbnail(self, child=None, data=None, flag=None):
+        if not self._render_thumbnails:
+            return
         if child is None:
             child = self.item
             data = self.GetFlameData(child)
