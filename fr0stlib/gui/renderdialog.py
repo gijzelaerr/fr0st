@@ -358,10 +358,12 @@ class RenderDialog(wx.Frame):
     def OnRender(self, event):
         if self.render.Label == "Pause":
             self.render.Label = "Resume"
+            self.Title = 'Paused - ' + self.Title
             self.progflag = 2
             return
         elif self.render.Label == "Resume":
             self.render.Label = "Pause"
+            self.Title = self.Title.lstrip('Paused - ')
             self.progflag = 0
             return
 
