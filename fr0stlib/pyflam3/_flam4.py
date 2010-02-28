@@ -6,9 +6,8 @@ from fr0stlib.pyflam3.find_dll import find_dll
 libflam4 = find_dll('Flam4CUDA_LIB', omit_lib_in_windows=True)
         
 
-LastRenderWidth = 0
-LastRenderHeight = 0
-cudaRunning = 0
+LastRenderSize = 0, 0
+cudaRunning = False
 
 
 class rgba(Structure):
@@ -238,15 +237,15 @@ def setTransAff(transAff, xform):
     transAff.e = xform.e
     
 def renderFlam4(flame, size, quality, progress_func, **kwds):
-    global LastRenderWidth, LastRenderHeight, cudaRunning
+    global LastRenderSize, cudaRunning
     w,h = size
     outputBuffer = (c_ubyte*(w*h*4))()
-    if LastRenderWidth != w or LastRenderHeight != h:
+    if LastRenderSize != size:
         if cudaRunning:
             libflam4.cuStopCuda()
-        cudaRunning = 1
+        cudaRunning = True
         libflam4.cuStartCuda(c_uint(0),c_int(w),c_int(h))
-        LastRenderWidth,LastRenderHeight = size
+        LastRenderSize = size
 
     numBatches = max(3, libflam4.cuCalcNumBatches(w, h, quality))
     flame.quality = numBatches

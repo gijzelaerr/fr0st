@@ -22,7 +22,7 @@
 import time, sys, traceback, wx
 
 from fr0stlib.decorators import Catches, Threaded
-from fr0stlib.render import flam3_render, flam4_render
+from fr0stlib.render import render_funcs
 from fr0stlib.gui.config import config
 from fr0stlib.gui._events import InMain
 
@@ -65,9 +65,7 @@ class Renderer():
         
     def LargePreviewRequest(self, callback, *args, **kwds):
         """Makes a preview request with a progress function."""
-        prog_func = kwds.get("progress_func", None)
-        if not prog_func:
-            raise KeyError("You must specify a progress function")
+        prog_func = kwds["progress_func"]
         kwds["progress_func"] = self.prog_wrapper(prog_func, "previewflag")
         kwds["renderer"] = kwds.get("renderer", config["renderer"])
         self.previewflag = 1
@@ -78,9 +76,7 @@ class Renderer():
     def RenderRequest(self, callback, *args, **kwds):
         """Makes a render request run in a different thread than previews,
         so it can be paused."""
-        prog_func = kwds.get("progress_func", None)
-        if not prog_func:
-            raise KeyError("You must specify a progress function")
+        prog_func = kwds["progress_func"]
         kwds["progress_func"] = self.prog_wrapper(prog_func, "bgflag")
         kwds["renderer"] = kwds.get("renderer", config["renderer"])
 
@@ -115,12 +111,10 @@ class Renderer():
     def process(self, callback, args, kwds):
         can_cancel = kwds.pop("can_cancel", False)
         renderer = kwds.pop("renderer")
-        if renderer == "flam3":
-            render = flam3_render
-        elif renderer == "flam4":
-            render = flam4_render
-        else:
-            raise ValueError("Invalid renderer: %s" % renderer)
+        try:
+            render = render_funcs[renderer]
+        except KeyError as e:
+            raise ValueError("Invalid renderer: %s" %e.args)
         try:
             output_buffer = render(*args,**kwds)
         except Exception:

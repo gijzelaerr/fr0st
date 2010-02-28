@@ -73,3 +73,6 @@ def flam4_render(flame, size, quality, **kwds):
     output_buffer = _flam4.renderFlam4(flam4Flame, size, quality, **kwds)
     return output_buffer
 
+
+render_funcs = {'flam3': flam3_render,
+                'flam4': flam4_render}
