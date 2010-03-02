@@ -20,50 +20,42 @@
 #  Boston, MA 02111-1307, USA.
 ##############################################################################
 import wx
-from threading import Event
+from Queue import Queue
 
 myEVT_THREAD_MESSAGE = wx.NewEventType()
 EVT_THREAD_MESSAGE = wx.PyEventBinder(myEVT_THREAD_MESSAGE, 1)
 class ThreadMessageEvent(wx.PyCommandEvent):
-    """Notifies the main thread to update something controlled by wx, which is
-    not thread-safe.
+    """Used to send information to a callback function in the main thread.
 
-    Optionally carries arbitrary information accessible through GetArgs().
-
-    Should be used with an id if the receiving widget has more than 1 handler,
-    to make sure it goes to the correct one."""
-    
+    Should have an id if the receiving widget has more than 1 handler. Can
+    carry arbitrary information accessible through e.Args."""
     def __init__(self, id=wx.ID_ANY, *args):
         wx.PyCommandEvent.__init__(self, myEVT_THREAD_MESSAGE, id)
         self.Args = args
 
-    def GetArgs(self):
-        return self.Args
-
-    # For compatibility with existing code
-    GetValue = GetMessage = GetArgs
-
 
 def InMain(f):
-    res = [None]
-    bound = Event()
-    flag = Event()
+    """Decorator that forces functions to be executed in the main thread.
+
+    The thread in which the function is called waits on the result, so the code
+    can be reasoned about as if it was single-threaded. May fail when multiple
+    threads call the same decorated function simultaneously (In that case, the
+    return values might be swapped between threads)."""
+    queue = Queue()
+    bound = []
     ID = wx.NewId()
     def callback(e):
         a, k = e.Args
         try:
-            res[0] = f(*a, **k)
+            queue.put(f(*a, **k))
         except Exception as e:
-            res[0] = e
-        flag.set()
+            queue.put(e)
     def inner(*a, **k):
-        if not bound.is_set():
+        if not bound:
             wx.GetApp().Bind(EVT_THREAD_MESSAGE, callback, id=ID)
-            bound.set()
-        flag.clear()
+            bound.append('Make it True')
         wx.PostEvent(wx.GetApp(), ThreadMessageEvent(ID, a, k))
-        flag.wait()
-        result, res[0] = res[0], None
+        result = queue.get()
         if isinstance(result, Exception):
             raise result
         return result
