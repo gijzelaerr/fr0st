@@ -19,8 +19,7 @@
 #  the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 #  Boston, MA 02111-1307, USA.
 ##############################################################################
-import wx
-from Queue import Queue
+import wx, time
 
 myEVT_THREAD_MESSAGE = wx.NewEventType()
 EVT_THREAD_MESSAGE = wx.PyEventBinder(myEVT_THREAD_MESSAGE, 1)
@@ -34,28 +33,38 @@ class ThreadMessageEvent(wx.PyCommandEvent):
         self.Args = args
 
 
+class Closure(object):
+    def __init__(self, **kwds):
+        map(self.__setattr__, *zip(*kwds.iteritems()))
+
+
 def InMain(f):
     """Decorator that forces functions to be executed in the main thread.
 
     The thread in which the function is called waits on the result, so the code
-    can be reasoned about as if it was single-threaded. May fail when multiple
-    threads call the same decorated function simultaneously (In that case, the
-    return values might be swapped between threads)."""
-    queue = Queue()
-    bound = []
+    can be reasoned about as if it was single-threaded. Fails when multiple
+    threads call the same decorated function simultaneously."""
+    closure = Closure(bound=False)
     ID = wx.NewId()
     def callback(e):
+        """Executed in main thread."""
         a, k = e.Args
         try:
-            queue.put(f(*a, **k))
+            closure.res = f(*a, **k)
         except Exception as e:
-            queue.put(e)
+            closure.res = e
+        closure.flag = True
     def inner(*a, **k):
-        if not bound:
+        """Executed in calling thread."""
+        if not closure.bound:
             wx.GetApp().Bind(EVT_THREAD_MESSAGE, callback, id=ID)
-            bound.append('Make it True')
+            closure.bound = True
+        closure.flag = False
+        closure.res = None
         wx.PostEvent(wx.GetApp(), ThreadMessageEvent(ID, a, k))
-        result = queue.get()
+        while not closure.flag:
+            time.sleep(.0001)
+        result = closure.res
         if isinstance(result, Exception):
             raise result
         return result
