@@ -24,21 +24,22 @@ def ScriptHack(func):
         # Undo the hackery. Stopping the script raises an
         # exception, so we need the finally clause.
         _self.image.RenderPreview = preview
-        preview()
-        large_preview()
 
 
+def rotate_sheep(f, rot):
+    for x in f.xform:
+        if x.animate:
+            x.rotate(rot)    
 
 def main():
     """This is the actual script."""
     rot = 0
     while True:
         rot = (rot-3) % 360
-        f = _self.flame.copy()
-        for x in f.xform:
-            if x.animate:
-                x.rotate(rot)
-        preview(f)
+        f = _self.flame
+        rotate_sheep(f, rot)
+        preview()
+        rotate_sheep(f, -rot)
         time.sleep(0.05)
 
 
