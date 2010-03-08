@@ -233,11 +233,10 @@ class RenderDialog(wx.Frame):
 
 
     def UpdateFlameSelector(self):
-        for i in range(len(self.lb.GetItems())):
-            self.lb.Delete(0)
+        self.lb.Clear()
         data = self.parent.tree.itemdata
         self.choices = choices = list(self.parent.tree.GetDataGen())
-        self.lb.InsertItems([f.name for f in choices], pos=0)
+        self.lb.AppendItems([f.name for f in choices])
         self.lb.SetSelection(choices.index(data))
 
 
@@ -317,7 +316,7 @@ class RenderDialog(wx.Frame):
 
         
     def OnSelectAll(self, e=None):
-        map(self.lb.Select, range(len(self.choices)))
+        map(self.lb.Select, xrange(len(self.choices)))
         self.OnSelection()
 
 

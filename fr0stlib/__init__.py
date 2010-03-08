@@ -928,17 +928,13 @@ def needs_conversion(string):
 
 
 def load_flame_strings(filename):
-    """Reads a flame file and returns a list of flame strings.""" 	 
-    with open(filename) as fd:
-        s = fd.read()
-    return re.findall(r'<flame .*?</flame>', s, re.DOTALL)
+    """Reads a flame file and returns a list of flame strings."""
+    return re.findall(r'<flame .*?</flame>', open(filename).read(), re.DOTALL)
 
 
 def load_flames(filename):
     """Reads a flame file and returns a list of flame objects."""
-    with open(filename) as fd:
-        tree = etree.parse(fd)
-
+    tree = etree.parse(open(filename))
     return [Flame().from_element(e) for e in tree.findall('flame')]
 
 

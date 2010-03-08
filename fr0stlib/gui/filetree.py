@@ -176,14 +176,14 @@ class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
 
 
     def SetFlames(self, path, *flamestrings):
-        lst = [(ItemData(s), []) for s in flamestrings]
+        lst = [(ItemData(s), ()) for s in flamestrings]
         self.flamefiles = [(ParentData(path), lst),]
 
         self.RefreshItems()
         self.Expand(self.itemparent)
 
         # cancel all outstanding thumbnails.
-        self.parent.parent.renderer.thumbqueue[:] = []
+        del self.parent.parent.renderer.thumbqueue[:]
 
         if len(flamestrings) > 1000:
             self._render_thumbnails = False
