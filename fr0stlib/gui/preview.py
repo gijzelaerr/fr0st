@@ -97,10 +97,10 @@ class PreviewFrame(wx.Frame):
         self.RenderPreview()
         
 
-    def RenderPreview(self):
+    def RenderPreview(self, flame=None):
         if not self.IsShown():
             return
-        flame = self.parent.flame
+        flame = flame or self.parent.flame
 
         pw, ph = map(float, self.GetPanelSize())
         fw, fh = map(float, flame.size)

@@ -696,8 +696,8 @@ flam4 - (c) 2009 Steven Broadhead""" % fr0stlib.VERSION,
             self.editor.tb.EnableTool(id, flag)
 
 
-    def preview(self):
-        self.image.RenderPreview()
+    def preview(self, flame=None):
+        self.image.RenderPreview(flame)
         self.OnPreview()
         time.sleep(.01) # Avoids spamming too many requests.
         
@@ -734,12 +734,12 @@ class ImagePanel(PreviewBase):
         return self.Size
 
 
-    def RenderPreview(self):
+    def RenderPreview(self, flame=None):
         """Renders a preview version of the flame and displays it in the gui.
 
         The renderer takes care of denying repeated requests so that at most
         one redundant preview is rendered."""
-        flame = self.parent.flame
+        flame = flame or self.parent.flame
 
         ratio = 200. / max(flame.size)
         size = [int(i * ratio) for i in flame.size]
