@@ -51,7 +51,7 @@ class Genome(BaseGenome):
 
         if filter_kernel in (6,7):
             # HACK: force earlyclip for lanczos filters, which don't work
-            # properly witohut it, generating lots of noise.
+            # properly without it, generating lots of noise.
             kwargs["earlyclip"] = True
         
         frame = Frame(**kwargs)
