@@ -343,6 +343,10 @@ class RenderDialog(wx.Frame):
             
         self.progflag = 1            
         self.parent.renderdialog = None
+        # HACK: for some reason, OnSelection is triggered once for each item
+        # selected when closing the dialog, which could cause the app to freeze
+        # after rendering a large amount of flames.
+        self.lb.DeselectAll()
         self.Destroy()
 
 
