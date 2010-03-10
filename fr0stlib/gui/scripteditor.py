@@ -29,7 +29,7 @@ from fr0stlib.gui.toolbar import CreateEditorToolBar
 from fr0stlib.gui.menu import CreateEditorMenu
 from fr0stlib.gui.constants import ID
 from fr0stlib.gui.scriptutils import DynamicDialog
-from fr0stlib.gui._events import EVT_THREAD_MESSAGE, ThreadMessageEvent, InMain
+from fr0stlib.gui._events import InMain, InMainFast
 
 
 class EditorFrame(wx.Frame):
@@ -241,25 +241,10 @@ class MyLog(wx.TextCtrl):
         wx.TextCtrl.__init__(self,parent,-1,
                              style = wx.TE_MULTILINE|wx.TE_READONLY|wx.HSCROLL)
         self.SetFont(wx.Font(8, wx.MODERN, wx.NORMAL, wx.NORMAL))
-        sys.oldstderr = sys.stderr   # For debugging purposes!
         sys.stdout = sys.stderr = self
-            
-##        self._suppress = 0
-##        self._syntax  = 0
 
 
     def write(self, message):
-        """Notifies the main thread to print a message."""
-        wx.PostEvent(self, ThreadMessageEvent(-1, message))
-
-
-    @Bind(EVT_THREAD_MESSAGE)
-    def OnWrite(self, e):
-        self._write(*e.Args)
-
-    def _write(self, message):
-##        sys.oldstderr.write(message) # For debugging purposes!
-
         if not message.startswith("Exception"):
             self.AppendText(message)
             return
@@ -280,19 +265,16 @@ class MyLog(wx.TextCtrl):
         self.ScriptErrorDialog(message)
 
 
+    # wx is threadsafe only on windows
+    if "win32" not in sys.platform:
+        write = InMainFast(write)
+
+
     def ScriptErrorDialog(self, message):
         window = wx.GetApp().GetTopWindow()
         if window.editor.IsShown():
             window = window.editor
-        wx.MessageDialog(window,
-                         "" + message, "Fr0st", wx.ID_OK).ShowModal()
-
-
-    # On windows, wx is threadsafe. This code skips all event processing
-    # and sends prints directly to the tc, which is much faster.
-    if "win32" in sys.platform:
-        write = _write
-        ScriptErrorDialog = InMain(ScriptErrorDialog)
+        wx.MessageDialog(window, message, "Fr0st", wx.OK).ShowModal()
 
 
 

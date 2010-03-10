@@ -30,7 +30,7 @@ from fr0stlib import Flame
 from fr0stlib.gui.utils import NumberTextCtrl, Box, MyChoice, MakeTCs, SizePanel
 from fr0stlib.gui.config import config
 from fr0stlib.gui.constants import ID
-from fr0stlib.gui._events import InMain
+from fr0stlib.gui._events import InMainFast
 from fr0stlib.decorators import *
 from fr0stlib.render import save_image
 
@@ -485,7 +485,7 @@ class RenderDialog(wx.Frame):
         yield
 
 
-    @InMain
+    @InMainFast
     @Catches(wx.PyDeadObjectError)
     def prog(self, str_name, py_object, fraction, stage, eta):
         if stage == 0:

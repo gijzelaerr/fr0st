@@ -66,3 +66,11 @@ def InMain(f):
             raise result
         return result
     return inner
+
+
+def InMainFast(f):
+    """Faster version of InMain, which doesn't check for errors or wait for a
+    return value."""
+    def inner(*a, **k):
+        wx.PostEvent(wx.GetApp(), ThreadMessageEvent(__ID, [], f, a, k))
+    return inner
