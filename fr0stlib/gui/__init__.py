@@ -30,7 +30,7 @@ from fr0stlib.gui.constants import ID
 from fr0stlib.gui.maineditor import MainNotebook
 from fr0stlib.gui.xformeditor import XformTabs
 from fr0stlib.gui.renderer import Renderer
-from fr0stlib.gui._events import InMain
+from fr0stlib.gui._events import InMain, InMainSetup
 from fr0stlib.gui.itemdata import ItemData
 from fr0stlib.gui.renderdialog import RenderDialog
 from fr0stlib.gui.config import config, init_config
@@ -53,6 +53,7 @@ fr0stlib.GUI = True
 
 
 class Fr0stApp(wx.App):
+    @InMainSetup
     def __init__(self):
         wx.App.__init__(self, redirect=False)
         self.SetAppName('fr0st')

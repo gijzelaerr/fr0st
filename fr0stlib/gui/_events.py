@@ -33,38 +33,33 @@ class ThreadMessageEvent(wx.PyCommandEvent):
         self.Args = args
 
 
-class Closure(object):
-    def __init__(self, **kwds):
-        map(self.__setattr__, *zip(*kwds.iteritems()))
+# Specify id to make sure this event doesn't interfere with anything else
+__ID = wx.NewId()
+
+def InMainSetup(__init__):
+    def inner(self, *a, **k):
+        __init__(self, *a, **k)
+        def callback(e):
+            res, f, a, k = e.Args
+            try:
+                res.append(f(*a, **k))
+            except Exception as e:
+                res.append(e)
+        self.Bind(EVT_THREAD_MESSAGE, callback, id=__ID)
+    return inner
 
 
 def InMain(f):
     """Decorator that forces functions to be executed in the main thread.
 
     The thread in which the function is called waits on the result, so the code
-    can be reasoned about as if it was single-threaded. Fails when multiple
-    threads call the same decorated function simultaneously."""
-    closure = Closure(bound=False)
-    ID = wx.NewId()
-    def callback(e):
-        """Executed in main thread."""
-        a, k = e.Args
-        try:
-            closure.res = f(*a, **k)
-        except Exception as e:
-            closure.res = e
-        closure.flag = True
+    can be reasoned about as if it was single-threaded."""
     def inner(*a, **k):
-        """Executed in calling thread."""
-        if not closure.bound:
-            wx.GetApp().Bind(EVT_THREAD_MESSAGE, callback, id=ID)
-            closure.bound = True
-        closure.flag = False
-        closure.res = None
-        wx.PostEvent(wx.GetApp(), ThreadMessageEvent(ID, a, k))
-        while not closure.flag:
+        res = []
+        wx.PostEvent(wx.GetApp(), ThreadMessageEvent(__ID, res, f, a, k))
+        while not res:
             time.sleep(.0001)
-        result = closure.res
+        result = res[0]
         if isinstance(result, Exception):
             raise result
         return result
