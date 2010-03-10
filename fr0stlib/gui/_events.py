@@ -33,19 +33,21 @@ class ThreadMessageEvent(wx.PyCommandEvent):
         self.Args = args
 
 
+
+def __callback(e):
+    res, f, a, k = e.Args
+    try:
+        res.append(f(*a, **k))
+    except Exception as e:
+        res.append(e)
+
 # Specify id to make sure this event doesn't interfere with anything else
 __ID = wx.NewId()
-
+        
 def InMainSetup(__init__):
     def inner(self, *a, **k):
         __init__(self, *a, **k)
-        def callback(e):
-            res, f, a, k = e.Args
-            try:
-                res.append(f(*a, **k))
-            except Exception as e:
-                res.append(e)
-        self.Bind(EVT_THREAD_MESSAGE, callback, id=__ID)
+        self.Bind(EVT_THREAD_MESSAGE, __callback, id=__ID)
     return inner
 
 

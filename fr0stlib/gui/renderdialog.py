@@ -21,8 +21,10 @@
 ##############################################################################
 
 import wx, os, time, sys, itertools
-from  wx.lib.filebrowsebutton import FileBrowseButton
 from collections import defaultdict
+from functools import partial
+
+from  wx.lib.filebrowsebutton import FileBrowseButton
 
 from fr0stlib import Flame
 from fr0stlib.gui.utils import NumberTextCtrl, Box, MyChoice, MakeTCs, SizePanel
@@ -463,7 +465,7 @@ class RenderDialog(wx.Frame):
             name = data.name if len(data.name) < 20 else data.name[:17] + "..."
             str_name = "Rendering %s/%s (%s)" %(i+1, len_, name)
             req(self._gen.send, data[-1], size,
-                progress_func=self.MakeProg(str_name), **kwds)
+                progress_func=partial(self.prog, str_name), **kwds)
             backup.write(data[-1] + "\n")
             self.Title = str_name
             bmp = yield
@@ -481,21 +483,17 @@ class RenderDialog(wx.Frame):
         self.render.Label = "Render"
         self.close.Label = "Close"
         yield
-        
 
-    def MakeProg(self, str_name):
-        str_it = str_name + ": %.2f %% \tETA: %02d:%02d:%02d"
-        str_de = str_name + ": %.2f %% \tRunning density estimation"
-        
-        @InMain
-        @Catches(wx.PyDeadObjectError)
-        def prog(py_object, fraction, stage, eta):
-            if stage == 0:
-                h, m, s = eta/3600, eta%3600/60, eta%60
-                self.SetStatusText(str_it % (fraction, h, m, s))
-                self.gauge.SetValue(fraction)
-            else:
-                self.SetStatusText(str_de % fraction)
-            return self.progflag
-        return prog
 
+    @InMain
+    @Catches(wx.PyDeadObjectError)
+    def prog(self, str_name, py_object, fraction, stage, eta):
+        if stage == 0:
+            h, m, s = eta/3600, eta%3600/60, eta%60
+            self.SetStatusText("%s: %.2f %% \tETA: %02d:%02d:%02d"
+                               %(str_name, fraction, h, m, s))
+            self.gauge.SetValue(fraction)
+        else:
+            self.SetStatusText("%s: %.2f %% \tRunning density estimation"
+                               %(str_name, fraction))
+        return self.progflag
