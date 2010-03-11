@@ -19,7 +19,7 @@
 #  the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 #  Boston, MA 02111-1307, USA.
 ##############################################################################
-import wx, time
+import wx, time, threading
 
 myEVT_THREAD_MESSAGE = wx.NewEventType()
 EVT_THREAD_MESSAGE = wx.PyEventBinder(myEVT_THREAD_MESSAGE, 1)
@@ -57,6 +57,8 @@ def InMain(f):
     The thread in which the function is called waits on the result, so the code
     can be reasoned about as if it was single-threaded."""
     def inner(*a, **k):
+        if threading.currentThread().name == 'MainThread':
+            return f(*a, **k)
         res = []
         wx.PostEvent(wx.GetApp(), ThreadMessageEvent(__ID, res, f, a, k))
         while not res:
