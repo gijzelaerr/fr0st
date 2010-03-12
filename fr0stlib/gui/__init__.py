@@ -21,6 +21,10 @@
 ##############################################################################
 import imp, os, sys, wx, time, shutil, copy
 
+import fr0stlib
+from fr0stlib import Flame, save_flames
+from fr0stlib.decorators import *
+from fr0stlib.threadinterrupt import ThreadInterrupt, interruptall
 from fr0stlib.gui.scripteditor import EditorFrame
 from fr0stlib.gui.preview import PreviewFrame, PreviewBase
 from fr0stlib.gui.filetree import TreePanel
@@ -39,11 +43,6 @@ from fr0stlib.gui.filedialogs import SaveDialog
 from fr0stlib.gui.exceptiondlg import unhandled_exception_handler
 from fr0stlib.pyflam3.cuda import is_cuda_capable
 
-import fr0stlib
-from fr0stlib import Flame, save_flames
-from fr0stlib.pyflam3 import Genome
-from fr0stlib.decorators import *
-from fr0stlib.threadinterrupt import ThreadInterrupt, interruptall
 
 # Don't write .pyc files to keep script folder clean
 sys.dont_write_bytecode = True
@@ -440,7 +439,8 @@ flam4 - (c) 2009 Steven Broadhead""" % fr0stlib.VERSION,
 
     @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=ID.STOP)
     def OnStopScript(self,e=None):
-        interruptall("Execute")
+        interruptall('Execute')
+        self.EndOfScript("\nSCRIPT INTERRUPTED")
 
 
     @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=ID.EDITOR)
@@ -618,52 +618,55 @@ flam4 - (c) 2009 Steven Broadhead""" % fr0stlib.VERSION,
         exec("from fr0stlib import *; __name__='__main__'", namespace)
         return namespace
 
-
+        
     @Threaded
-    @Locked(blocking=True)
+    @Locked(blocking=False)
     def Execute(self,string):
-        print time.strftime("\n---------- %H:%M:%S ----------")
+        print time.strftime("\n------------ %H:%M:%S ------------")
         start = time.time()
 
         # split and join fixes linebreak issues between windows and linux
         lines = self.log._lines = string.splitlines()
         script = "\n".join(lines) +'\n'
 
-        modules = dict(sys.modules)
+        sysmodules = dict(sys.modules)
+        syspath = list(sys.path)
         sys.path.insert(0, os.path.dirname(self.editor.scriptpath))
         
         oldflame = Flame(self.flame.to_string())
         namespace = self.CreateNamespace()
+        self._scriptdata = sysmodules, syspath, oldflame, namespace
 
         try:
             # namespace is used as globals and locals, same as top level
             exec(script, namespace)
         except SystemExit:
             pass
-        except ThreadInterrupt:
-            print("\n\nScript Interrupted")
-        finally:               
-            # Remove any modules imported by the script, so they can be changed
-            # without needing to restart fr0st. Also revert path.
-            sys.modules.clear()
-            sys.modules.update(modules)
-            sys.path.pop(0)
-                
-            # Let the GUI know that the script has finished.
-            self.EndOfScript(oldflame, update=namespace["update_flame"])
-
+        finally:
+            self.EndOfScript()
+        
         # Keep this out of the finally clause!
-        print "\nSCRIPT STATS:\n"\
-              "Running time %.2f seconds\n" %(time.time()-start)
+        print "\nSCRIPT FINISHED (%.2f seconds)" %(time.time()-start)
 
 
     @InMain
-    def EndOfScript(self, oldflame, update):
+    def EndOfScript(self, message=None):
+        if not hasattr(self, '_scriptdata'):
+            return
+        if message:
+            print message
+        sysmodules, syspath, oldflame, namespace = self._scriptdata
+        # Remove any modules imported by the script, so they can be changed
+        # without needing to restart fr0st. Also revert path.
+        sys.modules.clear()
+        sys.modules.update(sysmodules)
+        sys.path[:] = syspath
+        
         # Note that tempsave returns if scriptrunning == True, so it needs to
         # come after unblocking the GUI.
         self.BlockGUI(False)
         self.SetStatusText("")
-        if update:
+        if namespace["update_flame"]:
             try:
                 # Check if changes made to the flame by the script are legal.
                 if not self.flame.xform:
@@ -675,7 +678,8 @@ flam4 - (c) 2009 Steven Broadhead""" % fr0stlib.VERSION,
                 self.SetFlame(oldflame, rezoom=False)
         else:
             self.SetFlame(oldflame, rezoom=False)
-
+        del self._scriptdata
+        
 
     @CallableFrom('MainThread')
     def BlockGUI(self, flag=False):

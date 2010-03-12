@@ -99,10 +99,10 @@ def Locked(lock=None, blocking=True):
 def Threaded(f):
     """ Splits off a different thread each time the wrapped function is called.
     The thread's name is set to that of the function."""
+    f = Catches(ThreadInterrupt)(f)
     @wraps(f)
     def wrapper(*args,**kwds):
-        thr = Thread(target=Catches(ThreadInterrupt)(f),
-                     args=args, kwargs=kwds, name=f.__name__)
+        thr = Thread(target=f, args=args, kwargs=kwds, name=f.__name__)
         thr.daemon = True
         thr.start()
     return wrapper
