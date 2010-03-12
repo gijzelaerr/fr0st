@@ -485,9 +485,14 @@ class RenderDialog(wx.Frame):
         yield
 
 
+    def prog(self, *a):
+        self._prog(*a)
+        return self.progflag
+
+
     @InMainFast
     @Catches(wx.PyDeadObjectError)
-    def prog(self, str_name, py_object, fraction, stage, eta):
+    def _prog(self, str_name, py_object, fraction, stage, eta):
         if stage == 0:
             h, m, s = eta/3600, eta%3600/60, eta%60
             self.SetStatusText("%s: %.2f %% \tETA: %02d:%02d:%02d"
@@ -496,4 +501,3 @@ class RenderDialog(wx.Frame):
         else:
             self.SetStatusText("%s: %.2f %% \tRunning density estimation"
                                %(str_name, fraction))
-        return self.progflag
