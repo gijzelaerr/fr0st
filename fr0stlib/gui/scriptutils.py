@@ -38,6 +38,9 @@ class DynamicDialog(wx.Dialog):
             fgs.Add(widget, 0, wx.ALIGN_LEFT, 5)
             self.widgets.append(widget)
 
+        introtext = wx.StaticText(self, -1, intro)
+        introtext.Wrap(500)
+
         ok = wx.Button(self, wx.ID_OK)
         cancel = wx.Button(self, wx.ID_CANCEL)
         ok.SetDefault()
@@ -48,7 +51,7 @@ class DynamicDialog(wx.Dialog):
 
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add((0,10))
-        sizer.Add(wx.StaticText(self, -1, intro), *szrgs)
+        sizer.Add(introtext, *szrgs)
         sizer.Add((0,10))
         sizer.Add(fgs)
         sizer.Add(btnsizer, 0, wx.ALIGN_CENTER)
