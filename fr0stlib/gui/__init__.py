@@ -642,6 +642,9 @@ flam4 - (c) 2009 Steven Broadhead""" % fr0stlib.VERSION,
             exec(script, namespace)
         except SystemExit:
             pass
+        except Exception:
+            namespace["update_flame"] = False
+            raise
         finally:
             self.EndOfScript()
         
