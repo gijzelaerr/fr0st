@@ -604,7 +604,7 @@ class Xform(object):
             return None
         try:
             return self._parent.xform.index(self)
-        except ValueError:
+        except (AttributeError, ValueError):
             return None
     
        
