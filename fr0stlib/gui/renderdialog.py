@@ -387,7 +387,8 @@ class RenderDialog(wx.Frame):
 
         if self.mem.GetRequired() > self.mem.GetFree() + .5:
             # TODO: offer between slicing and cancel
-            wx.MessageDialog(self, "Not enough memory for render.",
+            wx.MessageDialog(self, "Not enough memory for render. "
+                                   "Try reducing size and/or oversample.",
                              'Fr0st', wx.OK).ShowModal()
             return
 
