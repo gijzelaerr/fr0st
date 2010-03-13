@@ -24,7 +24,7 @@ import time, sys, traceback, wx
 from fr0stlib.decorators import Catches, Threaded
 from fr0stlib.render import render_funcs
 from fr0stlib.gui.config import config
-from fr0stlib.gui._events import InMain
+from fr0stlib.gui._events import InMainFast
 
 
 class Renderer():
@@ -142,7 +142,7 @@ class Renderer():
         return prog_func
 
 
-    @InMain
+    @InMainFast
     def OnImageReady(self, callback, (w,h), output_buffer, channels):
         if channels == 3:
             fun = wx.BitmapFromBuffer

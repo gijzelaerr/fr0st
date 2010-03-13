@@ -34,28 +34,16 @@ class ThreadMessageEvent(wx.PyCommandEvent):
 
 
 
-def __callback(e):
-    res, f, a, k = e.Args
-    try:
-        res.append(f(*a, **k))
-    except Exception as e:
-        res.append(e)
-
-# Specify id to make sure this event doesn't interfere with anything else
 __ID = wx.NewId()
-        
-def InMainSetup(__init__):
-    def inner(self, *a, **k):
-        __init__(self, *a, **k)
-        self.Bind(EVT_THREAD_MESSAGE, __callback, id=__ID)
-    return inner
+__ID_fast = wx.NewId()
 
 
 def InMain(f):
     """Decorator that forces functions to be executed in the main thread.
 
     The thread in which the function is called waits on the result, so the code
-    can be reasoned about as if it was single-threaded."""
+    can be reasoned about as if it was single-threaded. Exceptions are also
+    raised in the original thread."""
     def inner(*a, **k):
         if threading.currentThread().name == 'MainThread':
             return f(*a, **k)
@@ -71,8 +59,32 @@ def InMain(f):
 
 
 def InMainFast(f):
-    """Faster version of InMain, which doesn't check for errors or wait for a
-    return value."""
+    """Faster version of InMain, which doesn't wait for a return value.
+
+    A ValueError is raised if the wrapper function attempts to return a
+    (non-None) value. Exceptions will be raised in the main thread."""
     def inner(*a, **k):
-        wx.PostEvent(wx.GetApp(), ThreadMessageEvent(__ID, [], f, a, k))
+        wx.PostEvent(wx.GetApp(), ThreadMessageEvent(__ID_fast, f, a, k))
+    return inner
+
+
+def __callback(e):
+    res, f, a, k = e.Args
+    try:
+        res.append(f(*a, **k))
+    except Exception as e:
+        res.append(e)
+
+
+def __callback_fast(e):
+    f, a, k = e.Args
+    if f(*a, **k) is not None:
+        raise ValueError('%s tried returning a value' %f)
+
+
+def InMainSetup(__init__):
+    def inner(self, *a, **k):
+        __init__(self, *a, **k)
+        self.Bind(EVT_THREAD_MESSAGE, __callback, id=__ID)
+        self.Bind(EVT_THREAD_MESSAGE, __callback_fast, id=__ID_fast)
     return inner

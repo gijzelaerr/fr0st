@@ -23,7 +23,7 @@ import wx, sys, numpy as N
 
 from fr0stlib.decorators import *
 from config import config
-from _events import InMain
+from _events import InMainFast
 
 
 class PreviewFrame(wx.Frame):
@@ -120,7 +120,7 @@ class PreviewFrame(wx.Frame):
         self.SetStatusText("rendering: 100.00 %")
 
 
-    @InMain
+    @InMainFast
     def prog_func(self, py_object, fraction, stage, eta):
         self.SetStatusText("rendering: %.2f %%" %fraction)
 
