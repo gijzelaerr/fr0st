@@ -24,6 +24,31 @@ from functools import partial
 
 from fr0stlib.decorators import *
 
+
+def validate_path(path):
+    """Returns None if path is valid and user has write permission. Otherwise,
+    return the generated exception."""
+    exists = os.path.exists(path)
+    dirname = os.path.dirname(path)
+    try:
+        if not os.path.exists(dirname):
+            os.makedirs(dirname)
+        open(path, 'a').close()
+        if not exists:
+            os.remove(path)
+    except Exception as e:
+        return e
+
+
+def IsInvalidPath(parent, path):
+    e = validate_path(path)
+    if e is None:
+        return False
+    wx.MessageDialog(parent, "Can't write to path:\n%s" %e, 'Fr0st',
+                     wx.OK | wx.ICON_ERROR).ShowModal()
+    return True
+        
+
 def LoadIcon(*path):
     # Check for an icons dir in app base path first for development
     filename = os.path.join(wx.GetApp().AppBaseDir, 'icons', *path) + '.png'

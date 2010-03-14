@@ -30,6 +30,7 @@ from fr0stlib.gui.menu import CreateEditorMenu
 from fr0stlib.gui.constants import ID
 from fr0stlib.gui.scriptutils import DynamicDialog
 from fr0stlib.gui._events import InMain, InMainFast
+from fr0stlib.gui.utils import IsInvalidPath
 
 
 class EditorFrame(wx.Frame):
@@ -77,13 +78,11 @@ class EditorFrame(wx.Frame):
         self.tc.Clear()
         self._new = True
 
-        self.scriptpath = '<unknown>'
-        self.Title = "untitled - Script Editor"
+        self.scriptpath = 'untitled'
 
 
     @Bind(wx.EVT_TOOL,id=ID.SOPEN)    
     def OnScriptOpen(self,e):
-        self._new = False
         if self.CheckForChanges() == wx.ID_CANCEL:
             return
         dDir,dFile = os.path.split(self.scriptpath)
@@ -92,6 +91,7 @@ class EditorFrame(wx.Frame):
             defaultFile=dFile, wildcard=self.wildcard, style=wx.OPEN)
         if dlg.ShowModal() == wx.ID_OK: 
             self.OpenScript(dlg.GetPath())
+        self._new = False
         dlg.Destroy()
 
 
@@ -99,10 +99,8 @@ class EditorFrame(wx.Frame):
     def OnScriptSave(self, e):
         if self._new:
             self.OnScriptSaveAs(e)
-            self._new = False
         else:
             self.SaveScript(self.scriptpath, confirm=False)
-            self._new = False
         
 
     @Bind(wx.EVT_TOOL,id=ID.SSAVEAS)
@@ -119,11 +117,9 @@ class EditorFrame(wx.Frame):
                             wildcard=self.wildcard, style=wx.SAVE)
         result = dlg.ShowModal()
         if result == wx.ID_OK:
-            self.scriptpath = dlg.GetPath()   
-            self.SaveScript(self.scriptpath)
+            self.SaveScript(dlg.GetPath())             
         dlg.Destroy()
-        self._new = False
-        return  result
+        return result
 
 
     @Bind(wx.EVT_MENU,id=ID.UNDO)
@@ -149,6 +145,8 @@ class EditorFrame(wx.Frame):
                                    'Fr0st',wx.YES_NO|wx.CANCEL)
             result = dlg.ShowModal()
             if result == wx.ID_YES:
+                if IsInvalidPath(self, self.scriptpath):
+                    return wx.ID_CANCEL
                 if self._new:
                     # Dealing with a file that hasn't been saved.
                     if self.OnScriptSaveAs() == wx.ID_OK:
@@ -176,17 +174,17 @@ class EditorFrame(wx.Frame):
 
     def SaveScript(self, path, confirm=True):
         if os.path.exists(path) and confirm:
-            dlg = wx.MessageDialog(self, '%s already exists.\nDo You want to replace it?'
-                                   %path,'Fr0st',wx.YES_NO)
-            if dlg.ShowModal() == wx.ID_NO: return
+            dlg = wx.MessageDialog(self, '%s already exists.\nDo You want to '
+                                   'replace it?' %path, 'Fr0st', wx.YES_NO)
+            if dlg.ShowModal() == wx.ID_NO:
+                return wx.ID_CANCEL
             dlg.Destroy()
-        try:
-            with open(path,"w") as f:
-                f.write(self.tc.GetText())
-        except Exception:
-            wx.MessageDialog(self, "Unable to save file or destination not writable.", 'Fr0st',
-                             wx.OK).ShowModal()
-
+        if IsInvalidPath(self, path):
+            return wx.ID_CANCEL
+        with open(path, "w") as f:
+            f.write(self.tc.GetText())
+        self.scriptpath = path
+        self._new = False
         self.tc.SetSavePoint()
 
 

@@ -41,6 +41,7 @@ from fr0stlib.gui.config import config, init_config
 from fr0stlib.gui.configdlg import ConfigDialog
 from fr0stlib.gui.filedialogs import SaveDialog
 from fr0stlib.gui.exceptiondlg import unhandled_exception_handler
+from fr0stlib.gui.utils import IsInvalidPath
 from fr0stlib.pyflam3.cuda import is_cuda_capable
 
 
@@ -408,11 +409,13 @@ flam4 - (c) 2009 Steven Broadhead""" % fr0stlib.VERSION,
 
     @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=ID.FSAVEAS)
     def OnFlameSaveAs(self,e):
-        flame = self.flame
         path = self.tree.GetFilePath()
+        flame = self.flame
         dlg = SaveDialog(self, path=path, name=flame.name)
         if dlg.ShowModal() == wx.ID_OK:
             newpath = dlg.GetPath()
+            if IsInvalidPath(self, newpath):
+                return
             flame.name = str(dlg.GetName())
             if path == newpath:
                 self.OnFlameNew(string=flame.to_string())
@@ -522,6 +525,8 @@ flam4 - (c) 2009 Steven Broadhead""" % fr0stlib.VERSION,
 
     def SaveFlame(self, path=None):
         path = path or self.tree.GetFilePath()
+        if IsInvalidPath(self, path):
+            return
 
         lst = list(self.tree.GetDataGen())
     
@@ -590,9 +595,9 @@ flam4 - (c) 2009 Steven Broadhead""" % fr0stlib.VERSION,
                     return
 
             lst = [s if type(s) is str else s.to_string() for s in flames]
+            save_flames(path, *lst)
             if refresh:
                 self.tree.SetFlames(path, *lst)
-            save_flames(path, *lst)
 
         # These functions overwrite existing functions.
         fr0stlib.save_flames = InMain(new_save_flames)

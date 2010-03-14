@@ -27,7 +27,8 @@ from functools import partial
 from  wx.lib.filebrowsebutton import FileBrowseButton
 
 from fr0stlib import Flame
-from fr0stlib.gui.utils import NumberTextCtrl, Box, MyChoice, MakeTCs, SizePanel
+from fr0stlib.gui.utils import NumberTextCtrl, Box, MyChoice, MakeTCs, \
+     SizePanel, IsInvalidPath
 from fr0stlib.gui.config import config
 from fr0stlib.gui.constants import ID
 from fr0stlib.gui._events import InMainFast
@@ -407,20 +408,8 @@ class RenderDialog(wx.Frame):
             paths = map(uniq, paths)
 
         # Check if each path is valid and user has write permission.
-        for path in paths:
-            try:
-                if os.path.exists(path):
-                    open(path, 'a').close()
-                else:
-                    dirname = os.path.dirname(path)
-                    if not os.path.exists(dirname):
-                        os.makedirs(dirname)
-                    open(path, 'w').close()
-                    os.remove(path)
-            except (KeyError, ValueError, IndexError, IOError):
-                wx.MessageDialog(self, "Invalid path name.", 'Fr0st',
-                                 wx.OK).ShowModal()
-                return
+        if any(IsInvalidPath(self, path) for path in paths):
+            return
 
         clashes = filter(os.path.exists, paths)
         if clashes:

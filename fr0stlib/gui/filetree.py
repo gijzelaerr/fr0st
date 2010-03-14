@@ -19,14 +19,15 @@
 #  the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 #  Boston, MA 02111-1307, USA.
 ##############################################################################
-import wx, sys, os, shutil, time, cPickle, itertools
+import wx
 from functools import partial
 from wx.lib.mixins import treemixin
 
-from fr0stlib.gui.constants import ID
 from fr0stlib import Flame, save_flames
 from fr0stlib.decorators import *
+from fr0stlib.gui.constants import ID
 from fr0stlib.gui.itemdata import ItemData, ParentData
+from fr0stlib.gui.utils import IsInvalidPath
 
 
 class TreePanel(wx.Panel):
@@ -124,6 +125,9 @@ class TreePanel(wx.Panel):
 
     @Bind(wx.EVT_MENU, id=ID.DELETE)
     def OnDelete(self, e):
+        path = self.tree.GetFilePath()
+        if IsInvalidPath(self, path):
+            return
         index = self.tree.GetIndexOfItem(self.tree.item)[-1]
         children = self.tree.GetChildItems((0,))
         children.pop(index)
@@ -134,8 +138,7 @@ class TreePanel(wx.Panel):
         if index >= len(children):
             index = len(children) - 1
         self.tree.SelectItem(self.tree.GetItemByIndex((0,index)))
-        save_flames(self.tree.GetFilePath(),
-                    *(i[0] for i in self.tree.GetDataGen()))
+        save_flames(path, *(i[0] for i in self.tree.GetDataGen()))
 
 
     @Bind(wx.EVT_TREE_ITEM_COLLAPSING)
@@ -237,6 +240,8 @@ class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
                                    'Fr0st',wx.YES_NO|wx.CANCEL)
             result = dlg.ShowModal()
             if result == wx.ID_YES:
+                if IsInvalidPath(self, path):
+                    return wx.ID_CANCEL
                 save_flames(path, *(i[-1] for i in datalist))
             dlg.Destroy()
             return result
@@ -258,6 +263,13 @@ class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
         dropindex, dragindex = map(self.GetIndexOfItem, args)
         if not dropindex:
             return
+        
+        # HACK: Select dragitem here so the right item is selected during the
+        # dialog if IsInvalidPath fails. The correct item is reselected later.
+        self.SelectItem(args[1])
+        path = self.GetFilePath()
+        if IsInvalidPath(self, path):
+            return
 
         lst = self.GetChildItems((0,))
 
@@ -271,7 +283,7 @@ class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
         self.item = self.GetItemByIndex((0, min(toindex, len(lst)-1)))
         self.SelectItem(self.item)
         
-        save_flames(self.GetFilePath(), *(i[0] for i in self.GetDataGen()))
+        save_flames(path, *(i[0] for i in self.GetDataGen()))
 
 
     def GetItem(self, indices):
