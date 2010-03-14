@@ -424,17 +424,15 @@ class RenderDialog(wx.Frame):
 
         clashes = filter(os.path.exists, paths)
         if clashes:
-            if len(clashes) > 3:
-                middle = "%%s\n... (%s more)\n\n" %len(clashes[3:])
-                clashes = clashes[:3]
-            else:
-                middle = "%s\n\n"
-            string = ("The following file%s already exist%s:\n" + 
-                      middle + 
-                      "Do you want to overwrite?")
-            s1, s2 = ("s", "") if len(clashes) > 1 else ("", "s")
-            if wx.MessageDialog(self, string %(s1, s2, "\n".join(clashes)),
-                                'Fr0st', wx.YES_NO).ShowModal() == wx.ID_NO:
+            len_ = len(clashes)
+            lst = ["The following file%s already exist%s:"
+                   %(("s", "") if len_ > 1 else ("", "s"))]
+            lst.extend(clashes[:3])
+            if len_ > 3:
+                lst.append("... (%s more)" %(len_ - 3))
+            lst.append("\nDo you want to overwrite?")
+            if wx.MessageDialog(self, "\n".join(lst), 'Fr0st', wx.YES_NO
+                                ).ShowModal() == wx.ID_NO:
                 return
 
         # All checks have been made, the render is confirmed.
