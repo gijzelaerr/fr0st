@@ -25,6 +25,10 @@ from functools import partial
 from fr0stlib.decorators import *
 
 
+def ErrorMessage(self, msg):
+    wx.MessageDialog(self, msg, 'Fr0st', wx.OK | wx.ICON_ERROR).ShowModal()
+
+    
 def validate_path(path):
     """Returns None if path is valid and user has write permission. Otherwise,
     return the generated exception."""
@@ -44,8 +48,7 @@ def IsInvalidPath(parent, path):
     e = validate_path(path)
     if e is None:
         return False
-    wx.MessageDialog(parent, "Can't write to path:\n%s" %e, 'Fr0st',
-                     wx.OK | wx.ICON_ERROR).ShowModal()
+    ErrorMessage(parent, "Can't write to path:\n%s" %e)
     return True
         
 

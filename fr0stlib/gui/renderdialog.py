@@ -28,7 +28,7 @@ from  wx.lib.filebrowsebutton import FileBrowseButton
 
 from fr0stlib import Flame
 from fr0stlib.gui.utils import NumberTextCtrl, Box, MyChoice, MakeTCs, \
-     SizePanel, IsInvalidPath
+     SizePanel, IsInvalidPath, ErrorMessage
 from fr0stlib.gui.config import config
 from fr0stlib.gui.constants import ID
 from fr0stlib.gui._events import InMainFast
@@ -376,25 +376,27 @@ class RenderDialog(wx.Frame):
         destination = self.fbb.GetValue()
         ty= os.path.splitext(destination)[1].lower()
         if ty not in (".bmp", ".png", ".jpg"):
-            wx.MessageDialog(self, "File extension must be png, jpg or bmp.",
-                             'Fr0st', wx.OK).ShowModal()
+            ErrorMessage(self, "File extension must be png, jpg or bmp.")
             return
         
         selections = [self.choices[i] for i in self.lb.GetSelections()]
         if not selections:
-            wx.MessageDialog(self, "You must select at least 1 flame.",
-                             'Fr0st', wx.OK).ShowModal()
+            ErrorMessage(self, "You must select at least 1 flame.")
             return
 
         if self.mem.GetRequired() > self.mem.GetFree() + .5:
             # TODO: offer between slicing and cancel
-            wx.MessageDialog(self, "Not enough memory for render. "
-                                   "Try reducing size and/or oversample.",
-                             'Fr0st', wx.OK).ShowModal()
+            ErrorMessage(self, "Not enough memory for render. "
+                               "Try reducing size and/or oversample.")
             return
 
-        # Interpolate flame names, make repeated names unique.
-        paths = [destination.format(name=data._name) for data in selections]
+        try:
+            paths = [destination.format(name=data._name)
+                     for data in selections]
+        except (KeyError, ValueError):
+            ErrorMessage(self, "Invalid path formatting.")
+            return
+            
         check = defaultdict(int)
         for path in paths:
             check[path] += 1
