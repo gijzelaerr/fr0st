@@ -19,7 +19,8 @@
 #  the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 #  Boston, MA 02111-1307, USA.
 ##############################################################################
-import shutil, random, itertools, ctypes, collections, re, numpy
+import os, sys, shutil, random, itertools, ctypes, collections, re, numpy, \
+       colorsys
 import xml.etree.cElementTree as etree
 from math import *
 from functools import partial
@@ -27,7 +28,6 @@ from functools import partial
 from fr0stlib.pyflam3 import Genome, RandomContext, flam3_nvariations, \
   variable_list, variation_list, variables, flam3_estimate_bounding_box
 from fr0stlib.compatibility import compatibilize
-from fr0stlib.functions import *
 
 
 try:
@@ -943,3 +943,56 @@ def show_status(s):
     sys.stdout.write("\r%s\r" %s)
     sys.stdout.flush()
 
+
+#Converters
+
+def polar(coord):
+    l = sqrt(coord[0]**2 + coord[1]**2)
+    theta = atan2(coord[1], coord[0]) * (180.0/pi)
+    return l, theta   
+
+
+def rect(coord):
+    real = coord[0] * cos(coord[1]*pi/180.0)
+    imag = coord[0] * sin(coord[1]*pi/180.0)
+    return real, imag
+
+
+def clip(v, mini, maxi, rotate=False):
+    """Clip a value to the given boundaries.
+
+    if rotate is True, the values will wrap around."""
+    if rotate:
+        if v > maxi: v = v-maxi+mini
+        elif v < mini: v = v+maxi-mini
+    else:
+        if v > maxi: v = maxi
+        elif v < mini: v = mini
+    return v
+
+
+def rgb2hls(color):
+    """Takes an rgb tuple (0-255) and returns hls tuple (hls is scalar)"""
+    return colorsys.rgb_to_hls(*(x/255. for x in color))
+
+
+def hls2rgb(color):
+    """Takes hls tuple and returns rgb tuple (rgb is int)"""
+    #convert h to scalar
+    h,l,s = color
+    h = clip(h,0,1,True)
+    l = clip(l,0,1)
+    s = clip(s,0,1)
+    return tuple(int(x*255) for x in colorsys.hls_to_rgb(h,l,s))
+
+
+def rgb2hsv(color):
+    return colorsys.rgb_to_hsv(*(x/255. for x in color))
+
+
+def hsv2rgb(color):
+    h,s,v = color
+    h = clip(h,0,1,True)
+    s = clip(s,0,1)
+    v = clip(v,0,1)
+    return tuple(int(x*255) for x in colorsys.hsv_to_rgb(h,s,v))
