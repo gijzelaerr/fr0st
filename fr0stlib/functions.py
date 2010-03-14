@@ -36,10 +36,6 @@ def in_ranges(n, ranges):
         if n >= ranges[0] and n <= ranges[1]: return True
     return False
 
-
-def randrange2(x,y, int=float):
-    """A smarter randrange. Returns a random float between both args."""
-    return x if x==y else random.randrange(*sorted((x,y)), int=int)
     
 #-------------------------------------------------------------------------------
 #Converters

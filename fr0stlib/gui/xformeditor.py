@@ -382,7 +382,7 @@ class VarPanel(wx.Panel):
 
             for k,v in pyflam3.variables[i]:
                 item = self.tree.AppendItem(child,  k)
-                self.SetItemText(item, str(v()), 1)
+                self.SetItemText(item, str(v), 1)
 
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(self.tree,1,wx.EXPAND)

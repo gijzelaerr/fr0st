@@ -450,8 +450,8 @@ class Palette(collections.Sequence):
     def random(self, hue=(0,1), saturation=(0,1), value=(0,1),  nodes=(5,5),
                curve='cos'):
         dims = hue, saturation, value
-        seeds = [tuple(randrange2(*i) for i in dims)
-                 for j in range(randrange2(*nodes, int=int))]
+        seeds = [tuple(random.uniform(*i) for i in dims)
+                 for j in range(int(random.uniform(*nodes)))]
         self.from_seeds(seeds, curve)
 
         

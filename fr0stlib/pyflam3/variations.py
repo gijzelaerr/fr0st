@@ -19,12 +19,10 @@
 #  the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 #  Boston, MA 02111-1307, USA.
 ##############################################################################
-
+import random
 from collections import defaultdict
 
 from constants import flam3_nvariations
-from functools import partial
-from fr0stlib.functions import randrange2
 
 
 VAR_LINEAR = 0
@@ -237,7 +235,7 @@ variable_list = [('blob_low', 0.2, 0.7, float),
                  ('auger_weight', 0, 1, float)]         
 
 variables = defaultdict(list)
-for k,l,h,t in variable_list:
-    tion, ble = k.rsplit("_", 1)
-    variables[tion].append( (ble, partial(randrange2, l, h, int=t)) )
+for k, lo, hi, ty in variable_list:
+    variation, variable = k.rsplit("_", 1)
+    variables[variation].append((variable, ty(random.uniform(lo, hi))))
 
