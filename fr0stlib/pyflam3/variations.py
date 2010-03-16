@@ -21,6 +21,7 @@
 ##############################################################################
 import random
 from collections import defaultdict
+from functools import partial
 
 from constants import flam3_nvariations
 
@@ -234,8 +235,10 @@ variable_list = [('blob_low', 0.2, 0.7, float),
                  ('auger_sym', 0, 1, float),
                  ('auger_weight', 0, 1, float)]         
 
-variables = defaultdict(list)
+
+variables = defaultdict(dict)
 for k, lo, hi, ty in variable_list:
     variation, variable = k.rsplit("_", 1)
-    variables[variation].append((variable, ty(random.uniform(lo, hi))))
+    randfunc = random.randint if ty is int else random.uniform
+    variables[variation][variable] = partial(randfunc, lo, hi)
 
