@@ -380,7 +380,7 @@ class VarPanel(wx.Panel):
         for i in pyflam3.variation_list:
             child = self.tree.AppendItem(self.root, i)
 
-            for k,v in pyflam3.variables[i].iteritems():
+            for k,v in pyflam3.variables[i]:
                 item = self.tree.AppendItem(child,  k)
                 self.SetItemText(item, str(float(v())), 1)
 

@@ -236,9 +236,9 @@ variable_list = [('blob_low', 0.2, 0.7, float),
                  ('auger_weight', 0, 1, float)]         
 
 
-variables = defaultdict(dict)
+variables = defaultdict(list)
 for k, lo, hi, ty in variable_list:
     variation, variable = k.rsplit("_", 1)
     randfunc = random.randint if ty is int else random.uniform
-    variables[variation][variable] = partial(randfunc, lo, hi)
+    variables[variation].append((variable, partial(randfunc, lo, hi)))
 
