@@ -44,6 +44,8 @@ class XformTabs(wx.Notebook):
                              # | wx.NB_MULTILINE
                              )
 
+        self._final = False
+
         self.Xform = XformPanel(self)
         self.AddPage(self.Xform, "Xform")
 
@@ -61,16 +63,27 @@ class XformTabs(wx.Notebook):
 
 
     def UpdateView(self):
-        for i in self.Xform, self.Vars, self.Color, self.Chaos:
-            i.UpdateView()
-            
-        choices = map(repr, self.parent.flame.xform)
-        final = self.parent.flame.final
-        if final:
-            choices.append(repr(final))
+        choices = map(repr, self.parent.flame.iter_xforms())
         self.Selector.Items = choices
         index = self.parent.ActiveXform.index
-        self.Selector.Selection = len(choices)-1 if index is None else index
+        isfinal = index is None
+        self.Selector.Selection = len(choices)-1 if isfinal else index
+        
+        if isfinal:
+            if not self._final:
+                self.RemovePage(3)
+                self.RemovePage(2)
+                self._final = True
+            for i in self.Xform, self.Vars:
+                i.UpdateView()
+        else:
+            if self._final:
+                self.AddPage(self.Color, "Color")
+                self.AddPage(self.Chaos, "Chaos")
+                self._final = False
+            for i in self.Xform, self.Vars, self.Color, self.Chaos:
+                i.UpdateView()
+
 
 
     def OnChoice(self, e):
@@ -757,7 +770,6 @@ class ChaosPanel(wx.Panel):
         tree1, tree2 = self.tree1, self.tree2
         xform = self.parent.ActiveXform
         if xform.isfinal():
-            self.BuildTrees(0)
             return
         self.BuildTrees(len(self.parent.flame.xform))
 
