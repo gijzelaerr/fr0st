@@ -213,7 +213,8 @@ class RenderDialog(wx.Frame):
         initial = os.path.join(config["Img-Dir"], 
                                self.parent.flame.name + config["Img-Type"])
         fbb = FileBrowseButton(parent, -1, fileMask=mask, labelText='File:',
-                               initialValue=initial, fileMode=wx.SAVE)
+                               initialValue=os.path.abspath(initial),
+                               fileMode=wx.SAVE)
         self.fbb = fbb
         return Box(parent, "Output Destination", (fbb, 0, wx.EXPAND))
 
