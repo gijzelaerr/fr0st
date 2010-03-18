@@ -19,7 +19,7 @@
 #  the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 #  Boston, MA 02111-1307, USA.
 ##############################################################################
-import wx, os, functools, itertools
+import wx, os, sys, functools, itertools
 from wx import gizmos
 from collections import defaultdict
 from functools import partial
@@ -138,7 +138,11 @@ class XformPanel(wx.Panel):
         r3 = wx.RadioButton(self, -1, "polar" )
         self.postflag = wx.CheckBox(self,-1,"post  ")
         radiosizer = wx.BoxSizer(wx.VERTICAL)
-        radiosizer.AddMany((r1,r2,r3,self.postflag))
+        border = 3 * ('win' in sys.platform)
+        radiosizer.AddMany(((r1, 0, wx.ALL, border),
+                            (r2, 0, wx.ALL, border),
+                            (r3, 0, wx.ALL, border),
+                            (self.postflag, 0, wx.ALL, border)))
 
         # Put the view buttons to the right of the number fields
         hsizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -638,7 +642,7 @@ class ColorPanel(MultiSliderMixin, wx.Panel):
 
         self.animflag = wx.CheckBox(self,-1,"animate")
         
-        sizer.Add(self.animflag)
+        sizer.Add(self.animflag, 0, wx.ALL, 5)
         self.SetSizer(sizer)
         self.SetDoubleBuffered(True)
 
