@@ -34,6 +34,8 @@ def save_image(path, img):
     if isinstance(img, wx.Bitmap):
         img = wx.ImageFromBitmap(img)
     ty = types[os.path.splitext(path)[1]]
+    if ty == wx.BITMAP_TYPE_JPEG:
+        img.SetOptionInt(wx.IMAGE_OPTION_QUALITY, 95)
     dirname = os.path.abspath(os.path.dirname(path))
     if not os.path.exists(dirname):
         os.makedirs(dirname)
