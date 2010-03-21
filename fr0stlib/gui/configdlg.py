@@ -33,15 +33,13 @@ class ConfigDialog(wx.Dialog):
     def __init__(self, parent):
         wx.Dialog.__init__(self, parent, title='Preferences')
 
-        # save a copy of config to work with
-        # allows us to implement cancel
+        # Save a copy of config to work with. Allows us to implement cancel
         self.local_config = copy.deepcopy(config)
-        self.controls = {}
 
         notebook = wx.Notebook(self, style=wx.BK_DEFAULT)
-        notebook.AddPage(PreviewPanel(notebook),
-                         'Preview Quality', select=True)
+        notebook.AddPage(PreviewPanel(notebook),'Preview Quality', select=True)
         notebook.AddPage(RenderPanel(notebook), 'Renderer')
+        notebook.AddPage(MiscPanel(notebook), 'Misc')
 
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(notebook, 0, wx.ALL, 5)
@@ -51,8 +49,6 @@ class ConfigDialog(wx.Dialog):
             sizer.Add(btnsizer, 0, wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, 5)
 
         self.SetSizerAndFit(sizer)
-
-        self.controls['Var-Preview-Settings->range'].SetFocus()
         
 
     @Bind(wx.EVT_BUTTON, id=wx.ID_OK)
@@ -103,14 +99,12 @@ class PreviewPanel(wx.Panel):
         gbs.Add(self.CreateLargePreviewSettings(self.parent), (0, 1), (2, 1))
         self.SetSizerAndFit(gbs)
 
-
-
     def CreateVariationPreviewSettings(self, parent):
         gbs = wx.GridBagSizer(5, 5)
         gbs.AddGrowableCol(0)
 
         number_text(self, parent, gbs, 0, 'Scale', 
-                'Var-Preview-Settings', 'range', 0.1, 5)
+                'Var-Preview-Settings', 'range', 0.1, 5, set_focus=True)
         
         number_text(self, parent, gbs, 1, 'Quality', 
                 'Var-Preview-Settings', 'numvals', 10, 40, is_int=True)
@@ -153,22 +147,36 @@ class PreviewPanel(wx.Panel):
 
         return Box(self, 'Large Preview', (gbs, 0, wx.EXPAND))
 
+
+class MiscPanel(wx.Panel):
+    def __init__(self, parent):
+        self.parent = parent.Parent
+        wx.Panel.__init__(self, parent, -1)
+
+        gbs = wx.GridBagSizer(5, 5)
+##        gbs.AddGrowableCol(0)
+        
+        number_text(self, self.parent, gbs, 0, 'jpg Quality',
+                    '', 'jpg-quality', 1, 100, is_int=True)
+        
+        self.SetSizerAndFit(gbs)
     
 
-def number_text(panel, parent, sizer, row, label, config_section, config_key, min, max, is_int=False):
-    ntc = NumberTextCtrl(panel, min, max)
-    
-    if is_int:
-        ntc.MakeIntOnly()
-
-    parent.controls[config_section + '->' + config_key] = ntc
-
-    section = parent.local_config[config_section]
-    ntc.SetFloat(section[config_key])
+def number_text(panel, parent, sizer, row, label, config_section, config_key,
+                min, max, is_int=False, set_focus=False):
+    if config_section:
+        section = parent.local_config[config_section]
+    else:
+        section = parent.local_config
 
     def cb(tempsave=False):
-        section[config_key] = ntc.GetFloat()
-    ntc.callback = cb
+        section[config_key] = ntc.GetFloat()    
+    ntc = NumberTextCtrl(panel, min, max, callback=cb)
+    ntc.SetFloat(section[config_key])
+    if is_int:
+        ntc.MakeIntOnly()
+    if set_focus:
+        ntc.SetFocus()
 
     sizer.Add(wx.StaticText(panel, label=label), (row, 0), flag=wx.ALIGN_CENTER_VERTICAL)
     sizer.Add(ntc, (row, 1))
