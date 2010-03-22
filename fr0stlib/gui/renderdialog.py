@@ -463,7 +463,7 @@ class RenderDialog(wx.Frame):
             if self.progflag:
                 self.progflag = 0
                 break
-            save_image(path, bmp)
+            save_image(path, bmp, config['jpg-quality'])
             
         backup.close()
         self.Title = old_title

@@ -19,7 +19,7 @@
 #  the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 #  Boston, MA 02111-1307, USA.
 ##############################################################################
-import wx, time, threading
+import sys, wx, time, threading
 
 myEVT_THREAD_MESSAGE = wx.NewEventType()
 EVT_THREAD_MESSAGE = wx.PyEventBinder(myEVT_THREAD_MESSAGE, 1)
@@ -61,8 +61,13 @@ def InMain(f):
 def InMainFast(f):
     """Faster version of InMain, which doesn't wait for a return value.
 
-    A ValueError is raised if the wrapper function attempts to return a
-    (non-None) value. Exceptions will be raised in the main thread."""
+    There are no guarantees when and in which thread the function runs, only
+    that it eventually does. A ValueError is raised if the wrapper function
+    attempts to return a (non-None) value."""
+    if 'win' in sys.platform:
+        # wx is threadsafe on windows. This shortcut is not in InMain, because
+        # said function gives stronger guarantees about its exact behaviour.
+        return f
     def inner(*a, **k):
         wx.PostEvent(wx.GetApp(), ThreadMessageEvent(__ID_fast, f, a, k))
     return inner

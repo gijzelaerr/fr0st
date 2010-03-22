@@ -187,7 +187,7 @@ class NumberTextCtrl(wx.TextCtrl):
 
 
     def GetInt(self):
-        return int(self.GetValue() or "0")
+        return int(float(self.GetValue() or "0"))
 
     def SetInt(self, v):
         v = self.Checkrange(int(v))

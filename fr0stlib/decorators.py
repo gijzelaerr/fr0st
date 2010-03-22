@@ -75,11 +75,11 @@ def Catches(exctype):
 
 
 def Locked(lock=None, blocking=True):
-    """ Wraps the function in a lock to make sure no more than one thread is
-    executing inside it at any given time.
+    """ Wraps the function in a lock.
 
-    The blocking flag is passd on to the underlying lock, so it will
-    behave as documented in the threading module."""
+    No more than one thread can execute the function at a time. The blocking
+    flag is passed on to the underlying lock, so it will behave as documented
+    in the threading module."""
     if lock is None:
         lock = Lock()
     def decorator(f):

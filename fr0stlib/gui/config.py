@@ -81,6 +81,7 @@ def init_config():
                                 "nodes": (4, 6)},
           "Img-Dir": wx.GetApp().RendersDir,
           "Img-Type": ".png",
+          "jpg-quality": 95,
           "Bits": 0,
           "renderer": "flam3",
           "Rect-Main": None,

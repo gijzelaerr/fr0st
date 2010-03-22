@@ -233,7 +233,6 @@ class MyLog(wx.TextCtrl):
     _script = None # This is set by the parent
 
 
-    @BindEvents
     def __init__(self,parent):
         self.parent = parent
         wx.TextCtrl.__init__(self,parent,-1,
@@ -242,6 +241,7 @@ class MyLog(wx.TextCtrl):
         sys.stdout = sys.stderr = self
 
 
+    @InMainFast
     def write(self, message):
         if not message.startswith("Exception"):
             self.AppendText(message)
@@ -261,11 +261,6 @@ class MyLog(wx.TextCtrl):
                    self.re_line.sub('\g<1>\n    %s',message) %tuple(lines))
         self.AppendText(message)
         self.ScriptErrorDialog(message)
-
-
-    # wx is threadsafe only on windows
-    if "win32" not in sys.platform:
-        write = InMainFast(write)
 
 
     def ScriptErrorDialog(self, message):
