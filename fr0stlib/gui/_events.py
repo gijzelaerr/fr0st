@@ -59,11 +59,10 @@ def InMain(f):
 
 
 def InMainFast(f):
-    """Faster version of InMain, which doesn't wait for a return value.
+    """Faster version of InMain, which doesn't wait for the function to run.
 
     There are no guarantees when and in which thread the function runs, only
-    that it eventually does. A ValueError is raised if the wrapper function
-    attempts to return a (non-None) value."""
+    that it eventually does. The return value may be ignored."""
     if 'win' in sys.platform:
         # wx is threadsafe on windows. This shortcut is not in InMain, because
         # said function gives stronger guarantees about its exact behaviour.
@@ -82,9 +81,7 @@ def __callback(e):
 
 
 def __callback_fast(e):
-    f, a, k = e.Args
-    if f(*a, **k) is not None:
-        raise ValueError('%s tried returning a value' %f)
+    apply(*e.Args)
 
 
 def InMainSetup(__init__):
