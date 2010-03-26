@@ -421,7 +421,7 @@ flam4 - (c) 2009 Steven Broadhead""" % fr0stlib.VERSION,
                 self.OnFlameNew(string=flame.to_string())
             else:
                 if os.path.exists(newpath):
-                    lst = fr0stlib.load_flame_strings(newpath)
+                    lst = fr0stlib.load_flamestrings(newpath)
                 else:
                     lst = []
                 lst.append(flame.to_string())
@@ -509,7 +509,7 @@ flam4 - (c) 2009 Steven Broadhead""" % fr0stlib.VERSION,
 
         if os.path.exists(path):
             # scan the file to see if it's valid
-            flamestrings = fr0stlib.load_flame_strings(path)
+            flamestrings = fr0stlib.load_flamestrings(path)
             if not flamestrings:
                 wx.MessageDialog(self, "It seems %s is not a valid flame file."
                                  " Please choose a different flame." % path,

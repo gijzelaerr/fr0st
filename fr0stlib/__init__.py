@@ -927,9 +927,13 @@ def needs_conversion(string):
     return root.get('version', None) != VERSION
 
 
-def load_flame_strings(filename):
+def split_flamestrings(string):
+    return re.findall(r'<flame .*?</flame>', string, re.DOTALL)
+
+
+def load_flamestrings(filename):
     """Reads a flame file and returns a list of flame strings."""
-    return re.findall(r'<flame .*?</flame>', open(filename).read(), re.DOTALL)
+    return split_flamestrings(open(filename).read())
 
 
 def load_flames(filename):
