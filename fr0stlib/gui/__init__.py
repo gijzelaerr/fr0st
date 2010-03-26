@@ -41,7 +41,7 @@ from fr0stlib.gui.config import config, init_config
 from fr0stlib.gui.configdlg import ConfigDialog
 from fr0stlib.gui.filedialogs import SaveDialog
 from fr0stlib.gui.exceptiondlg import unhandled_exception_handler
-from fr0stlib.gui.utils import IsInvalidPath
+from fr0stlib.gui.utils import IsInvalidPath, ErrorMessage
 from fr0stlib.pyflam3.cuda import is_cuda_capable
 
 
@@ -343,11 +343,8 @@ flam4 - (c) 2009 Steven Broadhead""" % fr0stlib.VERSION,
         
 
     @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=ID.FNEW)
-    def OnFlameNew(self, e=None, string=None):
-        if string:
-            flame = Flame(string)
-        else:
-            flame = self.MakeFlame()
+    def OnFlameNew(self, e=None, flame=None, save=True):
+        flame = flame or self.MakeFlame()
         data = ItemData(flame.to_string())
 
         self.tree.GetChildItems((0,)).append((data,[]))
@@ -357,25 +354,33 @@ flam4 - (c) 2009 Steven Broadhead""" % fr0stlib.VERSION,
         self.tree.Expand(self.tree.itemparent)
 
         child = self.tree.GetItemByIndex((0, -1))
-        self.tree.SelectItem(child)
-        self.tree.RenderThumbnail()
-        self.SaveFlame()
+        data = self.tree.GetFlameData(child)
+        self.tree.RenderThumbnail(child, data, flag=self.tree.flag)
+        if save:
+            self.tree.SelectItem(child)
+            self.SaveFlame()
 
-        return child
 
     @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=wx.ID_PASTE)
     def OnPaste(self, e):
         if not wx.TheClipboard.Open():
             return
-
         data = wx.TextDataObject()
         success = wx.TheClipboard.GetData(data)
         wx.TheClipboard.Close()
-
         if not success:
             return
 
-        return self.OnFlameNew(string=data.GetText())
+        try:
+            flames = map(Flame, fr0stlib.split_flamestrings(data.GetText()))
+            # check for empty list, and also use as test in for loop.
+            first = flames[0] 
+        except:
+            ErrorMessage(self, "Can't paste flames. Invalid string")
+            return
+        for flame in flames:
+            self.OnFlameNew(flame=flame, save=flame is first)
+
 
     @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=wx.ID_COPY)
     def OnCopy(self, e):
@@ -418,7 +423,7 @@ flam4 - (c) 2009 Steven Broadhead""" % fr0stlib.VERSION,
                 return
             flame.name = str(dlg.GetName())
             if path == newpath:
-                self.OnFlameNew(string=flame.to_string())
+                self.OnFlameNew(flame=flame)
             else:
                 if os.path.exists(newpath):
                     lst = fr0stlib.load_flamestrings(newpath)
