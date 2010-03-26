@@ -105,8 +105,7 @@ class ExceptionDialog(wx.Dialog):
         self.show_label = "Show Error Report >>"
         self.hide_label = "Hide Error Report <<"
 
-        self.collapsible = wx.CollapsiblePane(self, label=self.show_label, 
-                style=wx.CP_DEFAULT_STYLE|wx.CP_NO_TLW_RESIZE)
+        self.collapsible = wx.CollapsiblePane(self, label=self.show_label)
 
         pane = self.collapsible.GetPane()
         scrolled = ScrolledPanel(pane, size=(500, 250),
