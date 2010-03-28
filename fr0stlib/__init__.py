@@ -367,46 +367,6 @@ class Palette(collections.Sequence):
     def invert(self):
         self.data = 255 - self.data
 
-        
-    def from_seed(self, seed, csplit=0, split=30,  dist=64, curve='lin'):
-        (h,l,s) = rgb2hls(seed)
-        split /= 360.0
-        csplit /= 360.0
-        comp = hls2rgb((h+csplit+0.5,l,s))
-        lspl = hls2rgb((h-split,l,s))
-        rspl = hls2rgb((h+split,l,s))
-        if curve=='lin': cur = 0
-        elif curve=='cos': cur = 1
-        else: raise ValueError('Curve must be lin or cos')
-
-        #from 0 (compliment) to dist (left split)
-        gen = []
-        for i in xrange(dist):
-            r = pblend(comp[0], lspl[0], (i/float(dist)), cur)
-            g = pblend(comp[1], lspl[1], (i/float(dist)), cur)
-            b = pblend(comp[2], lspl[2], (i/float(dist)), cur)
-            gen.append((r, g, b))
-        #from dist to 128 (seed)
-        for i in xrange(128-dist):
-            r = pblend(lspl[0], seed[0], (i/float(128-dist)), cur)
-            g = pblend(lspl[1], seed[1], (i/float(128-dist)), cur)
-            b = pblend(lspl[2], seed[2], (i/float(128-dist)), cur)
-            gen.append((r, g, b))
-        #from 127 to 255-dist
-        for i in xrange(128-dist):
-            r = pblend(seed[0], rspl[0], (i/float(128-dist)), cur)
-            g = pblend(seed[1], rspl[1], (i/float(128-dist)), cur)
-            b = pblend(seed[2], rspl[2], (i/float(128-dist)), cur)
-            gen.append((r, g, b))
-        #from 255-dist to 255
-        for i in xrange(dist):
-            r = pblend(rspl[0], comp[0], (i/float(dist)), cur)
-            g = pblend(rspl[1], comp[1], (i/float(dist)), cur)
-            b = pblend(rspl[2], comp[2], (i/float(dist)), cur)
-            gen.append((r, g, b))
-        
-        self.data = numpy.array(gen, dtype=numpy.uint8)
-
 
     def from_seeds(self, seeds, curve='cos'):
         if curve=='lin': cur = 0
