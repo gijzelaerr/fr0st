@@ -369,22 +369,17 @@ class Palette(collections.Sequence):
 
 
     def from_seeds(self, seeds, curve='cos'):
-        if curve=='lin': cur = 0
-        elif curve=='cos': cur = 1
-        else: raise ValueError('Curve must be lin or cos')
         ns = len(seeds)
         d = 256/ns
         r = 256%ns
-        ds = []
-        for i in xrange(ns):
-            if i+1<=r: ds.append(d+1)
-            else:      ds.append(d)
         gen = []
         for i in xrange(ns):
-            for j in xrange(ds[i]):
-                h = pblend(seeds[i-1][0], seeds[i][0], (j/float(ds[i])), cur)
-                s = pblend(seeds[i-1][1], seeds[i][1], (j/float(ds[i])), cur)
-                v = pblend(seeds[i-1][2], seeds[i][2], (j/float(ds[i])), cur)
+            ds = d + (i < r)
+            for j in xrange(ds):
+                prev, current = seeds[i-1], seeds[i]
+                h = pblend(prev[0], current[0], j/float(ds), curve)
+                s = pblend(prev[1], current[1], j/float(ds), curve)
+                v = pblend(prev[2], current[2], j/float(ds), curve)
                 gen.append(hsv2rgb((h,s,v)))
         self.data = numpy.array(gen, dtype=numpy.uint8)
 
@@ -928,26 +923,22 @@ def hsv2rgb(color):
     return tuple(int(x*255) for x in colorsys.hsv_to_rgb(h,s,v))
 
 
-# for palette interpolation
-
-def pblend(s, e, i, curve=0):
+def pblend(s, e, i, curve='cos'):
     """
     s = starting value
     e = ending value
     i = which value to grab (normalized between 0-1)
-    curves=0 - lin
-           1 - cos
     """
-    if i==0:
+    if i == 0:
         return s
-    elif i==1:
+    if i == 1:
         return e
-    if s==e:
+    if s == e:
         return s
 
-    if curve==0:
+    if curve == 'lin':
         return s + ((e-s) * i)
-    elif curve==1:
+    elif curve == 'cos':
         return s + (0.5*(e-s)*(numpy.cos((i+1)*numpy.pi)+1))
     else:
         raise ValueError('invalid curve')
