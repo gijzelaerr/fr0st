@@ -23,8 +23,11 @@ from distutils.core import setup
 from distutils.extension import Extension
 from Cython.Distutils import build_ext
 import commands
-import os
+import os, sys
 
+# adding default to sys.argv
+if not sys.argv[1:] or sys.argv[1:] == ['install']:
+    sys.argv[1:] = 'build_ext', '--inplace'
 
 # Taken from partiwm(http://partiwm.org/)
 def pkgconfig(*packages, **kw):
