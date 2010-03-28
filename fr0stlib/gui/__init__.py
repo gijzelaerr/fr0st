@@ -245,6 +245,7 @@ class MainWindow(wx.Frame):
         sizer2 = wx.BoxSizer(wx.VERTICAL)
         sizer2.Add(self.image,0,wx.EXPAND)
         sizer2.Add(self.XformTabs.Selector,0, wx.ALIGN_CENTER|wx.ALL, 5)
+        sizer2.Add(self.XformTabs.Xform.weightszr,0,wx.ALIGN_CENTER|wx.ALL, 5)
         sizer2.Add(self.XformTabs,1,wx.EXPAND)
 
         sizer = wx.BoxSizer(wx.HORIZONTAL)

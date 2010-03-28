@@ -122,8 +122,10 @@ class XformPanel(wx.Panel):
             self.parent.image.RenderPreview()
             self.parent.canvas.ShowFlame(rezoom=False)
             
-        # Add weight box
-        weightsizer, d = MakeTCs(self, ('weight', 1), callback=cb, low=0)
+        # Add weight box. Note that parent of MakeTCs is parent, not self.
+        # This will be added to the sizer of the XformTabs directly.
+        self.weightszr, d = MakeTCs(self.parent, ('weight', 1),
+                                    callback=cb, low=0)
         self.weight = d['weight']
 
         # Add the number fields
@@ -180,8 +182,7 @@ class XformPanel(wx.Panel):
         # Finally, put everything together
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.AddMany((
-                (weightsizer, 0, wx.ALIGN_CENTER|wx.ALL, 5), 
-                (5, 5),
+                (5, 10),
                 hsizer, 
                 (5, 5),
                 (btnszr, 0, wx.ALIGN_CENTER|wx.ALL, 5), 
@@ -192,17 +193,15 @@ class XformPanel(wx.Panel):
         self.Layout()
 
         # Setup tab order
-
-        prev = self.weight
-
-        tab_order = [
+        tab_order = iter([
                 xyo_btn[0], self.a, self.d,
                 xyo_btn[1], self.b, self.e,
                 xyo_btn[2], self.c, self.f,
                 r1, r2, r3, self.postflag,
                 reset, solo,
-                ]  + btn[:10] + btn[11:11+3]
+                ]  + btn[:10] + btn[11:11+3])
 
+        prev = tab_order.next()
         for x in tab_order:
             x.MoveAfterInTabOrder(prev)
             prev = x
