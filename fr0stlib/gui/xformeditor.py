@@ -28,7 +28,8 @@ from fr0stlib.decorators import Bind,BindEvents
 from fr0stlib import polar, rect
 from fr0stlib import pyflam3
 from fr0stlib.gui.config import config
-from fr0stlib.gui.utils import LoadIcon, MultiSliderMixin, NumberTextCtrl
+from fr0stlib.gui.utils import LoadIcon, MultiSliderMixin, NumberTextCtrl, \
+     MakeTCs
 
 
 class XformTabs(wx.Notebook):
@@ -120,9 +121,10 @@ class XformPanel(wx.Panel):
             self.UpdateFlame(tempsave=tempsave)
             self.parent.image.RenderPreview()
             self.parent.canvas.ShowFlame(rezoom=False)
-
-        self.weight = NumberTextCtrl(self, callback=cb)
-        self.weight.SetAllowedRange(low=0)
+            
+        # Add weight box
+        weightsizer, d = MakeTCs(self, ('weight', 1), callback=cb, low=0)
+        self.weight = d['weight']
 
         # Add the number fields
         for i in "adbecf":
@@ -155,15 +157,6 @@ class XformPanel(wx.Panel):
                          style=wx.BU_EXACTFIT)
         btnszr = wx.BoxSizer(wx.HORIZONTAL)
         btnszr.AddMany((reset, (10, 5), solo))
-
-        # Add weight box
-        weightsizer = wx.BoxSizer(wx.HORIZONTAL)
-        weightsizer.AddMany((
-               (wx.StaticText(self, -1, "Weight"), 0, wx.ALIGN_CENTER_VERTICAL),
-               (self.weight, 0, wx.ALL, 1)
-            ))
-        
-        
 
         # Add the Comboboxes and buttons
         map(self.MakeComboBox, *zip(("rotate", 15),
