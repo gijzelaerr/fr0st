@@ -156,7 +156,7 @@ class Fr0stApp(wx.App):
                              "fr0st", wx.OK|wx.ICON_ERROR).ShowModal()
             return
 
-        MainWindow(None, wx.ID_ANY)
+        self.MainWindow = MainWindow(None, wx.ID_ANY)
         wx.App.MainLoop(self)
 
     @property
