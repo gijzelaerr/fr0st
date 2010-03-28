@@ -22,11 +22,6 @@
 ##############################################################################
 from fr0stlib.gui import Fr0stApp
 
-# make this check at the beginning to prevent the GUI from crashing.
-import fr0stlib
-if fr0stlib.utils is None:
-    raise fr0stlib.MissingUtilsModuleError()
-
 if __name__ == '__main__':
     app = Fr0stApp()
     app.MainLoop()

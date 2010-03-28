@@ -30,24 +30,12 @@ from fr0stlib.pyflam3 import Genome, RandomContext, flam3_nvariations, \
 from fr0stlib.compatibility import compatibilize
 
 
-try:
-    from fr0stlib import _utils as utils
-except ImportError:
-    utils = None
-
 VERSION = "Fr0st 1.1 beta"
 GUI = False
 
 
 class ParsingError(Exception):
     pass
-
-
-class MissingUtilsModuleError(Exception):
-    def __init__(self):
-        super(Exception, self).__init__(
-                'This method requires the cython module '
-                '`fr0stlib._utils` which is not available')
 
 
 class Flame(object):
@@ -381,9 +369,6 @@ class Palette(collections.Sequence):
 
         
     def from_seed(self, seed, csplit=0, split=30,  dist=64, curve='lin'):
-        if utils is None:
-            raise MissingUtilsModuleError()
-
         (h,l,s) = rgb2hls(seed)
         split /= 360.0
         csplit /= 360.0
@@ -397,36 +382,33 @@ class Palette(collections.Sequence):
         #from 0 (compliment) to dist (left split)
         gen = []
         for i in xrange(dist):
-            r = utils.pblend(comp[0], lspl[0], (i/float(dist)), cur)
-            g = utils.pblend(comp[1], lspl[1], (i/float(dist)), cur)
-            b = utils.pblend(comp[2], lspl[2], (i/float(dist)), cur)
+            r = pblend(comp[0], lspl[0], (i/float(dist)), cur)
+            g = pblend(comp[1], lspl[1], (i/float(dist)), cur)
+            b = pblend(comp[2], lspl[2], (i/float(dist)), cur)
             gen.append((r, g, b))
         #from dist to 128 (seed)
         for i in xrange(128-dist):
-            r = utils.pblend(lspl[0], seed[0], (i/float(128-dist)), cur)
-            g = utils.pblend(lspl[1], seed[1], (i/float(128-dist)), cur)
-            b = utils.pblend(lspl[2], seed[2], (i/float(128-dist)), cur)
+            r = pblend(lspl[0], seed[0], (i/float(128-dist)), cur)
+            g = pblend(lspl[1], seed[1], (i/float(128-dist)), cur)
+            b = pblend(lspl[2], seed[2], (i/float(128-dist)), cur)
             gen.append((r, g, b))
         #from 127 to 255-dist
         for i in xrange(128-dist):
-            r = utils.pblend(seed[0], rspl[0], (i/float(128-dist)), cur)
-            g = utils.pblend(seed[1], rspl[1], (i/float(128-dist)), cur)
-            b = utils.pblend(seed[2], rspl[2], (i/float(128-dist)), cur)
+            r = pblend(seed[0], rspl[0], (i/float(128-dist)), cur)
+            g = pblend(seed[1], rspl[1], (i/float(128-dist)), cur)
+            b = pblend(seed[2], rspl[2], (i/float(128-dist)), cur)
             gen.append((r, g, b))
         #from 255-dist to 255
         for i in xrange(dist):
-            r = utils.pblend(rspl[0], comp[0], (i/float(dist)), cur)
-            g = utils.pblend(rspl[1], comp[1], (i/float(dist)), cur)
-            b = utils.pblend(rspl[2], comp[2], (i/float(dist)), cur)
+            r = pblend(rspl[0], comp[0], (i/float(dist)), cur)
+            g = pblend(rspl[1], comp[1], (i/float(dist)), cur)
+            b = pblend(rspl[2], comp[2], (i/float(dist)), cur)
             gen.append((r, g, b))
         
         self.data = numpy.array(gen, dtype=numpy.uint8)
 
 
     def from_seeds(self, seeds, curve='cos'):
-        if utils is None:
-            raise MissingUtilsModuleError()
-
         if curve=='lin': cur = 0
         elif curve=='cos': cur = 1
         else: raise ValueError('Curve must be lin or cos')
@@ -440,9 +422,9 @@ class Palette(collections.Sequence):
         gen = []
         for i in xrange(ns):
             for j in xrange(ds[i]):
-                h = utils.pblend(seeds[i-1][0], seeds[i][0], (j/float(ds[i])), cur)
-                s = utils.pblend(seeds[i-1][1], seeds[i][1], (j/float(ds[i])), cur)
-                v = utils.pblend(seeds[i-1][2], seeds[i][2], (j/float(ds[i])), cur)
+                h = pblend(seeds[i-1][0], seeds[i][0], (j/float(ds[i])), cur)
+                s = pblend(seeds[i-1][1], seeds[i][1], (j/float(ds[i])), cur)
+                v = pblend(seeds[i-1][2], seeds[i][2], (j/float(ds[i])), cur)
                 gen.append(hsv2rgb((h,s,v)))
         self.data = numpy.array(gen, dtype=numpy.uint8)
 
@@ -453,22 +435,6 @@ class Palette(collections.Sequence):
         seeds = [tuple(random.uniform(*i) for i in dims)
                  for j in range(int(random.uniform(*nodes)))]
         self.from_seeds(seeds, curve)
-
-        
-    def from_image(self, data, size, num_tries=50, try_size=1000):
-        if utils is None:
-            raise MissingUtilsModuleError()
-
-        grab = numpy.zeros((256, 3), numpy.float32)
-        for i in xrange(256):
-            x = random.randint(0, size[0]-1)
-            y = random.randint(0, size[1]-1)
-            idx = 3*(x + size[0]*y)
-            grab[i] = data[idx:idx+3]
-
-        best = utils.palette_improve(grab, num_tries, try_size)
-        for i in xrange(256):
-            self.data[i] = (best[i,0], best[i,1], best[i,2])
 
 
 class Xform(object):
@@ -1000,3 +966,29 @@ def hsv2rgb(color):
     s = clip(s,0,1)
     v = clip(v,0,1)
     return tuple(int(x*255) for x in colorsys.hsv_to_rgb(h,s,v))
+
+
+# for palette interpolation
+
+def pblend(s, e, i, curve=0):
+    """
+    s = starting value
+    e = ending value
+    i = which value to grab (normalized between 0-1)
+    curves=0 - lin
+           1 - cos
+    """
+    if i==0:
+        return s
+    elif i==1:
+        return e
+    if s==e:
+        return s
+
+    if curve==0:
+        return s + ((e-s) * i)
+    elif curve==1:
+        return s + (0.5*(e-s)*(numpy.cos((i+1)*numpy.pi)+1))
+    else:
+        raise ValueError('invalid curve')
+
