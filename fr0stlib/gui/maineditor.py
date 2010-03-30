@@ -125,7 +125,7 @@ class TransformPanel(wx.Panel):
         def inner(self):
             # NOTE: passes in the xform, never the post xform.
             f(self, self.parent.ActiveXform)
-            self.parent.TreePanel.TempSave()
+            self.parent.TempSave()
         return inner
 
     @modifyxform
@@ -264,17 +264,17 @@ class GradientPanel(wx.Panel):
 
     def OnRandomize(self, e):
         self.parent.flame.gradient.random(**self.config)
-        self.parent.TreePanel.TempSave()
+        self.parent.TempSave()
 
 
     def OnInvert(self, e):
         self.parent.flame.gradient.invert()
-        self.parent.TreePanel.TempSave()
+        self.parent.TempSave()
 
 
     def OnReverse(self, e):
         self.parent.flame.gradient.reverse()
-        self.parent.TreePanel.TempSave()
+        self.parent.TempSave()
 
 
     @Bind(wx.EVT_IDLE)
@@ -312,7 +312,7 @@ class GradientPanel(wx.Panel):
 
     def OnSliderUp(self, e):
         if self._changed:
-            self.parent.TreePanel.TempSave()
+            self.parent.TempSave()
             self._changed = False
         self._startval = None
         e.Skip()
@@ -453,7 +453,7 @@ class AdjustPanel(MultiSliderMixin, wx.Panel):
 
     def __size_callback(self):
         self.UpdateFlame()
-        self.parent.TreePanel.TempSave()
+        self.parent.TempSave()
 
 
     def OnChangeBGColor(self, e):
@@ -466,7 +466,7 @@ class AdjustPanel(MultiSliderMixin, wx.Panel):
         if dlg.ShowModal() == wx.ID_OK:
             self.bgcolor_panel.SetBackgroundColour(dlg.GetColourData().GetColour())
             self.UpdateFlame()
-            self.parent.TreePanel.TempSave()
+            self.parent.TempSave()
 
         dlg.Destroy()
 

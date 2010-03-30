@@ -243,7 +243,7 @@ class XformPanel(wx.Panel):
                 
         xform, view = self.GetActive()            
         getattr(self, "Func%s" %e.GetEventObject().GetName())(xform)
-        self.parent.TreePanel.TempSave()
+        self.parent.TempSave()
 
 
     def Funcx(self, xform):
@@ -346,7 +346,7 @@ class XformPanel(wx.Panel):
             xform.polars = zip(*[iter(self.coefs)]*2)
 
         if tempsave:
-            self.parent.TreePanel.TempSave()
+            self.parent.TempSave()
                                           
 
     def _get_coefs(self):
@@ -502,7 +502,7 @@ class VarPanel(wx.Panel):
             self.tree.Collapse(item)
         if value != oldvalue:
             self.SetFlameAttribute(item, value)
-            self.parent.TreePanel.TempSave()
+            self.parent.TempSave()
 
 
 ##    # TODO: is it preferrable to have:
@@ -571,7 +571,7 @@ class VarPanel(wx.Panel):
                 self.tree.Collapse(item)
             self.SetFlameAttribute(item, new)
             self.SetItemText(item, str(new), 1)
-            self.parent.TreePanel.TempSave()
+            self.parent.TempSave()
         
 
     def OnWheel(self,e):
@@ -611,7 +611,7 @@ class VarPanel(wx.Panel):
         if (key == wx.WXK_CONTROL and not e.AltDown()) or (
             key == wx.WXK_ALT and not e.ControlDown()):
             if self.HasChanged:
-                self.parent.TreePanel.TempSave()
+                self.parent.TempSave()
                 self.HasChanged = False
 
 
@@ -691,7 +691,7 @@ class ColorPanel(MultiSliderMixin, wx.Panel):
     @Bind(wx.EVT_CHECKBOX)
     def OnCheckbox(self,evt):
         self.UpdateFlame()
-        self.parent.TreePanel.TempSave()
+        self.parent.TempSave()
 
 
 class ChaosPanel(wx.Panel):
@@ -805,7 +805,7 @@ class ChaosPanel(wx.Panel):
 
         if value != oldvalue:
             self.SetFlameAttribute(tree, item, value)
-            self.parent.TreePanel.TempSave()
+            self.parent.TempSave()
 
         e.Veto()
 
@@ -861,7 +861,7 @@ class ChaosPanel(wx.Panel):
             new = 0.0 if text == '1.0' else 1.0
             tree.SetItemText(item, str(new), 1)
             self.SetFlameAttribute(tree, item, new)
-            self.parent.TreePanel.TempSave()
+            self.parent.TempSave()
         e.Skip()
         
 
@@ -898,6 +898,6 @@ class ChaosPanel(wx.Panel):
         if (key == wx.WXK_CONTROL and not e.AltDown()) or (
             key == wx.WXK_ALT and not e.ControlDown()):
             if self.HasChanged:
-                self.parent.TreePanel.TempSave()
+                self.parent.TempSave()
                 self.HasChanged = False
     

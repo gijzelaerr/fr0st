@@ -53,28 +53,6 @@ class TreePanel(wx.Panel):
         self.SetDoubleBuffered(True)
 
 
-    def TempSave(self, force=False):
-        """Updates the tree's undo list and saves a backup version from
-        which the session can be restored."""
-        # HACK: this prevents loads of useless tempsaves when running a script.
-        # the GUI can still be manipulated. This also prevents some weird
-        # segfaults.
-        if self.parent.scriptrunning:
-            return
-
-        data = self.tree.itemdata
-
-        # Check if flame has changed. to_string is needed to detect identical
-        # flames saved in different apps. This comparison takes about 5ms.
-        string = self.parent.flame.to_string()
-        if force or Flame(data[-1]).to_string() != string:
-            data.append(string)
-            self.tree.SetItemText(self.tree.item, data.name)
-
-        self.tree.RenderThumbnail()
-        self.parent.SetFlame(self.parent.flame,rezoom=False)
-
-
     @Bind(wx.EVT_TREE_SEL_CHANGED)
     def OnSelChanged(self, event):
         item = event.GetItem()
@@ -105,7 +83,7 @@ class TreePanel(wx.Panel):
         if newname:
             data = self.tree.GetFlameData(e.GetItem())
             self.parent.flame.name = data.name = newname
-            self.TempSave()
+            self.parent.TempSave()
         e.Veto()
 
 

@@ -493,7 +493,7 @@ class XformCanvas(FC.FloatCanvas):
             # a bizarre way. Calling OnIdle fixes this.
             self.OnIdle(None)
             self.HasChanged = False
-            self.parent.TreePanel.TempSave()
+            self.parent.TempSave()
 
 
     @Bind(FC.EVT_RIGHT_DOWN)

@@ -243,7 +243,7 @@ class NumberTextCtrl(wx.TextCtrl):
         if (key == wx.WXK_CONTROL and not e.AltDown()) or (
             key == wx.WXK_ALT and not e.ControlDown()):
             if self.HasChanged:
-                wx.GetApp().MainWindow.TreePanel.TempSave()
+                wx.GetApp().MainWindow.TempSave()
                 self.HasChanged = False
 
 
@@ -332,7 +332,7 @@ class MultiSliderMixin(object):
 
     def OnSliderUp(self, e):
         if self._changed:
-            self.parent.TreePanel.TempSave()
+            self.parent.TempSave()
             self._changed = False
         e.Skip()
 
@@ -347,7 +347,7 @@ class MultiSliderMixin(object):
     def __callback(self, tc, tempsave=True):
         self.UpdateFlame()
         if tempsave:
-            self.parent.TreePanel.TempSave()
+            self.parent.TempSave()
         
 
     def UpdateFlame(self):

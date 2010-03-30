@@ -180,7 +180,7 @@ class PreviewBase(wx.Panel):
         self.StartMove = None
         if self.EndMove is not None:
             self.EndMove = None
-            self.parent.TreePanel.TempSave()
+            self.parent.TempSave()
 
 
     @Bind(wx.EVT_MOUSE_EVENTS)
@@ -213,7 +213,7 @@ class PreviewBase(wx.Panel):
         if (key == wx.WXK_CONTROL and not e.AltDown()) or (
             key == wx.WXK_ALT and not e.ControlDown()):
             if self.HasChanged:
-                self.parent.TreePanel.TempSave()
+                self.parent.TempSave()
                 self.HasChanged = False
 
 

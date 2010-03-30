@@ -582,6 +582,28 @@ flam4 - (c) 2009 Steven Broadhead""" % fr0stlib.VERSION,
         self.Enable(ID.REDOALL, data.redo)
 
 
+    def TempSave(self, force=False):
+        """Updates the tree's undo list and saves a backup version from
+        which the session can be restored."""
+        # HACK: this prevents loads of useless tempsaves when running a script.
+        # the GUI can still be manipulated. This also prevents some weird
+        # segfaults.
+        if self.scriptrunning:
+            return
+
+        data = self.tree.itemdata
+
+        # Check if flame has changed. to_string is needed to detect identical
+        # flames saved in different apps. This comparison takes about 5ms.
+        string = self.flame.to_string()
+        if force or Flame(data[-1]).to_string() != string:
+            data.append(string)
+            self.tree.SetItemText(self.tree.item, data.name)
+
+        self.tree.RenderThumbnail()
+        self.SetFlame(self.flame, rezoom=False)
+        
+
     def PatchFr0stlib(self):
         """Override some fr0stlib functions with equivalent GUI versions.
         References to the old functions must be explicitly kept for internal
@@ -687,7 +709,7 @@ flam4 - (c) 2009 Steven Broadhead""" % fr0stlib.VERSION,
                 if not self.flame.xform:
                     raise ValueError("Flame has no xforms")
                 self.SetFlame(self.flame, rezoom=False)
-                self.TreePanel.TempSave()
+                self.TempSave()
             except Exception as e:
                 print "Exception updating flame:\n%s" %e
                 self.SetFlame(oldflame, rezoom=False)
