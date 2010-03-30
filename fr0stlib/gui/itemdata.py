@@ -29,13 +29,11 @@ class ParentData(object):
         self.imgindex = 0
 
 
-class ItemData(list):
-    re_name = re.compile(r'(?<= name=").*?(?=")')
-    
+class ItemData(list):  
     def __init__(self, string):
         self.append(string)
         self.redo = []
-        self._name = (self.re_name.findall(string) or ("Untitled",))[0]
+        self.UpdateName()
         self.imgindex = -1
         
 
@@ -49,30 +47,32 @@ class ItemData(list):
 
 
     def Reset(self):
-        """Deletes the undo and redo lists, leaving the flame intact."""
-        self[:] = self[-1:]
-        self.redo = []
+        del self[:-1], self.redo[:]
+
+
+    def UpdateName(self):
+        self._name = re.findall(r'(?<= name=").*?(?=")', self[-1])[0]
 
 
     def Undo(self):
         if self.undo:
             self.redo.append(self.pop())
-            self._name = self.re_name.findall(self[-1])[0]
+            self.UpdateName()
             return self[-1]
 
 
     def UndoAll(self):
         if self.undo:
             self.redo.extend(reversed(self[1:]))
-            self[:] = self[:1]
-            self._name = self.re_name.findall(self[-1])[0]
+            del self[1:]
+            self.UpdateName()
             return self[-1]
         
 
     def Redo(self):
         if self.redo:
             list.append(self,self.redo.pop())
-            self._name = self.re_name.findall(self[-1])[0]
+            self.UpdateName()
             return self[-1]
 
 
@@ -80,7 +80,7 @@ class ItemData(list):
         if self.redo:
             self.extend(reversed(self.redo))
             del self.redo[:]
-            self._name = self.re_name.findall(self[-1])[0]
+            self.UpdateName()
             return self[-1]
 
 
