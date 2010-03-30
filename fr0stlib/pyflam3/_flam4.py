@@ -175,7 +175,7 @@ def loadFlam4(flame):
     flam4Flame.center[0] = flame.center[0]
     flam4Flame.center[1] = flame.center[1]
     flam4Flame.size[0] = 100./flame.scale
-    flam4Flame.size[1] = -100.*(flame.size[1]/flame.size[0])/flame.scale        # flip the image right side up!
+    flam4Flame.size[1] = -100.*(flame.height/float(flame.width))/flame.scale        # flip the image right side up!
     flam4Flame.hue = 0                              #LINKME
     flam4Flame.rotation = flame.angle # flam4 uses radians for rotate!
     flam4Flame.symmetry = 0                         #LINKME
