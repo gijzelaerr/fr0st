@@ -255,6 +255,9 @@ class MainWindow(wx.Frame):
 
         self.SetSizer(sizer)
 
+        # self.flame must be explicitly created here since it's required on
+        # windows by the preview frame resize events.
+        self.flame = self.MakeFlame()
         self.previewframe = PreviewFrame(self)
 
         # Calculate the correct minimum size dynamically.
