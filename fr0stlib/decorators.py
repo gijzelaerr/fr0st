@@ -19,16 +19,13 @@
 #  the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 #  Boston, MA 02111-1307, USA.
 ##############################################################################
-from threading import Thread, Lock, currentThread
+from threading import Thread, Lock
 from functools import wraps
 
 try:
     from fr0stlib.threadinterrupt import ThreadInterrupt
 except ImportError:
     class ThreadInterrupt(BaseException): pass
-    raise ImportWarning("Couldn't import required exception.")
-
-class ThreadingError(Exception): pass
 
 
 def Bind(evt, *args, **kwds):
@@ -48,7 +45,8 @@ def BindEvents(__init__):
         __init__(self, *args, **kwds)
         for name in vars(self.__class__):
             f = getattr(self, name)
-            if not hasattr(f, "__bound"): continue
+            if not hasattr(f, "__bound"):
+                continue
             for evt, a, k in f.__bound:
                 if type(evt) is tuple:
                     for e in evt:
@@ -66,10 +64,9 @@ def Catches(exctype):
         @wraps(f)
         def wrapper(*args,**kwds):
             try:
-                result = f(*args, **kwds)
+                return f(*args, **kwds)
             except exctype:
-                result = None
-            return result
+                pass
         return wrapper
     return decorator
 
@@ -105,21 +102,6 @@ def Threaded(f):
         thr = Thread(target=f, args=args, kwargs=kwds, name=f.__name__)
         thr.daemon = True
         thr.start()
+        return thr
     return wrapper
-
-
-def CallableFrom(name):
-    """ Only a thread having the given name will be able to call this function.
-    Used for defensive programming, to make sure thread boundaries aren't
-    being violated."""
-    def decorator(f):
-        @wraps(f)
-        def wrapper(*args, **kwds):
-            if currentThread().getName() != name:
-                raise ThreadingError('Function %s may only be called from '
-                                     'thread "%s"'
-                                     %(f.__name__, name))
-            return f(*args, **kwds)
-        return wrapper
-    return decorator
 
