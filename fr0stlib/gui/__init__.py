@@ -449,8 +449,7 @@ flam4 - (c) 2009 Steven Broadhead""" % fr0stlib.VERSION,
 
     @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=ID.STOP)
     def OnStopScript(self,e=None):
-        interruptall('Execute')
-        self.EndOfScript("\nSCRIPT INTERRUPTED")
+        interruptall('RunScript')
 
 
     @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=ID.EDITOR)
@@ -551,7 +550,7 @@ flam4 - (c) 2009 Steven Broadhead""" % fr0stlib.VERSION,
         self.SetFlame(self.flame, rezoom=False)
 
 
-    @CallableFrom('MainThread')
+    @InMain
     @Catches(wx.PyDeadObjectError)
     def SetFlame(self, flame, rezoom=True):
         """Changes the active flame and updates all relevant widgets.
@@ -582,6 +581,7 @@ flam4 - (c) 2009 Steven Broadhead""" % fr0stlib.VERSION,
         self.Enable(ID.REDOALL, data.redo)
 
 
+    @InMain
     def TempSave(self, force=False):
         """Updates the tree's undo list and saves a backup version from
         which the session can be restored."""
@@ -656,9 +656,6 @@ flam4 - (c) 2009 Steven Broadhead""" % fr0stlib.VERSION,
     @Threaded
     @Locked(blocking=False)
     def Execute(self,string):
-        print time.strftime("\n------------ %H:%M:%S ------------")
-        start = time.time()
-
         # split and join fixes linebreak issues between windows and linux
         lines = self.log._lines = string.splitlines()
         script = "\n".join(lines) +'\n'
@@ -667,42 +664,21 @@ flam4 - (c) 2009 Steven Broadhead""" % fr0stlib.VERSION,
         syspath = list(sys.path)
         sys.path.insert(0, os.path.dirname(self.editor.scriptpath))
         
-        oldflame = Flame(self.flame.to_string())
+        oldflame = self.flame.copy()
         namespace = self.CreateNamespace()
-        self._scriptdata = sysmodules, syspath, oldflame, namespace
 
-        try:
-            # namespace is used as globals and locals, same as top level
-            exec(script, namespace)
-        except SystemExit:
-            pass
-        except Exception:
-            namespace["update_flame"] = False
-            raise
-        finally:
-            self.EndOfScript()
-        
-        # Keep this out of the finally clause!
-        print "\nSCRIPT FINISHED (%.2f seconds)" %(time.time()-start)
+        # actually run the script
+        self.RunScript(script, namespace).join()
 
-
-    @InMain
-    def EndOfScript(self, message=None):
-        if not hasattr(self, '_scriptdata'):
-            return
-        if message:
-            print message
-        sysmodules, syspath, oldflame, namespace = self._scriptdata
         # Remove any modules imported by the script, so they can be changed
         # without needing to restart fr0st. Also revert path.
         sys.modules.clear()
         sys.modules.update(sysmodules)
         sys.path[:] = syspath
-        
+
         # Note that tempsave returns if scriptrunning == True, so it needs to
         # come after unblocking the GUI.
         self.BlockGUI(False)
-        self.SetStatusText("")
         if namespace["update_flame"]:
             try:
                 # Check if changes made to the flame by the script are legal.
@@ -715,10 +691,28 @@ flam4 - (c) 2009 Steven Broadhead""" % fr0stlib.VERSION,
                 self.SetFlame(oldflame, rezoom=False)
         else:
             self.SetFlame(oldflame, rezoom=False)
-        del self._scriptdata
+
+
+    @Threaded
+    def RunScript(self, script, namespace):
+        print time.strftime("\n------------ %H:%M:%S ------------")
+        start = time.time()
+        try:
+            # namespace is used as globals and locals, same as top level
+            exec(script, namespace)
+        except ThreadInterrupt:
+            print "\nSCRIPT INTERRUPTED"
+            return
+        except SystemExit:
+            pass
+        except Exception:
+            namespace["update_flame"] = False
+            raise
+        
+        print "\nSCRIPT FINISHED (%.2f seconds)" %(time.time()-start)
         
 
-    @CallableFrom('MainThread')
+    @InMain
     def BlockGUI(self, flag=False):
         """Called before and after a script runs."""
         # TODO: prevent file opening, etc
@@ -726,9 +720,9 @@ flam4 - (c) 2009 Steven Broadhead""" % fr0stlib.VERSION,
         self.Enable(ID.STOP, flag, editor=True)
         self.editor.tc.SetEditable(not flag)
         self.scriptrunning = flag
+        self.SetStatusText("")
         
 
-    @CallableFrom('MainThread')
     def Enable(self, id, flag, editor=False):
         """Enables/Disables toolbar and menu items."""
         flag = bool(flag)
