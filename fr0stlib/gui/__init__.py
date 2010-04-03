@@ -19,7 +19,7 @@
 #  the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 #  Boston, MA 02111-1307, USA.
 ##############################################################################
-import imp, os, sys, wx, time, shutil, copy
+import imp, os, sys, wx, time, shutil, copy, cPickle as Pickle
 
 import fr0stlib
 from fr0stlib import Flame, save_flames
@@ -277,7 +277,13 @@ class MainWindow(wx.Frame):
         sys.path.append(wx.GetApp().UserScriptsDir)
         self.PatchFr0stlib()
 
-        self.OpenFlame(config["flamepath"])          
+        if os.path.exists('changes.bak'):
+            changelist = Pickle.load(open('changes.bak', 'rb'))
+            self.OpenFlame(config["flamepath"])
+            self.RecoverSession(changelist)
+            self.DumpChanges()
+        else:
+            self.OpenFlame(config["flamepath"])
 
         self.tree.SelectItem(self.tree.GetItemByIndex((0,0)))
 
@@ -325,6 +331,9 @@ flam4 - (c) 2009 Steven Broadhead""" % fr0stlib.VERSION,
             return
         
         self.renderer.exitflag = True
+        
+        if os.path.exists('changes.bak'):
+            os.remove('changes.bak')
 
         # Save size and pos of each window
         for window, k in ((self, "Rect-Main"),
@@ -547,6 +556,7 @@ flam4 - (c) 2009 Steven Broadhead""" % fr0stlib.VERSION,
             self.tree.SetItemText(self.tree.item, data.name)
                 
         save_flames(path, *(data[0] for data in lst))
+        self.DumpChanges()
         # Make sure Undo and Redo get set correctly.
         self.SetFlame(self.flame, rezoom=False)
 
@@ -600,8 +610,27 @@ flam4 - (c) 2009 Steven Broadhead""" % fr0stlib.VERSION,
             data.append(string)
             self.tree.SetItemText(self.tree.item, data.name)
 
+        self.DumpChanges()
+
         self.tree.RenderThumbnail()
         self.SetFlame(self.flame, rezoom=False)
+
+
+    def DumpChanges(self):
+        lst = [data[1:] for data in self.tree.GetDataGen()]
+        with open('changes.bak', 'wb') as f:
+            Pickle.dump(lst, f, Pickle.HIGHEST_PROTOCOL)
+            
+
+    def RecoverSession(self, changelist):
+        for child, data, changes in zip(self.tree.GetItemChildren(),
+                                        self.tree.GetDataGen(), changelist):
+            if changes:
+                data.extend(changes)
+                self.tree.SetItemText(child, data.name)
+                self.tree.RenderThumbnail(child, data, flag=self.tree.flag)
+
+        self.tree.SelectItem(self.tree.GetItemByIndex((0,0)))
         
 
     def PatchFr0stlib(self):
