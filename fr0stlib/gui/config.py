@@ -62,7 +62,7 @@ def init_config():
                                "filter_radius": 0},
           "Large-Preview-Settings": {"quality": 25,
                                      "estimator": 0,
-                                     "filter_radius": 0.75,
+                                     "filter_radius": 0.25,
                                      "spatial_oversample":2},
           "Render-Settings": {"quality": 500,
                               "filter_radius": 0.5,
