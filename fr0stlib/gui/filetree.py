@@ -117,6 +117,7 @@ class TreePanel(wx.Panel):
             index = len(children) - 1
         self.tree.SelectItem(self.tree.GetItemByIndex((0,index)))
         save_flames(path, *(i[0] for i in self.tree.GetDataGen()))
+        self.parent.parent.DumpChanges()
 
 
     @Bind(wx.EVT_TREE_ITEM_COLLAPSING)
@@ -180,6 +181,7 @@ class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
             self.SetItemImage(child, 2)
 
         self.SelectItem(self.GetItemByIndex((0,0)))
+        self.parent.parent.DumpChanges()
 
         return self.itemparent
 
@@ -262,6 +264,7 @@ class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
         self.SelectItem(self.item)
         
         save_flames(path, *(i[0] for i in self.GetDataGen()))
+        self.parent.parent.DumpChanges()
 
 
     def GetItem(self, indices):
