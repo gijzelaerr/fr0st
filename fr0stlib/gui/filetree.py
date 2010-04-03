@@ -117,7 +117,7 @@ class TreePanel(wx.Panel):
             index = len(children) - 1
         self.tree.SelectItem(self.tree.GetItemByIndex((0,index)))
         save_flames(path, *(i[0] for i in self.tree.GetDataGen()))
-        self.parent.parent.DumpChanges()
+        self.parent.DumpChanges()
 
 
     @Bind(wx.EVT_TREE_ITEM_COLLAPSING)

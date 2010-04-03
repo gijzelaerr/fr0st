@@ -278,10 +278,7 @@ class MainWindow(wx.Frame):
         self.PatchFr0stlib()
 
         if os.path.exists('changes.bak'):
-            changelist = Pickle.load(open('changes.bak', 'rb'))
-            self.OpenFlame(config["flamepath"])
-            self.RecoverSession(changelist)
-            self.DumpChanges()
+            self.RecoverSession()
         else:
             self.OpenFlame(config["flamepath"])
 
@@ -617,12 +614,16 @@ flam4 - (c) 2009 Steven Broadhead""" % fr0stlib.VERSION,
 
 
     def DumpChanges(self):
-        lst = [data[1:] for data in self.tree.GetDataGen()]
+        changes = (self.tree.GetFilePath(),
+                   [data[1:] for data in self.tree.GetDataGen()])
         with open('changes.bak', 'wb') as f:
-            Pickle.dump(lst, f, Pickle.HIGHEST_PROTOCOL)
+            Pickle.dump(changes, f, Pickle.HIGHEST_PROTOCOL)
             
 
-    def RecoverSession(self, changelist):
+    def RecoverSession(self):
+        path, changelist = Pickle.load(open('changes.bak', 'rb'))
+        self.OpenFlame(path)
+        config["flamepath"] = path
         for child, data, changes in zip(self.tree.GetItemChildren(),
                                         self.tree.GetDataGen(), changelist):
             if changes:
@@ -630,6 +631,7 @@ flam4 - (c) 2009 Steven Broadhead""" % fr0stlib.VERSION,
                 self.tree.SetItemText(child, data.name)
                 self.tree.RenderThumbnail(child, data, flag=self.tree.flag)
 
+        self.DumpChanges()
         self.tree.SelectItem(self.tree.GetItemByIndex((0,0)))
         
 
