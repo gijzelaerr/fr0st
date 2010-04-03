@@ -377,7 +377,7 @@ flam4 - (c) 2009 Steven Broadhead""" % fr0stlib.VERSION,
             flames = map(Flame, fr0stlib.split_flamestrings(data.GetText()))
             # check for empty list, and also use as test in for loop.
             first = flames[0] 
-        except:
+        except Exception:
             ErrorMessage(self, "Can't paste flames. Invalid string")
             return
         for flame in flames:
