@@ -377,7 +377,7 @@ class Palette(collections.Sequence):
             ds = d + (i < r)
             start, end = seeds[i-1], seeds[i]
             for j in xrange(ds):
-                hsv = pblend_color(start, end, j/float(ds), curve)
+                hsv = pblend_vector(start, end, j/float(ds), curve)
                 gen.append(hsv2rgb(hsv))
         self.data = numpy.array(gen, dtype=numpy.uint8)
 
@@ -942,7 +942,7 @@ def pblend(s, e, i, curve='cos'):
         raise ValueError('invalid curve')
 
 
-def pblend_color(start, end, i, curve='cos'):
+def pblend_vector(start, end, i, curve='cos'):
     if i == 0:
         return start
     if i == 1:
