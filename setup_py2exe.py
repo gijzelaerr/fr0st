@@ -24,10 +24,7 @@ from distutils.core import setup
 from distutils.command import build_ext
 import py2exe
 from py2exe.build_exe import py2exe
-import glob
-import os
-import shutil
-import sys
+import os, sys, glob, shutil
 import _winreg
 
 
@@ -107,39 +104,16 @@ class InnoScript:
             raise RuntimeError, "ShellExecute failed, error %d" % res
 
 ###########################################################################
-#  Little hack to get py2exe to handle the extensions correctly
-#   and build the installer
+#  get py2exe to build the installer
 
-class build_exe_plus_extension(py2exe):
+class build_exe_plus_installer(py2exe):
     def run(self):
-        build = self.reinitialize_command('build')
-        build.run()
-        sys_old_path = sys.path[:]
-        if build.build_platlib is not None:
-            sys.path.insert(0, build.build_platlib)
-        if build.build_lib is not None:
-            sys.path.insert(0, build.build_lib)
-        try:
-            self._run()
-        finally:
-            sys.path = sys_old_path
-
-        # py2exe can't seem to find the extensions unless they're inplace
-        extensions = glob.glob('build/*/%s/*.pyd' % fr0st_package_name)
-
-        # copy them all over
-        for ext in extensions:
-            shutil.copy(ext, fr0st_package_name)
-
         py2exe.run(self)
-
-        lib_dir = self.lib_dir
-        dist_dir = self.dist_dir
         
         # create the Installer, using the files py2exe has created.
         script = InnoScript("fr0st",
-                            lib_dir,
-                            dist_dir,
+                            self.lib_dir,
+                            self.dist_dir,
                             self.windows_exe_files + self.console_exe_files,
                             self.lib_files)
 
@@ -201,7 +175,6 @@ dll_excludes = [
     'libgdk-win32-2.0-0.dll', 'libgobject-2.0-0.dll',
     'tcl84.dll', 'tk84.dll',
 ]
-
 
 manifest = '''
 <assembly xmlns="urn:schemas-microsoft-com:asm.v1"
@@ -265,7 +238,6 @@ fr0st_target = Target(
 ###########################################################################
 #  Finally, hand it off to distutils
 
-
 setup(
 
     data_files = data_files,
@@ -286,10 +258,12 @@ setup(
     zipfile = None,
     console = [],
     windows = [fr0st_target],
-    cmdclass = {"py2exe": build_exe_plus_extension},
+    cmdclass = {"py2exe": build_exe_plus_installer},
 )
 
-
-print 'IF EVERYTHING WORKED, INSTALLER IS IN dist/Output'
-
-
+# HACK: copy needed stuff to the correct dirs.
+shutil.move(os.path.abspath(os.path.join('dist', 'Output', 'setup.exe')),
+            'fr0st-VERSION-win32_installer.exe')
+shutil.rmtree(os.path.join('dist', 'Output'))
+shutil.copytree(os.path.abspath('Microsoft.VC90.CRT'),
+            os.path.join('dist', 'Microsoft.VC90.CRT'))
