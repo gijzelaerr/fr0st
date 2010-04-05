@@ -44,26 +44,6 @@ shutil.rmtree("dist", ignore_errors=True)
 
 fr0st_package_name = 'fr0stlib'
 
-###########################################################################
-#  Start off with Cython,  Make sure the .c files have been generated    
-
-cython_sources = [
-    fr0st_package_name  + '/_utils.pyx'
-]
-
-c_sources = [os.path.splitext(x)[0] + '.c' for x in cython_sources]
-
-if not os.path.exists(c_sources[0]):
-    # Need to cythonize the source files
-    try:
-        from Cython.Compiler.Main import compile as cython_compile
-    except ImportError:
-        raise RuntimeError("Error: Source needs to be cythonized but Cython is not installed")
-
-    #TODO: This doesn't honor any of the cython compile options. Meh?
-    for source_file in cython_sources:
-        cython_compile(source_file)
-
 
 ###########################################################################
 #  Find VC9 redistributable path
@@ -305,12 +285,6 @@ setup(
                           "custom_boot_script": '',
                          }
               },
-
-    ext_modules=[
-        Extension(fr0st_package_name + "._utils", [fr0st_package_name + "/_utils.c"], 
-            include_dirs=[numpy.get_include()]
-        ),
-    ],
     zipfile = None,
     console = [],
     windows = [fr0st_target],
