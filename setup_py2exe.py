@@ -260,10 +260,3 @@ setup(
     windows = [fr0st_target],
     cmdclass = {"py2exe": build_exe_plus_installer},
 )
-
-# HACK: copy needed stuff to the correct dirs.
-shutil.move(os.path.abspath(os.path.join('dist', 'Output', 'setup.exe')),
-            'fr0st-VERSION-win32_installer.exe')
-shutil.rmtree(os.path.join('dist', 'Output'))
-shutil.copytree(os.path.abspath('Microsoft.VC90.CRT'),
-            os.path.join('dist', 'Microsoft.VC90.CRT'))
