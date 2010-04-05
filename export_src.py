@@ -39,7 +39,9 @@ os.system("bzr export %s" %tempdir)
 # make the tarfile
 excludes = ['export_src.py',
             'setup_py2exe.py',
-            os.path.join('fr0stlib', 'tests')]
+            'setup_py2exe_step2.py',
+            os.path.join('fr0stlib', 'tests'),
+            'Microsoft.VC90.CRT']
 def exclude(path):
     return os.path.relpath(path, tempdir) in excludes
 
