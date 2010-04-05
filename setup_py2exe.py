@@ -26,9 +26,7 @@ import py2exe
 from py2exe.build_exe import py2exe
 import glob
 import os
-import zlib
 import shutil
-import numpy
 import sys
 import _winreg
 
