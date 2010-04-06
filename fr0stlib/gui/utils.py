@@ -248,21 +248,21 @@ class NumberTextCtrl(wx.TextCtrl):
 
 
     @Bind(wx.EVT_CHAR)
-    def OnChar(self, event):
-        key = event.GetKeyCode()
+    def OnChar(self, e):
+        key = e.GetKeyCode()
         if key in [wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER]:
-            self.OnKillFocus(None)
+            self.OnKillFocus()
         elif key < wx.WXK_SPACE or key == wx.WXK_DELETE or key > 255 or key == wx.WXK_TAB:
-            event.Skip()
+            e.Skip()
         elif chr(key) in "0123456789.-":
-            event.Skip()  
+            e.Skip()  
         else:
             # not calling Skip() eats the event
             pass #wx.Bell()
 
 
     @Bind(wx.EVT_KILL_FOCUS)
-    def OnKillFocus(self,event):
+    def OnKillFocus(self, e=None):
         # cmp done with strings because equal floats can compare differently.
         if str(self._value) != self.GetValue():
             try:
