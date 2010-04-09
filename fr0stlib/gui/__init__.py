@@ -624,15 +624,19 @@ flam4 - (c) 2009 Steven Broadhead""" % fr0stlib.VERSION,
         path, changelist = Pickle.load(open('changes.bak', 'rb'))
         self.OpenFlame(path)
         config["flamepath"] = path
+        recovered = False
         for child, data, changes in zip(self.tree.GetItemChildren(),
                                         self.tree.GetDataGen(), changelist):
             if changes:
                 data.extend(changes)
                 self.tree.SetItemText(child, data.name)
                 self.tree.RenderThumbnail(child, data, flag=self.tree.flag)
+                recovered = True
 
         self.DumpChanges()
         self.tree.SelectItem(self.tree.GetItemByIndex((0,0)))
+        if recovered:
+            self.SetStatusText("Recovery of unsaved changes successful!")
         
 
     def PatchFr0stlib(self):
