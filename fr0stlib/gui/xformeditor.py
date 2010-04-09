@@ -45,8 +45,6 @@ class XformTabs(wx.Notebook):
                              # | wx.NB_MULTILINE
                              )
 
-        self._final = False
-
         self.Xform = XformPanel(self)
         self.AddPage(self.Xform, "Xform")
 
@@ -66,25 +64,21 @@ class XformTabs(wx.Notebook):
     def UpdateView(self):
         choices = map(repr, self.parent.flame.iter_xforms())
         self.Selector.Items = choices
-        index = self.parent.ActiveXform.index
-        isfinal = index is None
-        self.Selector.Selection = len(choices)-1 if isfinal else index
-        
-        if isfinal:
-            if not self._final:
-                self.RemovePage(3)
-                self.RemovePage(2)
-                self._final = True
-            for i in self.Xform, self.Vars:
-                i.UpdateView()
-        else:
-            if self._final:
-                self.AddPage(self.Color, "Color")
-                self.AddPage(self.Chaos, "Chaos")
-                self._final = False
-            for i in self.Xform, self.Vars, self.Color, self.Chaos:
-                i.UpdateView()
+        xform = self.parent.ActiveXform
+        isfinal = xform.isfinal()
+        ispost = config['Edit-Post-Xform']
+        self.Selector.Selection = len(choices)-1 if isfinal else xform.index
 
+        # Show the correct tabs depending on whether the xform is post or final
+        current = self.GetPageCount()
+        target = 1 if ispost else 2 if isfinal else 4
+        for i in range(current - target):
+            self.RemovePage(target)
+        for i in ("Xform", "Vars", "Color", "Chaos")[current:target]:
+            self.AddPage(getattr(self, i), i)
+                
+        for i in self.Xform, self.Vars, self.Color, self.Chaos:
+            i.UpdateView()
 
 
     def OnChoice(self, e):
