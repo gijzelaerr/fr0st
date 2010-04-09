@@ -743,14 +743,12 @@ class ChaosPanel(wx.Panel):
 
     def BuildTrees(self, count):
         for tree in (self.tree1, self.tree2):
-            i = 1
-            for child in list(self.IterTree(tree)):
-                if i > count:
-                    tree.Delete(child)
-                i += 1
-            while i <= count:
-                item = tree.AppendItem(tree.GetRootItem(), str(i))
-                i += 1
+            lst = list(self.IterTree(tree))
+            for child in lst[count:]:
+                tree.Delete(child)
+            root = tree.GetRootItem()
+            for i in range(len(lst), count):
+                tree.AppendItem(root, str(i+1))
 
 
     def UpdateView(self):
@@ -759,17 +757,17 @@ class ChaosPanel(wx.Panel):
         if xform.isfinal():
             return
         self.BuildTrees(len(self.parent.flame.xform))
-
-        index = xform.index        
+ 
         for i, val in zip(self.IterTree(tree1), xform.chaos):
             new = str(val)
-            if self.tree1.GetItemText(i,1) != new:
-                self.tree1.SetItemText(i, new, 1)
-                
+            if tree1.GetItemText(i,1) != new:
+                tree1.SetItemText(i, new, 1)
+
+        index = xform.index       
         for i, xf in zip(self.IterTree(tree2), self.parent.flame.xform):
             new = str(xf.chaos[index])
-            if self.tree2.GetItemText(i,1) != new:
-                self.tree2.SetItemText(i, new, 1)            
+            if tree2.GetItemText(i,1) != new:
+                tree2.SetItemText(i, new, 1)            
 
 
     def SetFlameAttribute(self, tree, item, value):
