@@ -69,6 +69,14 @@ class XformTabs(wx.Notebook):
         ispost = config['Edit-Post-Xform']
         self.Selector.Selection = len(choices)-1 if isfinal else xform.index
 
+        # Update weight tc.
+        if ispost or isfinal:
+            self.Xform.weight.Disable()
+            self.Xform.weight.SetValue("--")
+        else:
+            self.Xform.weight.Enable()
+            self.Xform.weight.SetFloat(xform.weight)
+
         # Show the correct tabs depending on whether the xform is post or final
         current = self.GetPageCount()
         target = 1 if ispost else 2 if isfinal else 4
@@ -299,14 +307,6 @@ class XformPanel(wx.Panel):
 
     def UpdateView(self):
         xform, view = self.GetActive()
-
-        # Update weight tc.
-        if xform.ispost() or xform.isfinal():
-            self.weight.Disable()
-            self.weight.SetValue("--")
-        else:
-            self.weight.Enable()
-            self.weight.SetFloat(xform.weight)
             
         if view == "triangle":
             self.coefs = itertools.chain(*xform.points)
@@ -315,14 +315,11 @@ class XformPanel(wx.Panel):
         elif view == "polar":
             self.coefs = itertools.chain(*xform.polars)
 
+        active = (xform if xform.ispost() else xform.post).isactive()
         font = self.postflag.GetFont()
-        post = xform if xform.ispost() else xform.post
-        if post.isactive():
-            font.Weight = wx.FONTWEIGHT_BOLD
-        else:
-            font.Weight = wx.FONTWEIGHT_NORMAL
+        font.Weight = wx.FONTWEIGHT_BOLD if active else wx.FONTWEIGHT_NORMAL
         self.postflag.SetFont(font)
-        self.postflag.SetValue(config['Edit-Post-Xform'])
+        self.postflag.SetValue(xform.ispost())
 
 
     def UpdateFlame(self,e=None, tempsave=True):
