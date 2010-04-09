@@ -519,13 +519,13 @@ class Xform(object):
 
     @property
     def index(self):
-        if self is self._parent.final:
+        if self.isfinal():
             return None
         try:
             return self._parent.xform.index(self)
         except (AttributeError, ValueError):
             return None
-    
+        
        
     @property
     def coefs(self):
@@ -719,7 +719,7 @@ class Xform(object):
 
 
     def isfinal(self):
-        return self.index is None
+        return self is self._parent.final
 
 
     def copy(self):
@@ -743,6 +743,7 @@ class PostXform(Xform):
                 'a','b','c','d','e','f',
                 'x','y','o','pos',
                 'xp','yp','op'))
+    index = None
 
     def __repr__(self):
         return "<post-%s" % repr(self._parent)[1:]
@@ -760,6 +761,9 @@ class PostXform(Xform):
 
     def isactive(self):
         return self.coefs != (1,0,0,1,0,0)
+
+    def isfinal(self):
+        return False
 
     def to_string(self):
         if self.isactive():
