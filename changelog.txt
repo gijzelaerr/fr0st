@@ -1,7 +1,43 @@
+Fr0st 1.1 beta
+--------------
+
+GUI
+    -Added vibrancy to adjust panel
+    -Xform editor now handles post and final xforms much more intuitively.
+    -Hide irrelevant tabs when post or final xform is selected
+    -Preview and render dialogs now show rendering info in their title bars.
+    -Eliminated several sources of slowdown when handling very large files.
+    -Don't render thumbnails when opening large files.
+    -Quality of jpg files can now be configured. Default is 95.
+    -Can now paste multiple flames at once.
+    -If a script causes an error, a helpful dialog with all details is shown.
+    -If fr0st crashes or the computer loses power, unsaved changes are recovered next time it is opened.
+
+Flam3 integration:
+    -Rendering now 5-10% faster due to better integration with the GUI.
+    -Default buffer size is now 64-bit, making for another 10% speed improvement. Also improves performance of thumbnail and preview images.
+    -Images with non-black backgrounds now render correctly on windows.
+
+Flam4 integration:
+    -Can now render transparent backgrounds.
+    -Fixed bug where black image was returned when changing certain parameters.
+    
+Installation:
+    -No longer have to compile extension module when installing on linux.
+
+Various bugfixes:
+    -Fixed possible error when editing flame names.
+    -Fixed possible error when dragging flames around.
+    -Check for invalid paths (i.e. malformed or pointing to a read-only dir), and handle them correctly.
+    -Many, many more.
+
+
+
 Fr0st 1.0
 ---------
 
 -Minor Bugfixes.
+
 
 
 Fr0st 1.0 beta2
