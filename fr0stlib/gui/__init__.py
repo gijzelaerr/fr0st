@@ -322,7 +322,8 @@ flam4 - (c) 2009 - 2010 Steven Broadhead""" % fr0stlib.VERSION,
         if self.renderdialog and self.renderdialog.OnExit() == wx.ID_NO:
             return
         self.OnStopScript()
-        if self.editor.CheckForChanges() == wx.ID_CANCEL:
+        if (self.editor.IsShown()
+            and self.editor.CheckForChanges() == wx.ID_CANCEL):
             return
         if self.tree.CheckForChanges() == wx.ID_CANCEL:
             return
