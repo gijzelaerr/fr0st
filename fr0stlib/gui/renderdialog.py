@@ -460,7 +460,7 @@ class RenderDialog(wx.Frame):
             backup.write(data[-1] + "\n")
             self.Title = str_name
             bmp = yield
-            if self.progflag:
+            if self.progflag == 1:
                 self.progflag = 0
                 break
             save_image(path, bmp, config['jpg-quality'])
