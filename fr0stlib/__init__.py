@@ -393,9 +393,11 @@ class Palette(collections.Sequence):
 class Xform(object):
     """Container for transform parameters."""
 
-    _default = set(("_parent","a","b","c","d","e","f","chaos","post"))
+    _default = set(("_parent", "a", "b" ,"c", "d", "e", "f", "chaos", "post",
+                    "weight"))
     _always_write = set(("opacity", "color", "color_speed", "animate",
-                         "symmetry")).union(i[0] for i in variable_list)
+                         "symmetry", "weight")
+                        ).union(i[0] for i in variable_list)
 
     def __init__(self, parent, chaos=(), post=(1.,0.,0.,1.,0.,0.), **kwds):
         self._parent = parent
