@@ -39,8 +39,8 @@ class ParsingError(Exception):
 
 
 class Flame(object):
-    _default = set(("final", "gradient", "xform", "name",
-                    "width", "height", "x_offset", "y_offset"))
+    _never_write = set(("final", "gradient", "xform", "name",
+                        "width", "height", "x_offset", "y_offset"))
     
     def __init__(self, string=""):
         # Set minimum required attributes.
@@ -263,7 +263,7 @@ class Flame(object):
                                 ("size", self.size),
                                 ("center", self.center)),
                                ((k,v) for (k,v) in self.__dict__.iteritems()
-                                if k not in self._default))
+                                if k not in self._never_write))
 
     
     @property
@@ -393,11 +393,17 @@ class Palette(collections.Sequence):
 class Xform(object):
     """Container for transform parameters."""
 
-    _default = set(("_parent", "a", "b" ,"c", "d", "e", "f", "chaos", "post",
-                    "weight"))
+    # Control behavoir of certain attributes:
+    # _always_write: is written to disk even if set at 0
+    # _never write: is never written to disk directly.
+    # _default: an attribute access returns 0.0 if the attr is not found.
     _always_write = set(("opacity", "color", "color_speed", "animate",
                          "symmetry", "weight")
                         ).union(i[0] for i in variable_list)
+    _never_write = set(("_parent", "a", "b" ,"c", "d", "e", "f",
+                        "chaos", "post"))
+    _default = set(("weight", "a", "b" ,"c", "d", "e", "f",)
+                   ).union(variation_list)
 
     def __init__(self, parent, chaos=(), post=(1.,0.,0.,1.,0.,0.), **kwds):
         self._parent = parent
@@ -513,9 +519,8 @@ class Xform(object):
         """Returns a default value for non-existing attributes"""
         # __getattribute__ is the real lookup special method,  __getattr__ is
         # only called when it fails.
-        if v in variation_list or v in self._default:
+        if v in self._default:
             return 0.0
-
         raise AttributeError(v)
 
 
@@ -554,7 +559,7 @@ class Xform(object):
 
     def iter_attributes(self):
         return ((k,v) for (k,v) in self.__dict__.iteritems()
-                if k not in self._default and v or k in self._always_write)
+                if k not in self._never_write and v or k in self._always_write)
 
 #----------------------------------------------------------------------
 
