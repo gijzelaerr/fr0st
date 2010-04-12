@@ -83,13 +83,13 @@ class Flame(object):
 
         # Record the header data.
         for name, val in element.items():
-            if " " in val:
-                setattr(self, name, map(float, val.split()))
-            else:
-                try:
+            try:
+                if " " in val:
+                    setattr(self, name, map(float, val.split()))
+                else:
                     setattr(self, name, float(val))
-                except ValueError:
-                    setattr(self, name, val)
+            except ValueError:
+                setattr(self, name, val)
 
         self.name = str(self.name)
 
