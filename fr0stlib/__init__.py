@@ -39,7 +39,7 @@ class ParsingError(Exception):
 
 
 class Flame(object):
-    _never_write = set(("final", "gradient", "xform", "name",
+    _never_write = set(("final", "gradient", "xform", "name", "scale",
                         "width", "height", "x_offset", "y_offset"))
     
     def __init__(self, string=""):
@@ -83,17 +83,17 @@ class Flame(object):
 
         # Record the header data.
         for name, val in element.items():
-            try:
-                if " " in val: 
-                    setattr(self, name, map(float, val.split()))
-                else:          
+            if " " in val:
+                setattr(self, name, map(float, val.split()))
+            else:
+                try:
                     setattr(self, name, float(val))
-            except ValueError:
-                setattr(self, name, val)
+                except ValueError:
+                    setattr(self, name, val)
 
         self.name = str(self.name)
 
-        # Scale needs to be converted. This is reversed in to_string.
+        # Scale needs to be converted. This is reversed in _iter_attributes.
         self.scale = self.scale * 100 / self.size[0]
             
         sym = element.find('symmetry')
@@ -113,17 +113,15 @@ class Flame(object):
         if omit_details:
             lst.append('name="fr0st" >\n')
         else:
-            for name,val in self.iter_attributes():
+            for name,val in self._iter_attributes():
                 ty = type(val)
                 if ty in (list, tuple):
                     # Remember to convert round numbers to integer.
                     val = " ".join(str(i if i%1 else int(i)) for i in val)
-                elif name == "scale":
-                    val = val * self.size[0] / 100
                 elif ty in (int, float):
                     val = val if val%1 else int(val)
                 lst.append('%s="%s" ' %(name, val))
-            lst.append('>\n')           
+            lst.append('>\n')
 
         # Make each xform
         lst.extend(xform.to_string() for xform in self.iter_xforms())
@@ -258,10 +256,11 @@ class Flame(object):
         self.y_offset += h        
 
 
-    def iter_attributes(self):
+    def _iter_attributes(self):
         return itertools.chain((("name", self.name),
                                 ("size", self.size),
-                                ("center", self.center)),
+                                ("center", self.center),
+                                ("scale", self.scale * self.width / 100.)),
                                ((k,v) for (k,v) in self.__dict__.iteritems()
                                 if k not in self._never_write))
 
@@ -497,7 +496,7 @@ class Xform(object):
 
     def to_string(self):
         lst = ['   <%sxform '%("final" if self.isfinal() else "")]
-        lst.extend('%s="%s" ' %i for i in self.iter_attributes())
+        lst.extend('%s="%s" ' %i for i in self._iter_attributes())
         lst.append('coefs="%s %s %s %s %s %s" ' % self.screen_coefs)
         lst.append(self.post.to_string())
         lst.append(self.chaos.to_string())
@@ -557,7 +556,7 @@ class Xform(object):
         return [i for i in variation_list if i in self.__dict__]
 
 
-    def iter_attributes(self):
+    def _iter_attributes(self):
         return ((k,v) for (k,v) in self.__dict__.iteritems()
                 if k not in self._never_write and v or k in self._always_write)
 
