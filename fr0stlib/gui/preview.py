@@ -97,6 +97,7 @@ class PreviewFrame(wx.Frame):
         self.RenderPreview()
         
 
+    @InMainFast
     def RenderPreview(self, flame=None):
         if not self.IsShown():
             return
