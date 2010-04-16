@@ -51,7 +51,7 @@ class ItemData(list):
 
 
     def UpdateName(self):
-        self._name = re.findall(r'(?<= name=").*?(?=")', self[-1])[0]
+        self._name = re.search(' name="(.*?)"', self[-1]).group(1)
 
 
     def Undo(self):
