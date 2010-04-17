@@ -590,7 +590,7 @@ flam4 - (c) 2009 - 2010 Steven Broadhead""" % fr0stlib.VERSION,
 
 
     @InMain
-    def TempSave(self, force=False):
+    def TempSave(self):
         """Updates the tree's undo list and saves a backup version from
         which the session can be restored."""
         # HACK: this prevents loads of useless tempsaves when running a script.
@@ -604,7 +604,7 @@ flam4 - (c) 2009 - 2010 Steven Broadhead""" % fr0stlib.VERSION,
         # Check if flame has changed. to_string is needed to detect identical
         # flames saved in different apps. This comparison takes about 5ms.
         string = self.flame.to_string()
-        if force or Flame(data[-1]).to_string() != string:
+        if Flame(data[-1]).to_string() != string:
             data.append(string)
             self.tree.SetItemText(self.tree.item, data.name)
 
