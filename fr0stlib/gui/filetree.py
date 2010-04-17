@@ -84,7 +84,11 @@ class TreePanel(wx.Panel):
         if not newname:
             # Make sure edits don't change the name to an empty string
             return
-        
+
+        if len(self.tree.GetIndexOfItem(e.Item)) == 1:
+            # Don't allow the name of the file to be changed
+            return
+
         olditem = self.tree.item
         self.tree.SelectItem(e.Item)
         data = self.tree.GetFlameData(e.Item)
@@ -288,11 +292,6 @@ class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
         if item is None:
             item = self.itemparent
         return treemixin.VirtualTree.GetItemChildren(self, item)
-
-
-    def SelectItem(self, item):
-        wx.TreeCtrl.SelectItem(self, self.itemparent)
-        wx.TreeCtrl.SelectItem(self, item)
 
 
     @property
