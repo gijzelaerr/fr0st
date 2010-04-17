@@ -6,9 +6,10 @@ GUI
     -Xform editor now handles post and final xforms much more intuitively.
     -Hide irrelevant tabs when post or final xform is selected
     -Preview and render dialogs now show rendering info in their title bars.
+    -Opening files is now faster.
     -Eliminated several sources of slowdown when handling very large files.
     -Don't render thumbnails when opening large files.
-    -Quality of jpg files can now be configured. Default is 95.
+    -Quality of jpg renders can now be configured. Default is 95.
     -Can now paste multiple flames at once.
     -If a script causes an error, a helpful dialog with all details is shown.
     -If fr0st crashes or the computer loses power, unsaved changes are recovered next time it is opened.
