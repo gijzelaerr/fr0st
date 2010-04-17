@@ -770,16 +770,16 @@ flam4 - (c) 2009 - 2010 Steven Broadhead""" % fr0stlib.VERSION,
 
     def preview(self, flame=None):
         self.image.RenderPreview(flame)
-        self.OnPreview()
+        self.OnPreview(flame)
         time.sleep(.01) # Avoids spamming too many requests.
         
 
     @InMain
-    def OnPreview(self):
+    def OnPreview(self, flame):
         # only update a select few of all the panels.
 ##        self.XformTabs.UpdateView()
 ##        self.notebook.UpdateView()
-        self.canvas.ShowFlame(rezoom=False)
+        self.canvas.ShowFlame(flame, rezoom=False)
         self.grad.UpdateView()
 
 
