@@ -36,10 +36,9 @@ def main():
     rot = 0
     while True:
         rot = (rot-3) % 360
-        f = _self.flame
+        f = _self.flame.copy()
         rotate_sheep(f, rot)
-        preview()
-        rotate_sheep(f, -rot)
+        preview(f)
         time.sleep(0.05)
 
 
