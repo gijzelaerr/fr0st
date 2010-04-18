@@ -79,7 +79,7 @@ class XformTabs(wx.Notebook):
 
         # Show the correct tabs depending on whether the xform is post or final
         current = self.GetPageCount()
-        target = 1 if ispost else 2 if isfinal else 4
+        target = 1 if ispost else 3 if isfinal else 4
         for i in range(current - target):
             self.RemovePage(target)
         for i in ("Xform", "Vars", "Color", "Chaos")[current:target]:
