@@ -1,5 +1,5 @@
-Fr0st 1.1 beta
---------------
+Fr0st 1.1
+---------
 
 GUI
     -Added vibrancy to adjust panel
