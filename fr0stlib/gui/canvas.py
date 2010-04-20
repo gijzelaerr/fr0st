@@ -207,8 +207,9 @@ class XformCanvas(FC.FloatCanvas):
             self.xform_groups = [self.AddXform(active, solid=False),
                                  self.AddXform(active.post, solid=True)]
         else:
-            self.xform_groups = [self.AddXform(i, solid=i==active)
-                                 for i in flame.iter_xforms()]
+            self.xform_groups = [self.AddXform(i, solid=False)
+                                 for i in flame.iter_xforms() if i != active]
+            self.xform_groups.append(self.AddXform(active, solid=True))
 
         if rezoom:
             self.ZoomToFit()
@@ -274,7 +275,10 @@ class XformCanvas(FC.FloatCanvas):
         active = self.parent.ActiveXform
         if config['Edit-Post-Xform']:
             return active.post, active
-        lst = [i.xform for i in self.xform_groups if i.xform != active]
+        # the iteration needs to be reversed here so that the ordering is
+        # consistent with the display on canvas (last xform on top)
+        lst = [i for i in reversed(list(self.parent.flame.iter_xforms()))
+               if i != active]
         return [active] + lst
 
 
