@@ -354,12 +354,14 @@ flam4 - (c) 2009 - 2010 Steven Broadhead""" % fr0stlib.VERSION,
     @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=ID.FNEW)
     def OnFlameNew(self, e=None, flame=None, save=True):
         flame = flame or self.MakeFlame()
-        data = ItemData(flame.to_string())
+        data = ItemData(flame)
 
         self.tree.GetChildItems((0,)).append((data,[]))
         self.tree.RefreshItems()
 
         # This is needed to avoid an indexerror when getting child.
+        # VBT 04/20/2010: TODO: is this still needed now that there's just 1
+        #flamefile open at a time?
         self.tree.Expand(self.tree.itemparent)
 
         child = self.tree.GetItemByIndex((0, -1))
@@ -380,15 +382,15 @@ flam4 - (c) 2009 - 2010 Steven Broadhead""" % fr0stlib.VERSION,
         if not success:
             return
 
-        try:
-            flames = map(Flame, fr0stlib.split_flamestrings(data.GetText()))
-            # check for empty list, and also use as test in for loop.
-            first = flames[0] 
-        except Exception:
+        flames = fr0stlib.split_flamestrings(data.GetText())
+        if not flames:
             ErrorMessage(self, "Can't paste flames. Invalid string")
             return
+        
         for flame in flames:
-            self.OnFlameNew(flame=flame, save=flame is first)
+            self.OnFlameNew(flame=flame, save=False)
+        self.tree.SelectItem(self.tree.GetItemByIndex((0, -len(flames))))
+        self.SaveFlame()
 
 
     @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=wx.ID_COPY)

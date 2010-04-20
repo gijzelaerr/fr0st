@@ -30,8 +30,8 @@ class ParentData(object):
 
 
 class ItemData(list):  
-    def __init__(self, string):
-        self.append(string)
+    def __init__(self, s):
+        self.append(s if isinstance(s, basestring) else s.to_string())
         self.redo = []
         self.UpdateName()
         self.imgindex = -1
