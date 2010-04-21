@@ -110,7 +110,7 @@ class PreviewFrame(wx.Frame):
         size = int(fw * ratio), int(fh * ratio)
         
         req = self.parent.renderer.LargePreviewRequest
-        req(self.RenderCallback, flame, size, progress_func=self.prog_func,
+        req(self.RenderCallback, flame, size, progress_func=self.prog,
             can_cancel=True, **config["Large-Preview-Settings"])
         self.SetTitle("Rendering - Flame Preview")
 
@@ -121,8 +121,14 @@ class PreviewFrame(wx.Frame):
         self.SetStatusText("rendering: 100.00 %")
 
 
+    def prog(self, *a):
+        self._prog(*a)
+        return int(not self.IsShown())
+    
+
     @InMainFast
-    def prog_func(self, py_object, fraction, stage, eta):
+    @Catches(wx.PyDeadObjectError)
+    def _prog(self, py_object, fraction, stage, eta):
         self.SetStatusText("rendering: %.2f %%" %fraction)
 
 
