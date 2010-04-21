@@ -261,6 +261,8 @@ class XformPanel(wx.Panel):
         xform.coefs = 1.0, 0.0, 0.0, 1.0, 0.0, 0.0
 
     def FuncSolo(self, xform):
+        if xform.ispost():
+            xform = xform._parent
         xform.opacity = 1
         for i in xform._parent.xform:
             if i == xform:
