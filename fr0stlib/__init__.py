@@ -30,7 +30,7 @@ from fr0stlib.pyflam3 import Genome, RandomContext, flam3_nvariations, \
 from fr0stlib.compatibility import compatibilize
 
 
-VERSION = "Fr0st 1.1"
+VERSION = "Fr0st 1.2"
 GUI = False
 
 
