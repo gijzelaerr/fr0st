@@ -330,42 +330,37 @@ class Gradient(wx.Panel):
         self.parent = parent.parent
         wx.Panel.__init__(self, parent, -1, size=(390, 95))
         self.bmp = wx.EmptyBitmap(1,1,32)
+        self.colorhist_array = (c_double *256)()
         self._startpos = None
+
 
     def Update(self, flame=None):
         flame = flame or self.parent.flame
 
+        # Make the gradient image
         img = wx.ImageFromBuffer(256, 1, buffer(flame.gradient.data))
         img.Rescale(384, 50)
         self.bmp = wx.BitmapFromImage(img)
 
+        # Calculate the color histogram
+        genome = Genome.from_string(flame.to_string(omit_details=True))[0]
+        flam3_colorhist(genome, 1, self.colorhist_array)
+
         self.Refresh()
-
-        
-    def DrawHistogram(self, dc=None):
-        """ Create and draw the color histogram."""
-        if not hasattr(self.parent, 'flame'):
-            return
-
-        dc = dc or wx.ClientDC(self)
-        genome = Genome.from_string(self.parent.flame.to_string(True))[0]
-        array = (c_double *256)()
-        flam3_colorhist(genome, 1, array)
-        dc.DrawLines([(i*1.5, 30-j*500) for i,j in enumerate(array)], 2, 2)
 
 
     @Bind(wx.EVT_PAINT)
     def OnPaint(self, evt):
         dc = wx.PaintDC(self)
         dc.DrawBitmap(self.bmp, 2, 37, True)
-        self.DrawHistogram(dc)
-
-
+        dc.DrawLines([(i*1.5, 30-j*500)
+                      for i,j in enumerate(self.colorhist_array)], 2, 2)
 
 
     @Bind(wx.EVT_MOUSE_CAPTURE_LOST)
     def OnLostMouseCapture(self, e):
         self._startpos = None
+
 
     @Bind(wx.EVT_LEFT_DOWN)
     def OnLeftDown(self, e):

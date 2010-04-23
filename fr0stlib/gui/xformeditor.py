@@ -668,7 +668,6 @@ class ColorPanel(MultiSliderMixin, wx.Panel):
         self.parent.ActiveXform.animate = float(self.animflag.IsChecked())
         self.UpdateView()
         self.parent.image.RenderPreview() 
-        self.parent.grad.image.DrawHistogram()
         self.parent.grad.image.Update()
         
 
