@@ -97,13 +97,14 @@ class AlphaPolygon(FC.Polygon):
         
 
 class XFormTriangle(FC.Group):
-    def __init__(self, parent, xform, color, isactive, isselected):
+    def __init__(self, parent, xform, color, isactive, isselected, style):
         self.xform = xform
         self.coefs = xform.coefs
         self.parent = parent
         points = xform.points
 
         self.triangle = AlphaPolygon(points, LineColor=color, FillColor=color,
+                                     LineStyle=style,
                                      Opacity=isselected * 96 or isactive * 64)
 
         diameter = parent.circle_radius * 2
@@ -240,12 +241,12 @@ class XformCanvas(FC.FloatCanvas):
             self.Draw()
 
 
-    def AddXform(self, xform, isactive=False, isselected=None):
+    def AddXform(self, xform, isactive=False, isselected=None, style='Solid'):
         color = self.color_helper(xform)
         if isselected is None:
             isselected = xform is self.SelectedXform
            
-        t = XFormTriangle(self, xform, color, isactive, isselected)       
+        t = XFormTriangle(self, xform, color, isactive, isselected, style)       
         self.AddObject(t)
         return t
 
@@ -496,7 +497,8 @@ class XformCanvas(FC.FloatCanvas):
             self.parent.XformTabs.UpdateView()
 
             # EXPERIMENT!
-            t = self.AddXform(self.SelectedXform, isselected=False)
+            t = self.AddXform(self.SelectedXform, isselected=False,
+                              style=self.style)
             self.shadow.append(t)
 
 
