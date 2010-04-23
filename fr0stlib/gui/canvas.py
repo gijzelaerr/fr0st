@@ -91,7 +91,7 @@ class AlphaPolygon(FC.Polygon):
 ##        gc.PushState()
         gc.SetPen(wx.Pen(self.LineColor, self.LineWidth))
         gc.SetBrush(self.Brush)
-        gc.DrawLines(Points, self.FillStyle)
+        gc.DrawLines(Points)
 ##        gc.PopState()
 
         
@@ -105,8 +105,7 @@ class XFormTriangle(FC.Group):
 
         self.triangle = AlphaPolygon(
             points, LineColor=color, FillColor=color,
-            FillStyle=isselected * 96 or isactive * 64,
-            LineStyle="Solid" if isactive else parent.style)
+            FillStyle=isselected * 96 or isactive * 64)
 
         diameter = parent.circle_radius * 2
         circles = map(partial(FC.Circle, Diameter=diameter, LineColor=color),
@@ -246,7 +245,7 @@ class XformCanvas(FC.FloatCanvas):
     def AddXform(self, xform, isactive=False, isselected=None):
         color = self.color_helper(xform)
         if isselected is None:
-            isselected = xform == self.SelectedXform
+            isselected = xform is self.SelectedXform
            
         t = XFormTriangle(self, xform, color, isactive, isselected)       
         self.AddObject(t)
@@ -618,19 +617,17 @@ class XformCanvas(FC.FloatCanvas):
         self.ShowFlame(rezoom=False)
 
 
-    def _get_MidMove(self):
-        return self.StartMove
-
-    def _set_MidMove(self,v):
-        self.StartMove = v
-
     # Win uses MidMove, while Linux uses StartMove (WHY?). This makes the code
     # Compatible between both.
-    MidMove = property(_get_MidMove,_set_MidMove)
+    @property
+    def MidMove(self):
+        return self.StartMove
+    @MidMove.setter
+    def MidMove(self,v):
+        self.StartMove = v
 
 
-    def _get_circle_radius(self):
+    @property
+    def circle_radius(self):
         return 5 / self.Scale
-
-    circle_radius = property(_get_circle_radius)
 
