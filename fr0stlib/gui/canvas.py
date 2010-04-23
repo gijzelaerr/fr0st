@@ -181,7 +181,6 @@ class XformCanvas(FC.FloatCanvas):
         self.parent = parent.parent
         FC.FloatCanvas.__init__(self, parent,
                                 size=(300,300), # HACK: This needs to be here.
-                                ProjectionFun=None,
                                 BackgroundColor="BLACK")
 
         # Create the reference triangle
@@ -427,14 +426,20 @@ class XformCanvas(FC.FloatCanvas):
 
 
     def ZoomToFit(self):
-        if self.preview is not None:
-            # The preview spread is ignored, as it tends to zoom the flame
-            # too far out.
-            self.RemoveObject(self.preview)
-            self.ZoomToBB(DrawFlag=False)
-            self.AddObject(self.preview)
-        else:
-            self.ZoomToBB(DrawFlag=False)
+        # Calculate bounding box by hand, FC doesn't work right.
+        lstx, lsty= [], []
+        for x in self.IterXforms():
+            x,y,o = x.points
+            lstx.extend((x[0], y[0], o[0]))
+            lsty.extend((x[1], y[1], o[1]))
+        min_ = [min(lstx), min(lsty)]
+        max_ = [max(lstx), max(lsty)]
+        self.ZoomToBB(NewBB=N.array([min_, max_]), DrawFlag=False)
+        
+        # Leave some breathing room
+        self.Scale *= .8
+        self.SetToNewScale(DrawFlag=False)
+
         self.AdjustZoom()
 
 
