@@ -87,12 +87,14 @@ class AlphaPolygon(FC.Polygon):
 
         # draw just the outline, using the dc so the lines are solid
         dc.SetPen(self.Pen)
+        dc.SetBrush(wx.TRANSPARENT_BRUSH)
         dc.DrawPolygon(Points)
 
         # fill in the triangle  with the gc
-        gc = wx.GraphicsContext.Create(dc)
-        gc.SetBrush(self.Brush)
-        gc.DrawLines(Points)
+        if self.Opacity:
+            gc = wx.GraphicsContext.Create(dc)
+            gc.SetBrush(self.Brush)
+            gc.DrawLines(Points)
 
         
 
