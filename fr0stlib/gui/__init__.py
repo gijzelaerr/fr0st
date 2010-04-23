@@ -610,10 +610,10 @@ flam4 - (c) 2009 - 2010 Steven Broadhead""" % fr0stlib.VERSION,
             data.append(string)
             self.tree.SetItemText(self.tree.item, data.name)
 
-        self.DumpChanges()
+            self.DumpChanges()
 
-        self.tree.RenderThumbnail()
-        self.SetFlame(self.flame, rezoom=False)
+            self.tree.RenderThumbnail()
+            self.SetFlame(self.flame, rezoom=False)
 
 
     def DumpChanges(self):
