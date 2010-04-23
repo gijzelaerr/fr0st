@@ -782,7 +782,7 @@ flam4 - (c) 2009 - 2010 Steven Broadhead""" % fr0stlib.VERSION,
 ##        self.XformTabs.UpdateView()
 ##        self.notebook.UpdateView()
         self.canvas.ShowFlame(flame, rezoom=False)
-        self.grad.UpdateView()
+        self.grad.image.Update(flame)
 
 
 
