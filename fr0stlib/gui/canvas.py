@@ -72,19 +72,41 @@ class VarPreview(FC.PointSet):
 ##        self.BoundingBox = BBox.fromPoints(self.xform.points)
 
 
+class AlphaPolygon(FC.Polygon):
+    """Polygon that can draw with opacity.
+
+    Similar to what's described here:
+    http://trac.paulmcnett.com/floatcanvas/wiki/AlphaCircle."""
+    def SetBrush(self, FillColor, FillStyle):
+        r,g,b = FillColor
+        c = wx.Color(r,g,b, FillStyle)
+        self.Brush = wx.Brush(c)
+
+
+    def _Draw(self, dc , WorldToPixel, ScaleWorldToPixel=None, HTdc=None):
+        Points = list(WorldToPixel(self.Points))
+        Points.append(Points[0])
+
+        gc = wx.GraphicsContext.Create(dc)
+##        gc.PushState()
+        gc.SetPen(wx.Pen(self.LineColor, self.LineWidth))
+        gc.SetBrush(self.Brush)
+        gc.DrawLines(Points, self.FillStyle)
+##        gc.PopState()
+
+        
 
 class XFormTriangle(FC.Group):
-    def __init__(self, parent, xform, color, solid, fill):
+    def __init__(self, parent, xform, color, isactive, isselected):
         self.xform = xform
         self.coefs = xform.coefs
         self.parent = parent
         points = xform.points
 
-        self.triangle = FC.Polygon(points,
-                         LineColor=color,
-                         FillColor=color,
-                         FillStyle="BiDiagonalHatch" if fill else "Transparent",
-                         LineStyle="Solid" if solid else parent.style)
+        self.triangle = AlphaPolygon(
+            points, LineColor=color, FillColor=color,
+            FillStyle=isselected * 96 or isactive * 64,
+            LineStyle="Solid" if isactive else parent.style)
 
         diameter = parent.circle_radius * 2
         circles = map(partial(FC.Circle, Diameter=diameter, LineColor=color),
@@ -92,7 +114,7 @@ class XFormTriangle(FC.Group):
         text = map(partial(FC.Text, Size=10,Color=color), "XYO", points)
         self._circles = circles
         
-        if solid:
+        if isactive:
             parent._cornerpoints = self.GetCornerPoints()
             corners = [FC.Line(i, LineColor=color)
                        for i in parent._cornerpoints]
@@ -196,20 +218,23 @@ class XformCanvas(FC.FloatCanvas):
 
     def ShowFlame(self, flame=None, rezoom=True, refresh=True):
         flame = flame or self.parent.flame
-
+        active = self.parent.ActiveXform
+        
         if self.preview is not None:
             self.RemoveObject(self.preview)
             self.preview = None
+        if config["Variation-Preview"]:
+            self.preview = VarPreview(active, Color=self.color_helper(active))
+            self.AddObject(self.preview)  
 
-        active = self.parent.ActiveXform
         self.RemoveObjects(self.xform_groups)
         if config['Edit-Post-Xform']:
-            self.xform_groups = [self.AddXform(active, solid=False),
-                                 self.AddXform(active.post, solid=True)]
+            self.xform_groups = [self.AddXform(active, isactive=False),
+                                 self.AddXform(active.post, active=True)]
         else:
-            self.xform_groups = [self.AddXform(i, solid=False)
+            self.xform_groups = [self.AddXform(i, isactive=False)
                                  for i in flame.iter_xforms() if i != active]
-            self.xform_groups.append(self.AddXform(active, solid=True))
+            self.xform_groups.append(self.AddXform(active, isactive=True))
 
         if rezoom:
             self.ZoomToFit()
@@ -218,17 +243,13 @@ class XformCanvas(FC.FloatCanvas):
             self.Draw()
 
 
-    def AddXform(self, xform, solid=False, fill=None):
+    def AddXform(self, xform, isactive=False, isselected=None):
         color = self.color_helper(xform)
-        if fill is None:
-            fill = xform == self.SelectedXform
+        if isselected is None:
+            isselected = xform == self.SelectedXform
            
-        t = XFormTriangle(self, xform, color, solid, fill)
-        if solid and config["Variation-Preview"]:
-            self.preview = VarPreview(xform, Color=color)
-            self.AddObject(self.preview)            
+        t = XFormTriangle(self, xform, color, isactive, isselected)       
         self.AddObject(t)
-
         return t
 
 
@@ -477,7 +498,7 @@ class XformCanvas(FC.FloatCanvas):
             self.parent.XformTabs.UpdateView()
 
             # EXPERIMENT!
-            t = self.AddXform(self.SelectedXform, fill=False)
+            t = self.AddXform(self.SelectedXform, isselected=False)
             self.shadow.append(t)
 
 
