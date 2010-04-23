@@ -64,12 +64,6 @@ class VarPreview(FC.PointSet):
                             result, RandomContext())
         return [(x,-y) for x,y in zip(*[iter(result)]*2)]
 
-##    def CalcBoundingBox(self):
-##        # We don't want the BBox to be calculated from all points, as it messes
-##        # with adjustzoom. Just triangle bounds are used, which causes a
-##        # (slight) bug: when the triangle is dragged off-screen, the preview
-##        # disappears, even if part of it would still be visible.
-##        self.BoundingBox = BBox.fromPoints(self.xform.points)
 
 
 class AlphaPolygon(FC.Polygon):
@@ -432,14 +426,9 @@ class XformCanvas(FC.FloatCanvas):
 
     def ZoomToFit(self):
         # Calculate bounding box by hand, FC doesn't work right.
-        lstx, lsty= [], []
-        for x in self.IterXforms():
-            x,y,o = x.points
-            lstx.extend((x[0], y[0], o[0]))
-            lsty.extend((x[1], y[1], o[1]))
-        min_ = [min(lstx), min(lsty)]
-        max_ = [max(lstx), max(lsty)]
-        self.ZoomToBB(NewBB=N.array([min_, max_]), DrawFlag=False)
+        points = list(itertools.chain(x.points for x in self.IterXforms()))
+        BB = BBox.fromPoints(points)
+        self.ZoomToBB(NewBB=BB, DrawFlag=False)
         
         # Leave some breathing room
         self.Scale *= .8
