@@ -228,7 +228,7 @@ class XformCanvas(FC.FloatCanvas):
         self.RemoveObjects(self.xform_groups)
         if config['Edit-Post-Xform']:
             self.xform_groups = [self.AddXform(active, isactive=False),
-                                 self.AddXform(active.post, active=True)]
+                                 self.AddXform(active.post, isactive=True)]
         else:
             self.xform_groups = [self.AddXform(i, isactive=False)
                                  for i in flame.iter_xforms() if i != active]
