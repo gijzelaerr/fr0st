@@ -123,9 +123,12 @@ class TreePanel(wx.Panel):
             # Make sure the flamefile is never empty.
             self.parent.OnFlameNew()
         self.tree.RefreshItems()
-        if index >= len(children):
-            index = len(children) - 1
+        
+        index = min(index, len(children) - 1)
+        # Select parent before selecting flame to ensure GUI is always updated.
+        self.tree.SelectItem(self.tree.itemparent) 
         self.tree.SelectItem(self.tree.GetItemByIndex((0,index)))
+        
         save_flames(path, *(i[0] for i in self.tree.GetDataGen()))
         self.parent.DumpChanges()
 
