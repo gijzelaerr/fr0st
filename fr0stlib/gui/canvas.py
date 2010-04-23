@@ -77,22 +77,28 @@ class AlphaPolygon(FC.Polygon):
 
     Similar to what's described here:
     http://trac.paulmcnett.com/floatcanvas/wiki/AlphaCircle."""
+    def __init__(self, *a, **k):
+        self.Opacity = k.pop('Opacity', 0)
+        FC.Polygon.__init__(self, *a, **k)
+
+
     def SetBrush(self, FillColor, FillStyle):
         r,g,b = FillColor
-        c = wx.Color(r,g,b, FillStyle)
+        c = wx.Color(r,g,b, self.Opacity)
         self.Brush = wx.Brush(c)
 
 
-    def _Draw(self, dc , WorldToPixel, ScaleWorldToPixel=None, HTdc=None):
-        Points = list(WorldToPixel(self.Points))
-        Points.append(Points[0])
+    def _Draw(self, dc, WorldToPixel, ScaleWorldToPixel=None, HTdc=None): 
+        Points = WorldToPixel(self.Points)
 
+        # draw just the outline, using the dc so the lines are solid
+        dc.SetPen(self.Pen)
+        dc.DrawPolygon(Points)
+
+        # fill in the triangle  with the gc
         gc = wx.GraphicsContext.Create(dc)
-##        gc.PushState()
-        gc.SetPen(wx.Pen(self.LineColor, self.LineWidth))
         gc.SetBrush(self.Brush)
         gc.DrawLines(Points)
-##        gc.PopState()
 
         
 
@@ -103,9 +109,8 @@ class XFormTriangle(FC.Group):
         self.parent = parent
         points = xform.points
 
-        self.triangle = AlphaPolygon(
-            points, LineColor=color, FillColor=color,
-            FillStyle=isselected * 96 or isactive * 64)
+        self.triangle = AlphaPolygon(points, LineColor=color, FillColor=color,
+                                     Opacity=isselected * 96 or isactive * 64)
 
         diameter = parent.circle_radius * 2
         circles = map(partial(FC.Circle, Diameter=diameter, LineColor=color),
