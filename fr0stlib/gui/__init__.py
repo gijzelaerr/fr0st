@@ -570,14 +570,7 @@ flam4 - (c) 2009 - 2010 Steven Broadhead""" % fr0stlib.VERSION,
         This function can only be called from the main thread, because wx is
         not thread-safe under linux (wxgtk)."""
         self.flame = flame
-        if not self.ActiveXform:
-            self.ActiveXform = flame.xform[0]
-        elif self.ActiveXform._parent != flame:
-            if self.ActiveXform.index == None:
-                self.ActiveXform = flame.final or flame.xform[0]
-            else:
-                index = min(self.ActiveXform.index, len(flame.xform)-1)
-                self.ActiveXform = flame.xform[index]
+        self.UpdateActive(flame)
 
         self.image.RenderPreview()
         self.previewframe.RenderPreview()
@@ -593,6 +586,17 @@ flam4 - (c) 2009 - 2010 Steven Broadhead""" % fr0stlib.VERSION,
         self.Enable(ID.REDO, data.redo)
         self.Enable(ID.REDOALL, data.redo)
 
+
+    def UpdateActive(self, flame):
+        if not self.ActiveXform:
+            self.ActiveXform = flame.xform[0]
+        elif self.ActiveXform._parent != flame:
+            if self.ActiveXform.index == None:
+                self.ActiveXform = flame.final or flame.xform[0]
+            else:
+                index = min(self.ActiveXform.index, len(flame.xform)-1)
+                self.ActiveXform = flame.xform[index]
+                
 
     @InMain
     def TempSave(self):
@@ -782,8 +786,8 @@ flam4 - (c) 2009 - 2010 Steven Broadhead""" % fr0stlib.VERSION,
     @InMain
     def OnPreview(self, flame):
         # only update a select few of all the panels.
-##        self.XformTabs.UpdateView()
-##        self.notebook.UpdateView()
+        if flame is not None:
+            self.UpdateActive(flame)
         self.canvas.ShowFlame(flame, rezoom=False)
         self.grad.image.Update(flame)
 
