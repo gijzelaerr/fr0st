@@ -727,9 +727,10 @@ flam4 - (c) 2009 - 2010 Steven Broadhead""" % fr0stlib.VERSION,
         if namespace["update_flame"]:
             try:
                 # Check if changes made to the flame by the script are legal.
-                if not self.flame.xform:
+                flame = namespace['flame']
+                if not flame.xform:
                     raise ValueError("Flame has no xforms")
-                self.SetFlame(self.flame, rezoom=False)
+                self.SetFlame(flame, rezoom=False)
                 self.TempSave()
             except Exception as e:
                 print "Exception updating flame:\n%s" %e
