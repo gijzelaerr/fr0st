@@ -287,6 +287,9 @@ class MainWindow(wx.Frame):
         self.Enable(ID.STOP, False, editor=True)
         self.Show(True)
 
+        # Need to call this after Show(True), so it will zoom to the right size
+        self.canvas.ZoomToFit()
+
 
 #-----------------------------------------------------------------------------
 # Event handlers
