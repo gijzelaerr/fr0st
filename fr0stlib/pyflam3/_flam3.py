@@ -143,8 +143,8 @@ def allocate_output_buffer(size, channels):
 
 #-----------------------------------------------------------------------------
 
-#void flam3_colorhist(flam3_genome *cp, int num_batches, double *hist)
-libflam3.flam3_colorhist.argtypes = [POINTER(BaseGenome), c_int, POINTER(c_double)]
+#int flam3_colorhist(flam3_genome *cp, int num_batches, randctx *rc, double *hist)
+libflam3.flam3_colorhist.argtypes = [POINTER(BaseGenome), c_int, POINTER(RandomContext), POINTER(c_double)]
 flam3_colorhist = libflam3.flam3_colorhist
 
 #void flam3_xform_preview(flam3_genome *cp, int xi, double range, int numvals, int depth, double *result, randctx *rc)

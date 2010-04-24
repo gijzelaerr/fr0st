@@ -29,7 +29,7 @@ from fr0stlib.gui.utils import LoadIcon, MultiSliderMixin, Box, NumberTextCtrl,\
                           SizePanel
 from fr0stlib.gui.config import config
 from fr0stlib.gui.constants import ID
-from fr0stlib.pyflam3 import flam3_colorhist, Genome
+from fr0stlib.pyflam3 import flam3_colorhist, Genome, RandomContext
 from ctypes import c_double
 
 class MainNotebook(wx.Notebook):
@@ -344,7 +344,7 @@ class Gradient(wx.Panel):
 
         # Calculate the color histogram
         genome = Genome.from_string(flame.to_string(omit_details=True))[0]
-        flam3_colorhist(genome, 1, self.colorhist_array)
+        flam3_colorhist(genome, 3, RandomContext(), self.colorhist_array)
 
         self.Refresh()
 
