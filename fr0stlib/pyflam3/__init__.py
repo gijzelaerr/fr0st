@@ -24,6 +24,21 @@ import os
 from _flam3 import *
 import marshal as marshal
 
+filter_kernel_dict = {"gaussian": 0,
+                      "hermite": 1,
+                      "box": 2,
+                      "triangle": 3,
+                      "bell": 4,
+                      "b_spline": 5,
+                      "lanczos3": 6,
+                      "lanczos2": 7,
+                      "mitchell": 8,
+                      "blackman": 9,
+                      "catrom": 10,
+                      "hamming": 11,
+                      "hanning": 12,
+                      "quadratic": 13}
+
 
 class Genome(BaseGenome):
 
@@ -47,9 +62,17 @@ class Genome(BaseGenome):
         self.estimator_minimum = estimator_minimum
         self.spatial_oversample = spatial_oversample
         self.spatial_filter_radius = filter_radius
-        self.spatial_filter_select = filter_kernel
-
-        if filter_kernel in (6,7):
+        
+        if isinstance(filter_kernel,int):
+            self.spatial_filter_select = filter_kernel
+        elif filter_kernel_dict.get(filter_kernel.lower()):
+            self.spatial_filter_select = filter_kernel_dict[filter_kernel.lower()]
+        else:
+            # Should warn here that the string wasn't understood
+            # but default to gaussian regardless
+            self.spatial_filter_select = 0
+            
+        if self.spatial_filter_select in (6,7):
             # HACK: force earlyclip for lanczos filters, which don't work
             # properly without it, generating lots of noise.
             kwargs["earlyclip"] = True
