@@ -34,6 +34,7 @@ from fr0stlib.gui.constants import ID
 from fr0stlib.gui._events import InMainFast
 from fr0stlib.decorators import *
 from fr0stlib.render import save_image
+from fr0stlib.pyflam3 import filter_kernel_dict
 
 
 
@@ -85,28 +86,14 @@ class FreeMemoryPanel(wx.Panel):
         depth = int(self.depth.GetStringSelection().split("-")[0]) / 8
         # the *9 is for: 5 in bucket (RGBA+density) + 4 in abucket (RGBA)
         return w * h * os**2 * depth * 9 / 1024.**2
-    
-        
-        
+
+
 
 class RenderDialog(wx.Frame):
     buffer_depth_dict = {"32-bit int": 32,
               "32-bit float": 33,
               "64-bit double": 64}
-    filter_kernel_dict = {"Gaussian": 0,
-                          "Hermite": 1,
-                          "Box": 2,
-                          "Triangle": 3,
-                          "Bell": 4,
-                          "B_spline": 5,
-                          "Lanczos3": 6,
-                          "Lanczos2": 7,
-                          "Mitchell": 8,
-                          "Blackman": 9,
-                          "Catrom": 10,
-                          "Hamming": 11,
-                          "Hanning": 12,
-                          "Quadratic": 13}
+    filter_kernel_dict = filter_kernel_dict
     nthreads_dict = dict(("%2d" %i, i) for i in range(1, 9))
     nthreads_dict["auto"] = 0
 
@@ -249,7 +236,7 @@ class RenderDialog(wx.Frame):
                             "quality", "spatial_oversample",
                             "estimator", "estimator_curve",
                             "estimator_minimum", "filter_radius")
-        filters = self.MakeChoices(parent, "filter_kernel", fgs=opts)
+        self.MakeChoices(parent, "filter_kernel", fgs=opts)
         
         early = wx.CheckBox(parent, -1, "Early Clip")
         self.earlyclip = self.config["earlyclip"]
