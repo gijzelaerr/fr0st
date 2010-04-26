@@ -682,7 +682,7 @@ flam4 - (c) 2009 - 2010 Steven Broadhead""" % fr0stlib.VERSION,
         fr0stlib.get_flames = self.tree.GetFlames
         fr0stlib.get_file_path = self.tree.GetFilePath
         fr0stlib.preview = self.preview
-        fr0stlib.large_preview = self.previewframe.RenderPreview
+        fr0stlib.large_preview = self.large_preview
         fr0stlib.dialog = self.editor.make_dialog
         
 
@@ -710,7 +710,7 @@ flam4 - (c) 2009 - 2010 Steven Broadhead""" % fr0stlib.VERSION,
         sys.path.insert(0, os.path.dirname(self.editor.scriptpath))
         
         oldflame = self.flame.copy()
-        namespace = self.CreateNamespace()
+        namespace = self._namespace = self.CreateNamespace()
 
         # actually run the script
         self.RunScript(script, namespace).join()
@@ -779,16 +779,21 @@ flam4 - (c) 2009 - 2010 Steven Broadhead""" % fr0stlib.VERSION,
 
 
     def preview(self, flame=None):
+        flame = flame or self._namespace['flame']
         self.image.RenderPreview(flame)
         self.OnPreview(flame)
         time.sleep(.01) # Avoids spamming too many requests.
-        
+
+
+    def large_preview(self, flame=None):
+        flame = flame or self._namespace['flame']
+        self.previewframe.RenderPreview(flame)
+
 
     @InMain
     def OnPreview(self, flame):
         # only update a select few of all the panels.
-        if flame is not None:
-            self.UpdateActive(flame)
+        self.UpdateActive(flame)
         self.canvas.ShowFlame(flame, rezoom=False)
         self.grad.image.Update(flame)
 
