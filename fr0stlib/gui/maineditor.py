@@ -96,6 +96,8 @@ class TransformPanel(wx.Panel):
         add_tool('Add-Final-Xform')
         add_tool('Duplicate-Xform')
         add_tool('Delete-Xform')
+        add_tool('Zoom-In')
+        add_tool('Zoom-Out')
         add_tool('Zoom-To-Fit')
 
         add_tool('World-Pivot', True)
@@ -158,6 +160,12 @@ class TransformPanel(wx.Panel):
         index = xform.index or 0 # None is turned to 0 
         xform.delete()
         self.parent.ActiveXform = lst[min(index, len(lst) - 1)]
+
+    def FuncZoomIn(self):
+        self.canvas.AdjustZoom(1.25)
+
+    def FuncZoomOut(self):
+        self.canvas.AdjustZoom(.8)
 
     def FuncZoomToFit(self):
         self.canvas.ZoomToFit()
