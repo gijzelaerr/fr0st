@@ -86,7 +86,7 @@ class TransformPanel(wx.Panel):
             self.tool_ids[id] = name_nodash
             
             self.toolbar.AddSimpleTool(id, LoadIcon('toolbar', name),
-                                       name_nodash, isToggle=toggle)
+                                       name, isToggle=toggle)
             if toggle:
                 self.toolbar.ToggleTool(id, config[name])
                 self.MakeConfigFunc(name)
@@ -115,12 +115,12 @@ class TransformPanel(wx.Panel):
             config[i] = not config[i]
             # HACK: This is a setflame so the post xform flag updates correctly
             self.parent.SetFlame(self.parent.flame, rezoom=False)
-        setattr(self, "Func%s" %i.replace("-",""), onbtn)
+        setattr(self, i.replace("-",""), onbtn)
 
 
     @Bind(wx.EVT_TOOL)
     def OnButton(self, e):
-        getattr(self, "Func%s" % self.tool_ids[e.GetId()])()
+        getattr(self, self.tool_ids[e.GetId()])()
 
     def modifyxform(f):
         """This decorator wraps away common code in the button functions."""
@@ -131,25 +131,25 @@ class TransformPanel(wx.Panel):
         return inner
 
     @modifyxform
-    def FuncClearFlame(self, xform):
+    def ClearFlame(self, xform):
         self.parent.flame.clear()
         self.parent.ActiveXform = self.parent.flame.add_xform()
 
     @modifyxform
-    def FuncAddXform(self, xform):
+    def AddXform(self, xform):
         self.parent.ActiveXform = self.parent.flame.add_xform()
 
     @modifyxform
-    def FuncAddFinalXform(self, xform):
+    def AddFinalXform(self, xform):
         # add_final already checks if a final xform exists.
         self.parent.ActiveXform = self.parent.flame.add_final()
 
     @modifyxform
-    def FuncDuplicateXform(self, xform):
+    def DuplicateXform(self, xform):
         self.parent.ActiveXform = xform.copy()
 
     @modifyxform
-    def FuncDeleteXform(self, xform):
+    def DeleteXform(self, xform):
         if config['Edit-Post-Xform']:
             xform.post.coefs = 1.0, 0.0, 0.0, 1.0, 0.0, 0.0
             config['Edit-Post-Xform'] = False
@@ -161,13 +161,13 @@ class TransformPanel(wx.Panel):
         xform.delete()
         self.parent.ActiveXform = lst[min(index, len(lst) - 1)]
 
-    def FuncZoomIn(self):
+    def ZoomIn(self):
         self.canvas.AdjustZoom(1.25)
 
-    def FuncZoomOut(self):
+    def ZoomOut(self):
         self.canvas.AdjustZoom(.8)
 
-    def FuncZoomToFit(self):
+    def ZoomToFit(self):
         self.canvas.ZoomToFit()
         
 
