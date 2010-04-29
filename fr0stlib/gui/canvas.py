@@ -268,8 +268,12 @@ class XformCanvas(FC.FloatCanvas):
                                     CrossThickness=1)
 
 
-    def AdjustZoom(self):
-        """resets the grid and circle sizes, refreshes the canvas."""
+    def AdjustZoom(self, factor):
+        """Changes the scale, resets the grid and circle sizes and refreshes
+        the canvas."""
+        self.Scale *= factor
+        self.SetToNewScale(DrawFlag=False)
+        
         # Adjust Grid Spacing
         oldspacing = self.GridUnder.Spacing[0]
         newspacing = None
@@ -433,11 +437,8 @@ class XformCanvas(FC.FloatCanvas):
         BB = BBox.fromPoints(points)
         self.ZoomToBB(NewBB=BB, DrawFlag=False)
         
-        # Leave some breathing room
-        self.Scale *= .8
-        self.SetToNewScale(DrawFlag=False)
-
-        self.AdjustZoom()
+        # Refresh grid size, etc. Factor of .8 is to leave some breathing room
+        self.AdjustZoom(.8)
 
 
     @Bind(wx.EVT_ENTER_WINDOW)
@@ -465,13 +466,8 @@ class XformCanvas(FC.FloatCanvas):
             self.MoveImage(move, 'Pixel')
 
         if self._resize_pending != 1:
-            # Don't use self.Zoom because it redraws unconditionally.
-            self.Scale *= self._resize_pending
+            self.AdjustZoom(self._resize_pending)
             self._resize_pending = 1
-            self.SetToNewScale(DrawFlag=False)
-            self.RemoveObjects(self.objects)
-            self.AdjustZoom()
-            self.AddObjects(self.objects)
 
 
     @Bind(FC.EVT_MOUSEWHEEL)
