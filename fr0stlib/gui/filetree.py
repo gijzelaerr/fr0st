@@ -193,6 +193,7 @@ class FlameTree(treemixin.DragAndDrop, treemixin.VirtualTree, wx.TreeCtrl):
             # Set item to default until thumbnail is ready.
             self.SetItemImage(child, 2)
 
+        self.SelectItem(self.itemparent)
         self.SelectItem(self.GetItemByIndex((0,0)))
         self.parent.parent.DumpChanges()
 
