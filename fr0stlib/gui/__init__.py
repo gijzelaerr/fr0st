@@ -770,6 +770,7 @@ flam4 - (c) 2009 - 2010 Steven Broadhead""" % fr0stlib.VERSION,
         # Disable all menus except script
         for i in range(3):
             self.menu.EnableTop(i, not flag)
+        self.editor.menu.EnableTop(1, not flag)
 
         # Disable toolbar buttons individually, only stop remains active
         for i in (ID.FNEW,
@@ -778,11 +779,15 @@ flam4 - (c) 2009 - 2010 Steven Broadhead""" % fr0stlib.VERSION,
                   ID.FSAVEAS,
                   ID.UNDO,
                   ID.REDO,
-                  ID.SOPEN, # Also affects script menu
-                  ID.EDITOR, # Also affects script menu
+                  ID.EDITOR,
                   ID.PREVIEW,
-                  ID.RENDER):
-            self.Enable(i, not flag)
+                  ID.RENDER,
+                  ID.SNEW,
+                  ID.SOPEN, # Also affects mainwindow menu
+                  ID.SSAVE,
+                  ID.SSAVEAS,
+                  ID.EXIT):
+            self.Enable(i, not flag, editor=True)
 
         # Disable 
         for i in (self.XformTabs,
