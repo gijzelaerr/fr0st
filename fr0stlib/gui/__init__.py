@@ -588,6 +588,8 @@ flam4 - (c) 2009 - 2010 Steven Broadhead""" % fr0stlib.VERSION,
 
 
     def UpdateActive(self, flame):
+        if flame is None:
+            return
         if not self.ActiveXform:
             self.ActiveXform = flame.xform[0]
         elif self.ActiveXform._parent != flame:
@@ -710,7 +712,7 @@ flam4 - (c) 2009 - 2010 Steven Broadhead""" % fr0stlib.VERSION,
         sys.path.insert(0, os.path.dirname(self.editor.scriptpath))
         
         oldflame = self.flame.copy()
-        namespace = self._namespace = self.CreateNamespace()
+        namespace = self.CreateNamespace()
 
         # actually run the script
         self.RunScript(script, namespace).join()
@@ -727,10 +729,9 @@ flam4 - (c) 2009 - 2010 Steven Broadhead""" % fr0stlib.VERSION,
         if namespace["update_flame"]:
             try:
                 # Check if changes made to the flame by the script are legal.
-                flame = namespace['flame']
-                if not flame.xform:
+                if not self.flame.xform:
                     raise ValueError("Flame has no xforms")
-                self.SetFlame(flame, rezoom=False)
+                self.SetFlame(self.flame, rezoom=False)
                 self.TempSave()
             except Exception as e:
                 print "Exception updating flame:\n%s" %e
@@ -812,14 +813,12 @@ flam4 - (c) 2009 - 2010 Steven Broadhead""" % fr0stlib.VERSION,
 
 
     def preview(self, flame=None):
-        flame = flame or self._namespace['flame']
         self.image.RenderPreview(flame)
         self.OnPreview(flame)
         time.sleep(.01) # Avoids spamming too many requests.
 
 
     def large_preview(self, flame=None):
-        flame = flame or self._namespace['flame']
         self.previewframe.RenderPreview(flame)
 
 
