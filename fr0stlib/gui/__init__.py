@@ -761,13 +761,40 @@ flam4 - (c) 2009 - 2010 Steven Broadhead""" % fr0stlib.VERSION,
     @InMain
     def BlockGUI(self, flag=False):
         """Called before and after a script runs."""
-        # TODO: prevent file opening, etc
         self.Enable(ID.RUN, not flag, editor=True)
         self.Enable(ID.STOP, flag, editor=True)
         self.editor.tc.SetEditable(not flag)
         self.scriptrunning = flag
         self.SetStatusText("")
-        
+
+        # Disable all menus except script
+        for i in range(3):
+            self.menu.EnableTop(i, not flag)
+
+        # Disable toolbar buttons individually, only stop remains active
+        for i in (ID.FNEW,
+                  ID.FOPEN,
+                  ID.FSAVE,
+                  ID.FSAVEAS,
+                  ID.UNDO,
+                  ID.REDO,
+                  ID.SOPEN, # Also affects script menu
+                  ID.EDITOR, # Also affects script menu
+                  ID.PREVIEW,
+                  ID.RENDER):
+            self.Enable(i, not flag)
+
+        # Disable 
+        for i in (self.XformTabs,
+                  self.XformTabs.Xform.weight,
+                  self.TreePanel,
+                  self.notebook.transform.toolbar,
+                  self.notebook.grad,
+                  self.notebook.adjust,
+                  self.image,
+                  self.previewframe):
+            i.Enable(not flag)
+
 
     def Enable(self, id, flag, editor=False):
         """Enables/Disables toolbar and menu items."""
@@ -776,6 +803,7 @@ flam4 - (c) 2009 - 2010 Steven Broadhead""" % fr0stlib.VERSION,
         self.menu.Enable(id, flag)
         if editor:
             self.editor.tb.EnableTool(id, flag)
+            self.editor.menu.Enable(id, flag)
 
 
     def preview(self, flame=None):
