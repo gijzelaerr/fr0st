@@ -947,10 +947,9 @@ def pblend(s, e, i, curve='linear'):
     if curve == 'linear':
         return s + ((e-s) * i)
     elif curve == 'cos':
-        return s + (0.5*(e-s)*(numpy.cos((i+1)*numpy.pi)+1))
+        return s + ((e-s) * 0.5 * (cos((i+1)*pi)+1))
     elif curve == 'cubic':
-        t = 3*i*i - 2*i*i*i
-        return s + ((e-s) * t)
+        return s + ((e-s) * (3*i*i - 2*i*i*i))
     else:
         raise ValueError('invalid curve')
 
@@ -964,14 +963,14 @@ def pblend_vector(start, end, i, curve='linear'):
         return start
 
     if curve == 'linear':
-        return [s + ((e-s) * i) for s,e in zip(start, end)]
+        t = i
     elif curve == 'cos':
-        return [s + (0.5*(e-s)*(numpy.cos((i+1)*numpy.pi)+1))
-                for s,e in zip(start, end)]
+        t = 0.5 * (cos((i+1)*pi)+1)
     elif curve == 'cubic':
         t = 3*i*i - 2*i*i*i
-        return [s + ((e-s) * t) for s,e in zip(start, end)]
-    
     else:
         raise ValueError('invalid curve')
+    
+    return [s + ((e-s) * t) for s, e in zip(start, end)]
+
 
