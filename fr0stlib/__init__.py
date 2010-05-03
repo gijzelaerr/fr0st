@@ -931,7 +931,7 @@ def hsv2rgb(color):
     return tuple(int(x*255) for x in colorsys.hsv_to_rgb(h,s,v))
 
 
-def pblend(s, e, i, curve='cos'):
+def pblend(s, e, i, curve='linear'):
     """
     s = starting value
     e = ending value
@@ -944,15 +944,18 @@ def pblend(s, e, i, curve='cos'):
     if s == e:
         return s
 
-    if curve == 'lin':
+    if curve == 'linear':
         return s + ((e-s) * i)
     elif curve == 'cos':
         return s + (0.5*(e-s)*(numpy.cos((i+1)*numpy.pi)+1))
+    elif curve == 'cubic':
+        t = 3*i*i - 2*i*i*i
+        return s + ((e-s) * t)
     else:
         raise ValueError('invalid curve')
 
 
-def pblend_vector(start, end, i, curve='cos'):
+def pblend_vector(start, end, i, curve='linear'):
     if i == 0:
         return start
     if i == 1:
@@ -960,11 +963,15 @@ def pblend_vector(start, end, i, curve='cos'):
     if start == end:
         return start
 
-    if curve == 'lin':
+    if curve == 'linear':
         return [s + ((e-s) * i) for s,e in zip(start, end)]
     elif curve == 'cos':
         return [s + (0.5*(e-s)*(numpy.cos((i+1)*numpy.pi)+1))
                 for s,e in zip(start, end)]
+    elif curve == 'cubic':
+        t = 3*i*i - 2*i*i*i
+        return [s + ((e-s) * t) for s,e in zip(start, end)]
+    
     else:
         raise ValueError('invalid curve')
 
