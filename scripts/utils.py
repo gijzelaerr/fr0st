@@ -3,7 +3,7 @@ This file contains several utility functions that can be imported
 from other scripts, through the standard python import mechanism.
 """
 
-import fr0stlib
+import itertools, fr0stlib
 
 def calculate_colors(xforms):
     """Distribute color values evenly among xforms. You can pass the entire
@@ -35,8 +35,7 @@ def batch(func, nflames, *a, **k):
 def animation_preview(flames):
     """ animate flames in an infinite loop."""
     assert fr0stlib.GUI # guard against command line scripts.
-    while True:
-        for f in flames:
-            fr0stlib.preview(f)
+    for f in itertools.cycle(flames):
+        fr0stlib.preview(f)
 
                
