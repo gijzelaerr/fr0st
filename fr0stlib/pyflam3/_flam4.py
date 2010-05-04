@@ -261,7 +261,7 @@ def renderFlam4(flame, size, quality, progress_func, transparent=False,
         # never have time to run.
         sys.stdout.write("")
         if flag:
-            return
+            return outputBuffer
     libflam4.cuFinishFrame(pointer(flame), outputBuffer, transparent)
     return outputBuffer
 
