@@ -376,13 +376,16 @@ class Palette(collections.Sequence):
             ds = d + (i < r)
             start, end = seeds[i-1], seeds[i]
             for j in xrange(ds):
-                hsv = pblend_vector(start, end, j/float(ds), curve)
+                hsv = pblend_color(start, end, j/float(ds), curve)
                 gen.append(hsv2rgb(hsv))
         self.data = numpy.array(gen, dtype=numpy.uint8)
 
 
     def random(self, hue=(0,1), saturation=(0,1), value=(0,1),  nodes=(5,5),
                curve='cos'):
+        h1, h2 = hue
+        if h1 > h2:
+            hue = h1, h2 + 1
         dims = hue, saturation, value
         seeds = [tuple(random.uniform(*i) for i in dims)
                  for j in range(int(random.uniform(*nodes)))]
@@ -974,3 +977,12 @@ def pblend_vector(start, end, i, curve='linear'):
     return [s + ((e-s) * t) for s, e in zip(start, end)]
 
 
+def pblend_color((h1, s1, v1), (h2, s2, v2), n, curve='linear'):
+    """Blend a color is hsv space, wrapping hue around 1.0 if necessary."""
+    if h1 < h2 - .5:
+        h1 += 1
+    elif h2 < h1 - .5:
+        h2 += 1
+    return (pblend(h1, h2, n, curve) % 1,
+            pblend(s1, s2, n, curve),
+            pblend(v1, v2, n, curve))
