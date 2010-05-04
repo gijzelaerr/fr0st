@@ -331,16 +331,17 @@ class Palette(collections.Sequence):
     def reverse(self):
         self.data = numpy.array(self.data[::-1], dtype=numpy.uint8)
 
+
     def rotate(self, index):
-        self.data = numpy.array(
-                list(self.data[-index:]) + list(self.data[:-index]), dtype=numpy.uint8)
+        self.data = numpy.array(list(self.data[-index:]) +
+                                list(self.data[:-index]), dtype=numpy.uint8)
+
 
     def hue(self, value):
         value = value/360.0
         for i in xrange(256):
             h,l,s = rgb2hls(self.data[i])
-            h += value
-            h = clip(h,0,1,True)
+            h = (h + value) % 1
             rgb = hls2rgb((h,l,s))
             self.data[i] = hls2rgb((h,l,s))
 
@@ -349,8 +350,7 @@ class Palette(collections.Sequence):
         value = value/100.0
         for i in xrange(256):
             h,l,s = rgb2hls(self.data[i])
-            s += value
-            s = clip(s,0,1)
+            s = max(0, min(1, s + value))
             self.data[i] = hls2rgb((h,l,s))
 
             
@@ -358,8 +358,7 @@ class Palette(collections.Sequence):
         value = value/100.0
         for i in xrange(256):
             h,l,s = rgb2hls(self.data[i])
-            l += value
-            l = clip(l,0,1)
+            l = max(0, min(1, l + value))
             self.data[i] = hls2rgb((h,l,s))
 
             
@@ -894,31 +893,13 @@ def rect(coord):
     return real, imag
 
 
-def clip(v, mini, maxi, rotate=False):
-    """Clip a value to the given boundaries.
-
-    if rotate is True, the values will wrap around."""
-    if rotate:
-        if v > maxi: v = v-maxi+mini
-        elif v < mini: v = v+maxi-mini
-    else:
-        if v > maxi: v = maxi
-        elif v < mini: v = mini
-    return v
-
-
 def rgb2hls(color):
     """Takes an rgb tuple (0-255) and returns hls tuple (hls is scalar)"""
     return colorsys.rgb_to_hls(*(x/255. for x in color))
 
 
-def hls2rgb(color):
+def hls2rgb((h, l, s)):
     """Takes hls tuple and returns rgb tuple (rgb is int)"""
-    #convert h to scalar
-    h,l,s = color
-    h = clip(h,0,1,True)
-    l = clip(l,0,1)
-    s = clip(s,0,1)
     return tuple(int(x*255) for x in colorsys.hls_to_rgb(h,l,s))
 
 
@@ -926,11 +907,7 @@ def rgb2hsv(color):
     return colorsys.rgb_to_hsv(*(x/255. for x in color))
 
 
-def hsv2rgb(color):
-    h,s,v = color
-    h = clip(h,0,1,True)
-    s = clip(s,0,1)
-    v = clip(v,0,1)
+def hsv2rgb((h, s, v)):
     return tuple(int(x*255) for x in colorsys.hsv_to_rgb(h,s,v))
 
 
@@ -983,6 +960,5 @@ def pblend_color((h1, s1, v1), (h2, s2, v2), n, curve='linear'):
         h1 += 1
     elif h2 < h1 - .5:
         h2 += 1
-    return (pblend(h1, h2, n, curve) % 1,
-            pblend(s1, s2, n, curve),
-            pblend(v1, v2, n, curve))
+    return pblend_vector((h1, s1, v1), (h2, s2, v2), n, curve)
+
