@@ -701,6 +701,7 @@ flam4 - (c) 2009 - 2010 Steven Broadhead""" % fr0stlib.VERSION,
 
         
     @Threaded
+    @Catches(wx.PyDeadObjectError)
     @Locked(blocking=False)
     def Execute(self,string):
         # split and join fixes linebreak issues between windows and linux
@@ -780,15 +781,18 @@ flam4 - (c) 2009 - 2010 Steven Broadhead""" % fr0stlib.VERSION,
                   ID.FSAVEAS,
                   ID.UNDO,
                   ID.REDO,
+                  ID.SOPEN,
                   ID.EDITOR,
                   ID.PREVIEW,
                   ID.RENDER,
-                  ID.SNEW,
-                  ID.SOPEN, # Also affects mainwindow menu
+                  ID.EXIT):
+            self.Enable(i, not flag)
+        for i in (ID.SNEW,
+                  ID.SOPEN,
                   ID.SSAVE,
                   ID.SSAVEAS,
                   ID.EXIT):
-            self.Enable(i, not flag, editor=True)
+            self.Enable(i, not flag, main=False, editor=True)
 
         # Disable 
         for i in (self.XformTabs,
@@ -802,11 +806,12 @@ flam4 - (c) 2009 - 2010 Steven Broadhead""" % fr0stlib.VERSION,
             i.Enable(not flag)
 
 
-    def Enable(self, id, flag, editor=False):
+    def Enable(self, id, flag, main=True, editor=False):
         """Enables/Disables toolbar and menu items."""
         flag = bool(flag)
-        self.tb.EnableTool(id, flag)
-        self.menu.Enable(id, flag)
+        if main:
+            self.tb.EnableTool(id, flag)
+            self.menu.Enable(id, flag)
         if editor:
             self.editor.tb.EnableTool(id, flag)
             self.editor.menu.Enable(id, flag)
