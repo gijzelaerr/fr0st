@@ -1,14 +1,15 @@
 import random
 
+import fr0stlib
 from utils import calculate_colors, batch
 
     
 def GenRandom(*args):
-    f = Flame()
+    f = fr0stlib.Flame()
     for a in args:
         chance = a.get("chance", 1)
         if random.random() < chance:
-            Xform.random(f, **a)
+            fr0stlib.Xform.random(f, **a)
             
     f.reframe()
     calculate_colors(f.xform)
