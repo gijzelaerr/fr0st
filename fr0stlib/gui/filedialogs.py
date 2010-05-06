@@ -29,7 +29,8 @@ class SaveDialog(wx.Dialog):
 
         path = os.path.abspath(path)
         self.fbb = FileBrowseButton(self, -1, fileMask=parent.wildcard,
-                                    labelText='File:  ', initialValue=path)
+                                    labelText='File:  ', initialValue=path,
+                                    fileMode=wx.SAVE)
         self.nametc = wx.TextCtrl(self, -1)
         self.nametc.SetValue(name)
         self.nametc.SetMinSize((200,27))
