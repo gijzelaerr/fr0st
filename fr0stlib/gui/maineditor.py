@@ -134,6 +134,7 @@ class TransformPanel(wx.Panel):
     def ClearFlame(self, xform):
         self.parent.flame.clear()
         self.parent.ActiveXform = self.parent.flame.add_xform()
+        self.canvas.ZoomToFit()
 
     @modifyxform
     def AddXform(self, xform):

@@ -434,8 +434,7 @@ class XformCanvas(FC.FloatCanvas):
     def ZoomToFit(self):
         # Calculate bounding box by hand, FC doesn't work right.
         points = list(itertools.chain(x.points for x in self.IterXforms()))
-        BB = BBox.fromPoints(points)
-        self.ZoomToBB(NewBB=BB, DrawFlag=False)
+        self.ZoomToBB(NewBB=BBox.fromPoints(points), DrawFlag=False)
         
         # Refresh grid size, etc. Factor of .8 is to leave some breathing room
         self.AdjustZoom(.8)
