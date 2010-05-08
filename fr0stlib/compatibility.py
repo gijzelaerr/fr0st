@@ -45,7 +45,7 @@ def apo2fr0st(flame):
         # Symmetry is deprecated, so we factor it into the equivalent attrs.
         if hasattr(x, "symmetry"):
             x.color_speed = (1 - x.symmetry) / 2.0
-            x.animate = float(x.symmetry <= 0)
+            x.animate = float(x.symmetry <= 0 and not x.isfinal())
             del x.symmetry
 
         # Opacity needs to be converted because flam3 uses log scale

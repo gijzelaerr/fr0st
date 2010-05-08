@@ -80,6 +80,7 @@ class Flame(object):
                 raise ParsingError("More than one final xform found")
             self.final = Xform(self)
             self.final.from_element(final)
+            self.final.animate = 0
 
         # Record the header data.
         for name, val in element.items():
@@ -103,6 +104,7 @@ class Flame(object):
         compatibilize(self, VERSION)
 
         return self
+
 
     def to_string(self, omit_details=False):
         """Extracts parameters from a Flame object and converts them into
@@ -143,7 +145,7 @@ class Flame(object):
         if self.final:
             return self.final
         defaults = dict(coefs=(1.0, 0.0, 0.0, 1.0, 0.0, 0.0),
-                        linear=1, color=0, color_speed=0)
+                        linear=1, color=0, color_speed=0, animate=0)
         defaults.update(kwds)
         self.final = Xform(self, **defaults)
         return self.final
@@ -533,8 +535,8 @@ class Xform(object):
             return self._parent.xform.index(self)
         except (AttributeError, ValueError):
             return None
+
         
-       
     @property
     def coefs(self):
         return self.a,self.d,self.b,self.e,self.c,self.f
@@ -752,6 +754,7 @@ class PostXform(Xform):
                 'x','y','o','pos',
                 'xp','yp','op'))
     index = None
+    animate = 0
 
     def __repr__(self):
         return "<post-%s" % repr(self._parent)[1:]
