@@ -455,7 +455,6 @@ flam4 - (c) 2009 - 2010 Steven Broadhead""" % fr0stlib.VERSION,
 
     @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=ID.RUN)
     def OnRunScript(self,e):
-        self.BlockGUI(flag=True)
         self.Execute(self.editor.tc.GetText())
 
 
@@ -707,26 +706,26 @@ flam4 - (c) 2009 - 2010 Steven Broadhead""" % fr0stlib.VERSION,
         # split and join fixes linebreak issues between windows and linux
         lines = self.log._lines = string.splitlines()
         script = "\n".join(lines) +'\n'
-
-        sysmodules = dict(sys.modules)
-        syspath = list(sys.path)
-        sys.path.insert(0, os.path.dirname(self.editor.scriptpath))
         
         oldflame = self.flame.copy()
         namespace = self.CreateNamespace()
+        
+        # Setup
+        self.BlockGUI(True)
+        sysmodules = dict(sys.modules)
+        syspath = list(sys.path)
+        sys.path.insert(0, os.path.dirname(self.editor.scriptpath))
 
-        # actually run the script
+        # Run the script
         self.RunScript(script, namespace).join()
 
-        # Remove any modules imported by the script, so they can be changed
-        # without needing to restart fr0st. Also revert path.
+        # Teardown: Remove modules imported by the script so they can be 
+        # reloaded and clean up path.
         sys.modules.clear()
         sys.modules.update(sysmodules)
         sys.path[:] = syspath
-
-        # Note that tempsave returns if scriptrunning == True, so it needs to
-        # come after unblocking the GUI.
         self.BlockGUI(False)
+        
         if namespace["update_flame"]:
             try:
                 # Check if changes made to the flame by the script are legal.
