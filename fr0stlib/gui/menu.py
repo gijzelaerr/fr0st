@@ -30,11 +30,11 @@ class Filemenu(wx.Menu):
     def __init__(self):
         wx.Menu.__init__(self)
         self.Append(ID.FNEW, "&New Flame\tCtrl-N"," Create a new flame")        
-        self.Append(ID.FOPEN, "&Open\tCtrl-O"," Open a flame file")
+        self.Append(ID.FOPEN, "&Open...\tCtrl-O"," Open a flame file")
         self.Append(ID.FSAVE, "&Save\tCtrl-S"," Save a flame to a file")
-        self.Append(ID.FSAVEAS, "&Save as\tCtrl-Shift-S"," Save a flame to a file")
+        self.Append(ID.FSAVEAS, "&Save As...\tCtrl-Shift-S"," Save a flame to a file")
         self.AppendSeparator()
-        self.Append(ID.RENDER, "&Render\tCtrl-R"," Render a flame to an image")
+        self.Append(ID.RENDER, "&Render...\tCtrl-R"," Render a flame to an image")
         self.AppendSeparator()
         self.Append(wx.ID_PREFERENCES, "&Preferences", "Edit preferences")
         self.AppendSeparator()
@@ -67,7 +67,7 @@ class Scriptmenu(wx.Menu):
         self.Append(ID.RUN, "&Run\tF8"," Run currently open script")
         self.Append(ID.STOP, "&Stop\tF9"," Stop script execution")
         self.AppendSeparator()
-        self.Append(ID.SOPEN, "&Open\tCtrl-Shift-O"," Open a script file")
+        self.Append(ID.SOPEN, "&Open...\tCtrl-Shift-O"," Open a script file")
         self.Append(ID.EDITOR, "&Editor\tCtrl-E"," Open the script editor")
 
 class EditorFilemenu(wx.Menu):
@@ -75,9 +75,9 @@ class EditorFilemenu(wx.Menu):
     def __init__(self):
         wx.Menu.__init__(self)
         self.Append(ID.SNEW, "&New Script\tCtrl-N"," Create a new script")
-        self.Append(ID.SOPEN, "&Open\tCtrl-O"," Open a script file")
+        self.Append(ID.SOPEN, "&Open...\tCtrl-O"," Open a script file")
         self.Append(ID.SSAVE, "&Save\tCtrl-S"," Save the current script")
-        self.Append(ID.SSAVEAS, "&Save as\tCtrl-Shift-S"," Save the current script to a new file")
+        self.Append(ID.SSAVEAS, "&Save As...\tCtrl-Shift-S"," Save the current script to a new file")
         self.AppendSeparator()
         self.Append(ID.RUN, "&Run\tF8"," Run currently open script")
         self.Append(ID.STOP, "&Stop\tF9"," Stop script execution")
