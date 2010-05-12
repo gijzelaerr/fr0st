@@ -71,11 +71,14 @@ class XformTabs(wx.Notebook):
 
         # Update weight tc.
         if ispost or isfinal:
-            self.Xform.weight.Disable()
             self.Xform.weight.SetValue("--")
+            self.Xform.weight.Disable()
+            
         else:
-            self.Xform.weight.Enable()
             self.Xform.weight.SetFloat(xform.weight)
+            if not self.parent.scriptrunning:
+                self.Xform.weight.Enable()
+            
 
         # Show the correct tabs depending on whether the xform is post or final
         current = self.GetPageCount()
