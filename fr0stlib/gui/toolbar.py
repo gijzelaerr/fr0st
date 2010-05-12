@@ -60,6 +60,7 @@ def CreateToolBar(parent):
         "Render", " Render flame to image file")
     
     tb.Realize()
+    tb.toggle_run_stop = MakeToggleFunction(tb, ID.RUN, ID.STOP)
 
 
 def CreateEditorToolBar(parent):
@@ -77,7 +78,21 @@ def CreateEditorToolBar(parent):
     tb.AddSeparator()
     add(ID.RUN, LoadIcon('toolbar', 'Run'),
         "Run Script", " Run currently loaded script.")
-    add(ID.STOP, GetBMP(wx.ART_ERROR),
+    add(ID.STOP, LoadIcon('toolbar', 'Stop'),
         "Stop Script", " Stop script execution")
 
     tb.Realize()
+    tb.toggle_run_stop = MakeToggleFunction(tb, ID.RUN, ID.STOP)
+
+
+def MakeToggleFunction(tb, id1, id2):
+    ids = id1, id2
+    tools = map(tb.FindById, ids)
+    pos = tb.GetToolPos(id1)
+    tb.RemoveTool(id2)
+    def toggle(flag):
+        tb.RemoveTool(ids[not flag])
+        tb.InsertToolItem(pos, tools[flag])
+        tb.Realize()
+    return toggle
+
