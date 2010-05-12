@@ -797,14 +797,17 @@ flam4 - (c) 2009 - 2010 Steven Broadhead""" % fr0stlib.VERSION,
                   ID.FOPEN,
                   ID.FSAVE,
                   ID.FSAVEAS,
-                  ID.UNDO,
-                  ID.REDO,
                   ID.SOPEN,
                   ID.EDITOR,
                   ID.PREVIEW,
                   ID.RENDER,
                   ID.EXIT):
             self.Enable(i, not flag)
+        for i in (ID.UNDO,
+                  ID.REDO):
+            # disable undo/redo unconditionally, to avoid flicker when script
+            # ends. SetFlame takes care of restoring the correct values.
+            self.Enable(i, False)
         for i in (ID.SNEW,
                   ID.SOPEN,
                   ID.SSAVE,
