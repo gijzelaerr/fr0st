@@ -528,9 +528,8 @@ flam4 - (c) 2009 - 2010 Steven Broadhead""" % fr0stlib.VERSION,
             # scan the file to see if it's valid
             flamestrings = fr0stlib.load_flamestrings(path)
             if not flamestrings:
-                wx.MessageDialog(self, "It seems %s is not a valid flame file."
-                                 " Please choose a different flame." % path,
-                                 'Fr0st',wx.OK).ShowModal()
+                ErrorMessage(self, "It seems %s is not a valid flame file."
+                             " Please choose a different flame." % path)
                 self.OnFlameOpen(None)
                 return
         else:
