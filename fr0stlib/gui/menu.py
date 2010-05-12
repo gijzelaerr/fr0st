@@ -36,11 +36,10 @@ class Filemenu(wx.Menu):
         self.AppendSeparator()
         self.Append(ID.RENDER, "&Render...\tCtrl-R"," Render a flame to an image")
         self.AppendSeparator()
-        self.Append(wx.ID_PREFERENCES, "&Preferences", "Edit preferences")
-        self.AppendSeparator()
         self.Append(ID.ABOUT, "&About"," Information about this program")
         self.AppendSeparator()
         self.Append(ID.EXIT,"E&xit\tCtrl-Q"," Terminate the program")
+
 
 class Editmenu(wx.Menu):
     name = "&Edit"
@@ -53,12 +52,16 @@ class Editmenu(wx.Menu):
         self.AppendSeparator()
         self.Append(wx.ID_COPY, "&Copy\tCtrl-C", "Copy a flame to the clipboard.")
         self.Append(wx.ID_PASTE, "&Paste\tCtrl-V", "Open a flame from the clipboard.")
-
+        self.AppendSeparator()
+        self.Append(wx.ID_PREFERENCES, "&Preferences", "Edit preferences")
+        
+        
 class Viewmenu(wx.Menu):
     name = "&View"
     def __init__(self):
         wx.Menu.__init__(self)
         self.Append(ID.PREVIEW, "&Preview\tCtrl-P", " Open the preview window.")
+
 
 class Scriptmenu(wx.Menu):
     name = "&Script"
@@ -69,6 +72,7 @@ class Scriptmenu(wx.Menu):
         self.AppendSeparator()
         self.Append(ID.SOPEN, "&Open...\tCtrl-Shift-O"," Open a script file")
         self.Append(ID.EDITOR, "&Editor\tCtrl-E"," Open the script editor")
+
 
 class EditorFilemenu(wx.Menu):
     name = "&File"
@@ -84,6 +88,7 @@ class EditorFilemenu(wx.Menu):
         self.AppendSeparator()
         self.Append(ID.EXIT,"E&xit\tCtrl-Q"," Close the editor")        
 
+
 class EditorEditmenu(wx.Menu):
     name = "&Edit"
     def __init__(self):
@@ -97,6 +102,7 @@ def Create(lst, parent):
     map(menu.Append,*zip(*((menu(), menu.name) for menu in lst)))
     parent.SetMenuBar(menu)
     parent.menu = menu
+
 
 CreateMenu = partial(Create, (Filemenu, Editmenu, Viewmenu, Scriptmenu))
 CreateEditorMenu = partial(Create, (EditorFilemenu, EditorEditmenu))
