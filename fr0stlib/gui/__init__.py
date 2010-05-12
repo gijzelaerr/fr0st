@@ -225,6 +225,11 @@ class MainWindow(wx.Frame):
 
         # Creating Frame Content
         CreateMenu(parent=self)
+        self.fh = wx.FileHistory(4)
+        map(self.fh.AddFileToHistory, reversed(config['Recent-Files']))
+        self.fh.UseMenu(self.menu.GetMenu(0))
+        self.fh.AddFilesToMenu()
+
         CreateToolBar(self)
         self.image = ImagePanel(self)
         self.XformTabs = XformTabs(self)
@@ -332,6 +337,9 @@ flam4 - (c) 2009 - 2010 Steven Broadhead""" % fr0stlib.VERSION,
             return
         
         self.renderer.exitflag = True
+
+        config["Recent-Files"] = tuple(self.fh.GetHistoryFile(i)
+                                       for i in range(self.fh.GetCount()))
         
         if os.path.exists('changes.bak'):
             os.remove('changes.bak')
@@ -408,6 +416,7 @@ flam4 - (c) 2009 - 2010 Steven Broadhead""" % fr0stlib.VERSION,
             wx.TheClipboard.Flush()
             wx.TheClipboard.Close()
 
+
     @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=ID.FOPEN)
     def OnFlameOpen(self,e):
         dDir,dFile = os.path.split(config["flamepath"])
@@ -417,6 +426,17 @@ flam4 - (c) 2009 - 2010 Steven Broadhead""" % fr0stlib.VERSION,
         if dlg.ShowModal() == wx.ID_OK:
             self.OpenFlame(dlg.GetPath())
         dlg.Destroy()
+
+
+    @Bind(wx.EVT_MENU_RANGE, id=wx.ID_FILE1, id2=wx.ID_FILE9)
+    def OnFileHistory(self, e):
+        index = e.GetId() - wx.ID_FILE1
+        path = self.fh.GetHistoryFile(index)
+        if not os.path.exists(path):
+            ErrorMessage(self, "Could not find %s." % path)
+            self.fh.RemoveFileFromHistory(index)
+            return
+        self.OpenFlame(path)
 
 
     @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=ID.FSAVE)
@@ -535,7 +555,7 @@ flam4 - (c) 2009 - 2010 Steven Broadhead""" % fr0stlib.VERSION,
 
         # Add flames to the tree
         item = self.tree.SetFlames(path, *flamestrings)
-
+        self.fh.AddFileToHistory(path)
         config["flamepath"] = path
 
 

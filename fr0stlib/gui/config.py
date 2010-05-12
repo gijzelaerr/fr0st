@@ -87,6 +87,7 @@ def init_config():
           "Rect-Main": None,
           "Rect-Editor": None,
           "Rect-Preview": None,
+          "Recent-Files": (),
           })
 
     # Make a copy of default values, so they can be restored later.
