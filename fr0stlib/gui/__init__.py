@@ -415,15 +415,13 @@ flam4 - (c) 2009 - 2010 Steven Broadhead""" % fr0stlib.VERSION,
             self, message="Choose a file", defaultDir=dDir,
             defaultFile=dFile, wildcard=self.wildcard, style=wx.OPEN)
         if dlg.ShowModal() == wx.ID_OK:
-            config["flamepath"] = dlg.GetPath()
-            self.OpenFlame(config["flamepath"])
+            self.OpenFlame(dlg.GetPath())
         dlg.Destroy()
 
 
     @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=ID.FSAVE)
     def OnFlameSave(self,e):
-        config["flamepath"] = self.tree.GetFilePath()
-        self.SaveFlame(config["flamepath"])
+        self.SaveFlame(self.tree.GetFilePath())
 
 
     @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=ID.FSAVEAS)
@@ -537,6 +535,8 @@ flam4 - (c) 2009 - 2010 Steven Broadhead""" % fr0stlib.VERSION,
 
         # Add flames to the tree
         item = self.tree.SetFlames(path, *flamestrings)
+
+        config["flamepath"] = path
 
 
     def SaveFlame(self, path=None):
