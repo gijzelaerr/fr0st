@@ -59,6 +59,7 @@ class EditorFrame(wx.Frame):
         self.wildcard = "Python source (*.py;*.pyw)|*.py;*.pyw|" \
                         "All files (*.*)|*.*"
         self.fh = MyFileHistory(self, 'Recent-Scripts', self.OpenScript)
+        self.fh.BindMenu(self.parent, 3)
 
         # Load the default script
         self.OpenScript(os.path.join(wx.GetApp().UserScriptsDir, 'default.py'))
