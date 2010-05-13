@@ -31,6 +31,7 @@ from fr0stlib.gui.constants import ID
 from fr0stlib.gui.scriptutils import DynamicDialog
 from fr0stlib.gui._events import InMain, InMainFast
 from fr0stlib.gui.utils import IsInvalidPath
+from fr0stlib.gui.history import MyFileHistory
 
 
 class EditorFrame(wx.Frame):
@@ -57,6 +58,7 @@ class EditorFrame(wx.Frame):
 
         self.wildcard = "Python source (*.py;*.pyw)|*.py;*.pyw|" \
                         "All files (*.*)|*.*"
+        self.fh = MyFileHistory(self, 'Recent-Scripts', self.OpenScript)
 
         # Load the default script
         self.OpenScript(os.path.join(wx.GetApp().UserScriptsDir, 'default.py'))
@@ -170,6 +172,7 @@ class EditorFrame(wx.Frame):
             self.scriptpath = path
             with open(path) as f:
                 self.tc.SetValue(f.read())
+            self.fh.AddFileToHistory(path)
         
 
     def SaveScript(self, path, confirm=True):
