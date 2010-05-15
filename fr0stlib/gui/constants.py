@@ -39,3 +39,6 @@ class ConstantFactory():
 ID = ConstantFactory(wx.NewId)
 
 
+def NewIdRange(n):
+    return [wx.NewId() for i in range(n)][0]
+
