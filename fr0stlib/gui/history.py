@@ -22,12 +22,15 @@ class MyFileHistory(wx.FileHistory):
         self.BindMenu(parent)
 
 
-    def BindMenu(self, parent, pos=0):
-        menu = parent.menu.GetMenu(pos)
-        self.UseMenu(menu)
+    def BindMenu(self, parent, menuindex=0, pos=2):
+        menu = parent.menu.GetMenu(menuindex)
+
+        recent = wx.Menu()
+        menu.InsertMenu(pos, -1, "Recent &Files", recent)
+        self.UseMenu(recent)
+        self.AddFilesToThisMenu(recent)
         parent.Bind(wx.EVT_MENU_RANGE, partial(self.OnHistory, parent),
                     id=self.id, id2=self.id + self.n)
-        self.AddFilesToThisMenu(menu)
         
 
     def SaveToConfig(self):
