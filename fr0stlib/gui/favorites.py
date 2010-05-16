@@ -82,7 +82,7 @@ class ManageDialog(wx.Dialog):
         self.lb = wx.ListBox(self, -1, size=(400,300))
         self.UpdateSelector(0)
         buttons = [wx.Button(self, i, name, style=wx.BU_EXACTFIT)
-                   for (i, name) in ((ID.EDIT, 'Choose File...'),
+                   for (i, name) in ((ID.EDIT, 'Choose Script...'),
                                      (ID.REMOVE, 'Remove'),
                                      (ID.MOVEUP, 'Move Up'),
                                      (ID.MOVEDOWN, 'Move Down'))]
