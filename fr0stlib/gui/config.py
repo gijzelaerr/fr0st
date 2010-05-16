@@ -89,7 +89,7 @@ def init_config():
           "Rect-Preview": None,
           "Recent-Flames": (),
           "Recent-Scripts": (),
-          "Favorite-Scripts": [None for i in range(12)],
+          "Favorite-Scripts": ["None" for i in range(12)],
           })
 
     # Make a copy of default values, so they can be restored later.

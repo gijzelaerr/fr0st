@@ -120,7 +120,6 @@ class ManageDialog(wx.Dialog):
         self.tree.DeleteAllItems()
         root = self.tree.AddRoot("The Root Item")
         for i, string in enumerate(self.lst):
-            string = str(string)
             item = self.tree.AppendItem(root, string)
             self.tree.SetItemText(item, os.path.basename(string), 0)
             self.tree.SetItemText(item, "Ctrl-F%s" % (i+1), 1)
@@ -153,7 +152,7 @@ class ManageDialog(wx.Dialog):
     @Bind(wx.EVT_BUTTON, id=ID.REMOVE)
     @wrapper
     def OnRemove(self, selection):
-        self.lst[selection] = None
+        self.lst[selection] = "None"
         self.UpdateSelector()
 
 
