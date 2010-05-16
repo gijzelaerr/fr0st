@@ -1,4 +1,5 @@
 import wx, os
+from wx import gizmos
 from functools import partial
 
 from fr0stlib.decorators import *
@@ -79,7 +80,20 @@ class ManageDialog(wx.Dialog):
         self.parent = parent
         self.lst = lst[:]
         
-        self.lb = wx.ListBox(self, -1, size=(400,300))
+        self.tree = gizmos.TreeListCtrl(self, -1,
+                                        style =
+                                          wx.TR_DEFAULT_STYLE
+                                        | wx.TR_NO_LINES
+                                        | wx.TR_HIDE_ROOT
+                                        | wx.TR_FULL_ROW_HIGHLIGHT
+                                   )
+
+        self.tree.AddColumn("Script")
+        self.tree.AddColumn("Shortcut")
+        self.tree.SetColumnWidth(0, 300)
+        self.tree.SetColumnWidth(1, 90)
+        self.tree.SetMinSize((400,300))
+
         self.UpdateSelector(0)
         buttons = [wx.Button(self, i, name, style=wx.BU_EXACTFIT)
                    for (i, name) in ((ID.EDIT, 'Choose Script...'),
@@ -91,30 +105,33 @@ class ManageDialog(wx.Dialog):
 
         szr = wx.BoxSizer(wx.VERTICAL)
         szr.Add(btn_szr)
-        szr.Add(self.lb, 0, wx.EXPAND)
+        szr.Add(self.tree, 0, wx.EXPAND)
 
         btnsizer = self.CreateButtonSizer(wx.OK|wx.CANCEL)
         if btnsizer:
             szr.Add(btnsizer, 0, wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, 5)
-            
+
         self.SetSizerAndFit(szr)
         
         
     def UpdateSelector(self, selection=None):
         if selection is None:
-            selection = self.lb.GetSelection()
-        self.lb.Clear()
-        self.lb.AppendItems(["Ctrl-F%s\t%s"
-                             %(i+1, os.path.basename(str(item)))
-                             for i, item in enumerate(self.lst)])
-        self.lb.SetSelection(selection)
+            selection = self.tree.GetPyData(self.tree.Selection)
+        self.tree.DeleteAllItems()
+        root = self.tree.AddRoot("The Root Item")
+        for i, string in enumerate(self.lst):
+            string = str(string)
+            item = self.tree.AppendItem(root, string)
+            self.tree.SetItemText(item, os.path.basename(string), 0)
+            self.tree.SetItemText(item, "Ctrl-F%s" % (i+1), 1)
+            self.tree.SetPyData(item, i)
+            if i == selection:
+                self.tree.SelectItem(item)
 
     
     def wrapper(f):
         def inner(self, e):
-            selection = self.lb.GetSelection()
-            if selection == -1:
-                return
+            selection = self.tree.GetPyData(self.tree.GetSelection())
             f(self, selection)
             self.UpdateSelector()
         return inner
