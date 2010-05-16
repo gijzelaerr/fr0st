@@ -42,12 +42,12 @@ class FavoritesHandler(object):
 
     def Load(self, lst):
         for menu in self.menus:
-            for i in range(self.max + 1):
+            for i in range(self.max):
                 menu.Delete(self.id + i)
             for i, path in enumerate(lst):
                 menu.Append(self.id + i, "&%s\tCtrl-F%s"
                             %(os.path.basename(str(path)), i+1))
-        self.max = i
+        self.max = i + 1
         self.lst = lst
 
 
