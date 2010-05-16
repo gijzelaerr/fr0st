@@ -80,10 +80,9 @@ class ManageDialog(wx.Dialog):
         self.lst = lst[:]
         
         self.lb = wx.ListBox(self, -1, size=(400,300))
-        self.UpdateSelector()
-        buttons = [wx.Button(self, i, name.replace(" ", ""),
-                             style=wx.BU_EXACTFIT)
-                   for (i, name) in ((ID.EDIT, 'Edit'),
+        self.UpdateSelector(0)
+        buttons = [wx.Button(self, i, name, style=wx.BU_EXACTFIT)
+                   for (i, name) in ((ID.EDIT, 'Choose File...'),
                                      (ID.REMOVE, 'Remove'),
                                      (ID.MOVEUP, 'Move Up'),
                                      (ID.MOVEDOWN, 'Move Down'))]
@@ -113,7 +112,10 @@ class ManageDialog(wx.Dialog):
     
     def wrapper(f):
         def inner(self, e):
-            f(self, self.lb.GetSelection())
+            selection = self.lb.GetSelection()
+            if selection == -1:
+                return
+            f(self, selection)
             self.UpdateSelector()
         return inner
     
@@ -141,13 +143,15 @@ class ManageDialog(wx.Dialog):
     @Bind(wx.EVT_BUTTON, id=ID.MOVEUP)
     @wrapper
     def OnMoveUp(self, selection):
-        self.lst.insert(selection - 1, self.lst.pop(selection))
-        self.UpdateSelector(selection - 1)
+        newsel = max(0, selection - 1)
+        self.lst.insert(newsel, self.lst.pop(selection))
+        self.UpdateSelector(newsel)
 
 
     @Bind(wx.EVT_BUTTON, id=ID.MOVEDOWN)
     @wrapper
     def OnMoveDown(self, selection):
-        self.lst.insert(selection + 1, self.lst.pop(selection))
-        self.UpdateSelector(selection + 1)
+        newsel = min(11, selection + 1)
+        self.lst.insert(newsel, self.lst.pop(selection))
+        self.UpdateSelector(newsel)
    
