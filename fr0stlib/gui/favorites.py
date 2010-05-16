@@ -1,8 +1,10 @@
-
 import wx, os
+from functools import partial
+
+from fr0stlib.decorators import *
 from fr0stlib.gui.config import config
 from fr0stlib.gui.utils import ErrorMessage
-from fr0stlib.gui.constants import NewIdRange
+from fr0stlib.gui.constants import ID, NewIdRange
 
 
 class FavoritesMenu(wx.Menu):
@@ -12,38 +14,140 @@ class FavoritesMenu(wx.Menu):
         self.Append(ID.MANAGE, "&Manage...", "Manage your favorites.")
         self.AppendSeparator()
 
-
-# TODO: implement manage favorites modal dialog
-# TODO: put default favorites tuple into config.
-
+        
 
 class FavoritesHandler(object):
-    def __init__(self, parent, menuindex=0, pos=2):
-        self.parent = parent
-        menu = parent.menu.GetMenu(menuindex)
-        self.menu = FavoritesMenu()
+    def __init__(self, parent):
+        self.id = NewIdRange(12)
+        self.menus = menu1, menu2 = FavoritesMenu(), FavoritesMenu()
         
-        menu.InsertMenu(pos, -1, favorites.name, favorites)
+        parent.menu.Append(menu2, menu2.name)
+        parent.Bind(wx.EVT_MENU_RANGE, partial(self.OnFavorite, parent),
+                    id=self.id, id2=self.id + 12)
+        parent.Bind(wx.EVT_MENU, partial(self.OnManage, parent),
+                    id=ID.MANAGE)
+        
+        main = parent.parent
+        main.menu.GetMenu(3).InsertMenu(2, -1, menu1.name, menu1)
+        main.Bind(wx.EVT_MENU_RANGE, partial(self.OnFavorite, main),
+                  id=self.id, id2=self.id + 12)
+        main.Bind(wx.EVT_MENU, partial(self.OnManage, main),
+                  id=ID.MANAGE) 
 
-        parent.Bind(wx.EVT_MENU_RANGE, self.OnFavorite,
-                    id=self.id, id2=self.id + 12)   
+        self.max = 0
+        self.Load(config["Favorite-Scripts"])
+        self.wildcard = parent.wildcard
+        self.callback = main.Execute
 
 
     def Load(self, lst):
-        # TODO: clear list before repopulating
-
-        for i, path in enumerate(lst):
-            self.menu.Append(self.id + i, "&{0} {1} Ctrl-F{0}".format(
-                i+1, os.path.basename(path))) 
+        for menu in self.menus:
+            for i in range(self.max + 1):
+                menu.Delete(self.id + i)
+            for i, path in enumerate(lst):
+                menu.Append(self.id + i, "&%s\tCtrl-F%s"
+                            %(os.path.basename(str(path)), i+1))
+        self.max = i
         self.lst = lst
+
+
+    def SaveToConfig(self):
+        config["Favorite-Scripts"] = self.lst
+ 
         
-        
-    def OnFavorite(self, e):
-        parent = self.parent
+    def OnFavorite(self, parent, e):
         index = e.GetId() - self.id
         path = self.lst[index]
+        if path is None:
+            return
         if not os.path.exists(path):
             ErrorMessage(parent, "Could not find %s." % path)
-        parent.SetStatusText("Running Script: %s" %os.path.basename(path))
-        parent.Execute(open(path).read())
+        self.callback(open(path).read())
 
+
+    def OnManage(self, parent, e):
+        dlg = ManageDialog(self, parent, self.lst)
+        if dlg.ShowModal() == wx.ID_OK:
+            self.Load(dlg.lst)
+        
+
+
+class ManageDialog(wx.Dialog):
+    @BindEvents
+    def __init__(self, parent, frame, lst):
+        wx.Dialog.__init__(self, frame, -1, title="Manage Favorites")
+        self.parent = parent
+        self.lst = lst[:]
+        
+        self.lb = wx.ListBox(self, -1, size=(400,300))
+        self.UpdateSelector()
+        buttons = [wx.Button(self, i, name.replace(" ", ""),
+                             style=wx.BU_EXACTFIT)
+                   for (i, name) in ((ID.EDIT, 'Edit'),
+                                     (ID.REMOVE, 'Remove'),
+                                     (ID.MOVEUP, 'Move Up'),
+                                     (ID.MOVEDOWN, 'Move Down'))]
+        btn_szr = wx.BoxSizer(wx.HORIZONTAL)
+        btn_szr.AddMany(buttons)
+
+        szr = wx.BoxSizer(wx.VERTICAL)
+        szr.Add(btn_szr)
+        szr.Add(self.lb, 0, wx.EXPAND)
+
+        btnsizer = self.CreateButtonSizer(wx.OK|wx.CANCEL)
+        if btnsizer:
+            szr.Add(btnsizer, 0, wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, 5)
+            
+        self.SetSizerAndFit(szr)
+        
+        
+    def UpdateSelector(self, selection=None):
+        if selection is None:
+            selection = self.lb.GetSelection()
+        self.lb.Clear()
+        self.lb.AppendItems(["Ctrl-F%s\t%s"
+                             %(i+1, os.path.basename(str(item)))
+                             for i, item in enumerate(self.lst)])
+        self.lb.SetSelection(selection)
+
+    
+    def wrapper(f):
+        def inner(self, e):
+            f(self, self.lb.GetSelection())
+            self.UpdateSelector()
+        return inner
+    
+
+    @Bind(wx.EVT_BUTTON, id=ID.EDIT)
+    @wrapper
+    def OnEdit(self, selection):
+        dDir,dFile = os.path.split(wx.GetApp().UserScriptsDir)
+        dlg = wx.FileDialog(
+            self, message="Choose a file", defaultDir=dDir,
+            defaultFile=dFile, wildcard=self.parent.wildcard, style=wx.OPEN)
+        if dlg.ShowModal() == wx.ID_OK:
+            self.lst[selection] = dlg.GetPath()
+        dlg.Destroy()
+        self.UpdateSelector()
+
+
+    @Bind(wx.EVT_BUTTON, id=ID.REMOVE)
+    @wrapper
+    def OnRemove(self, selection):
+        self.lst[selection] = None
+        self.UpdateSelector()
+
+
+    @Bind(wx.EVT_BUTTON, id=ID.MOVEUP)
+    @wrapper
+    def OnMoveUp(self, selection):
+        self.lst.insert(selection - 1, self.lst.pop(selection))
+        self.UpdateSelector(selection - 1)
+
+
+    @Bind(wx.EVT_BUTTON, id=ID.MOVEDOWN)
+    @wrapper
+    def OnMoveDown(self, selection):
+        self.lst.insert(selection + 1, self.lst.pop(selection))
+        self.UpdateSelector(selection + 1)
+   
