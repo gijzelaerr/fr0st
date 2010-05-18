@@ -191,7 +191,7 @@ class Flame(object):
 
         b_min = TwoDoubles()
         b_max = TwoDoubles()
-        b_eps = 0.01
+        b_eps = 0.1
         nsamples = 10000
         genome = Genome.from_string(self.to_string(False))[0]
         flam3_estimate_bounding_box(genome, b_eps, nsamples, b_min, b_max, RandomContext())
@@ -208,7 +208,7 @@ class Flame(object):
         if denom==0:
             tmpscale = 0.0
         else:
-            tmpscale = 0.7 * 100.0/min(b_max[1]-b_min[1],b_max[0]-b_min[0])
+            tmpscale = 0.4 * 100.0/min(b_max[1]-b_min[1],b_max[0]-b_min[0])
         
         if tmpscale<10:
             self.scale = 10
