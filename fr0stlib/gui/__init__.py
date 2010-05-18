@@ -82,12 +82,7 @@ class Fr0stApp(wx.App):
         os.chdir(self.user_dir)
 
         # Put the config file into the same folder where everything else is.
-##        self.config_dir = os.path.join(self.standard_paths.GetUserConfigDir(),
-##                                       '.fr0st')
         self.config_dir = self.user_dir
-
-        if not os.path.exists(self.ConfigDir):
-            os.makedirs(self.ConfigDir)
 
         init_config()
 
