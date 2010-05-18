@@ -768,8 +768,13 @@ flam4 - (c) 2009 - 2010 Steven Broadhead""" % fr0stlib.VERSION,
     @InMain
     def BlockGUI(self, flag=False):
         """Called before and after a script runs."""
+
+        # HACK: toggle_run_stop is monkey-patched onto the toolbars.
+        self.tb.toggle_run_stop(flag)
+        self.editor.tb.toggle_run_stop(flag)
         self.Enable(ID.RUN, not flag, editor=True)
         self.Enable(ID.STOP, flag, editor=True)
+        
         self.editor.tc.SetEditable(not flag)
         self.scriptrunning = flag
         self.SetStatusText("")
