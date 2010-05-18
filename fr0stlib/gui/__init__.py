@@ -147,9 +147,8 @@ class Fr0stApp(wx.App):
         single_instance = wx.SingleInstanceChecker(single_instance_name)
 
         if single_instance.IsAnotherRunning():
-            wx.MessageDialog(None, "Another instance of fr0st is already "
-                             "running. Multiple instances are not supported.",
-                             "fr0st", wx.OK|wx.ICON_ERROR).ShowModal()
+            ErrorMessage(None, "Another instance of fr0st is already running. "
+                         "Multiple instances are not supported.")
             return
 
         self.MainWindow = MainWindow(None, wx.ID_ANY)
