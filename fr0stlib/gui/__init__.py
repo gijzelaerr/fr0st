@@ -652,6 +652,7 @@ flam4 - (c) 2009 - 2010 Steven Broadhead""" % fr0stlib.VERSION,
                 recovered = True
 
         self.DumpChanges()
+        self.tree.SelectItem(self.tree.itemparent)
         self.tree.SelectItem(self.tree.GetItemByIndex((0,0)))
         if recovered:
             self.SetStatusText("Recovery of unsaved changes successful!")
