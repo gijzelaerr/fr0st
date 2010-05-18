@@ -43,7 +43,6 @@ from fr0stlib.gui.filedialogs import SaveDialog
 from fr0stlib.gui.exceptiondlg import unhandled_exception_handler
 from fr0stlib.gui.utils import IsInvalidPath, ErrorMessage
 from fr0stlib.gui.history import MyFileHistory
-from fr0stlib.pyflam3.cuda import is_cuda_capable
 
 
 # Don't write .pyc files to keep script folder clean
@@ -75,35 +74,24 @@ class Fr0stApp(wx.App):
         else:
             self.resource_dir = self.standard_paths.GetResourcesDir()
 
-        self.CreateUserDirectory()
+        # On *nix, GetDocumentsDir returns ~.  use .fr0st rather than fr0st
+        user_dir = self.standard_paths.GetDocumentsDir()
+        if os.path.realpath(os.path.expanduser('~')) == os.path.realpath(user_dir):
+            self.user_dir = os.path.join(user_dir, '.fr0st')
+        else:
+            self.user_dir = os.path.join(user_dir, 'fr0st')
+
+        init_config(os.path.join(self.ConfigDir, 'config.cfg'))
+            
+        self.SyncUserDirectory()
 
         # set the cwd to user dir so relative paths will work as expected and
         # not depend on the platform.
         os.chdir(self.user_dir)
 
-        # Put the config file into the same folder where everything else is.
-        self.config_dir = self.user_dir
 
-        init_config()
-
-        if config['renderer'] == 'flam4' and not is_cuda_capable():
-            config['renderer'] = 'flam3'
-
-
-    def CreateUserDirectory(self):
-        self.user_dir = self.standard_paths.GetDocumentsDir()
-
-        # On *nix, GetDocumentsDir returns ~.  use .fr0st rather than fr0st
-        if os.path.realpath(os.path.expanduser('~')) == os.path.realpath(self.user_dir):
-            self.user_dir = os.path.join(self.user_dir, '.fr0st')
-        else:
-            self.user_dir = os.path.join(self.user_dir, 'fr0st')
-
-        # Create the user directory
-        if not os.path.exists(self.user_dir):
-            os.makedirs(self.user_dir)
-
-        # make sure renders subdirectory exists
+    def SyncUserDirectory(self):
+        # make sure user and renders subdirectories exist
         if not os.path.exists(self.RendersDir):
             os.makedirs(self.RendersDir)
 
@@ -114,33 +102,34 @@ class Fr0stApp(wx.App):
             # installed, copy from /usr/share/.... or whatever
             basepath = self.resource_dir
 
-        def mirror_directory(source, dest, directory):
-            """Mirror all files and directories in source/directory to dest/directory"""
-
-            # Ensure destination path exists
-            if not os.path.exists(os.path.join(dest, directory)):
-                os.makedirs(os.path.join(dest, directory))
-
-            # get the list of files and folders
-            source_all = [ x for x in os.listdir(os.path.join(source, directory)) ]
-            source_files = [ x for x in source_all if os.path.isfile(os.path.join(source, directory, x)) ]
-            source_dirs = [ x for x in source_all if os.path.isdir(os.path.join(source, directory, x)) ]
-
-            for file in source_files:
-                # Skip it if it's already there
-                if os.path.exists(os.path.join(dest, directory, file)):
-                    continue
-
-                # Otherwise copy it over
-                shutil.copy(os.path.join(source, directory, file), os.path.join(dest, directory))
-
-            # Recurse into subdirectories
-            for child_dir in source_dirs:
-                mirror_directory(source, dest, os.path.join(directory, child_dir))
-
         # Mirror app standard scripts/parameters to user dir
-        mirror_directory(basepath, self.user_dir, 'parameters')
-        mirror_directory(basepath, self.user_dir, 'scripts')
+        self.mirror_directory(basepath, self.user_dir, 'parameters')
+        self.mirror_directory(basepath, self.user_dir, 'scripts')
+
+
+    def mirror_directory(self, source, dest, directory):
+        """Mirror all files and directories in source/directory to dest/directory"""
+        # Ensure destination path exists
+        if not os.path.exists(os.path.join(dest, directory)):
+            os.makedirs(os.path.join(dest, directory))
+
+        # get the list of files and folders
+        source_all = [ x for x in os.listdir(os.path.join(source, directory)) ]
+        source_files = [ x for x in source_all if os.path.isfile(os.path.join(source, directory, x)) ]
+        source_dirs = [ x for x in source_all if os.path.isdir(os.path.join(source, directory, x)) ]
+
+        for file in source_files:
+            # Skip it if it's already there
+            if os.path.exists(os.path.join(dest, directory, file)):
+                continue
+
+            # Otherwise copy it over
+            shutil.copy(os.path.join(source, directory, file), os.path.join(dest, directory))
+
+        # Recurse into subdirectories
+        for child_dir in source_dirs:
+            self.mirror_directory(source, dest, os.path.join(directory, child_dir))
+
 
     def MainLoop(self):
         single_instance_name = 'fr0st-%s' % wx.GetUserId()
@@ -168,7 +157,7 @@ class Fr0stApp(wx.App):
 
     @property
     def ConfigDir(self):
-        return self.config_dir
+        return self.user_dir
 
     @property
     def Frozen(self):
