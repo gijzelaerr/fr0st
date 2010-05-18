@@ -89,7 +89,12 @@ def init_config():
           "Rect-Preview": None,
           "Recent-Flames": (),
           "Recent-Scripts": (),
-          "Favorite-Scripts": ["None" for i in range(12)],
+          "Favorite-Scripts": [os.path.join(wx.GetApp().UserScriptsDir, i)
+                               for i in ('reframe.py',
+                                         'calculate_colors.py',
+                                         'bilateral_symmetry.py',
+                                         'xform_heat_map.py')
+                               ] + ['None' for i in range(8)],
           })
 
     # Make a copy of default values, so they can be restored later.
