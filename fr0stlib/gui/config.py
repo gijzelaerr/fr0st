@@ -24,11 +24,11 @@ from functools import partial
 
 from fr0stlib.pyflam3.cuda import is_cuda_capable
 
-def load(path):
+def load_config(path):
     with open(path, 'rb') as f:
         return eval("{%s}" % ",".join(i for i in f))
 
-def dump(path):
+def dump_config(path):
     # HACK: take out some stuff that's not supposed to be here.
     config['Edit-Post-Xform'] = False
     with open(path, 'wb') as f:
@@ -93,7 +93,7 @@ def init_config(path):
     original_config.update(config)
     
     if os.path.exists(path):
-        update_dict(config, load(path))
+        update_dict(config, load_config(path))
 
     # We always want to open an existing flame file. This also takes care of
     # older (1.0beta) config files, where a plain 'samples.flame' was included.
@@ -104,4 +104,4 @@ def init_config(path):
     if config['renderer'] == 'flam4' and not is_cuda_capable():
         config['renderer'] = 'flam3'
 
-    atexit.register(partial(dump, path=path))
+    atexit.register(partial(dump_config, path=path))

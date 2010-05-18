@@ -19,7 +19,7 @@
 #  the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 #  Boston, MA 02111-1307, USA.
 ##############################################################################
-import imp, os, sys, wx, time, shutil, copy, cPickle as Pickle
+import imp, os, sys, wx, time, shutil, copy, cPickle as Pickle, itertools
 
 import fr0stlib
 from fr0stlib import Flame, save_flames
@@ -37,7 +37,7 @@ from fr0stlib.gui.renderer import Renderer
 from fr0stlib.gui._events import InMain, InMainSetup
 from fr0stlib.gui.itemdata import ItemData
 from fr0stlib.gui.renderdialog import RenderDialog
-from fr0stlib.gui.config import config, init_config
+from fr0stlib.gui.config import config, init_config, dump_config
 from fr0stlib.gui.configdlg import ConfigDialog
 from fr0stlib.gui.filedialogs import SaveDialog
 from fr0stlib.gui.exceptiondlg import unhandled_exception_handler
@@ -91,44 +91,62 @@ class Fr0stApp(wx.App):
 
 
     def SyncUserDirectory(self):
+        version = config.get('version', None)
+        if version == fr0stlib.VERSION:
+            return
+            
         # make sure user and renders subdirectories exist
         if not os.path.exists(self.RendersDir):
             os.makedirs(self.RendersDir)
 
         # Find out where we need to copy from
-        basepath = self.AppBaseDir
-
-        if not os.path.exists(os.path.join(basepath, 'parameters')):
+        source_dir = os.path.join(self.AppBaseDir, 'samples')
+        if not os.path.exists(source_dir):
             # installed, copy from /usr/share/.... or whatever
-            basepath = self.resource_dir
+            source_dir = os.path.join(self.resource_dir, 'samples')
+
+        # Find a free path to create the backup dir.
+        for backup_dir in (os.path.join(self.user_dir, "backup-%03d") % i
+                           for i in itertools.count(1)):
+            if not os.path.exists(backup_dir):
+                break
 
         # Mirror app standard scripts/parameters to user dir
-        self.mirror_directory(basepath, self.user_dir, 'parameters')
-        self.mirror_directory(basepath, self.user_dir, 'scripts')
+        self.mirror_directory(source_dir, self.user_dir, backup_dir)
+
+        # immediately save config, so this process won't be repeated even if
+        # fr0st doesn't shut down properly.
+        config['version'] = fr0stlib.VERSION
+        dump_config(os.path.join(self.ConfigDir, 'config.cfg'))
+        
 
 
-    def mirror_directory(self, source, dest, directory):
-        """Mirror all files and directories in source/directory to dest/directory"""
+    def mirror_directory(self, source, dest, backup):
+        """Mirror all files and directories in source to dest"""
         # Ensure destination path exists
-        if not os.path.exists(os.path.join(dest, directory)):
-            os.makedirs(os.path.join(dest, directory))
+        if not os.path.exists(dest):
+            os.makedirs(dest)
 
-        # get the list of files and folders
-        source_all = [ x for x in os.listdir(os.path.join(source, directory)) ]
-        source_files = [ x for x in source_all if os.path.isfile(os.path.join(source, directory, x)) ]
-        source_dirs = [ x for x in source_all if os.path.isdir(os.path.join(source, directory, x)) ]
-
-        for file in source_files:
-            # Skip it if it's already there
-            if os.path.exists(os.path.join(dest, directory, file)):
+        for f in os.listdir(source):
+            sourcefile = os.path.join(source, f)
+            destfile = os.path.join(dest, f)
+            backupfile = os.path.join(backup, f)
+            
+            if os.path.isdir(sourcefile):
+                # Recurse into subdirectories
+                self.mirror_directory(sourcefile, destfile, backupfile)
                 continue
-
-            # Otherwise copy it over
-            shutil.copy(os.path.join(source, directory, file), os.path.join(dest, directory))
-
-        # Recurse into subdirectories
-        for child_dir in source_dirs:
-            self.mirror_directory(source, dest, os.path.join(directory, child_dir))
+            
+            if os.path.exists(destfile):
+                if open(destfile).read() != open(sourcefile).read():
+                    # if files are different, make a backup. Could be a user
+                    # modification.
+                    if not os.path.exists(backup):
+                        os.makedirs(backup)
+                    shutil.move(destfile, backupfile)
+            # at this point destfile doesn't exist or is identical to
+            # sourcefile, so it's safe to copy.
+            shutil.copy(sourcefile, destfile)
 
 
     def MainLoop(self):
