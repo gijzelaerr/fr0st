@@ -226,7 +226,6 @@ class MainWindow(wx.Frame):
 
         # Creating Frame Content
         CreateMenu(parent=self)
-        self.fh = MyFileHistory(self, 'Recent-Flames', self.OpenFlame)
         
         CreateToolBar(self)
         self.image = ImagePanel(self)
@@ -238,6 +237,8 @@ class MainWindow(wx.Frame):
 
         self.editor = EditorFrame(self)
         self.log = self.editor.log
+
+        self.fh = MyFileHistory(self, 'Recent-Flames', self.OpenFlame)
 
         self.TreePanel = TreePanel(self)
         self.tree = self.TreePanel.tree
@@ -338,6 +339,7 @@ flam4 - (c) 2009 - 2010 Steven Broadhead""" % fr0stlib.VERSION,
 
         self.fh.SaveToConfig()
         self.editor.fh.SaveToConfig()
+        self.editor.fav.SaveToConfig()
         
         if os.path.exists('changes.bak'):
             os.remove('changes.bak')

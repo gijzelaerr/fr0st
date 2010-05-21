@@ -3,9 +3,8 @@ from functools import partial
 
 from fr0stlib.gui.config import config
 from fr0stlib.gui.utils import ErrorMessage
+from fr0stlib.gui.constants import NewIdRange
 
-
-id_counter = wx.ID_FILE1
 
 class MyFileHistory(wx.FileHistory):
     def __init__(self, parent, configname, callback, n=4):
@@ -13,9 +12,7 @@ class MyFileHistory(wx.FileHistory):
         self.callback = callback
         self.n = n
 
-        global id_counter
-        self.id = id_counter
-        id_counter += n
+        self.id = NewIdRange(n)
         
         wx.FileHistory.__init__(self, n, idBase=self.id)
         map(self.AddFileToHistory, reversed(config[configname]))

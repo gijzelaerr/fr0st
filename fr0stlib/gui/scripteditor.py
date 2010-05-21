@@ -32,7 +32,7 @@ from fr0stlib.gui.scriptutils import DynamicDialog
 from fr0stlib.gui._events import InMain, InMainFast
 from fr0stlib.gui.utils import IsInvalidPath
 from fr0stlib.gui.history import MyFileHistory
-
+from fr0stlib.gui.favorites import FavoritesHandler
 
 class EditorFrame(wx.Frame):
 
@@ -60,6 +60,7 @@ class EditorFrame(wx.Frame):
                         "All files (*.*)|*.*"
         self.fh = MyFileHistory(self, 'Recent-Scripts', self.OpenScript)
         self.fh.BindMenu(self.parent, 3)
+        self.fav = FavoritesHandler(self)
 
         # Load the default script
         self.OpenScript(os.path.join(wx.GetApp().UserScriptsDir, 'default.py'))
