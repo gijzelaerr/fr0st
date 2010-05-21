@@ -882,6 +882,11 @@ def show_status(s):
     sys.stdout.flush()
 
 
+_re_version = re.compile('fr0st ([\d\.]*)', re.I).match
+def compare_version(v1, v2=VERSION):
+    return cmp(*(float(_re_version(v).group(1)) for v in (v1, v2)))
+
+
 #Converters
 
 def polar(coord):

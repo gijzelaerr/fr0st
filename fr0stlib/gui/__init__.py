@@ -91,8 +91,7 @@ class Fr0stApp(wx.App):
 
 
     def SyncUserDirectory(self):
-        version = config.get('version', None)
-        if version == fr0stlib.VERSION:
+        if fr0stlib.compare_version(config.get('version', 'fr0st 0.0')) >= 0:
             return
             
         # make sure user and renders subdirectories exist
