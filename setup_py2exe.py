@@ -37,6 +37,8 @@ if len(sys.argv) == 1:
 shutil.rmtree("build", ignore_errors=True)
 shutil.rmtree("dist", ignore_errors=True)
 
+
+
 fr0st_package_name = 'fr0stlib'
 
 
@@ -46,8 +48,10 @@ fr0st_package_name = 'fr0stlib'
 ##key = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, r'SOFTWARE\Microsoft\VCExpress\9.0\Setup\VC')
 ##VC_REDIST_DIR = os.path.join(_winreg.QueryValueEx(key, 'ProductDir')[0], 'redist', 'x86', 'Microsoft.VC90.CRT')
 
-# Add it manually until we can fix the manifest stuff.
+# Add it manually until we can fix the manifest stuff. Also add to sys.path,
+# so py2exe finds the dlls.
 VC_REDIST_DIR = "Microsoft.VC90.CRT"
+sys.path.append(VC_REDIST_DIR)
 
 ###########################################################################
 #  And some InnoSetup stuff

@@ -27,7 +27,21 @@
 
 import os, shutil
 
+import fr0stlib
+from export_src import export_src
+
+version = fr0stlib.VERSION.split()[1]
+release_dir = os.path.join('..', 'releases', version)
+if not os.path.exists(release_dir):
+    os.makedirs(release_dir)
+
+export_src(version, release_dir)
+
+shutil.rmtree('build')
 shutil.move(os.path.abspath(os.path.join('dist', 'Output', 'setup.exe')),
-            'fr0st-VERSION-win32_installer.exe')
+            os.path.join(release_dir, 'fr0st-%s-win32_installer.exe' % version))
 shutil.rmtree(os.path.join('dist', 'Output'))
 os.remove(os.path.join('dist', 'test_wx.iss'))
+shutil.move(os.path.abspath('dist'),
+            os.path.join(release_dir, 'fr0st-%s-win32' % version))
+            
