@@ -196,8 +196,6 @@ class GradientPanel(wx.Panel):
                       ('brightness', (-100, 100)))
         self.choices = dict(choicelist)
         self.choice = 'rotate'
-        self.func = lambda x: getattr(self.parent.flame.gradient,
-                                      self.choice)(x)
 
         #Gradient image
         self.image = Gradient(self)
@@ -289,16 +287,13 @@ class GradientPanel(wx.Panel):
     @Bind(wx.EVT_IDLE)
     def OnIdle(self, e):
         if self._new is not None:
-
             self.parent.flame.gradient = copy.deepcopy(self._grad_copy)
-
-            self.func(self._new)
+            getattr(self.parent.flame.gradient, self.choice)(self._new)
             self._new = None
             self._changed = True
 
             self.image.Update()
             self.parent.image.RenderPreview()
-
             # HACK: Updating the color tab without calling SetFlame.
             self.parent.XformTabs.Color.UpdateView()
 
@@ -323,6 +318,7 @@ class GradientPanel(wx.Panel):
         if self._changed:
             self.parent.TempSave()
             self._changed = False
+            self._new = None
         self._startval = None
         e.Skip()
 
@@ -374,8 +370,8 @@ class Gradient(wx.Panel):
     @Bind(wx.EVT_LEFT_DOWN)
     def OnLeftDown(self, e):
         self.CaptureMouse()
-        self._startpos = e.GetPosition()
-        parent = self.GetParent()
+        self._startpos = e.Position[0]
+        parent = self.Parent
         self._oldchoice = parent.choice
         parent.choice = 'rotate'
         parent.OnSliderDown(e)
@@ -387,21 +383,15 @@ class Gradient(wx.Panel):
             return
         self.ReleaseMouse()
         self._startpos = None
-        parent = self.GetParent()
+        parent = self.Parent
         parent.choice = self._oldchoice
-        # HACK: Need to keep the slider value intact. In the parent's code,
-        # this is handled by e.Skip(), which passes the event on to
-        # the slider handler. This hack simulates that behaviour.
-        val = parent.slider.GetValue()
         parent.OnSliderUp(e)
-        parent.slider.SetValue(val)
 
 
     @Bind(wx.EVT_MOTION)
     def OnMove(self, e):
         if self._startpos is not None:
-            offset = int((e.GetPosition()[0] - self._startpos[0])/1.5)
-            self.GetParent()._new = offset
+            self.Parent._new = int((e.Position[0] - self._startpos)/1.5)
 
 
     @Bind(wx.EVT_LEFT_DCLICK)
