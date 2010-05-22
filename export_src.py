@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 ##############################################################################
 #  Fractal Fr0st - fr0st
 #  https://launchpad.net/fr0st
