@@ -28,49 +28,49 @@ from _events import InMainFast
 
 
 class ImageCache(object):
-    def __init__(self, maxmb=50):
+    def __init__(self, maxmb=50, penalty=100*1024):
+        # penalty is an arbitrary constant added to the weight of each image,
+        # which affects small images more than larger ones. This ensures that
+        # sorting speed won't be affected too much by many small images.
         self.maxbytes = maxmb * 1024**2
+        self.penalty = penalty
         self.d = {}
         self.timedict = {}
-        self.size = 0,0
-        self.n = 1
+        self.currentbytes = 0
 
 
-    def reset(self, newsize):
+    def reset(self):
         self.d.clear()
-        self.size = newsize
-        # n could be 0 here, which would mean we deactivate caching entirely
-        self.n = self.maxbytes / (newsize[0] * newsize[1] * 3)
-
-
-    def updatesize(self, size):
-        if size != self.size:
-            self.reset(size)
+        self.currentbytes = 0
             
 
     def lighten(self):
-        # Delete half the items of the cache. Since the lighten call is
-        # relatively expensive, it's better to avoid calling it often.
-        # Adding 1 ensures that the cache is cleared even in the pathological
-        # case of n = 1
-        ndel = self.n / 2 + 1
-        for v,k in sorted((v,k) for (k,v) in self.timedict.items())[:ndel]:
+        # Delete items from the cache until it's more than 50% empty
+        for v,k in sorted((v,k) for (k,v) in self.timedict.items()):
             del self.d[k], self.timedict[k]
+            w,h = k[1]
+            self.currentbytes -= w * h * 3 + self.penalty
+            if self.currentbytes < self.maxbytes / 2:
+                break
             
 
-    def get(self, k):
+    def get(self, parameter, size):
+        k = parameter, size
         v = self.d.get(k)
         if v is not None:
             self.timedict[k] = time.time()
         return v
 
 
-    def put(self, k, v):
-        if not self.n:
-            return
-        if len(self.d) == self.n:
+    def put(self, parameter, size, bmp):
+        k = parameter, size
+        self.d[k] = bmp
+        self.timedict[k] = time.time()
+        self.currentbytes += size[0] * size[1] * 3 + self.penalty
+        print >> sys.__stdout__, self.currentbytes / 1024.**2
+        if self.currentbytes > self.maxbytes:
             self.lighten()
-        self.d[k] = v
+        
 
 
 
@@ -155,19 +155,18 @@ class PreviewFrame(wx.Frame):
         if not self.IsShown():
             return
         flame = flame or self.parent.flame
+        
+        pw, ph = map(float, self.GetPanelSize())
+        fw, fh = map(float, flame.size)
+        ratio = min(pw/fw, ph/fh)
+        size = int(fw * ratio), int(fh * ratio)
 
         flamestr = flame.to_string()
-        bmp = self.cache.get(flamestr)
+        bmp = self.cache.get(flamestr, size)
         if bmp is not None:
             self.idlefunc = partial(self.RenderCallback,
                                     flamestr, bmp, fromcache=True)
             return
-
-        pw, ph = map(float, self.GetPanelSize())
-        fw, fh = map(float, flame.size)
-
-        ratio = min(pw/fw, ph/fh)
-        size = int(fw * ratio), int(fh * ratio)
         
         self.rendering = True
         req = self.parent.renderer.LargePreviewRequest
@@ -180,6 +179,7 @@ class PreviewFrame(wx.Frame):
     def CancelCallback(self):
         self.rendering = False
 
+
     def RenderCallback(self, flamestr, bmp, fromcache=False):
         self.image.UpdateBitmap(bmp)
         self.SetTitle("%s - Flame Preview" % self.parent.flame.name)
@@ -187,8 +187,7 @@ class PreviewFrame(wx.Frame):
             self.SetStatusText("retrieving from cache: 100.00 %")
         else:
             self.rendering = False
-            self.cache.updatesize(self.GetPanelSize())
-            self.cache.put(flamestr, bmp)
+            self.cache.put(flamestr, tuple(bmp.Size), bmp)
             self.SetStatusText("rendering: 100.00 %")
 
 
