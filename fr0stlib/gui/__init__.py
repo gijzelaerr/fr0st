@@ -479,9 +479,10 @@ flam4 - (c) 2009 - 2010 Steven Broadhead""" % fr0stlib.VERSION,
 
     @Bind(wx.EVT_TOOL, id=ID.PREVIEW)
     def OnPreviewOpen(self, e):
-        self.previewframe.Show(True)
+        if not self.previewframe.IsShown():
+            self.previewframe.Show(True)
+            self.previewframe.RenderPreview()
         self.previewframe.Raise()
-        self.previewframe.RenderPreview()
 
 
     def _undo(name, id):
