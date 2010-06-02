@@ -26,7 +26,7 @@ from math import *
 from functools import partial
 
 from fr0stlib.pyflam3 import Genome, RandomContext, flam3_nvariations, \
-  variable_list, variation_list, variables, flam3_estimate_bounding_box
+  variable_list, variation_list, variations, variables, flam3_estimate_bounding_box
 from fr0stlib.compatibility import compatibilize
 
 
@@ -425,6 +425,14 @@ class Xform(object):
 
     @classmethod
     def random(cls, parent, xv=range(flam3_nvariations), n=1, xw=0, fx=False, col=0, ident=0, **kwds):
+
+        # If there are strings in the xv that is passed in, convert them to numbers
+        xv = [ variations.get(i,i) for i in xv ]
+
+        badnames = [i for i in xv if type(i).__name__ == 'str']
+        if badnames:
+            raise AttributeError("Variation specification error: not found (%s)" % badnames[0])
+
         if fx:
             if parent.final:
                 parent.final = None    
