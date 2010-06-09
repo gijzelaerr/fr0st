@@ -462,7 +462,7 @@ flam4 - (c) 2009 - 2010 Steven Broadhead""" % fr0stlib.VERSION,
 
     @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=ID.RUN)
     def OnRunScript(self,e):
-        self.Execute(self.editor.tc.GetText())
+        self.Execute(self.editor.scriptpath, self.editor.tc.GetText())
 
 
     @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=ID.STOP)
@@ -711,7 +711,7 @@ flam4 - (c) 2009 - 2010 Steven Broadhead""" % fr0stlib.VERSION,
     @Threaded
     @Catches(wx.PyDeadObjectError)
     @Locked(blocking=False)
-    def Execute(self,string):
+    def Execute(self, scriptpath, string):
         # split and join fixes linebreak issues between windows and linux
         lines = self.log._lines = string.splitlines()
         script = "\n".join(lines) +'\n'
@@ -723,7 +723,7 @@ flam4 - (c) 2009 - 2010 Steven Broadhead""" % fr0stlib.VERSION,
         self.BlockGUI(True)
         sysmodules = dict(sys.modules)
         syspath = list(sys.path)
-        sys.path.insert(0, os.path.dirname(self.editor.scriptpath))
+        sys.path.insert(0, os.path.dirname(scriptpath))
 
         # Run the script
         self.RunScript(script, namespace).join()

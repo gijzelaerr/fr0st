@@ -194,9 +194,11 @@ class EditorFrame(wx.Frame):
 
 
     def make_dialog(self, *a):
-        """This method runs from the script thread, so it can't create the
-        dialog directly."""
-        res = self.OnDialogRequest(*a)
+        # TODO: instead of isshown, need a method to determine if it's in front
+        # of the parent (maybe by checking where the GUI event comes from?)
+        parent = self if self.IsShown() else self.parent
+        name = "script asks"
+        res = self._make_dialog(parent, name, *a)
         if isinstance(res, BaseException):
             # If there was an error, propagate it.
             raise res
@@ -204,25 +206,19 @@ class EditorFrame(wx.Frame):
 
 
     @InMain
-    def OnDialogRequest(self, *a):
+    def _make_dialog(self, *a):
         """Callback which processes script dialogs in the main threads, then
         arranges for results to be returned."""
-        # TODO: instead of isshown, need a method to determine if it's in front
-        # of the parent (maybe by checking where the GUI event comes from?)
-        if self.IsShown():
-            parent = self
-        else:
-            parent = self.parent
         try:
-            name = "%s asks" %os.path.basename(self.scriptpath)
-            dlg = DynamicDialog(parent, name, *a)
+            dlg = DynamicDialog(*a)
             res = dlg.ShowModal()
             if res == wx.ID_CANCEL:
                 return ThreadInterrupt()
             return [w.GetValue() for w in dlg.widgets]
         except Exception as e:
             return e
-            
+
+
     @Bind(wx.EVT_IDLE)
     def OnIdle(self, e):
         if self.tc.IsModified():

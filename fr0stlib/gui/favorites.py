@@ -84,7 +84,7 @@ class FavoritesHandler(object):
             return
         if not os.path.exists(path):
             ErrorMessage(parent, "Could not find %s." % path)
-        self.callback(open(path).read())
+        self.callback(path, open(path).read())
 
 
     def OnManage(self, parent, e):
