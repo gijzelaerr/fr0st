@@ -72,6 +72,7 @@ class Scriptmenu(wx.Menu):
         self.Append(ID.STOP, "&Stop\tF9"," Stop script execution")
         self.AppendSeparator()
         self.Append(ID.SOPEN, "&Open...\tCtrl-Shift-O"," Open a script file")
+        self.AppendSeparator()
         self.Append(ID.EDITOR, "&Editor\tCtrl-E"," Open the script editor")
 
 

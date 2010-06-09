@@ -59,7 +59,7 @@ class EditorFrame(wx.Frame):
         self.wildcard = "Python source (*.py;*.pyw)|*.py;*.pyw|" \
                         "All files (*.*)|*.*"
         self.fh = MyFileHistory(self, 'Recent-Scripts', self.OpenScript)
-        self.fh.BindMenu(self.parent, 3)
+        self.fh.BindMenu(self.parent, 3, pos=4)
         self.fav = FavoritesHandler(self)
 
         # Load the default script
