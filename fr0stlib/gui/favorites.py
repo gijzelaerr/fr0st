@@ -162,10 +162,8 @@ class ManageDialog(wx.Dialog):
     def OnEdit(self, selection):
         path = self.lst[selection]
         if path == "None":
-            dDir = os.path.join(wx.GetApp().UserScriptsDir)
-            dFile = ""
-        else:
-            dDir,dFile = os.path.split(path)
+            path = wx.GetApp().MainWindow.editor.scriptpath
+        dDir,dFile = os.path.split(path)
         dlg = wx.FileDialog(
             self, message="Choose a file", defaultDir=dDir,
             defaultFile=dFile, wildcard=self.parent.wildcard, style=wx.OPEN)
