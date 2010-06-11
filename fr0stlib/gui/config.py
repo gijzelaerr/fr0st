@@ -95,6 +95,9 @@ def init_config():
                                          'bilateral_symmetry.py',
                                          'xform_heat_map.py')
                                ] + ['None' for i in range(8)],
+          "Xform-Combo": {"rotate": 15,
+                          "scale": 1.25,
+                          "translate": 0.1},
           })
 
     # Make a copy of default values, so they can be restored later.
