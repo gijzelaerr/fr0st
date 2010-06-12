@@ -210,10 +210,11 @@ class XformPanel(wx.Panel):
         cb = wx.ComboBox(self, -1, str(default), name=name, size=(80,28),
                          choices=self.choices[name])
         setattr(self, name, cb)
-        cb.Bind(wx.EVT_TEXT, functools.partial(self.OnComboChar, cb, name))
-        cb.Bind(wx.EVT_KILL_FOCUS, functools.partial(self.OnComboLoseFocus,
-                                                     cb, name))
-        
+        f = functools.partial(self.OnCombo, cb, name)
+        cb.Bind(wx.EVT_TEXT_ENTER, f)
+        cb.Bind(wx.EVT_COMBOBOX, f)
+        cb.Bind(wx.EVT_KILL_FOCUS, f)
+
 
     @Bind(wx.EVT_RADIOBUTTON)
     def OnRadioSelected(self,e):
@@ -229,12 +230,7 @@ class XformPanel(wx.Panel):
         self.parent.SetFlame(self.parent.flame, rezoom=False)
 
 
-    def OnComboChar(self, cb, name, e):
-        val = "".join(char for char in e.GetString() if char in "0123456789.-")
-        cb.SetValue(val)
-
-
-    def OnComboLoseFocus(self, cb, name, e):
+    def OnCombo(self, cb, name, e):
         try:
             self.config[name] = float(cb.GetValue())
         except ValueError:
