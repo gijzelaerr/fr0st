@@ -265,16 +265,18 @@ class XformPanel(wx.Panel):
             i.opacity = 0
 
     def Func90Left(self, xform):
-        xform.rotate(90)
+        xform.rotate(90, pivot=(0,0) if config["World-Pivot"] else None)
 
     def FuncRotateLeft(self, xform):
-        xform.rotate(self.config["rotate"])
+        xform.rotate(self.config["rotate"],
+                     pivot=(0,0) if config["World-Pivot"] else None)
 
     def FuncRotateRight(self, xform):
-        xform.rotate(-self.config["rotate"])
+        xform.rotate(-self.config["rotate"],
+                     pivot=(0,0) if config["World-Pivot"] else None)
 
     def Func90Right(self, xform):
-        xform.rotate(-90)
+        xform.rotate(-90, ivot=(0,0) if config["World-Pivot"] else None)
 
     def FuncMoveUp(self, xform):
         xform.move_pos(0, self.config["translate"])
