@@ -170,11 +170,13 @@ class EditorFrame(wx.Frame):
 
 
     def OpenScript(self, path):
+        self.scriptpath = path
         if os.path.exists(path):
-            self.scriptpath = path
             with open(path) as f:
                 self.tc.SetValue(f.read())
-            self.fh.AddFileToHistory(path)
+        else:
+            self.tc.SetValue("")
+        self.fh.AddFileToHistory(path)
         
 
     def SaveScript(self, path, confirm=True):

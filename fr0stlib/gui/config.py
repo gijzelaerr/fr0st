@@ -20,20 +20,18 @@
 #  Boston, MA 02111-1307, USA.
 ##############################################################################
 import os, atexit, wx
+from functools import partial
 
+from fr0stlib.pyflam3.cuda import is_cuda_capable
 
-def get_config_path():
-    return os.path.join(wx.GetApp().ConfigDir, 'config.cfg')
-
-def load():
-    with open(get_config_path(), 'rb') as f:
+def load_config(path):
+    with open(path, 'rb') as f:
         return eval("{%s}" % ",".join(i for i in f))
 
-def dump():
+def dump_config(path):
     # HACK: take out some stuff that's not supposed to be here.
     config['Edit-Post-Xform'] = False
-    
-    with open(get_config_path(), 'wb') as f:
+    with open(path, 'wb') as f:
         f.write("\n".join("%r: %r" %i for i in config.iteritems()))
 
 def update_dict(old, new):
@@ -46,7 +44,7 @@ def update_dict(old, new):
 config = {}
 original_config = {}
 
-def init_config():
+def init_config(path):
     config.update(
          {"flamepath" : os.path.join(wx.GetApp().UserParametersDir,
                                      "samples.flame"),
@@ -103,12 +101,16 @@ def init_config():
     # Make a copy of default values, so they can be restored later.
     original_config.update(config)
     
-    if os.path.exists(get_config_path()):
-        update_dict(config, load())
+    if os.path.exists(path):
+        update_dict(config, load_config(path))
 
     # We always want to open an existing flame file. This also takes care of
     # older (1.0beta) config files, where a plain 'samples.flame' was included.
     if not os.path.exists(config["flamepath"]):
         config["flamepath"] = original_config["flamepath"]
 
-    atexit.register(dump)
+    # Make sure no illegal renderer is selected.
+    if config['renderer'] == 'flam4' and not is_cuda_capable():
+        config['renderer'] = 'flam3'
+
+    atexit.register(partial(dump_config, path=path))
