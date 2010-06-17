@@ -492,6 +492,7 @@ flam4 - (c) 2009 - 2010 Steven Broadhead""" % fr0stlib.VERSION,
             self.SetFlame(Flame(string=getattr(data, name)()), rezoom=False)
             self.tree.RenderThumbnail()
             self.tree.SetItemText(self.tree.item, data.name)
+            self.DumpChanges()
         return _handler
 
     OnUndoOne = _undo('Undo', ID.UNDO)
@@ -635,7 +636,7 @@ flam4 - (c) 2009 - 2010 Steven Broadhead""" % fr0stlib.VERSION,
 
     def DumpChanges(self):
         changes = (self.tree.GetFilePath(),
-                   [data[1:] for data in self.tree.GetDataGen()])
+                   [(data[1:], data.redo) for data in self.tree.GetDataGen()])
         with open('changes.bak', 'wb') as f:
             Pickle.dump(changes, f, Pickle.HIGHEST_PROTOCOL)
             
@@ -645,10 +646,12 @@ flam4 - (c) 2009 - 2010 Steven Broadhead""" % fr0stlib.VERSION,
         self.OpenFlame(path)
         config["flamepath"] = path
         recovered = False
-        for child, data, changes in zip(self.tree.GetItemChildren(),
-                                        self.tree.GetDataGen(), changelist):
-            if changes:
-                data.extend(changes)
+        for child, data, (undo, redo) in zip(self.tree.GetItemChildren(),
+                                             self.tree.GetDataGen(),
+                                             changelist):
+            if undo or redo:
+                data.extend(undo)
+                data.redo.extend(redo)
                 self.tree.SetItemText(child, data.name)
                 self.tree.RenderThumbnail(child, data, flag=self.tree.flag)
                 recovered = True
