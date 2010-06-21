@@ -276,7 +276,7 @@ class XformPanel(wx.Panel):
                      pivot=(0,0) if config["World-Pivot"] else None)
 
     def Func90Right(self, xform):
-        xform.rotate(-90, ivot=(0,0) if config["World-Pivot"] else None)
+        xform.rotate(-90, pivot=(0,0) if config["World-Pivot"] else None)
 
     def FuncMoveUp(self, xform):
         xform.move_pos(0, self.config["translate"])
