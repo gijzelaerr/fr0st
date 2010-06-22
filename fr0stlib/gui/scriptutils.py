@@ -89,10 +89,11 @@ class ValidTextCtrl(wx.TextCtrl):
 
         
     def GetValue(self):
+        val = wx.TextCtrl.GetValue(self)
         try:
-            return self.type(wx.TextCtrl.GetValue(self))
-        except:
-            return self.default
+            return self.type(val)
+        except Exception:
+            raise ValueError("Invalid input for %s: %s" %(self.type, val))
 
 
 class ValidChoice(wx.Choice):
