@@ -690,7 +690,7 @@ flam4 - (c) 2009 - 2010 Steven Broadhead""" % fr0stlib.VERSION,
         # These functions overwrite existing functions.
         fr0stlib.save_flames = InMain(new_save_flames)
         fr0stlib.load_flames = InMain(self.OpenFlame)
-        fr0stlib.show_status = InMain(self.SetStatusText)
+        fr0stlib.show_status = InMain(lambda s: self.SetStatusText(str(s)))
 
         # These are new, added functions.
         fr0stlib.get_flames = self.tree.GetFlames
