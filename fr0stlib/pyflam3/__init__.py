@@ -63,14 +63,10 @@ class Genome(BaseGenome):
         self.spatial_oversample = spatial_oversample
         self.spatial_filter_radius = filter_radius
         
-        if isinstance(filter_kernel,int):
-            self.spatial_filter_select = filter_kernel
-        elif filter_kernel_dict.get(filter_kernel.lower()):
-            self.spatial_filter_select = filter_kernel_dict[filter_kernel.lower()]
-        else:
-            # Should warn here that the string wasn't understood
-            # but default to gaussian regardless
-            self.spatial_filter_select = 0
+        if isinstance(filter_kernel, basestring):
+            # if an invalid string is passed, let the KeyError propagate.
+            filter_kernel = filter_kernel_dict[filter_kernel.lower()]
+        self.spatial_filter_select = filter_kernel
             
         if self.spatial_filter_select in (6,7):
             # HACK: force earlyclip for lanczos filters, which don't work
