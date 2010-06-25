@@ -253,7 +253,16 @@ class PreviewPanel(PreviewBase):
         pw,ph = self.GetPanelSize()
         dc = wx.PaintDC(self)
         dc.DrawBitmap(self.bmp, (pw-fw)/2, (ph-fh)/2, True)
-        
+
+
+    def NewEmptyImage(self, w, h):
+        newimg = wx.EmptyImage(w, h, 32)
+        # TODO: not sure if this is efficient for filling an image with a
+        # given color. wx.Image has no other API to do this, however.
+        bgcolor = (c*256 for c in self.parent.flame.background)
+        newimg.SetRGBRect((0 ,0, w, h), *bgcolor)
+        return newimg
+    
 
     def Move(self, diff):
         PreviewBase.Move(self, diff)
@@ -279,15 +288,15 @@ class PreviewPanel(PreviewBase):
         zoom = self._zoomfactor
         if zoom > 1:
             iw, ih = int(fw/zoom), int(fh/zoom)
-            newimg = wx.EmptyImage(iw, ih, 32)
+            newimg = self.NewEmptyImage(iw, ih)
             newimg.Paste(image, (iw-fw)/2 - ow/zoom,
                                 (ih-fh)/2 - oh/zoom)
             newimg.Rescale(fw,fh)
         else:
             iw, ih = int(fw*zoom), int(fh*zoom)
             image.Rescale(iw, ih)
-            newimg = wx.EmptyImage(fw, fh, 32)
-            newimg.Paste(image, (fw-iw)/2 - ow, (fh-ih)/2 - oh)
-
+            newimg = self.NewEmptyImage(fw, fh)
+            newimg.Paste(image, (fw-iw)/2 - ow,
+                                (fh-ih)/2 - oh)
         self.bmp = wx.BitmapFromImage(newimg)
         self.Refresh()        
