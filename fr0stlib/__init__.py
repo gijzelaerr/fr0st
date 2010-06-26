@@ -28,6 +28,7 @@ from functools import partial
 from fr0stlib.pyflam3 import Genome, RandomContext, flam3_nvariations, \
   variable_list, variation_list, variations, variables, flam3_estimate_bounding_box
 from fr0stlib.compatibility import compatibilize
+from fr0stlib.property_array import property_array
 
 
 VERSION = "Fr0st 1.2"
@@ -116,11 +117,13 @@ class Flame(object):
             lst.append('name="fr0st" >\n')
         else:
             for name,val in self._iter_attributes():
-                ty = type(val)
-                if ty in (list, tuple):
+                if isinstance(val, basestring):
+                    pass
+                elif hasattr(val, "__iter__"):
                     # Remember to convert round numbers to integer.
                     val = " ".join(str(i if i%1 else int(i)) for i in val)
-                elif ty in (int, float):
+                else:
+                    # Assume number: int, float, some numpy type...
                     val = val if val%1 else int(val)
                 lst.append('%s="%s" ' %(name, val))
             lst.append('>\n')
@@ -267,7 +270,7 @@ class Flame(object):
                                 if k not in self._never_write))
 
     
-    @property
+    @property_array
     def size(self):
         return self.width, self.height
     @size.setter
@@ -275,7 +278,7 @@ class Flame(object):
         self.width, self.height = v
 
 
-    @property
+    @property_array
     def center(self):
         return self.x_offset, self.y_offset
     @center.setter
@@ -509,7 +512,7 @@ class Xform(object):
     def to_string(self):
         lst = ['   <%sxform '%("final" if self.isfinal() else "")]
         lst.extend('%s="%s" ' %i for i in self._iter_attributes())
-        lst.append('coefs="%s %s %s %s %s %s" ' % self.screen_coefs)
+        lst.append('coefs="%s %s %s %s %s %s" ' % tuple(self.screen_coefs))
         lst.append(self.post.to_string())
         lst.append(self.chaos.to_string())
         lst.append('/>\n')
@@ -545,7 +548,7 @@ class Xform(object):
             return None
 
         
-    @property
+    @property_array
     def coefs(self):
         return self.a,self.d,self.b,self.e,self.c,self.f
     @coefs.setter
@@ -553,7 +556,7 @@ class Xform(object):
         self.a,self.d,self.b,self.e,self.c,self.f = v
 
        
-    @property
+    @property_array
     def screen_coefs(self):
         return self.a,-self.d,-self.b,self.e,self.c,-self.f
     @screen_coefs.setter
@@ -574,7 +577,7 @@ class Xform(object):
 
 #----------------------------------------------------------------------
 
-    @property
+    @property_array
     def pos(self):
         return self.c, self.f
     @pos.setter
@@ -590,7 +593,7 @@ class Xform(object):
 
 #----------------------------------------------------------------------
        
-    @property        
+    @property_array
     def x(self):
         return self.a + self.c, self.d + self.f
     @x.setter
@@ -605,7 +608,7 @@ class Xform(object):
         self.d += v2
 
        
-    @property
+    @property_array
     def y(self):
         return self.b + self.c, self.e + self.f
     @y.setter
@@ -620,7 +623,7 @@ class Xform(object):
         self.e += v2
 
        
-    @property
+    @property_array
     def o(self):
         return self.c, self.f
     @o.setter
@@ -643,7 +646,7 @@ class Xform(object):
         self.c += v1
         self.f += v2
 
-    @property
+    @property_array
     def points(self):
         return self.x,self.y,self.o
     @points.setter
@@ -652,7 +655,7 @@ class Xform(object):
 
 #----------------------------------------------------------------------
        
-    @property    
+    @property_array
     def xp(self):
         return polar((self.a, self.d))
     @xp.setter
@@ -660,7 +663,7 @@ class Xform(object):
         self.a, self.d = rect(coord)
 
        
-    @property
+    @property_array
     def yp(self):
         return polar((self.b, self.e))
     @yp.setter
@@ -668,7 +671,7 @@ class Xform(object):
         self.b, self.e = rect(coord)
 
        
-    @property
+    @property_array
     def op(self):
         return polar((self.c, self.f))
     @op.setter
@@ -676,7 +679,7 @@ class Xform(object):
         self.c, self.f = rect(coord)
 
        
-    @property
+    @property_array
     def polars(self):
         return self.xp, self.yp, self.op
     @polars.setter
@@ -786,7 +789,7 @@ class PostXform(Xform):
 
     def to_string(self):
         if self.isactive():
-            return 'post="%s %s %s %s %s %s" ' % self.screen_coefs
+            return 'post="%s %s %s %s %s %s" ' % tuple(self.screen_coefs)
         return ""
 
 
