@@ -298,8 +298,8 @@ class Palette(collections.Sequence):
     def __setitem__(self, key, value):
         self.data[key] = value
 
-#    def __contains__(self, value):
-#        return NotImplementedError("contains makes no sense on palettes")
+    def __contains__(self, value):
+        raise NotImplementedError("contains makes no sense on palettes")
 
     def to_string(self):
         s = '   <color index="%s" rgb="%s %s %s"/>\n'
