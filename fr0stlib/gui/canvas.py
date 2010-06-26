@@ -591,8 +591,8 @@ class XformCanvas(FC.FloatCanvas):
 
 
     def SelectXform(self, xform, highlight=None):
-        if self.SelectedXform == xform and self._highlight == highlight:
-            return
+##        if self.SelectedXform == xform and self._highlight == highlight:
+##            return
 
         self.SelectedXform = xform
         self._highlight = highlight
