@@ -22,6 +22,14 @@ class _property_array(N.ndarray):
     def __setitem__(self, pos, val):
         N.ndarray.__setitem__(self, pos, val)
         self.callback()
+
+
+    def __eq__(self, other):
+        return all(N.equal(self, other))
+
+
+    def __ne__(self, other):
+        return not self == other
     
 
     
