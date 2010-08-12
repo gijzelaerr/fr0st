@@ -80,10 +80,11 @@ class FavoritesHandler(object):
     def OnFavorite(self, parent, e):
         index = e.GetId() - self.id
         path = self.lst[index]
-        if path is None:
+        if path is 'None':
             return
         if not os.path.exists(path):
             ErrorMessage(parent, "Could not find %s." % path)
+            return
         self.callback(path, open(path).read())
 
 
