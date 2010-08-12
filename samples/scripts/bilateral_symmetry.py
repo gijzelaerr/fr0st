@@ -9,12 +9,12 @@ if hor:
     xform = flame.add_xform()
     xform.e *= -1
     xform.weight = totalweight
-    xform.color = 1
-    xform.symmetry = 1
+    xform.color_speed = 0
+    xform.animate = 0
 
 if ver:
     xform = flame.add_xform()
     xform.a *= -1
     xform.weight = totalweight * (1 + hor)
-    xform.color = 1
-    xform.symmetry = 1   
+    xform.color_speed = 0
+    xform.animate = 0
