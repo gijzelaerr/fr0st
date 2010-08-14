@@ -30,7 +30,7 @@ from fr0stlib.gui.constants import ID, NewIdRange
 
 
 class FavoritesMenu(wx.Menu):
-    name = "&Favorites"
+    name = "Fa&vorites"
     def __init__(self):
         wx.Menu.__init__(self)
         self.Append(ID.MANAGE, "&Manage...", "Manage your favorites.")
