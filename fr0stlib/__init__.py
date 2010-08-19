@@ -867,11 +867,6 @@ def save_flames(path, *flames):
         f.write("""</flames>""")
 
 
-def needs_conversion(string):
-    root = etree.fromstring(string)
-    return root.get('version', None) != VERSION
-
-
 def split_flamestrings(string):
     return re.findall(r'<flame .*?</flame>', string, re.DOTALL)
 
