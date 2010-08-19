@@ -64,6 +64,18 @@ def flam3_render(flame, size, quality, transparent=0, **kwds):
     return output_buffer
 
 
+def flam3_motion_render(flames, size, quality, transparent=0, **kwds):
+    """Like flam3_render, but puts multiple flames into a single frame, so
+    they can be rendered with accurate motion blur. The first and last flame
+    of the sequence are not rendered."""
+    if kwds["ntemporal_samples"] == 1:
+        kwds["ntemporal_samples"] = 1000
+    frame = Genome.load("".join(to_string(flame) for flame in flames), **kwds)
+    for i in range(1, len(flames)-1):
+        output_buffer, stats = frame.render(size, quality, transparent, time=i)
+        yield output_buffer
+    
+
 def flam4_render(flame, size, quality, **kwds):
     """Passes requests on to flam4. Works on windows only for now."""
     from fr0stlib.pyflam3 import _flam4
