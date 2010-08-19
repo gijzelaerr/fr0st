@@ -44,7 +44,8 @@ class Genome(BaseGenome):
     @classmethod
     def load(cls, flamestring, ntemporal_samples=1, temporal_filter=1.0,
              estimator=9, estimator_curve=.4, estimator_minimum=0,
-             spatial_oversample=1, filter_radius=1, filter_kernel=0, **kwargs):
+             spatial_oversample=1, filter_radius=1, filter_kernel=0,
+             interpolation=0, interpolation_type=1, **kwargs):
         if isinstance(filter_kernel, basestring):
             # if an invalid string is passed, let the KeyError propagate.
             filter_kernel = filter_kernel_dict[filter_kernel.lower()]
@@ -55,7 +56,10 @@ class Genome(BaseGenome):
             kwargs["earlyclip"] = True
         
         genomes = cls.from_string(flamestring)
+        
         for i, genome in enumerate(genomes):
+            genome.interpolation = interpolation
+            genome.interpolation_type = interpolation_type
             genome.ntemporal_samples = ntemporal_samples
             genome.temporal_filter_width = temporal_filter
             genome.estimator = estimator
@@ -68,6 +72,7 @@ class Genome(BaseGenome):
 
         frame = Frame(**kwargs)
         frame.genomes = cast(pointer(genomes[0]), POINTER(BaseGenome))
+        frame._genomes = genomes
         frame.ngenomes = len(genomes)
         return frame
 
@@ -170,7 +175,7 @@ class Frame(BaseFrame):
             flam3_init_frame(byref(self))
 
         self.pixel_aspect_ratio = aspect
-        self.ngenomes = 0
+##        self.ngenomes = 0
         self.bits = buffer_depth
         self.bytes_per_channel = bytes_per_channel
         self.earlyclip = earlyclip
@@ -191,7 +196,7 @@ class Frame(BaseFrame):
 
         self.time = time
 
-        genome = self.genomes[time]
+        genome = self._genomes[time]
         width, height = size
         genome.pixels_per_unit /= genome.width/float(width) # adjusts scale
         genome.width = width
