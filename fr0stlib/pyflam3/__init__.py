@@ -55,9 +55,10 @@ class Genome(BaseGenome):
             # properly without it, generating lots of noise.
             kwargs["earlyclip"] = True
         
-        genomes = cls.from_string(flamestring)
+        frame = Frame(**kwargs)
+        frame.genomes, frame.ngenomes = cls.from_string(flamestring)
         
-        for i, genome in enumerate(genomes):
+        for i, genome in enumerate(frame.iter_genomes()):
             genome.interpolation = interpolation
             genome.interpolation_type = interpolation_type
             genome.ntemporal_samples = ntemporal_samples
@@ -70,10 +71,6 @@ class Genome(BaseGenome):
             genome.spatial_filter_select = filter_kernel
             genome.time = i
 
-        frame = Frame(**kwargs)
-        frame.genomes = cast(pointer(genomes[0]), POINTER(BaseGenome))
-        frame._genomes = genomes
-        frame.ngenomes = len(genomes)
         return frame
 
 
@@ -86,86 +83,41 @@ class Genome(BaseGenome):
 
     @classmethod
     def from_string(cls, input_buffer, filename='<unknown>', defaults=True):
-        ncps = c_int()
-
         # so, flam3_parse_xml2 actually free's the buffer passed in...
         # this hackery sucks but...meh
-
         string_len = len(input_buffer)
         ptr = flam3_malloc(string_len + 1)
         if not ptr:
-            raise MemoryError('OH SHI-')
-
+            raise MemoryError()
         memset(ptr, 0, string_len+1)
-
         memmove(ptr, input_buffer, string_len)
-
         c_buffer = cast(ptr, c_char_p)
+
+        ncps = c_int()
 
         result = flam3_parse_xml2(c_buffer, filename,
                 defaults and flam3_defaults_on or flam3_defaults_off, byref(ncps))
 
-        genomes = []
-        for i in xrange(0, ncps.value):
-            genome = cls()
-            memmove(byref(genome), byref(result[i]), sizeof(BaseGenome))
-            genomes.append(genome)
-
-        #Don't free the input, flam3 already does this.
-        #flam3_free(c_buffer)
-        flam3_free(result)
-
-        cls._initialize_genome_list(genomes)
-
-        return genomes
+        return result, ncps.value
 
 
     @classmethod
-    def from_file(cls, filename=None, handle=None, defaults=True):
-        ncps = c_int()
-
-        def open_file(handle):
-            return flam3_parse_from_file(marshal.file_as_FILE(handle),
-                    os.path.basename(handle.name),
-                    defaults and flam3_defaults_on or flam3_defaults_off,
-                    byref(ncps))
-
+    def from_file(cls, filename=None, handle=None, **kwds):
         if not handle and filename:
-            with open(filename, 'rb') as handle:
-                if 'win32' in sys.platform:
-                    content = handle.read()
-                    return cls.from_string(content,
-                            filename=os.path.basename(filename))
-                else:
-                    result = open_file(handle)
+            s = open(filename).read()
         elif handle:
-            if 'win32' in sys.platform:
-                content = handle.read()
-                genomes = cls.from_string(content)
-                return cls.from_string(content,
-                        filename=os.path.basename(filename))
-            else:
-                result = open_file(handle)
+            s = handle.read()
         else:
-            raise IOError('Unable to open file')
-
-        result = cast(result, POINTER(cls))
-
-        genomes = []
-        for i in xrange(0, ncps.value):
-            genome = cls()
-            memmove(byref(genome), byref(result[i]), sizeof(BaseGenome))
-            genomes.append(genome) #result[i])
-
-        flam3_free(result)
-
-        cls._initialize_genome_list(genomes)
-
-        return genomes
+            raise IOError()
+        return cls.from_string(s, filename=filename, **kwds)
 
 
 
 class Frame(BaseFrame):
+    def __del__(self):
+        # TODO: what if self.genomes is not set?
+        flam3_free(self.genomes)
+    
     def __init__(self, fixed_seed=False, aspect=1.0, buffer_depth=64,
                  bytes_per_channel=1, progress_func=None, nthreads=0,
                  earlyclip=False, sub_batch_size=100000):
@@ -175,7 +127,6 @@ class Frame(BaseFrame):
             flam3_init_frame(byref(self))
 
         self.pixel_aspect_ratio = aspect
-##        self.ngenomes = 0
         self.bits = buffer_depth
         self.bytes_per_channel = bytes_per_channel
         self.earlyclip = earlyclip
@@ -190,13 +141,18 @@ class Frame(BaseFrame):
             self.nthreads = flam3_count_nthreads()
 
 
+    def iter_genomes(self):
+        for i in xrange(self.ngenomes):
+            yield self.genomes[i]
+            
+
     def render(self, size, quality, transparent=0, time=0):
         if not all(size):
             raise ZeroDivisionError("Size passed to render function is 0.")
 
         self.time = time
 
-        genome = self._genomes[time]
+        genome = self.genomes[time]
         width, height = size
         genome.pixels_per_unit /= genome.width/float(width) # adjusts scale
         genome.width = width
