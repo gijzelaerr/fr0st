@@ -54,7 +54,7 @@ class VarPreview(FC.PointSet):
         xform = xform._parent if xform.ispost() else xform
         result = (c_double * (2* (2*numvals+1)**2))()
         try:
-            genome = Genome.from_string(xform._parent.to_string(True))[0]
+            genome = Genome.from_string(xform._parent.to_string(True))[0][0]
         except Exception:
             return [(0,0)]
         index = xform.index
