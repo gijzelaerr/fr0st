@@ -290,7 +290,7 @@ class Palette(object):
     _template = "%c%c%c" * 256
     
     def __init__(self, element=None):
-        self.data = numpy.zeros((256, 3), dtype=numpy.float32)
+        self.data = numpy.zeros((256, 3), dtype=numpy.uint8)
         if element is not None:
             self.from_flame_element(element)
 
