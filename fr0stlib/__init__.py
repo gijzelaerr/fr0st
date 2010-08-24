@@ -287,8 +287,10 @@ class Flame(object):
 
 
 class Palette(collections.Sequence):
+    _template = "%c%c%c" * 256
+    
     def __init__(self, element=None):
-        self.data = numpy.zeros((256, 3), dtype=numpy.uint8)
+        self.data = numpy.zeros((256, 3), dtype=numpy.float32)
         if element is not None:
             self.from_flame_element(element)
 
@@ -307,6 +309,10 @@ class Palette(collections.Sequence):
     def to_string(self):
         s = '   <color index="%s" rgb="%s %s %s"/>\n'
         return ''.join([s % (idx, int(self.data[idx, 0]), int(self.data[idx, 1]), int(self.data[idx, 2])) for idx in xrange(256)])
+
+
+    def to_buffer(self):
+        return self._template % tuple(int(i) for i in itertools.chain(*self))
 
 
     def from_flame_element(self, flame):
