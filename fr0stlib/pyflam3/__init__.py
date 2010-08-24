@@ -75,13 +75,6 @@ class Genome(BaseGenome):
 
 
     @classmethod
-    def _initialize_genome_list(cls, genomes):
-        for i in range(0, len(genomes)):
-            if not genomes[i].name:
-                genomes[i].name = '%s-%d' % (genomes[i].parent_fname, i)
-
-
-    @classmethod
     def from_string(cls, input_buffer, filename='<unknown>', defaults=True):
         # so, flam3_parse_xml2 actually free's the buffer passed in...
         # this hackery sucks but...meh
