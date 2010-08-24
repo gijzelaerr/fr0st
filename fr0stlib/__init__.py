@@ -286,7 +286,7 @@ class Flame(object):
         self.x_offset, self.y_offset = v
 
 
-class Palette(collections.Sequence):
+class Palette(object):
     _template = "%c%c%c" * 256
     
     def __init__(self, element=None):
@@ -303,12 +303,16 @@ class Palette(collections.Sequence):
     def __setitem__(self, key, value):
         self.data[key] = value
 
-    def __contains__(self, value):
-        raise NotImplementedError("contains makes no sense on palettes")
+    def __iter__(self):
+        return iter(self.data)
+
 
     def to_string(self):
-        s = '   <color index="%s" rgb="%s %s %s"/>\n'
-        return ''.join([s % (idx, int(self.data[idx, 0]), int(self.data[idx, 1]), int(self.data[idx, 2])) for idx in xrange(256)])
+        return ''.join(['   <color index="%s" rgb="%s %s %s"/>\n' %
+                        (idx,
+                         int(self.data[idx, 0]),
+                         int(self.data[idx, 1]),
+                         int(self.data[idx, 2])) for idx in xrange(256)])
 
 
     def to_buffer(self):
