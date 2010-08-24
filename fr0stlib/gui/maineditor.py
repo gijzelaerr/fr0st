@@ -343,7 +343,7 @@ class Gradient(wx.Panel):
         flame = flame or self.parent.flame
 
         # Make the gradient image
-        img = wx.ImageFromBuffer(256, 1, buffer(flame.gradient.data))
+        img = wx.ImageFromBuffer(256, 1, flame.gradient.to_buffer())
         img.Rescale(384, 50)
         self.bmp = wx.BitmapFromImage(img)
 

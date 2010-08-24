@@ -632,28 +632,23 @@ class ColorPanel(MultiSliderMixin, wx.Panel):
 
 
     def UpdateView(self):
-        gradient = self.parent.flame.gradient
         xform = self.parent.ActiveXform
-
         for name in self.sliders:
             self.UpdateSlider(name, getattr(xform, name))
-            
         self.animflag.SetValue(xform.animate)
-        
+
+        buff = self.parent.flame.gradient.to_buffer()
         color = min(max(int(xform.color * 256), 1), 255)
-        grad = itertools.chain(*gradient[:color])
-        buff = "%c%c%c" * color % tuple(map(int, grad))
-        img = wx.ImageFromBuffer(color, 1, buff)
+        
+        img = wx.ImageFromBuffer(color, 1, buff[:color*3])
         img.Rescale(96, 28)
         self.bmp = wx.BitmapFromImage(img)
 
-        img = wx.ImageFromBuffer(1,1,"%c%c%c" %tuple(map(int,gradient[color])))
+        img = wx.ImageFromBuffer(1, 1, buff[color:color+3])
         img.Rescale(12, 32)
         self.bmp2 = wx.BitmapFromImage(img)
 
-        grad = itertools.chain(*gradient[color:])
-        buff = "%c%c%c" * (256-color) % tuple(map(int, grad))
-        img = wx.ImageFromBuffer(256-color, 1, buff)
+        img = wx.ImageFromBuffer(256-color, 1, buff[color*3:])
         img.Rescale(96, 28)
         self.bmp3 = wx.BitmapFromImage(img)
         
