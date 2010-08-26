@@ -51,7 +51,10 @@ class RandomContext(Structure):
 
 class BaseImageComments(Structure): pass
 
-class RenderStats(Structure): pass
+class RenderStats(Structure):
+    _fields_ = [ ('badvals', c_double)
+               , ('num_iters', c_long)
+               , ('render_seconds', c_int)]
 
 class ImageStore(Structure): pass
 
