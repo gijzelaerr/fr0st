@@ -19,7 +19,7 @@
 #  the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 #  Boston, MA 02111-1307, USA.
 ##############################################################################
-import itertools, numpy as N, wx, sys
+import itertools, numpy as N, wx, sys, math
 from functools import partial
 from wx.lib.floatcanvas import FloatCanvas as FC
 from wx.lib.floatcanvas.Utilities import BBox
@@ -262,16 +262,10 @@ class XformCanvas(FC.FloatCanvas):
         self.SetToNewScale(DrawFlag=False)
         
         # Adjust Grid Spacing
-        oldspacing = self.GridUnder.Spacing[0]
-        newspacing = None
-        scale = 25 / self.Scale  # this is an arbitrary constant.
-        from math import log
-        if scale > oldspacing:
-            newspacing = oldspacing * 10**int(log(scale/oldspacing,10)+1)
-        elif scale < oldspacing / 10:
-            newspacing = oldspacing / 10
-        if newspacing:
-            self.GridUnder.Spacing = N.array((newspacing,newspacing))
+        # k / scale means: 1 line each k pixels. This is truncated to the
+        # closest power of 10.
+        spacing = 10 ** round(math.log10(75 / self.Scale))
+        self.GridUnder.Spacing = N.array((spacing,spacing))
 
         # Adjust the circles at the triangle edges
         diameter = self.circle_radius * 2
