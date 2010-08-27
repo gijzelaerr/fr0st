@@ -122,19 +122,6 @@ class XFormTriangle(FC.Group):
             text.extend(corners)
 
         FC.Group.__init__(self, [self.triangle] + circles + text)
-            
-
-    def VertexHitTest(self, x, y):
-        a,d,b,e,c,f = self.coefs
-
-        if polar((x - c, y - f))[0] < self.parent.circle_radius:
-            attr = "pos" if config["Lock-Axes"] else "o"
-            return self.xform, partial(setattr, self.xform, attr)
-        elif polar((x - a - c, y - d - f))[0] < self.parent.circle_radius:
-            return self.xform, partial(setattr, self.xform, "x")
-        elif polar((x - b - c, y - e - f))[0] < self.parent.circle_radius:
-            return self.xform, partial(setattr, self.xform, "y")            
-        return None, None
 
 
     def GetCornerPoints(self):
