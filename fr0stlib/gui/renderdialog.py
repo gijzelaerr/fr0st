@@ -441,12 +441,11 @@ class RenderDialog(wx.Frame):
         backup = open(os.path.join(wx.GetApp().ConfigDir,'renders.bak'), 'a')
 
         for i, (data, path) in enumerate(zip(selections, paths)):
-            name = data.name if len(data.name) < 20 else data.name[:17] + "..."
-            str_name = "Rendering %s/%s (%s)" %(i+1, len_, name)
+            str_name = "Rendering flame %s/%s" %(i+1, len_)
             req(self._gen.send, data[-1], size,
                 progress_func=partial(self.prog, str_name), **kwds)
             backup.write(data[-1] + "\n")
-            self.Title = str_name
+            self.Title = str_name + " (%s)" %data.name
             bmp = yield
             if self.progflag == 1:
                 self.progflag = 0
