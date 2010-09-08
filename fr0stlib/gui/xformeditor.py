@@ -644,7 +644,7 @@ class ColorPanel(MultiSliderMixin, wx.Panel):
         img.Rescale(96, 28)
         self.bmp = wx.BitmapFromImage(img)
 
-        img = wx.ImageFromBuffer(1, 1, buff[color:color+3])
+        img = wx.ImageFromBuffer(1, 1, buff[color*3:color*3+3])
         img.Rescale(12, 32)
         self.bmp2 = wx.BitmapFromImage(img)
 
