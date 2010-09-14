@@ -1,3 +1,27 @@
+
+Fr0st 1.2
+---------
+
+GUI:
+    -Triangles on Canvas are now translucent.
+    -Disable GUI interaction while a script is running.
+    -Added list of recent flames and scripts to respective menus.
+    -Added list of favorite scripts with hotkeys for quick execution.
+
+Installation:
+    -Added script for Ubuntu that automatically installs all dependencies.
+
+Bugfixes:
+    -Avoid crash when rendering on 64-bit Unix systems.
+    -Rotate buttons in xform tab now take into account world pivot.
+    -Xform tab now updates correctly when selecting post transforms.
+    -Recovery after a crash now brings fr0st back to its exact previous state, including full undo/redo history.
+    -Script input dialog now checks for invalid input and raises an error.
+    -Render dialog no longer displays flame names in status bar when rendering, since this could lead to overlapping text on some systems.
+    -Many, many more...
+
+
+
 Fr0st 1.1
 ---------
 
