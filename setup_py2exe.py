@@ -141,10 +141,10 @@ data_files = [('', ['license.txt', 'changelog.txt']
               ('icons/toolbar', glob.glob('icons/toolbar/*.png')),
               ('icons/xformtab', glob.glob('icons/xformtab/*.png')),
               ('icons', ['icons/fr0st.png', 'icons/fr0st.ico']),
-              ('parameters', glob.glob('parameters/*.flame')),
-              ('scripts/sheep_tools', glob.glob('scripts/sheep_tools/*.py')),
-              ('scripts/batches', glob.glob('scripts/batches/*.py')),
-              ('scripts', glob.glob('scripts/*.py')),
+              ('samples/parameters', glob.glob('samples/parameters/*.flame')),
+              ('samples/scripts/sheep_tools', glob.glob('samples/scripts/sheep_tools/*.py')),
+              ('samples/scripts/batches', glob.glob('samples/scripts/batches/*.py')),
+              ('samples/scripts', glob.glob('samples/scripts/*.py')),
               ('Microsoft.VC90.CRT', glob.glob(VC_REDIST_DIR + '\\*')),
              ]
 
