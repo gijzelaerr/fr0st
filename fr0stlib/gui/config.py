@@ -19,20 +19,23 @@
 #  the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 #  Boston, MA 02111-1307, USA.
 ##############################################################################
-import os, atexit, wx
-from functools import partial
+import os, atexit, wx, pprint, functools
 
 from fr0stlib.pyflam3.cuda import is_cuda_capable
 
+
 def load_config(path):
-    with open(path, 'rb') as f:
-        return eval("{%s}" % ",".join(i for i in f))
+    configstr = open(path).read()
+    if configstr.startswith("{"):
+        return eval(configstr)
+    # This code is here for backwards compatibility.
+    return eval("{%s}" % ",".join(i for i in configstr.splitlines()))
+
 
 def dump_config(path):
-    # HACK: take out some stuff that's not supposed to be here.
-    config['Edit-Post-Xform'] = False
-    with open(path, 'wb') as f:
-        f.write("\n".join("%r: %r" %i for i in config.iteritems()))
+    with open(path, 'w') as f:
+        f.write(pprint.pformat(config))
+
 
 def update_dict(old, new):
     for k,v in new.iteritems():
@@ -109,8 +112,12 @@ def init_config(path):
     if not os.path.exists(config["flamepath"]):
         config["flamepath"] = original_config["flamepath"]
 
+    # HACK: Edit-Post-Xform doesn't really belong in the config dict, and we
+    # don't want to keep its value between sessions.
+    config['Edit-Post-Xform'] = False
+
     # Make sure no illegal renderer is selected.
     if config['renderer'] == 'flam4' and not is_cuda_capable():
         config['renderer'] = 'flam3'
 
-    atexit.register(partial(dump_config, path=path))
+    atexit.register(functools.partial(dump_config, path=path))
