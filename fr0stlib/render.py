@@ -20,9 +20,11 @@
 #  Boston, MA 02111-1307, USA.
 ##############################################################################
 import wx, os
+import xml.etree.cElementTree as etree
 
+import fr0stlib
+from fr0stlib import Flame
 from fr0stlib.pyflam3 import Genome
-from fr0stlib import Flame, needs_conversion
 
 
 types = {".bmp": wx.BITMAP_TYPE_BMP,
@@ -42,30 +44,38 @@ def save_image(path, img, jpg_quality=95):
     img.SaveFile(path, ty)
 
 
+def needs_conversion(string):
+    root = etree.fromstring(string)
+    return root.get('version', None) != fr0stlib.VERSION
 
-def flam3_render(flame, size, quality, **kwds):
-    """Passes render requests on to flam3."""
+
+def to_string(flame):
     if isinstance(flame, basestring):
         if needs_conversion(flame):
-            genome = Genome.from_string(Flame(flame).to_string())[0]
-        else:
-            genome = Genome.from_string(flame)[0]
-    else:
-        genome = Genome.from_string(flame.to_string())[0]
+            return Flame(flame).to_string()
+        return flame
+    return flame.to_string()
 
-    width,height = size
 
-    try:
-        genome.pixels_per_unit /= genome.width/float(width) # Adjusts scale
-    except ZeroDivisionError:
-        raise ZeroDivisionError("Size passed to render function is 0.")
-    
-    genome.width = width
-    genome.height = height
-    genome.sample_density = quality
-    output_buffer, stats = genome.render(**kwds)
+def flam3_render(flame, size, quality, transparent=0, **kwds):
+    """Passes render requests on to flam3."""
+    frame = Genome.load(to_string(flame), **kwds)
+    output_buffer, stats = frame.render(size, quality, transparent)
     return output_buffer
 
+
+def flam3_motion_render(flames, size, quality, transparent=0, **kwds):
+    """Like flam3_render, but puts multiple flames into a single frame, so
+    they can be rendered with accurate motion blur. The first and last flame
+    of the sequence are not rendered."""
+    if kwds.get("ntemporal_samples", 1) == 1:
+        kwds["ntemporal_samples"] = 1000
+    s = "<flames>%s</flames>" % "".join(to_string(flame) for flame in flames)
+    frame = Genome.load(s, **kwds)
+    for i in range(1, len(flames)-1):
+        output_buffer, stats = frame.render(size, quality, transparent, time=i)
+        yield output_buffer
+    
 
 def flam4_render(flame, size, quality, **kwds):
     """Passes requests on to flam4. Works on windows only for now."""

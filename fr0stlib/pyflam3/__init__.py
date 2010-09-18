@@ -19,10 +19,9 @@
 #  the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 #  Boston, MA 02111-1307, USA.
 ##############################################################################
-import sys
-import os
+import sys, os, marshal
+
 from _flam3 import *
-import marshal as marshal
 
 filter_kernel_dict = {"gaussian": 0,
                       "hermite": 1,
@@ -40,140 +39,79 @@ filter_kernel_dict = {"gaussian": 0,
                       "quadratic": 13}
 
 
+
 class Genome(BaseGenome):
-
-    def _get_size(self):
-        return self.width, self.height
-
-    def _set_size(self, value):
-        self.width, self.height = value
-
-    size = property(_get_size, _set_size)
-
-    def render(self, transparent=0, ntemporal_samples=1, temporal_filter=1.0,
-               estimator=9, estimator_curve=.4, estimator_minimum=0,
-               spatial_oversample=1, filter_radius=1., filter_kernel=0,
-               **kwargs):
-        
-        self.ntemporal_samples = ntemporal_samples
-        self.temporal_filter_width = temporal_filter
-        self.estimator = estimator
-        self.estimator_curve = estimator_curve
-        self.estimator_minimum = estimator_minimum
-        self.spatial_oversample = spatial_oversample
-        self.spatial_filter_radius = filter_radius
-        
+    @classmethod
+    def load(cls, flamestring, ntemporal_samples=1, temporal_filter=1.0,
+             estimator=9, estimator_curve=.4, estimator_minimum=0,
+             spatial_oversample=1, filter_radius=1, filter_kernel=0,
+             interpolation=0, interpolation_type=1, **kwargs):
         if isinstance(filter_kernel, basestring):
             # if an invalid string is passed, let the KeyError propagate.
             filter_kernel = filter_kernel_dict[filter_kernel.lower()]
-        self.spatial_filter_select = filter_kernel
-            
-        if self.spatial_filter_select in (6,7):
+
+        if filter_kernel in (6,7):
             # HACK: force earlyclip for lanczos filters, which don't work
             # properly without it, generating lots of noise.
             kwargs["earlyclip"] = True
         
         frame = Frame(**kwargs)
-        frame.genomes = cast(pointer(self), POINTER(BaseGenome))
-        frame.ngenomes = 1
+        frame.genomes, frame.ngenomes = cls.from_string(flamestring)
+        
+        for i, genome in enumerate(frame.iter_genomes()):
+            genome.interpolation = interpolation
+            genome.interpolation_type = interpolation_type
+            genome.ntemporal_samples = ntemporal_samples
+            genome.temporal_filter_width = temporal_filter
+            genome.estimator = estimator
+            genome.estimator_curve = estimator_curve
+            genome.estimator_minimum = estimator_minimum
+            genome.spatial_oversample = spatial_oversample
+            genome.spatial_filter_radius = filter_radius
+            genome.spatial_filter_select = filter_kernel
+            genome.time = i
 
-        output_buffer = allocate_output_buffer(self.size, transparent+3)
-
-        stats = RenderStats()
-        flam3_render(byref(frame), output_buffer, flam3_field_both,
-                     transparent+3, transparent, byref(stats))
-        return (output_buffer, stats)
-
-    @classmethod
-    def _initialize_genome_list(cls, genomes):
-        for i in range(0, len(genomes)):
-            if not genomes[i].name:
-                genomes[i].name = '%s-%d' % (genomes[i].parent_fname, i)
+        return frame
 
 
     @classmethod
     def from_string(cls, input_buffer, filename='<unknown>', defaults=True):
-        ncps = c_int()
-
         # so, flam3_parse_xml2 actually free's the buffer passed in...
         # this hackery sucks but...meh
-
         string_len = len(input_buffer)
         ptr = flam3_malloc(string_len + 1)
         if not ptr:
-            raise MemoryError('OH SHI-')
-
+            raise MemoryError()
         memset(ptr, 0, string_len+1)
-
         memmove(ptr, input_buffer, string_len)
-
         c_buffer = cast(ptr, c_char_p)
+
+        ncps = c_int()
 
         result = flam3_parse_xml2(c_buffer, filename,
                 defaults and flam3_defaults_on or flam3_defaults_off, byref(ncps))
 
-        genomes = []
-        for i in xrange(0, ncps.value):
-            genome = cls()
-            memmove(byref(genome), byref(result[i]), sizeof(BaseGenome))
-            genomes.append(genome)
-
-        #Don't free the input, flam3 already does this.
-        #flam3_free(c_buffer)
-        flam3_free(result)
-
-        cls._initialize_genome_list(genomes)
-
-        return genomes
+        return result, ncps.value
 
 
     @classmethod
-    def from_file(cls, filename=None, handle=None, defaults=True):
-        ncps = c_int()
-
-        def open_file(handle):
-            return flam3_parse_from_file(marshal.file_as_FILE(handle),
-                    os.path.basename(handle.name),
-                    defaults and flam3_defaults_on or flam3_defaults_off,
-                    byref(ncps))
-
+    def from_file(cls, filename=None, handle=None, **kwds):
         if not handle and filename:
-            with open(filename, 'rb') as handle:
-                if 'win32' in sys.platform:
-                    content = handle.read()
-                    return cls.from_string(content,
-                            filename=os.path.basename(filename))
-                else:
-                    result = open_file(handle)
+            s = open(filename).read()
         elif handle:
-            if 'win32' in sys.platform:
-                content = handle.read()
-                genomes = cls.from_string(content)
-                return cls.from_string(content,
-                        filename=os.path.basename(filename))
-            else:
-                result = open_file(handle)
+            s = handle.read()
         else:
-            raise IOError('Unable to open file')
-
-        result = cast(result, POINTER(cls))
-
-        genomes = []
-        for i in xrange(0, ncps.value):
-            genome = cls()
-            memmove(byref(genome), byref(result[i]), sizeof(BaseGenome))
-            genomes.append(genome) #result[i])
-
-        flam3_free(result)
-
-        cls._initialize_genome_list(genomes)
-
-        return genomes
+            raise IOError()
+        return cls.from_string(s, filename=filename, **kwds)
 
 
 
 class Frame(BaseFrame):
-    def __init__(self, fixed_seed=False, aspect=1.0, buffer_depth=64, time=0,
+    def __del__(self):
+        # TODO: what if self.genomes is not set?
+        flam3_free(self.genomes)
+    
+    def __init__(self, fixed_seed=False, aspect=1.0, buffer_depth=64,
                  bytes_per_channel=1, progress_func=None, nthreads=0,
                  earlyclip=False, sub_batch_size=100000):
         if not fixed_seed:
@@ -182,9 +120,7 @@ class Frame(BaseFrame):
             flam3_init_frame(byref(self))
 
         self.pixel_aspect_ratio = aspect
-        self.ngenomes = 0
         self.bits = buffer_depth
-        self.time = time
         self.bytes_per_channel = bytes_per_channel
         self.earlyclip = earlyclip
         self.sub_batch_size = sub_batch_size
@@ -197,3 +133,28 @@ class Frame(BaseFrame):
         else:
             self.nthreads = flam3_count_nthreads()
 
+
+    def iter_genomes(self):
+        for i in xrange(self.ngenomes):
+            yield self.genomes[i]
+            
+
+    def render(self, size, quality, transparent=0, time=0):
+        if not all(size):
+            raise ZeroDivisionError("Size passed to render function is 0.")
+
+        self.time = time
+
+        genome = self.genomes[time]
+        width, height = size
+        genome.pixels_per_unit /= genome.width/float(width) # adjusts scale
+        genome.width = width
+        genome.height = height
+        genome.sample_density = quality
+
+        output_buffer = allocate_output_buffer(size, transparent+3)
+        stats = RenderStats()
+        flam3_render(byref(self), output_buffer, flam3_field_both,
+                     transparent+3, transparent, byref(stats))
+
+        return output_buffer, stats

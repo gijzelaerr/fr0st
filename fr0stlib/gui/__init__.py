@@ -874,7 +874,7 @@ class ImagePanel(PreviewBase):
         self.SetDoubleBuffered(True)
         
         self.SetSize((256, 220))
-        self.bmp = wx.EmptyBitmap(400,300, 32)
+        self.bmp = wx.EmptyBitmap(200, 160, 32)
 
 
     def GetPanelSize(self):
