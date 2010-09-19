@@ -353,6 +353,8 @@ flam4 - (c) 2009 - 2010 Steven Broadhead""" % fr0stlib.VERSION,
             # just use the previous config settings, even if it's not ideal.
 ##            window.Maximize(False)
             if maximize:
+                if config[k] is None:
+                    continue # keeps the None in the config file.
                 (x,y,w,h), _ = config[k]
             else:
                 x,y = window.GetPosition()
