@@ -19,9 +19,7 @@
 #  the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 #  Boston, MA 02111-1307, USA.
 ##############################################################################
-import wx, itertools
-import wx.lib.colourselect as csel
-import copy
+import wx, itertools, copy
 
 from fr0stlib.decorators import *
 from fr0stlib.gui.canvas import XformCanvas
