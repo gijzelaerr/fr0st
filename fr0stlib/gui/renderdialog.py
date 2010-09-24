@@ -232,10 +232,11 @@ class RenderDialog(wx.Frame):
 
 
     def MakeOpts(self, parent):
-        opts = self.MakeTCs(parent, 
-                            "quality", "spatial_oversample",
-                            "estimator", "estimator_curve",
-                            "estimator_minimum", "filter_radius")
+        opts, d = MakeTCs(parent, *((i, self.config[i]) for i in (
+            "quality", "spatial_oversample", "estimator", "estimator_curve",
+            "estimator_minimum", "filter_radius")))
+        self.dict.update(d)
+        
         self.MakeChoices(parent, "filter_kernel", fgs=opts)
         
         early = wx.CheckBox(parent, -1, "Early Clip")
@@ -259,13 +260,6 @@ class RenderDialog(wx.Frame):
         self.mem = FreeMemoryPanel(parent)
         self.dict["buffer_depth"].Bind(wx.EVT_CHOICE, self.mem.UpdateView)
         return Box(parent, "Resource Usage", depthszr, self.mem)
-
-
-    def MakeTCs(self, parent, *a, **k):
-        """Wrapper around MakeTCs that adds all tcs to self.dict."""
-        fgs, d = MakeTCs(parent, *((i, self.config[i]) for i in a), **k)
-        self.dict.update(d)
-        return fgs
 
 
     def MakeChoices(self, parent, *a, **k):
