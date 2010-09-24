@@ -490,9 +490,11 @@ class AnimPanel(wx.Panel):
         self.parent = parent.parent
         wx.Panel.__init__(self, parent, -1)
 
-        fgs, d = MakeTCs(self, ("time", 0),
-                               ("interpolation", 0),
-                               ("interpolation_type", 1))
+        fgs, d = MakeTCs(self, 
+                         ("time", 0),
+                         ("interpolation", 0),
+                         ("interpolation_type", 1),
+                         low=0, int_only=True,)
 
         szr = wx.BoxSizer(wx.VERTICAL)
 

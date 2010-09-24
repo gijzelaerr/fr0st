@@ -76,8 +76,7 @@ def MakeTCs(self, *a, **k):
     fgs = wx.FlexGridSizer(99, 2, 1, 1)
     tcs = {}
     for i, default in a:
-        tc = NumberTextCtrl(self, **k)
-        tc.SetFloat(default)
+        tc = NumberTextCtrl(self, default, **k)
         tcs[i] = tc
         fgs.Add(wx.StaticText(self, -1, i.replace("_", " ").title()),
                 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
@@ -156,13 +155,17 @@ class NumberTextCtrl(wx.TextCtrl):
     high = None
 
     @BindEvents
-    def __init__(self, parent, low=None, high=None, callback=None):
+    def __init__(self, parent, val=0.0, low=None, high=None, callback=None,
+                 int_only=False):
         self.parent = parent
         # Size is set to ubuntu default (75,27), maybe make it 75x21 in win
         wx.TextCtrl.__init__(self,parent,-1, size=(75,27))
         
         if (low,high) != (None,None):
             self.SetAllowedRange(low, high)
+            
+        if int_only:
+            self.MakeIntOnly()
 
         if callback:
             self.callback = partial(callback, self)
@@ -170,8 +173,7 @@ class NumberTextCtrl(wx.TextCtrl):
             self.callback = lambda tempsave=None: None
 
         self.HasChanged = False
-        
-        self.SetFloat(0.0)
+        self.SetFloat(val)
             
 
     def GetFloat(self):
