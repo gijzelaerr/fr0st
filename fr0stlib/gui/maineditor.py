@@ -24,7 +24,7 @@ import wx, itertools, copy
 from fr0stlib.decorators import *
 from fr0stlib.gui.canvas import XformCanvas
 from fr0stlib.gui.utils import LoadIcon, MultiSliderMixin, Box, NumberTextCtrl,\
-                          SizePanel
+                          SizePanel, MakeTCs
 from fr0stlib.gui.config import config
 from fr0stlib.gui.constants import ID
 from fr0stlib.pyflam3 import flam3_colorhist, Genome, RandomContext
@@ -46,9 +46,12 @@ class MainNotebook(wx.Notebook):
         self.adjust = AdjustPanel(self)
         self.AddPage(self.adjust, "Adjust")
 
+        self.anim = AnimPanel(self)
+        self.AddPage(self.anim, "Anim")
+
 
     def UpdateView(self, rezoom=False):
-        for i in self.grad, self.adjust:
+        for i in self.grad, self.adjust, self.anim:
             i.UpdateView()
         self.canvas.ShowFlame(rezoom=rezoom)
         self.transform.toolbar.ToggleTool(ID.EditPostXform,
@@ -480,3 +483,23 @@ class AdjustPanel(MultiSliderMixin, wx.Panel):
         self.parent.image.RenderPreview()
 
 
+class AnimPanel(wx.Panel):
+
+    @BindEvents
+    def __init__(self, parent):
+        self.parent = parent.parent
+        wx.Panel.__init__(self, parent, -1)
+
+        fgs, d = MakeTCs(self, ("time", 0),
+                               ("interpolation", 0),
+                               ("interpolation_type", 1))
+
+        szr = wx.BoxSizer(wx.VERTICAL)
+
+        szr.Add(fgs)
+        self.SetSizerAndFit(szr)
+        self.Show(True)
+        
+        
+    def UpdateView(self):
+        pass
