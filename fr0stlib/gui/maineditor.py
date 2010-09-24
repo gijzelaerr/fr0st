@@ -219,25 +219,27 @@ class GradientPanel(wx.Panel):
         for k, tcs in self.dict.iteritems():
             [tc.SetFloat(i) for tc,i in zip(tcs, self.config[k])]
 
-        opts = Box(self, "Gradient Generation", opts)
-
+        btnszr = wx.BoxSizer(wx.VERTICAL)
         rdm = wx.Button(self, -1, "Randomize")
         rdm.Bind(wx.EVT_BUTTON, self.OnRandomize)
+        btnszr.Add(rdm, 0, wx.LEFT | wx.TOP, 5)
+        
         inv = wx.Button(self, -1, "Invert")
         inv.Bind(wx.EVT_BUTTON, self.OnInvert)
+        btnszr.Add(inv, 0, wx.LEFT, 5)
+        
         rev = wx.Button(self, -1, "Reverse")
         rev.Bind(wx.EVT_BUTTON, self.OnReverse)
-        btnszr = wx.BoxSizer(wx.VERTICAL)
-        btnszr.AddMany((rdm, inv, rev))
+        btnszr.Add(rev, 0, wx.LEFT, 5)
 
-        szr2 = wx.BoxSizer(wx.HORIZONTAL)
-        szr2.AddMany((opts, (btnszr, 0 ,wx.ALIGN_RIGHT)))
+        bx = Box(self, "Gradient Generation", opts, btnszr,
+                 orient=wx.HORIZONTAL)
 
         sizer1 = wx.BoxSizer(wx.VERTICAL)
         sizer1.Add(self.image, 0, wx.EXPAND)
         sizer1.Add(self.Selector,0)
         sizer1.Add(self.slider,0,wx.EXPAND)
-        sizer1.Add(szr2, 0, wx.EXPAND)
+        sizer1.Add(bx, 0, wx.EXPAND)
 
         self.SetSizer(sizer1)
 
