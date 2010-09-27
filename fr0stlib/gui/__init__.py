@@ -204,8 +204,8 @@ class Fr0stApp(wx.App):
 
 
 class MainWindow(wx.Frame):
-    wildcard = "Flame file (*.flame)|*.flame|" \
-               "All files (*.*)|*.*"
+    wildcard = ("Flame files (*.flame)|*.flame|"
+                "All files (*.*)|*.*")
     scriptrunning = False
 
 
