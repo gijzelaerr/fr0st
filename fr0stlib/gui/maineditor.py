@@ -419,7 +419,7 @@ class AdjustPanel(MultiSliderMixin, wx.Panel):
                 )
         self.Bind(wx.EVT_BUTTON, self.OnChangeBGColor, self.bgcolor_change)
 
-        self.sizepanel = SizePanel(self, self.__size_callback)
+        self.sizepanel = SizePanel(self, self.UpdateFlame)
 
         topsizer = wx.GridBagSizer(5, 5)
         topsizer.Add(self.sizepanel, (0, 0), (1, 1), wx.ALIGN_CENTER)
@@ -443,11 +443,6 @@ class AdjustPanel(MultiSliderMixin, wx.Panel):
         self.SetSizer(sizer)
 
 
-    def __size_callback(self):
-        self.UpdateFlame()
-        self.parent.TempSave()
-
-
     def OnChangeBGColor(self, e):
         color_data = wx.ColourData()
         color_data.SetChooseFull(True)
@@ -458,7 +453,6 @@ class AdjustPanel(MultiSliderMixin, wx.Panel):
         if dlg.ShowModal() == wx.ID_OK:
             self.bgcolor_panel.SetBackgroundColour(dlg.GetColourData().GetColour())
             self.UpdateFlame()
-            self.parent.TempSave()
 
         dlg.Destroy()
 
@@ -472,7 +466,7 @@ class AdjustPanel(MultiSliderMixin, wx.Panel):
                 tuple(c*255.0 for c in flame.background))
 
 
-    def UpdateFlame(self):
+    def UpdateFlame(self, tempsave=True):
         flame = self.parent.flame
         for name, val in self.IterSliders():
             setattr(flame, name, val)
@@ -481,6 +475,10 @@ class AdjustPanel(MultiSliderMixin, wx.Panel):
                         for c in self.bgcolor_panel.GetBackgroundColour())
         self.UpdateView()
         self.parent.image.RenderPreview()
+        
+        if tempsave:
+            self.parent.TempSave()
+
 
 
 class AnimPanel(wx.Panel):

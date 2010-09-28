@@ -46,7 +46,7 @@ class FreeMemoryPanel(wx.Panel):
         self.SetSizer(self.fgs)
 
 
-    def UpdateView(self, e=None):
+    def UpdateView(self, e=None, tempsave=None):
         self.fgs.Clear(True)
         s = "%.2f MB "
         lst = ((" Required Memory: ", 0), (s %self.GetRequired(), wx.ALIGN_RIGHT),

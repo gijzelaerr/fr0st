@@ -134,7 +134,7 @@ class SizePanel(wx.Panel):
         self.keepratio = e.GetInt()
 
 
-    def SizeCallback(self, tc, tempsave=None):
+    def SizeCallback(self, tc, tempsave=True):
         if self.keepratio:
             v = tc.GetFloat()
             tc.SetInt(v)
@@ -146,7 +146,7 @@ class SizePanel(wx.Panel):
                 self.width.SetInt(w)
         else:
             self.ratio = float(self.width.GetFloat()) / self.height.GetFloat()
-        self.callback()
+        self.callback(tempsave)
 
 
 
@@ -216,9 +216,6 @@ class NumberTextCtrl(wx.TextCtrl):
 
     @Bind(wx.EVT_MOUSEWHEEL)
     def OnMouseWheel(self, evt):
-        if self.SetFloat == self.SetInt:
-            return
-
         if evt.CmdDown():
             if evt.AltDown():
                 delta = 0.01
@@ -229,6 +226,10 @@ class NumberTextCtrl(wx.TextCtrl):
         else:
             evt.Skip()
             return
+
+        if self.SetFloat == self.SetInt:
+            # widget is int only: change the intervals to 1, 10 and 100
+            delta *= 1000
 
         self.SetFocus() # Makes sure OnKeyUp gets called.
 
