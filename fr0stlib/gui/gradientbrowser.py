@@ -18,8 +18,7 @@ class GradientBrowser(wx.Panel):
                "Map Files (*.map)|*.map"
 
         path = os.path.abspath(config["flamepath"])
-        self.fbb = FileBrowseButton(self, -1, fileMask=mask,
-                                    labelText='File:', initialValue=path,
+        self.fbb = FileBrowseButton(self, -1, fileMask=mask, labelText='File:',
                                     changeCallback=self.fbb_callback)
              
         self.bcb = wx.combo.BitmapComboBox(self, style=wx.CB_READONLY)
@@ -35,6 +34,8 @@ class GradientBrowser(wx.Panel):
     def load(self, path):
         self.palettes = []
         self.bcb.Clear()
+        if not os.path.exists(path):
+            return
 
         for name, palette in self.parse_file(path):
             img = wx.ImageFromBuffer(256, 1, palette.to_buffer())
@@ -55,6 +56,8 @@ class GradientBrowser(wx.Panel):
 
 
     def OnCombo(self, e):
+        if not self.palettes:
+            return
         self.parent.parent.flame.gradient[:] = self.palettes[e.Int][:]
         self.parent.parent.TempSave()
 
