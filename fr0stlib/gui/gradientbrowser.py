@@ -38,6 +38,8 @@ class GradientBrowser(wx.Panel):
         
         gen = self.parse_file(path)
         if gen is None:
+            # NOTE: this can mean that the file extension isn't recognized, or
+            # that the re/parsing/etc found nothing in the file.
             return
         
         for name, palette in gen:
@@ -54,7 +56,7 @@ class GradientBrowser(wx.Panel):
         if not os.path.exists(path):
             return
         ext = os.path.splitext(path)[1]
-        if ext == ".flame":
+        if ext in (".flame", ".bak"):
             return ((re.search(' name="(.*?)"', string).group(1),
                      Palette(etree.fromstring(string)))
                     for string in load_flamestrings(path))
