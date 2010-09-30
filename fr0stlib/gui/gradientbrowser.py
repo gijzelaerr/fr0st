@@ -13,9 +13,10 @@ class GradientBrowser(wx.Panel):
         wx.Panel.__init__(self, parent, -1)
         self.parent = parent
 
-        mask = "Flame Files (*.flame)|*.flame|" \
-               "Gradient Files (*.ugr)|*.ugr|" \
-               "Map Files (*.map)|*.map"
+        mask = ("Gradient Files (*.ugr)|*.ugr|"
+                "Map Files (*.map)|*.map|"
+                "Flame Files (*.flame)|*.flame|"
+                "All files (*.*)|*.*")
 
         path = os.path.abspath(config["flamepath"])
         self.fbb = FileBrowseButton(self, -1, fileMask=mask, labelText='File:',
