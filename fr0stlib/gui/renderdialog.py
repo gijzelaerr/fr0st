@@ -85,7 +85,8 @@ class FreeMemoryPanel(wx.Panel):
         os = self.GetParent().GetParent().dict["spatial_oversample"].GetFloat()
         depth = int(self.depth.GetStringSelection().split("-")[0]) / 8
         # the *9 is for: 5 in bucket (RGBA+density) + 4 in abucket (RGBA)
-        return w * h * os**2 * depth * 9 / 1024.**2
+        # the 4 + is for the output image itself, assuming RGBA 8-bit
+        return w * h * (4 + os**2 * depth * 9) / 1024.**2
 
 
 
