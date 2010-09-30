@@ -59,6 +59,7 @@ class Flame(object):
         self.gamma_threshold = 0.04
         self.vibrancy = 1
         self.highlight_power = -1
+        self.time = 0
 ##        self.oversample = 1
 ##        self.filter = 0.2
 ##        self.quality = 100        

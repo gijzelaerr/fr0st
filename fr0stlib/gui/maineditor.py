@@ -488,11 +488,11 @@ class AnimPanel(wx.Panel):
         self.parent = parent.parent
         wx.Panel.__init__(self, parent, -1)
 
-        fgs, d = MakeTCs(self, 
-                         ("time", 0),
-                         ("interpolation", 0),
-                         ("interpolation_type", 1),
-                         low=0, int_only=True,)
+        fgs, self.d = MakeTCs(self,
+                              ("time", 0),
+##                              ("interpolation", 0),
+##                              ("interpolation_type", 1),
+                              low=0, int_only=True, callback=self.UpdateFlame)
 
         szr = wx.BoxSizer(wx.VERTICAL)
 
@@ -502,4 +502,19 @@ class AnimPanel(wx.Panel):
         
         
     def UpdateView(self):
-        pass
+        flame = self.parent.flame
+        for k,v in self.d.iteritems():
+            v.SetInt(getattr(flame, k))
+
+
+    def UpdateFlame(self, tc=None, tempsave=True):
+        flame = self.parent.flame
+        for k,v in self.d.iteritems():
+            setattr(flame, k, v.GetInt())
+        
+        self.UpdateView()
+        self.parent.image.RenderPreview()
+        
+        if tempsave:
+            self.parent.TempSave()
+
