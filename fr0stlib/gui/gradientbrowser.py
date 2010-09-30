@@ -4,7 +4,7 @@ import wx.combo
 from  wx.lib.filebrowsebutton import FileBrowseButton
 
 from fr0stlib import Palette, load_flamestrings
-from fr0stlib.gui.utils import Box
+from fr0stlib.gui.utils import Box, ErrorMessage
 from fr0stlib.gui.config import config
 
 
@@ -35,10 +35,12 @@ class GradientBrowser(wx.Panel):
     def load(self, path):
         self.palettes = []
         self.bcb.Clear()
-        if not os.path.exists(path):
+        
+        gen = self.parse_file(path)
+        if gen is None:
             return
-
-        for name, palette in self.parse_file(path):
+        
+        for name, palette in gen:
             img = wx.ImageFromBuffer(256, 1, palette.to_buffer())
             img.Rescale(128, 20)
             bmp = wx.BitmapFromImage(img)
@@ -49,12 +51,14 @@ class GradientBrowser(wx.Panel):
 
 
     def parse_file(self, path):
+        if not os.path.exists(path):
+            return
         ext = os.path.splitext(path)[1]
         if ext == ".flame":
             return ((re.search(' name="(.*?)"', string).group(1),
                      Palette(etree.fromstring(string)))
                     for string in load_flamestrings(path))
-
+        
 
     def OnCombo(self, e):
         if not self.palettes:
@@ -65,4 +69,6 @@ class GradientBrowser(wx.Panel):
 
     def fbb_callback(self, e):
         self.load(e.String)
+        if not self.palettes:
+            ErrorMessage(self, "%s is not a valid gradient file." % e.String)
         
