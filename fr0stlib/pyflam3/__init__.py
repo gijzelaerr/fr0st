@@ -105,6 +105,10 @@ class Genome(BaseGenome):
         return cls.from_string(s, filename=filename, **kwds)
 
 
+    def to_string(self):
+        return flam3_print_to_string(self)
+
+
 
 class Frame(BaseFrame):
     def __del__(self):

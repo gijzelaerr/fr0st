@@ -173,6 +173,11 @@ libflam3.flam3_parse_xml2.argtypes = [c_char_p, c_char_p, c_int, POINTER(c_int)]
 libflam3.flam3_parse_xml2.restype = POINTER(BaseGenome)
 flam3_parse_xml2 = libflam3.flam3_parse_xml2
 
+# char *flam3_print_to_string(flam3_genome *cp) 
+libflam3.flam3_print_to_string.argtypes = [POINTER(BaseGenome)]
+libflam3.flam3_print_to_string.restype = c_char_p
+flam3_print_to_string = libflam3.flam3_print_to_string
+
 # int flam3_count_nthreads(void);
 libflam3.flam3_count_nthreads.restype = c_int
 flam3_count_nthreads = libflam3.flam3_count_nthreads
