@@ -20,7 +20,8 @@ class GradientBrowser(wx.Panel):
 
         path = os.path.abspath(config["flamepath"])
         self.fbb = FileBrowseButton(self, -1, fileMask=mask, labelText='File:',
-                                    changeCallback=self.fbb_callback)
+                                    changeCallback=self.fbb_callback,
+                                    initialValue=path)
              
         self.bcb = wx.combo.BitmapComboBox(self, style=wx.CB_READONLY)
         self.Bind(wx.EVT_COMBOBOX, self.OnCombo, self.bcb)
