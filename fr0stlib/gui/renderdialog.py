@@ -236,7 +236,8 @@ class RenderDialog(wx.Frame):
             "estimator_minimum", "filter_radius")))
         self.dict.update(d)
         
-        self.MakeChoices(parent, "filter_kernel", fgs=opts)
+        _, d = self.MakeChoices(parent, "filter_kernel", fgs=opts)
+        self.dict.update(d)
         
         early = wx.CheckBox(parent, -1, "Early Clip")
         self.earlyclip = self.config["earlyclip"]
@@ -255,7 +256,8 @@ class RenderDialog(wx.Frame):
     
     def MakeMemoryWidget(self, parent):
         # TODO: what about setting number of strips?
-        depthszr = self.MakeChoices(parent, "buffer_depth", "nthreads")
+        depthszr, d = self.MakeChoices(parent, "buffer_depth", "nthreads")
+        self.dict.update(d)
         self.mem = FreeMemoryPanel(parent)
         self.dict["buffer_depth"].Bind(wx.EVT_CHOICE, self.mem.UpdateView)
         return Box(parent, "Resource Usage", depthszr, self.mem)
@@ -263,13 +265,14 @@ class RenderDialog(wx.Frame):
 
     def MakeChoices(self, parent, *a, **k):
         fgs = k["fgs"] if "fgs" in k else wx.FlexGridSizer(99, 2, 1, 1)
+        d = {}
         for i in a:
             widg = MyChoice(parent, i, getattr(self, i+"_dict"), self.config[i])
-            self.dict[i] = widg
+            d[i] = widg
             fgs.Add(wx.StaticText(parent, -1, i.replace("_", " ").title()),
                     0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
             fgs.Add(widg, 0, wx.ALIGN_RIGHT, 5)
-        return fgs
+        return fgs, d
 
 
     def OnEarly(self, e):
