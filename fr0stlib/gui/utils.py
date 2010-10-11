@@ -72,16 +72,28 @@ def Box(self, name, *a, **k):
     return box
 
 
-def MakeTCs(self, *a, **k):
+def MakeTCs(parent, *a, **k):
     fgs = wx.FlexGridSizer(99, 2, 1, 1)
     tcs = {}
     for i, default in a:
-        tc = NumberTextCtrl(self, default, **k)
+        tc = NumberTextCtrl(parent, default, **k)
         tcs[i] = tc
-        fgs.Add(wx.StaticText(self, -1, i.replace("_", " ").title()),
+        fgs.Add(wx.StaticText(parent, -1, i.replace("_", " ").title()),
                 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
         fgs.Add(tc, 0, wx.ALIGN_RIGHT, 5)
     return fgs, tcs
+
+
+def MakeChoices(parent, *a, **k):
+    fgs = k["fgs"] if "fgs" in k else wx.FlexGridSizer(99, 2, 1, 1)
+    d = {}
+    for i, choices, default in a:
+        widg = MyChoice(parent, i, choices, default)
+        d[i] = widg
+        fgs.Add(wx.StaticText(parent, -1, i.replace("_", " ").title()),
+                0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
+        fgs.Add(widg, 0, wx.ALIGN_RIGHT, 5)
+    return fgs, d
 
 
 class MyChoice(wx.Choice):

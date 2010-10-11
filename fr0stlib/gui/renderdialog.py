@@ -28,7 +28,7 @@ from  wx.lib.filebrowsebutton import FileBrowseButton
 
 import fr0stlib
 from fr0stlib.gui.utils import NumberTextCtrl, Box, MyChoice, MakeTCs, \
-     SizePanel, IsInvalidPath, ErrorMessage
+     SizePanel, IsInvalidPath, ErrorMessage, MakeChoices
 from fr0stlib.gui.config import config
 from fr0stlib.gui.constants import ID
 from fr0stlib.gui._events import InMainFast
@@ -264,15 +264,9 @@ class RenderDialog(wx.Frame):
 
 
     def MakeChoices(self, parent, *a, **k):
-        fgs = k["fgs"] if "fgs" in k else wx.FlexGridSizer(99, 2, 1, 1)
-        d = {}
-        for i in a:
-            widg = MyChoice(parent, i, getattr(self, i+"_dict"), self.config[i])
-            d[i] = widg
-            fgs.Add(wx.StaticText(parent, -1, i.replace("_", " ").title()),
-                    0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
-            fgs.Add(widg, 0, wx.ALIGN_RIGHT, 5)
-        return fgs, d
+        return MakeChoices(parent,
+                           *((i, getattr(self, i+"_dict"), self.config[i])
+                             for i in a), **k)
 
 
     def OnEarly(self, e):
