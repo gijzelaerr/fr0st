@@ -26,7 +26,7 @@ from functools import partial
 
 from  wx.lib.filebrowsebutton import FileBrowseButton
 
-from fr0stlib import Flame
+import fr0stlib
 from fr0stlib.gui.utils import NumberTextCtrl, Box, MyChoice, MakeTCs, \
      SizePanel, IsInvalidPath, ErrorMessage
 from fr0stlib.gui.config import config
@@ -34,7 +34,6 @@ from fr0stlib.gui.constants import ID
 from fr0stlib.gui._events import InMainFast
 from fr0stlib.decorators import *
 from fr0stlib.render import save_image
-from fr0stlib.pyflam3 import filter_kernel_dict
 
 
 
@@ -93,7 +92,7 @@ class RenderDialog(wx.Frame):
     buffer_depth_dict = {"32-bit int": 32,
               "32-bit float": 33,
               "64-bit double": 64}
-    filter_kernel_dict = filter_kernel_dict
+    filter_kernel_dict = fr0stlib.pyflam3.filter_kernel_dict
     nthreads_dict = dict(("%2d" %i, i) for i in range(1, 9))
     nthreads_dict["auto"] = 0
 
@@ -295,7 +294,7 @@ class RenderDialog(wx.Frame):
         ext = os.path.splitext(path)[1]
         self.fbb.SetValue(os.path.join(os.path.dirname(path), name) + ext)
 
-        tempflame = Flame(self.choices[selections[0]][-1])
+        tempflame = fr0stlib.Flame(self.choices[selections[0]][-1])
         self.sizepanel.UpdateSize(tempflame.size)
         self.mem.UpdateView()
 
