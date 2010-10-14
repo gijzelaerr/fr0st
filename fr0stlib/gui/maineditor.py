@@ -24,7 +24,7 @@ import wx, itertools, copy
 from fr0stlib.decorators import *
 from fr0stlib.gui.canvas import XformCanvas
 from fr0stlib.gui.utils import LoadIcon, MultiSliderMixin, Box, NumberTextCtrl,\
-                          SizePanel, MakeTCs
+                          SizePanel, MakeTCs, MakeChoices
 from fr0stlib.gui.config import config
 from fr0stlib.gui.constants import ID
 from fr0stlib.pyflam3 import flam3_colorhist, Genome, RandomContext
@@ -482,36 +482,45 @@ class AdjustPanel(MultiSliderMixin, wx.Panel):
 
 
 class AnimPanel(wx.Panel):
+    # HACK: making this a dict for compat with MyChoice.
+    interpolation_type_dict = dict((i,i) for i in ("linear", "log"))
+    interpolation_dict = dict((i,i) for i in ("linear", "smooth"))
+    palette_mode_dict = dict((i,i) for i in ("step", "linear"))
 
     @BindEvents
     def __init__(self, parent):
         self.parent = parent.parent
         wx.Panel.__init__(self, parent, -1)
 
-        fgs, self.d = MakeTCs(self,
-                              ("time", 0),
-##                              ("interpolation", 0),
-##                              ("interpolation_type", 1),
-                              low=0, int_only=True, callback=self.UpdateFlame)
+        fgs, d = MakeTCs(self, ("time", 0), low=0, int_only=True,
+                         callback=self.UpdateFlame)
+        self.dict = d
+
+        fgs2, d = MakeChoices(self, *((i, getattr(self, i+"_dict"), None)
+                                      for i in ("interpolation_type",
+                                                "interpolation",
+                                                "palette_mode")))
+        # TODO: second dict somehow needs to be updated separately.
+##        self.dict.update(d)
 
         szr = wx.BoxSizer(wx.VERTICAL)
-
         szr.Add(fgs)
+        szr.Add(fgs2)
         self.SetSizerAndFit(szr)
         self.Show(True)
         
         
     def UpdateView(self):
         flame = self.parent.flame
-        for k,v in self.d.iteritems():
-            v.SetInt(getattr(flame, k))
+        for k,v in self.dict.iteritems():
+            v.SetFloat(getattr(flame, k))
 
 
     def UpdateFlame(self, tc=None, tempsave=True):
         flame = self.parent.flame
-        for k,v in self.d.iteritems():
-            setattr(flame, k, v.GetInt())
-        
+        for k,v in self.dict.iteritems():
+            setattr(flame, k, v.GetFloat())
+
         self.UpdateView()
         self.parent.image.RenderPreview()
         

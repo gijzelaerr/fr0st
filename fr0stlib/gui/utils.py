@@ -85,10 +85,10 @@ def MakeTCs(parent, *a, **k):
 
 
 def MakeChoices(parent, *a, **k):
-    fgs = k["fgs"] if "fgs" in k else wx.FlexGridSizer(99, 2, 1, 1)
+    fgs = k.pop("fgs", None) or wx.FlexGridSizer(99, 2, 1, 1)
     d = {}
     for i, choices, default in a:
-        widg = MyChoice(parent, i, choices, default)
+        widg = MyChoice(parent, i, choices, default, **k)
         d[i] = widg
         fgs.Add(wx.StaticText(parent, -1, i.replace("_", " ").title()),
                 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
@@ -97,12 +97,13 @@ def MakeChoices(parent, *a, **k):
 
 
 class MyChoice(wx.Choice):
-    def __init__(self, parent, name, d, initial):
+    def __init__(self, parent, name, d, initial=None):
         self.d = d
         choices = sorted(d.iteritems())
         wx.Choice.__init__(self, parent, -1, choices=[k for k,_ in choices])
-        self.SetSelection([v for _,v in choices].index(initial))
-
+        if initial is not None:
+            self.SetSelection([v for _,v in choices].index(initial))
+        
 
     def GetFloat(self):
         return self.d[self.GetStringSelection()]
