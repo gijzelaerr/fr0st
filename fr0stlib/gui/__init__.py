@@ -204,8 +204,8 @@ class Fr0stApp(wx.App):
 
 
 class MainWindow(wx.Frame):
-    wildcard = "Flame file (*.flame)|*.flame|" \
-               "All files (*.*)|*.*"
+    wildcard = ("Flame files (*.flame)|*.flame|"
+                "All files (*.*)|*.*")
     scriptrunning = False
 
 
@@ -539,8 +539,8 @@ flam4 - (c) 2009 - 2010 Steven Broadhead""" % fr0stlib.VERSION,
             # scan the file to see if it's valid
             flamestrings = fr0stlib.load_flamestrings(path)
             if not flamestrings:
-                ErrorMessage(self, "It seems %s is not a valid flame file."
-                             " Please choose a different flame." % path)
+                ErrorMessage(self, "%s is not a valid flame file."
+                             " Please choose a different file." % path)
                 self.OnFlameOpen(None)
                 return
         else:

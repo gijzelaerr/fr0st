@@ -27,6 +27,7 @@ from fr0stlib.decorators import *
 from fr0stlib.gui.canvas import XformCanvas
 from fr0stlib.gui.utils import LoadIcon, MultiSliderMixin, Box, NumberTextCtrl,\
                           SizePanel
+from fr0stlib.gui.gradientbrowser import GradientBrowser
 from fr0stlib.gui.config import config
 from fr0stlib.gui.constants import ID
 from fr0stlib.pyflam3 import flam3_colorhist, Genome, RandomContext
@@ -235,11 +236,14 @@ class GradientPanel(wx.Panel):
         bx = Box(self, "Gradient Generation", opts, btnszr,
                  orient=wx.HORIZONTAL)
 
+        gb = GradientBrowser(self)
+
         sizer1 = wx.BoxSizer(wx.VERTICAL)
         sizer1.Add(self.image, 0, wx.EXPAND)
         sizer1.Add(self.Selector,0)
         sizer1.Add(self.slider,0,wx.EXPAND)
         sizer1.Add(bx, 0, wx.EXPAND)
+        sizer1.Add(gb, 0, wx.EXPAND)
 
         self.SetSizer(sizer1)
 

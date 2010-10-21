@@ -195,9 +195,9 @@ class RenderDialog(wx.Frame):
 
 
     def MakeFileBrowseButton(self, parent):
-        mask = "PNG File (*.png)|*.png|" \
-               "JPG File (*.jpg)|*.jpg|" \
-               "BMP File (*.bmp)|*.bmp"
+        mask = ("PNG Files (*.png)|*.png|"
+                "JPG Files (*.jpg)|*.jpg|"
+                "BMP Files (*.bmp)|*.bmp")
         initial = os.path.join(config["Img-Dir"], 
                                self.parent.flame.name + config["Img-Type"])
         fbb = FileBrowseButton(parent, -1, fileMask=mask, labelText='File:',
