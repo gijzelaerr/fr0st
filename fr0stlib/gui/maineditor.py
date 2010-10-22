@@ -499,9 +499,10 @@ class AnimPanel(wx.Panel):
         fgs2, d = MakeChoices(self, *((i, getattr(self, i+"_dict"), None)
                                       for i in ("interpolation_type",
                                                 "interpolation",
-                                                "palette_mode")))
+                                                "palette_mode")),
+                              callback=self.UpdateFlame)
         # TODO: second dict somehow needs to be updated separately.
-##        self.dict.update(d)
+        self.dict.update(d)
 
         szr = wx.BoxSizer(wx.VERTICAL)
         szr.Add(fgs)
@@ -513,17 +514,16 @@ class AnimPanel(wx.Panel):
     def UpdateView(self):
         flame = self.parent.flame
         for k,v in self.dict.iteritems():
-            v.SetFloat(getattr(flame, k))
+            v.Set(getattr(flame, k))
 
 
-    def UpdateFlame(self, tc=None, tempsave=True):
+    def UpdateFlame(self):
         flame = self.parent.flame
         for k,v in self.dict.iteritems():
-            setattr(flame, k, v.GetFloat())
+            setattr(flame, k, v.Get())
 
         self.UpdateView()
         self.parent.image.RenderPreview()
         
-        if tempsave:
-            self.parent.TempSave()
+        self.parent.TempSave()
 

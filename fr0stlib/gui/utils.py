@@ -96,17 +96,34 @@ def MakeChoices(parent, *a, **k):
     return fgs, d
 
 
+
 class MyChoice(wx.Choice):
-    def __init__(self, parent, name, d, initial=None):
-        self.d = d
+    @BindEvents
+    def __init__(self, parent, name, d, initial=None, callback=None):
         choices = sorted(d.iteritems())
+        self.str_val_dict = d
+        self.val_pos_dict = dict((v, i) for (i,(k,v)) in enumerate(choices))
+        
         wx.Choice.__init__(self, parent, -1, choices=[k for k,_ in choices])
         if initial is not None:
-            self.SetSelection([v for _,v in choices].index(initial))
+            self.SetValue(initial)
+        if callback is not None:
+            self.callback = callback
+        else:
+            self.callback = lambda: None
         
 
-    def GetFloat(self):
-        return self.d[self.GetStringSelection()]
+    def Get(self):
+        return self.str_val_dict[self.GetStringSelection()]
+
+    def Set(self, v):
+        self.SetSelection(self.val_pos_dict[v])
+
+
+    @Bind(wx.EVT_CHOICE)
+    def OnSelection(self, e):
+        self.callback()
+
 
 
 class SizePanel(wx.Panel):
@@ -208,6 +225,14 @@ class NumberTextCtrl(wx.TextCtrl):
         v = self.Checkrange(int(v))
         self._value = v
         self.SetValue(str(v))
+
+
+    # Aliases for compatibility with other widgets (e.g. MyChoice)
+    def Get(self):
+        return self.GetFloat()
+
+    def Set(self, v):
+        self.SetFloat(v)
 
 
     def MakeIntOnly(self):
