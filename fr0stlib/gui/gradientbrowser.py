@@ -61,6 +61,13 @@ class GradientBrowser(wx.Panel):
             return ((re.search(' name="(.*?)"', string).group(1),
                      Palette(etree.fromstring(string)))
                     for string in load_flamestrings(path))
+        if ext in (".map"):
+            with open(path,'r') as mf:
+                lns = mf.readlines()
+
+            P = Palette()
+            P.from_strings(lns)
+            return ((os.path.splitext(os.path.basename(path))[0], P),)
         
 
     def OnCombo(self, e):
