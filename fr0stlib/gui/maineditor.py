@@ -517,7 +517,7 @@ class AnimPanel(wx.Panel):
             v.Set(getattr(flame, k))
 
 
-    def UpdateFlame(self):
+    def UpdateFlame(self, tc=None):
         flame = self.parent.flame
         for k,v in self.dict.iteritems():
             setattr(flame, k, v.Get())

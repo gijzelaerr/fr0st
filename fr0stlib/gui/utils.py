@@ -106,7 +106,7 @@ class MyChoice(wx.Choice):
         
         wx.Choice.__init__(self, parent, -1, choices=[k for k,_ in choices])
         if initial is not None:
-            self.SetValue(initial)
+            self.Set(initial)
         if callback is not None:
             self.callback = callback
         else:
