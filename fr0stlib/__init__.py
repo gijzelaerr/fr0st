@@ -319,18 +319,6 @@ class Palette(object):
         return self._template % tuple(int(i) for i in itertools.chain(*self))
 
 
-    def from_strings(self, stringlist):
-        # Each string in the list contains three ints
-        # but possibly other stuff, so just take the first
-        # three values
-        data = [map(float, s.split()[0:3])
-                for s in stringlist]
-        if len(data) != 256:
-            raise ParsingError('Wrong number of palette entries specified: '
-                               '%s != %s' % (256, len(lst)))
-        self.data[:] = data
-
-
     def from_flame_element(self, flame):
         palette_element = flame.find('palette')
 

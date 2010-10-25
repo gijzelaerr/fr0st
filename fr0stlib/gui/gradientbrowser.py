@@ -56,8 +56,6 @@ def _load_ugr_iter(filename):
             g = (color & 0xFF00) >> 8
             b = (color & 0xFF)
 
-            print index,r,g,b  
-
             palette[index] = (r, g, b)
    
         for idx in range(len(indices) - 1):
@@ -123,14 +121,20 @@ class GradientBrowser(wx.Panel):
             return ((re.search(' name="(.*?)"', string).group(1),
                      Palette(etree.fromstring(string)))
                     for string in load_flamestrings(path))
-        if ext in (".map"):
+        elif ext == ".map":
             with open(path,'r') as mf:
                 lns = mf.readlines()
-
-            P = Palette()
-            P.from_strings(lns)
-            return ((os.path.splitext(os.path.basename(path))[0], P),)
-        if ext in (".ugr"):
+            # Each string in the list contains three ints
+            # but possibly other stuff, so just take the first
+            # three values
+            data = [map(float, s.split()[0:3]) for s in lns]
+            if len(data) != 256:
+                raise ParsingError('Wrong number of palette entries specified: '
+                                   '%s != %s' % (256, len(lst)))
+            p = Palette()
+            p.data[:] = data
+            return ((os.path.splitext(os.path.basename(path))[0], p),)
+        elif ext == ".ugr":
             return list(_load_ugr_iter(path))
         
 
