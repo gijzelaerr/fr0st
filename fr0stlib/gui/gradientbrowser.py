@@ -7,8 +7,70 @@ from fr0stlib import Palette, load_flamestrings
 from fr0stlib.gui.utils import Box, ErrorMessage
 from fr0stlib.gui.config import config
 
+# support for ugr palettes - thx bobby
+_ugr_main_re = re.compile(
+        '\s*(.*?)\s*{\s*gradient:\s*title="(.*?)"\s*smooth=(yes|no)\s*(.*?)\}', 
+        re.DOTALL)
+
+_ugr_inner_re = re.compile('\s*index=(\d+)\s*color=(\d+)')
+
+def _blend_palette(palette, begin, end):
+    if begin == end:
+        return
+
+    idx_range = float(end - begin)
+    end_idx = end % 256
+    begin_idx = begin % 256
+
+    for c_idx in range(3):
+        color_range = float(palette[end_idx][c_idx]) - float(palette[begin_idx][c_idx])
+        c = palette[begin_idx][c_idx]
+        v = color_range / idx_range
+
+        for interp_idx in range(begin +1, end):
+            c += v
+            palette[interp_idx % 256][c_idx] = c
+
+def _load_ugr_iter(filename):
+    with open(filename) as  gradient_fd:
+        text = gradient_fd.read()
+
+    index_ratio = 255.0 / 399.0
+    
+    for match in _ugr_main_re.finditer(text):
+        item_name, title, smooth, inner = match.groups()
+        palette = Palette()
+    
+        indices = []
+        for index, color in _ugr_inner_re.findall(inner):
+            # -401 being a legal index is just stupid...
+            while index < 0:
+                index += 400
+    
+            index = int(index)
+            index = int(round(index * index_ratio))
+            indices.append(index)
+            color = int(color)
+    
+            r = (color & 0xFF0000) >> 16
+            g = (color & 0xFF00) >> 8
+            b = (color & 0xFF)
+
+            print index,r,g,b  
+
+            palette[index] = (r, g, b)
+   
+        for idx in range(len(indices) - 1):
+            x, y = indices[idx], indices[idx+1]
+            _blend_palette(palette, indices[idx], indices[idx+1])
+    
+        _blend_palette(palette, indices[-1], indices[0] + 256)
+
+        yield (title,palette)
+
 
 class GradientBrowser(wx.Panel):
+
     def __init__(self, parent):
         wx.Panel.__init__(self, parent, -1)
         self.parent = parent
@@ -68,6 +130,8 @@ class GradientBrowser(wx.Panel):
             P = Palette()
             P.from_strings(lns)
             return ((os.path.splitext(os.path.basename(path))[0], P),)
+        if ext in (".ugr"):
+            return list(_load_ugr_iter(path))
         
 
     def OnCombo(self, e):
