@@ -1,9 +1,9 @@
-import os, re, wx
+import os, re, wx, numpy, itertools
 import xml.etree.cElementTree as etree
 import wx.combo
 from  wx.lib.filebrowsebutton import FileBrowseButton
 
-from fr0stlib import Palette, load_flamestrings
+from fr0stlib import Palette, load_flamestrings, hsv2rgb, rgb2hsv
 from fr0stlib.gui.utils import Box, ErrorMessage
 from fr0stlib.gui.config import config
 
@@ -14,55 +14,61 @@ _ugr_main_re = re.compile(
 
 _ugr_inner_re = re.compile('\s*index=(\d+)\s*color=(\d+)')
 
-def _blend_palette(palette, begin, end):
-    if begin == end:
-        return
-
-    idx_range = float(end - begin)
-    end_idx = end % 256
-    begin_idx = begin % 256
-
-    for c_idx in range(3):
-        color_range = float(palette[end_idx][c_idx]) - float(palette[begin_idx][c_idx])
-        c = palette[begin_idx][c_idx]
-        v = color_range / idx_range
-
-        for interp_idx in range(begin +1, end):
-            c += v
-            palette[interp_idx % 256][c_idx] = c
-
 def _load_ugr_iter(filename):
     with open(filename) as  gradient_fd:
         text = gradient_fd.read()
 
     index_ratio = 255.0 / 399.0
+
+    newpal = numpy.arange(0,256)
     
     for match in _ugr_main_re.finditer(text):
         item_name, title, smooth, inner = match.groups()
-        palette = Palette()
-    
-        indices = []
+
+        indices = numpy.array([[0,0,0,0]])
+
         for index, color in _ugr_inner_re.findall(inner):
             # -401 being a legal index is just stupid...
+            index = float(index)
             while index < 0:
                 index += 400
-    
-            index = int(index)
-            index = int(round(index * index_ratio))
-            indices.append(index)
+
             color = int(color)
     
             r = (color & 0xFF0000) >> 16
             g = (color & 0xFF00) >> 8
             b = (color & 0xFF)
 
-            palette[index] = (r, g, b)
+            hsv = rgb2hsv((r, g, b))
+
+            indices = numpy.append(indices,[[index,hsv[0],hsv[1],hsv[2]]],0)
    
-        for idx in range(len(indices) - 1):
-            x, y = indices[idx], indices[idx+1]
-            _blend_palette(palette, indices[idx], indices[idx+1])
-    
-        _blend_palette(palette, indices[-1], indices[0] + 256)
+        # pad the vectors before and after
+        # starter element was already there
+        indices[0,:] = indices[-1,:]
+        indices[0,0] -= 400
+        # add last element
+        indices = numpy.append(indices,[indices[1,:]],0)
+        indices[-1,0] += 400
+
+        # normalize all indices to 0-1
+        indices[:,0] *= index_ratio
+
+        # make sure consecutive hues do not change by > 0.5
+        for idx in range(numpy.size(indices,0)-1):
+            if indices[idx+1,1]-indices[idx,1] > 0.5:
+                indices[idx+1,1] -= 0.5
+            elif indices[idx,1]-indices[idx+1,1] > 0.5:
+                indices[idx+1,1] += 0.5
+
+        # interpolate each color separately
+        newh = numpy.interp(newpal,indices[:,0],indices[:,1])
+        news = numpy.interp(newpal,indices[:,0],indices[:,2])
+        newv = numpy.interp(newpal,indices[:,0],indices[:,3])
+
+        # now we have 256 elements in each h,s,v
+        palette = Palette()
+        palette[:] = map(hsv2rgb, itertools.izip(newh,news,newv))
 
         yield (title,palette)
 
