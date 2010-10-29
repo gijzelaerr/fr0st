@@ -410,7 +410,7 @@ class RenderDialog(wx.Frame):
         self.render.Label = "Pause"
         self.close.Label = "Cancel"
 
-        kwds = dict((k,v.GetFloat()) for k,v in self.dict.iteritems())
+        kwds = dict((k,v.Get()) for k,v in self.dict.iteritems())
         kwds["earlyclip"] = self.earlyclip
         if ty == ".png":
             kwds["transparent"] = self.transp
