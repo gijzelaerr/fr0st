@@ -19,14 +19,12 @@
 #  the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 #  Boston, MA 02111-1307, USA.
 ##############################################################################
-import wx, itertools
-import wx.lib.colourselect as csel
-import copy
+import wx, itertools, copy
 
 from fr0stlib.decorators import *
 from fr0stlib.gui.canvas import XformCanvas
 from fr0stlib.gui.utils import LoadIcon, MultiSliderMixin, Box, NumberTextCtrl,\
-                          SizePanel
+                          SizePanel, MakeTCs, MakeChoices
 from fr0stlib.gui.config import config
 from fr0stlib.gui.gradientbrowser import GradientBrowser
 from fr0stlib.gui.constants import ID
@@ -49,9 +47,12 @@ class MainNotebook(wx.Notebook):
         self.adjust = AdjustPanel(self)
         self.AddPage(self.adjust, "Adjust")
 
+        self.anim = AnimPanel(self)
+        self.AddPage(self.anim, "Anim")
+
 
     def UpdateView(self, rezoom=False):
-        for i in self.grad, self.adjust:
+        for i in self.grad, self.adjust, self.anim:
             i.UpdateView()
         self.canvas.ShowFlame(rezoom=rezoom)
         self.transform.toolbar.ToggleTool(ID.EditPostXform,
@@ -424,7 +425,7 @@ class AdjustPanel(MultiSliderMixin, wx.Panel):
                 )
         self.Bind(wx.EVT_BUTTON, self.OnChangeBGColor, self.bgcolor_change)
 
-        self.sizepanel = SizePanel(self, self.__size_callback)
+        self.sizepanel = SizePanel(self, self.UpdateFlame)
 
         topsizer = wx.GridBagSizer(5, 5)
         topsizer.Add(self.sizepanel, (0, 0), (1, 1), wx.ALIGN_CENTER)
@@ -448,11 +449,6 @@ class AdjustPanel(MultiSliderMixin, wx.Panel):
         self.SetSizer(sizer)
 
 
-    def __size_callback(self):
-        self.UpdateFlame()
-        self.parent.TempSave()
-
-
     def OnChangeBGColor(self, e):
         color_data = wx.ColourData()
         color_data.SetChooseFull(True)
@@ -463,7 +459,6 @@ class AdjustPanel(MultiSliderMixin, wx.Panel):
         if dlg.ShowModal() == wx.ID_OK:
             self.bgcolor_panel.SetBackgroundColour(dlg.GetColourData().GetColour())
             self.UpdateFlame()
-            self.parent.TempSave()
 
         dlg.Destroy()
 
@@ -477,7 +472,7 @@ class AdjustPanel(MultiSliderMixin, wx.Panel):
                 tuple(c*255.0 for c in flame.background))
 
 
-    def UpdateFlame(self):
+    def UpdateFlame(self, tempsave=True):
         flame = self.parent.flame
         for name, val in self.IterSliders():
             setattr(flame, name, val)
@@ -486,5 +481,55 @@ class AdjustPanel(MultiSliderMixin, wx.Panel):
                         for c in self.bgcolor_panel.GetBackgroundColour())
         self.UpdateView()
         self.parent.image.RenderPreview()
+        
+        if tempsave:
+            self.parent.TempSave()
 
+
+
+class AnimPanel(wx.Panel):
+    # HACK: making this a dict for compat with MyChoice.
+    interpolation_type_dict = dict((i,i) for i in ("linear", "log"))
+    interpolation_dict = dict((i,i) for i in ("linear", "smooth"))
+    palette_mode_dict = dict((i,i) for i in ("step", "linear"))
+
+    @BindEvents
+    def __init__(self, parent):
+        self.parent = parent.parent
+        wx.Panel.__init__(self, parent, -1)
+
+        fgs, d = MakeTCs(self, ("time", 0), low=0, int_only=True,
+                         callback=self.UpdateFlame)
+        self.dict = d
+
+        fgs2, d = MakeChoices(self, *((i, getattr(self, i+"_dict"), None)
+                                      for i in ("interpolation_type",
+                                                "interpolation",
+                                                "palette_mode")),
+                              callback=self.UpdateFlame)
+        # TODO: second dict somehow needs to be updated separately.
+        self.dict.update(d)
+
+        szr = wx.BoxSizer(wx.VERTICAL)
+        szr.Add(fgs)
+        szr.Add(fgs2)
+        self.SetSizerAndFit(szr)
+        self.Show(True)
+        
+        
+    def UpdateView(self):
+        flame = self.parent.flame
+        for k,v in self.dict.iteritems():
+            v.Set(getattr(flame, k))
+
+
+    def UpdateFlame(self, tc=None):
+        flame = self.parent.flame
+        for k,v in self.dict.iteritems():
+            setattr(flame, k, v.Get())
+
+        self.UpdateView()
+        self.parent.image.RenderPreview()
+        
+        self.parent.TempSave()
 

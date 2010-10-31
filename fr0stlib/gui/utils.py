@@ -72,29 +72,58 @@ def Box(self, name, *a, **k):
     return box
 
 
-def MakeTCs(self, *a, **k):
+def MakeTCs(parent, *a, **k):
     fgs = wx.FlexGridSizer(99, 2, 1, 1)
     tcs = {}
     for i, default in a:
-        tc = NumberTextCtrl(self, **k)
-        tc.SetFloat(default)
+        tc = NumberTextCtrl(parent, default, **k)
         tcs[i] = tc
-        fgs.Add(wx.StaticText(self, -1, i.replace("_", " ").title()),
+        fgs.Add(wx.StaticText(parent, -1, i.replace("_", " ").title()),
                 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
         fgs.Add(tc, 0, wx.ALIGN_RIGHT, 5)
     return fgs, tcs
 
 
+def MakeChoices(parent, *a, **k):
+    fgs = k.pop("fgs", None) or wx.FlexGridSizer(99, 2, 1, 1)
+    d = {}
+    for i, choices, default in a:
+        widg = MyChoice(parent, i, choices, default, **k)
+        d[i] = widg
+        fgs.Add(wx.StaticText(parent, -1, i.replace("_", " ").title()),
+                0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
+        fgs.Add(widg, 0, wx.ALIGN_RIGHT, 5)
+    return fgs, d
+
+
+
 class MyChoice(wx.Choice):
-    def __init__(self, parent, name, d, initial):
-        self.d = d
+    @BindEvents
+    def __init__(self, parent, name, d, initial=None, callback=None):
         choices = sorted(d.iteritems())
+        self.str_val_dict = d
+        self.val_pos_dict = dict((v, i) for (i,(k,v)) in enumerate(choices))
+        
         wx.Choice.__init__(self, parent, -1, choices=[k for k,_ in choices])
-        self.SetSelection([v for _,v in choices].index(initial))
+        if initial is not None:
+            self.Set(initial)
+        if callback is not None:
+            self.callback = callback
+        else:
+            self.callback = lambda: None
+        
+
+    def Get(self):
+        return self.str_val_dict[self.GetStringSelection()]
+
+    def Set(self, v):
+        self.SetSelection(self.val_pos_dict[v])
 
 
-    def GetFloat(self):
-        return self.d[self.GetStringSelection()]
+    @Bind(wx.EVT_CHOICE)
+    def OnSelection(self, e):
+        self.callback()
+
 
 
 class SizePanel(wx.Panel):
@@ -135,7 +164,7 @@ class SizePanel(wx.Panel):
         self.keepratio = e.GetInt()
 
 
-    def SizeCallback(self, tc, tempsave=None):
+    def SizeCallback(self, tc, tempsave=True):
         if self.keepratio:
             v = tc.GetFloat()
             tc.SetInt(v)
@@ -147,7 +176,7 @@ class SizePanel(wx.Panel):
                 self.width.SetInt(w)
         else:
             self.ratio = float(self.width.GetFloat()) / self.height.GetFloat()
-        self.callback()
+        self.callback(tempsave)
 
 
 
@@ -156,13 +185,17 @@ class NumberTextCtrl(wx.TextCtrl):
     high = None
 
     @BindEvents
-    def __init__(self, parent, low=None, high=None, callback=None):
+    def __init__(self, parent, val=0.0, low=None, high=None, callback=None,
+                 int_only=False):
         self.parent = parent
         # Size is set to ubuntu default (75,27), maybe make it 75x21 in win
         wx.TextCtrl.__init__(self,parent,-1, size=(75,27))
         
         if (low,high) != (None,None):
             self.SetAllowedRange(low, high)
+            
+        if int_only:
+            self.MakeIntOnly()
 
         if callback:
             self.callback = partial(callback, self)
@@ -170,8 +203,7 @@ class NumberTextCtrl(wx.TextCtrl):
             self.callback = lambda tempsave=None: None
 
         self.HasChanged = False
-        
-        self.SetFloat(0.0)
+        self.SetFloat(val)
             
 
     def GetFloat(self):
@@ -195,6 +227,14 @@ class NumberTextCtrl(wx.TextCtrl):
         self.SetValue(str(v))
 
 
+    # Aliases for compatibility with other widgets (e.g. MyChoice)
+    def Get(self):
+        return self.GetFloat()
+
+    def Set(self, v):
+        self.SetFloat(v)
+
+
     def MakeIntOnly(self):
         self.SetInt(self.GetFloat())
         self.SetFloat, self.GetFloat = self.SetInt, self.GetInt
@@ -214,9 +254,6 @@ class NumberTextCtrl(wx.TextCtrl):
 
     @Bind(wx.EVT_MOUSEWHEEL)
     def OnMouseWheel(self, evt):
-        if self.SetFloat == self.SetInt:
-            return
-
         if evt.CmdDown():
             if evt.AltDown():
                 delta = 0.01
@@ -227,6 +264,10 @@ class NumberTextCtrl(wx.TextCtrl):
         else:
             evt.Skip()
             return
+
+        if self.SetFloat == self.SetInt:
+            # widget is int only: change the intervals to 1, 10 and 100
+            delta *= 1000
 
         self.SetFocus() # Makes sure OnKeyUp gets called.
 

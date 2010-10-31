@@ -26,15 +26,14 @@ from functools import partial
 
 from  wx.lib.filebrowsebutton import FileBrowseButton
 
-from fr0stlib import Flame
+import fr0stlib
 from fr0stlib.gui.utils import NumberTextCtrl, Box, MyChoice, MakeTCs, \
-     SizePanel, IsInvalidPath, ErrorMessage
+     SizePanel, IsInvalidPath, ErrorMessage, MakeChoices
 from fr0stlib.gui.config import config
 from fr0stlib.gui.constants import ID
 from fr0stlib.gui._events import InMainFast
 from fr0stlib.decorators import *
 from fr0stlib.render import save_image
-from fr0stlib.pyflam3 import filter_kernel_dict
 
 
 
@@ -46,7 +45,7 @@ class FreeMemoryPanel(wx.Panel):
         self.SetSizer(self.fgs)
 
 
-    def UpdateView(self, e=None):
+    def UpdateView(self, e=None, tempsave=None):
         self.fgs.Clear(True)
         s = "%.2f MB "
         lst = ((" Required Memory: ", 0), (s %self.GetRequired(), wx.ALIGN_RIGHT),
@@ -94,7 +93,7 @@ class RenderDialog(wx.Frame):
     buffer_depth_dict = {"32-bit int": 32,
               "32-bit float": 33,
               "64-bit double": 64}
-    filter_kernel_dict = filter_kernel_dict
+    filter_kernel_dict = fr0stlib.pyflam3.filter_kernel_dict
     nthreads_dict = dict(("%2d" %i, i) for i in range(1, 9))
     nthreads_dict["auto"] = 0
 
@@ -233,11 +232,13 @@ class RenderDialog(wx.Frame):
 
 
     def MakeOpts(self, parent):
-        opts = self.MakeTCs(parent, 
-                            "quality", "spatial_oversample",
-                            "estimator", "estimator_curve",
-                            "estimator_minimum", "filter_radius")
-        self.MakeChoices(parent, "filter_kernel", fgs=opts)
+        opts, d = MakeTCs(parent, *((i, self.config[i]) for i in (
+            "quality", "spatial_oversample", "estimator", "estimator_curve",
+            "estimator_minimum", "filter_radius")))
+        self.dict.update(d)
+        
+        _, d = self.MakeChoices(parent, "filter_kernel", fgs=opts)
+        self.dict.update(d)
         
         early = wx.CheckBox(parent, -1, "Early Clip")
         self.earlyclip = self.config["earlyclip"]
@@ -256,28 +257,17 @@ class RenderDialog(wx.Frame):
     
     def MakeMemoryWidget(self, parent):
         # TODO: what about setting number of strips?
-        depthszr = self.MakeChoices(parent, "buffer_depth", "nthreads")
+        depthszr, d = self.MakeChoices(parent, "buffer_depth", "nthreads")
+        self.dict.update(d)
         self.mem = FreeMemoryPanel(parent)
         self.dict["buffer_depth"].Bind(wx.EVT_CHOICE, self.mem.UpdateView)
         return Box(parent, "Resource Usage", depthszr, self.mem)
 
 
-    def MakeTCs(self, parent, *a, **k):
-        """Wrapper around MakeTCs that adds all tcs to self.dict."""
-        fgs, d = MakeTCs(parent, *((i, self.config[i]) for i in a), **k)
-        self.dict.update(d)
-        return fgs
-
-
     def MakeChoices(self, parent, *a, **k):
-        fgs = k["fgs"] if "fgs" in k else wx.FlexGridSizer(99, 2, 1, 1)
-        for i in a:
-            widg = MyChoice(parent, i, getattr(self, i+"_dict"), self.config[i])
-            self.dict[i] = widg
-            fgs.Add(wx.StaticText(parent, -1, i.replace("_", " ").title()),
-                    0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
-            fgs.Add(widg, 0, wx.ALIGN_RIGHT, 5)
-        return fgs
+        return MakeChoices(parent,
+                           *((i, getattr(self, i+"_dict"), self.config[i])
+                             for i in a), **k)
 
 
     def OnEarly(self, e):
@@ -302,7 +292,7 @@ class RenderDialog(wx.Frame):
         ext = os.path.splitext(path)[1]
         self.fbb.SetValue(os.path.join(os.path.dirname(path), name) + ext)
 
-        tempflame = Flame(self.choices[selections[0]][-1])
+        tempflame = fr0stlib.Flame(self.choices[selections[0]][-1])
         self.sizepanel.UpdateSize(tempflame.size)
         self.mem.UpdateView()
 
@@ -421,7 +411,7 @@ class RenderDialog(wx.Frame):
         self.render.Label = "Pause"
         self.close.Label = "Cancel"
 
-        kwds = dict((k,v.GetFloat()) for k,v in self.dict.iteritems())
+        kwds = dict((k,v.Get()) for k,v in self.dict.iteritems())
         kwds["earlyclip"] = self.earlyclip
         if ty == ".png":
             kwds["transparent"] = self.transp

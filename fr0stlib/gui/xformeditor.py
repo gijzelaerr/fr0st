@@ -339,15 +339,14 @@ class XformPanel(wx.Panel):
 
         if tempsave:
             self.parent.TempSave()
-                                          
 
-    def _get_coefs(self):
+                             
+    @property
+    def coefs(self):
         return (getattr(self,i).GetFloat() for i in "adbecf")
-
-    def _set_coefs(self,v):
+    @coefs.setter
+    def coefs(self,v):
         map(lambda x,y: getattr(self,x).SetFloat(y), "adbecf", v)
-
-    coefs = property(_get_coefs, _set_coefs)
 
 
 

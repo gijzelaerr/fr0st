@@ -37,5 +37,6 @@ def animation_preview(flames):
     assert fr0stlib.GUI # guard against command line scripts.
     for f in itertools.cycle(flames):
         fr0stlib.preview(f)
+        fr0stlib.show_status("previewing %s" %f)
 
                

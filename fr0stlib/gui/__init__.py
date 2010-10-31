@@ -826,6 +826,7 @@ flam4 - (c) 2009 - 2010 Steven Broadhead""" % fr0stlib.VERSION,
                   self.notebook.transform.toolbar,
                   self.notebook.grad,
                   self.notebook.adjust,
+                  self.notebook.anim,
                   self.image,
                   self.previewframe):
             i.Enable(not flag)
