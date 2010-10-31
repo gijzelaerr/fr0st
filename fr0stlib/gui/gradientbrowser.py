@@ -9,7 +9,7 @@ from fr0stlib.gui.config import config
 
 # support for ugr palettes - thx bobby
 _ugr_main_re = re.compile(
-        '\s*(.*?)\s*{\s*gradient:\s*title="(.*?)"\s*smooth=(yes|no)\s*(.*?)\}', 
+        '\s*(.*?)\s*{\s*gradient:\s*.*?\s*smooth=(yes|no)\s*(.*?)\}', 
         re.DOTALL)
 
 _ugr_inner_re = re.compile('\s*index=(\d+)\s*color=(\d+)')
@@ -23,7 +23,8 @@ def _load_ugr_iter(filename):
     newpal = numpy.arange(0,256)
     
     for match in _ugr_main_re.finditer(text):
-        item_name, title, smooth, inner = match.groups()
+
+        item_name, smooth, inner = match.groups()
 
         indices = numpy.array([[0,0,0,0]])
 
@@ -35,13 +36,11 @@ def _load_ugr_iter(filename):
 
             color = int(color)
     
-            r = (color & 0xFF0000) >> 16
+            b = (color & 0xFF0000) >> 16
             g = (color & 0xFF00) >> 8
-            b = (color & 0xFF)
+            r = (color & 0xFF)
 
-            hsv = rgb2hsv((r, g, b))
-
-            indices = numpy.append(indices,[[index,hsv[0],hsv[1],hsv[2]]],0)
+            indices = numpy.append(indices,[[index,r,g,b]],0)
    
         # pad the vectors before and after
         # starter element was already there
@@ -62,15 +61,15 @@ def _load_ugr_iter(filename):
                 indices[idx+1,1] += 0.5
 
         # interpolate each color separately
-        newh = numpy.interp(newpal,indices[:,0],indices[:,1])
-        news = numpy.interp(newpal,indices[:,0],indices[:,2])
-        newv = numpy.interp(newpal,indices[:,0],indices[:,3])
+        newr = numpy.interp(newpal,indices[:,0],indices[:,1])
+        newg = numpy.interp(newpal,indices[:,0],indices[:,2])
+        newb = numpy.interp(newpal,indices[:,0],indices[:,3])
 
-        # now we have 256 elements in each h,s,v
+        # now we have 256 elements in each r,g,b
         palette = Palette()
-        palette[:] = map(hsv2rgb, itertools.izip(newh,news,newv))
+        palette[:] = map(None, itertools.izip(newr,newg,newb))
 
-        yield (title,palette)
+        yield (item_name,palette)
 
 
 class GradientBrowser(wx.Panel):
