@@ -109,7 +109,7 @@ class Renderer():
 
     @Catches(wx.PyDeadObjectError)
     def process(self, callback, args, kwds):
-        can_cancel = kwds.pop("can_cancel", False)
+        cancel_func = kwds.pop("cancel_func", None)
         renderer = kwds.pop("renderer")
         try:
             render = render_funcs[renderer]
@@ -124,7 +124,8 @@ class Renderer():
 
         # HACK: If by the time the render finishes it has been obsoleted,
         # don't return the buffer in case of a large preview.
-        if can_cancel and self.previewflag:
+        if cancel_func is not None and self.previewflag:
+            cancel_func()
             return
 
         if renderer == 'flam4':

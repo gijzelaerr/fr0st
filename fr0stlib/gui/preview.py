@@ -19,17 +19,63 @@
 #  the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 #  Boston, MA 02111-1307, USA.
 ##############################################################################
-import wx, sys, numpy as N
+import wx, sys, numpy as N, time
+from functools import partial
 
 from fr0stlib.decorators import *
 from config import config
 from _events import InMainFast
 
 
-class PreviewFrame(wx.Frame):
+class ImageCache(object):
+    def __init__(self, maxmb=50, penalty=100*1024):
+        # penalty is an arbitrary constant added to the weight of each image,
+        # which affects small images more than larger ones. This ensures that
+        # sorting speed won't be affected too much by many small images.
+        self.maxbytes = maxmb * 1024**2
+        self.penalty = penalty
+        self.d = {}
+        self.timedict = {}
+        self.currentbytes = 0
 
+
+    def reset(self):
+        self.d.clear()
+        self.currentbytes = 0
+            
+
+    def lighten(self):
+        # Delete items from the cache until it's more than 50% empty
+        for v,k in sorted((v,k) for (k,v) in self.timedict.items()):
+            del self.d[k], self.timedict[k]
+            w,h = k[1]
+            self.currentbytes -= w * h * 3 + self.penalty
+            if self.currentbytes < self.maxbytes / 2:
+                break
+            
+
+    def get(self, parameter, size):
+        k = parameter, size
+        v = self.d.get(k)
+        if v is not None:
+            self.timedict[k] = time.time()
+        return v
+
+
+    def put(self, parameter, size, bmp):
+        k = parameter, size
+        self.d[k] = bmp
+        self.timedict[k] = time.time()
+        self.currentbytes += size[0] * size[1] * 3 + self.penalty
+        if self.currentbytes > self.maxbytes:
+            self.lighten()
+        
+
+
+
+class PreviewFrame(wx.Frame):
     @BindEvents    
-    def __init__(self,parent):
+    def __init__(self, parent):
         self.title = "Flame Preview"
         self.parent = parent
         wx.Frame.__init__(self,parent,wx.ID_ANY, self.title)
@@ -37,6 +83,7 @@ class PreviewFrame(wx.Frame):
         wx.GetApp().LoadIconsInto(self)
 
         self.CreateStatusBar()
+        self.cache = ImageCache()
         
         self.image = PreviewPanel(self)
         sizer = wx.BoxSizer(wx.VERTICAL)
@@ -46,6 +93,9 @@ class PreviewFrame(wx.Frame):
 
         # This must be 0,0 so OnIdle doesn't render anything on startup.
         self._lastsize = 0,0
+
+        self.rendering = False
+        self.idlefunc = None
         
         self.SetSize((520,413))
         self.SetMinSize((128,119)) # This makes for a 120x90 bitmap
@@ -90,11 +140,13 @@ class PreviewFrame(wx.Frame):
     @Bind(wx.EVT_IDLE)
     def OnIdle(self, e):
         size = self.GetPanelSize()
-        if size == self._lastsize:
-            return
+        if size != self._lastsize:
+            self._lastsize = size
+            self.RenderPreview()
 
-        self._lastsize = size
-        self.RenderPreview()
+        if self.idlefunc and not self.rendering:
+            self.idlefunc()
+            self.idlefunc = None
         
 
     @InMainFast
@@ -102,23 +154,40 @@ class PreviewFrame(wx.Frame):
         if not self.IsShown():
             return
         flame = flame or self.parent.flame
-
+        
         pw, ph = map(float, self.GetPanelSize())
         fw, fh = map(float, flame.size)
-
         ratio = min(pw/fw, ph/fh)
         size = int(fw * ratio), int(fh * ratio)
+
+        flamestr = flame.to_string()
+        bmp = self.cache.get(flamestr, size)
+        if bmp is not None:
+            self.idlefunc = partial(self.RenderCallback,
+                                    flamestr, bmp, fromcache=True)
+            return
         
+        self.rendering = True
         req = self.parent.renderer.LargePreviewRequest
-        req(self.RenderCallback, flame, size, progress_func=self.prog,
-            can_cancel=True, **config["Large-Preview-Settings"])
+        req(partial(self.RenderCallback, flamestr), flame, size,
+            progress_func=self.prog, cancel_func=self.CancelCallback,
+            **config["Large-Preview-Settings"])
         self.SetTitle("Rendering - Flame Preview")
 
 
-    def RenderCallback(self, bmp):
+    def CancelCallback(self):
+        self.rendering = False
+
+
+    def RenderCallback(self, flamestr, bmp, fromcache=False):
         self.image.UpdateBitmap(bmp)
         self.SetTitle("%s - Flame Preview" % self.parent.flame.name)
-        self.SetStatusText("rendering: 100.00 %")
+        if fromcache:
+            self.SetStatusText("rendering: retrieved from cache")
+        else:
+            self.rendering = False
+            self.cache.put(flamestr, tuple(bmp.Size), bmp)
+            self.SetStatusText("rendering: 100.00 %")
 
 
     def prog(self, *a):
