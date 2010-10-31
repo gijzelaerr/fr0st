@@ -27,8 +27,8 @@ from fr0stlib.decorators import *
 from fr0stlib.gui.canvas import XformCanvas
 from fr0stlib.gui.utils import LoadIcon, MultiSliderMixin, Box, NumberTextCtrl,\
                           SizePanel
-from fr0stlib.gui.gradientbrowser import GradientBrowser
 from fr0stlib.gui.config import config
+from fr0stlib.gui.gradientbrowser import GradientBrowser
 from fr0stlib.gui.constants import ID
 from fr0stlib.pyflam3 import flam3_colorhist, Genome, RandomContext
 from ctypes import c_double
