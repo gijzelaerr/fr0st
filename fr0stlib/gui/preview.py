@@ -67,7 +67,6 @@ class ImageCache(object):
         self.d[k] = bmp
         self.timedict[k] = time.time()
         self.currentbytes += size[0] * size[1] * 3 + self.penalty
-        print >> sys.__stdout__, self.currentbytes / 1024.**2
         if self.currentbytes > self.maxbytes:
             self.lighten()
         
@@ -184,7 +183,7 @@ class PreviewFrame(wx.Frame):
         self.image.UpdateBitmap(bmp)
         self.SetTitle("%s - Flame Preview" % self.parent.flame.name)
         if fromcache:
-            self.SetStatusText("retrieving from cache: 100.00 %")
+            self.SetStatusText("rendering: retrieved from cache")
         else:
             self.rendering = False
             self.cache.put(flamestr, tuple(bmp.Size), bmp)
