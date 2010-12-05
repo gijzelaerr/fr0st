@@ -44,23 +44,23 @@ def angle_helper(*points):
     return high > vect > low
 
 
-class VarPreview(FC.PointSet):
+class VarPreview(object):
     def __init__(self, xform, Color):
-        self.xform = xform
-        lst = self.var_preview(xform, **config["Var-Preview-Settings"])
-        FC.PointSet.__init__(self, lst, Color=Color)
-
-    def var_preview(self, xform, range, numvals, depth):
         xform = xform._parent if xform.ispost() else xform
+        self.index = xform.index
+        if self.index is None:
+            self.index = self.genome.final_xform_index
+
+        self.genome = Genome.from_string(xform._parent.to_string(True))[0][0]
+        kwds = config["Var-Preview-Settings"].copy()
+        depth = kwds.pop("depth")
+        self.objects = [FC.PointSet(self.var_preview(depth=i + 1, **kwds), 
+                                    Color=tuple(c/(depth - i) for c in Color))
+                        for i in range(depth)]
+
+    def var_preview(self, range, numvals, depth):
         result = (c_double * (2* (2*numvals+1)**2))()
-        try:
-            genome = Genome.from_string(xform._parent.to_string(True))[0][0]
-        except Exception:
-            return [(0,0)]
-        index = xform.index
-        if index is None:
-            index = genome.final_xform_index
-        flam3_xform_preview(genome, index, range, numvals, depth,
+        flam3_xform_preview(self.genome, self.index, range, numvals, depth,
                             result, RandomContext())
         return [(x,-y) for x,y in zip(*[iter(result)]*2)]
 
@@ -163,7 +163,7 @@ class XformCanvas(FC.FloatCanvas):
               ] # TODO: extend the color list.
 
     style = "ShortDash" if "linux" in sys.platform else "Dot"
-    preview = None
+    preview = [] 
 
     @BindEvents
     def __init__(self, parent):
@@ -207,12 +207,11 @@ class XformCanvas(FC.FloatCanvas):
         flame = flame or self.parent.flame
         active = self.parent.ActiveXform
         
-        if self.preview is not None:
-            self.RemoveObject(self.preview)
-            self.preview = None
+        self.RemoveObjects(self.preview)
+        del self.preview[:]
         if config["Variation-Preview"]:
-            self.preview = VarPreview(active, Color=self.color_helper(active))
-            self.AddObject(self.preview)  
+            self.preview[:] = VarPreview(active, Color=self.color_helper(active)).objects[:]
+            self.AddObjects(self.preview)  
 
         self.RemoveObjects(self.xform_groups)
         if config['Edit-Post-Xform']:
