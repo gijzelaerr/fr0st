@@ -169,7 +169,7 @@ def number_text(panel, parent, sizer, row, label, config_section, config_key,
     else:
         section = parent.local_config
 
-    def cb(tempsave=False):
+    def cb(tc, tempsave=False):
         section[config_key] = ntc.GetFloat()    
     ntc = NumberTextCtrl(panel, min, max, callback=cb)
     ntc.SetFloat(section[config_key])
