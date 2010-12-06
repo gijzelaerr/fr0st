@@ -103,11 +103,11 @@ class PreviewPanel(wx.Panel):
         gbs = wx.GridBagSizer(5, 5)
         gbs.AddGrowableCol(0)
 
-        number_text(self, parent, gbs, 0, 'Scale', 
-                'Var-Preview-Settings', 'range', 0.1, 10.0, set_focus=True)
+        number_text(self, parent, gbs, 0, 'Range', 
+                'Var-Preview-Settings', 'range', 1.0, 5.0, set_focus=True)
         
         number_text(self, parent, gbs, 1, 'Quality', 
-                'Var-Preview-Settings', 'numvals', 10, 100, is_int=True)
+                'Var-Preview-Settings', 'numvals', 5, 50, is_int=True)
 
         number_text(self, parent, gbs, 2, 'Depth',
                 'Var-Preview-Settings', 'depth', 1, 10, is_int=True) 
@@ -122,10 +122,10 @@ class PreviewPanel(wx.Panel):
                 'Preview-Settings', 'quality', 1, 100, is_int=True)
 
         number_text(self, parent, gbs, 1, 'Density Estimator', 
-                'Preview-Settings', 'estimator', 0, 20) 
+                'Preview-Settings', 'estimator', 0, 10) 
 
         number_text(self, parent, gbs, 2, 'Filter Radius', 
-                'Preview-Settings', 'filter_radius', 0.0, 5.0)
+                'Preview-Settings', 'filter_radius', 0.0, 2.0)
 
         return Box(self, 'Preview', (gbs, 0, wx.EXPAND))
 
@@ -137,13 +137,13 @@ class PreviewPanel(wx.Panel):
                 'Large-Preview-Settings', 'quality', 1, 1000, is_int=True)
 
         number_text(self, parent, gbs, 1, 'Density Estimator', 
-                'Large-Preview-Settings', 'estimator', 0, 20)
+                'Large-Preview-Settings', 'estimator', 0, 10)
 
         number_text(self, parent, gbs, 2, 'Filter Radius', 
-                'Large-Preview-Settings', 'filter_radius', 0.0, 5.0)
+                'Large-Preview-Settings', 'filter_radius', 0.0, 2.0)
 
         number_text(self, parent, gbs, 3, 'Oversample', 
-                'Large-Preview-Settings', 'spatial_oversample', 1, 8, is_int=True)
+                'Large-Preview-Settings', 'spatial_oversample', 1, 4, is_int=True)
 
         return Box(self, 'Large Preview', (gbs, 0, wx.EXPAND))
 
