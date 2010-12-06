@@ -135,6 +135,9 @@ class RenderDialog(wx.Frame):
         q.MakeIntOnly()
         q.low = 1
         
+        e = self.dict["estimator"]
+        e.low = 0.0
+
         os = self.dict["spatial_oversample"]
         os.MakeIntOnly()
         os.SetAllowedRange(1,16)
