@@ -104,13 +104,13 @@ class PreviewPanel(wx.Panel):
         gbs.AddGrowableCol(0)
 
         number_text(self, parent, gbs, 0, 'Scale', 
-                'Var-Preview-Settings', 'range', 0.1, 5, set_focus=True)
+                'Var-Preview-Settings', 'range', 0.1, 10.0, set_focus=True)
         
         number_text(self, parent, gbs, 1, 'Quality', 
-                'Var-Preview-Settings', 'numvals', 10, 40, is_int=True)
+                'Var-Preview-Settings', 'numvals', 10, 100, is_int=True)
 
         number_text(self, parent, gbs, 2, 'Depth',
-                'Var-Preview-Settings', 'depth', 1, 5, is_int=True) 
+                'Var-Preview-Settings', 'depth', 1, 10, is_int=True) 
 
         return Box(self, 'Variation Preview', (gbs, 0, wx.EXPAND))
 
@@ -119,13 +119,13 @@ class PreviewPanel(wx.Panel):
         gbs.AddGrowableCol(0)
 
         number_text(self, parent, gbs, 0, 'Quality', 
-                'Preview-Settings', 'quality', 1, 20, is_int=True)
+                'Preview-Settings', 'quality', 1, 100, is_int=True)
 
         number_text(self, parent, gbs, 1, 'Density Estimator', 
-                'Preview-Settings', 'estimator', 0, 20, is_int=True)
+                'Preview-Settings', 'estimator', 0, 20) 
 
         number_text(self, parent, gbs, 2, 'Filter Radius', 
-                'Preview-Settings', 'filter_radius', 0, 10)
+                'Preview-Settings', 'filter_radius', 0.0, 5.0)
 
         return Box(self, 'Preview', (gbs, 0, wx.EXPAND))
 
@@ -137,13 +137,13 @@ class PreviewPanel(wx.Panel):
                 'Large-Preview-Settings', 'quality', 1, 1000, is_int=True)
 
         number_text(self, parent, gbs, 1, 'Density Estimator', 
-                'Large-Preview-Settings', 'estimator', 0, 20, is_int=True)
+                'Large-Preview-Settings', 'estimator', 0, 20)
 
         number_text(self, parent, gbs, 2, 'Filter Radius', 
-                'Large-Preview-Settings', 'filter_radius', 0, 10)
+                'Large-Preview-Settings', 'filter_radius', 0.0, 5.0)
 
         number_text(self, parent, gbs, 3, 'Oversample', 
-                'Large-Preview-Settings', 'spatial_oversample', 0, 5, is_int=True)
+                'Large-Preview-Settings', 'spatial_oversample', 1, 8, is_int=True)
 
         return Box(self, 'Large Preview', (gbs, 0, wx.EXPAND))
 
@@ -171,8 +171,7 @@ def number_text(panel, parent, sizer, row, label, config_section, config_key,
 
     def cb(tc, tempsave=False):
         section[config_key] = ntc.GetFloat()    
-    ntc = NumberTextCtrl(panel, min, max, callback=cb)
-    ntc.SetFloat(section[config_key])
+    ntc = NumberTextCtrl(panel, section[config_key], min, max, callback=cb)
     if is_int:
         ntc.MakeIntOnly()
     if set_focus:
