@@ -14,6 +14,8 @@ _ugr_main_re = re.compile(
 
 _ugr_inner_re = re.compile('\s*index=(\d+)\s*color=(\d+)')
 
+_xml_main_re = re.compile('\<palette .*? name=\"(.*?)\" data=\"([\w\s]+)\"')
+
 def _load_ugr_iter(filename):
     with open(filename) as  gradient_fd:
         text = gradient_fd.read()
@@ -71,6 +73,29 @@ def _load_ugr_iter(filename):
 
         yield (item_name,palette)
 
+def _load_xml_iter(filename):
+    with open(filename) as  gradient_fd:
+        text = gradient_fd.read()
+
+    for match in _xml_main_re.finditer(text):
+
+        item_name, inner = match.groups()
+
+        # get rid of whitespace
+        inner = re.sub('\s+','',inner)
+
+        # get rid of leading 00's
+        print inner
+        arr = []
+        for i in range(0, len(inner), 8):
+            arr.append(inner[i+2:i+8])
+
+        # make a list of the hex pairs
+        lst = re.findall('[a-f0-9]{2}', ''.join(arr), re.I)
+        palette = Palette()
+        palette.data = zip(*[(int(i, 16) for i in lst)]*3)
+
+        yield (item_name, palette)
 
 class GradientBrowser(wx.Panel):
 
@@ -81,6 +106,7 @@ class GradientBrowser(wx.Panel):
         mask = ("Gradient Files (*.ugr)|*.ugr|"
                 "Map Files (*.map)|*.map|"
                 "Flame Files (*.flame)|*.flame|"
+                "Flam3 XML Palette (*.xml)|*.xml|"
                 "All files (*.*)|*.*")
 
         path = os.path.abspath(config["flamepath"])
@@ -141,6 +167,8 @@ class GradientBrowser(wx.Panel):
             return ((os.path.splitext(os.path.basename(path))[0], p),)
         elif ext == ".ugr":
             return list(_load_ugr_iter(path))
+        elif ext == ".xml":
+            return list(_load_xml_iter(path))
         
 
     def OnCombo(self, e):
