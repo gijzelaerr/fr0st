@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 ##############################################################################
 #  Fractal Fr0st - fr0st
 #  https://launchpad.net/fr0st
@@ -49,3 +50,10 @@ def export_src(version, path):
     # clean up
     shutil.rmtree(tempdir)
 
+
+version = fr0stlib.VERSION.split()[1]
+release_dir = os.path.join('..', 'releases', version)
+if not os.path.exists(release_dir):
+    os.makedirs(release_dir)
+
+export_src(version, release_dir)

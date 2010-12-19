@@ -28,14 +28,7 @@
 import os, shutil
 
 import fr0stlib
-from export_src import export_src
 
-version = fr0stlib.VERSION.split()[1]
-release_dir = os.path.join('..', 'releases', version)
-if not os.path.exists(release_dir):
-    os.makedirs(release_dir)
-
-export_src(version, release_dir)
 
 shutil.rmtree('build')
 shutil.move(os.path.abspath(os.path.join('dist', 'Output', 'setup.exe')),
