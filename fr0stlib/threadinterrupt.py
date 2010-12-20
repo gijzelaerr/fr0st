@@ -32,11 +32,11 @@ def interrupt(thread, exctype=ThreadInterrupt):
         raise TypeError("Only types can be raised (not instances)")
     res = ctypes.pythonapi.PyThreadState_SetAsyncExc(ctypes.c_long(thread.ident),
                                                      ctypes.py_object(exctype))
-    # res 0 means the thread doesn't exist (or has alreaday finished)
+    # res 0 means the thread doesn't exist (or has already finished)
     # res 1 is expected exit status.
     if res > 1:
-        # """if it returns a number greater than one, you're in trouble,
-        # and you should call it again with exc=NULL to revert the effect"""
+        # if it returns a number greater than one, you're in trouble,
+        # and you should call it again with exc=NULL to revert the effect
         ctypes.pythonapi.PyThreadState_SetAsyncExc(thread.ident, 0)
         raise SystemError("PyThreadState_SetAsyncExc failed")
 
