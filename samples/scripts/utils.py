@@ -32,10 +32,11 @@ def batch(func, nflames, *a, **k):
     return lst
 
 
-def animation_preview(flames):
+def animation_preview(flames, repeat=True):
     """ animate flames in an infinite loop."""
     assert fr0stlib.GUI # guard against command line scripts.
-    for f in itertools.cycle(flames):
+    itr = itertools.cycle(flames) if repeat else flames
+    for f in itr:
         fr0stlib.preview(f)
         fr0stlib.show_status("previewing %s" %f)
 
