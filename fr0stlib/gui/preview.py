@@ -28,12 +28,12 @@ from _events import InMainFast
 
 
 class ImageCache(object):
-    def __init__(self, maxmb=50, penalty=100*1024):
+    def __init__(self, maxmb=50, penalty=0.5):
         # penalty is an arbitrary constant added to the weight of each image,
         # which affects small images more than larger ones. This ensures that
         # sorting speed won't be affected too much by many small images.
         self.maxbytes = maxmb * 1024**2
-        self.penalty = penalty
+        self.penalty = penalty * 1024**2
         self.d = {}
         self.timedict = {}
         self.currentbytes = 0
