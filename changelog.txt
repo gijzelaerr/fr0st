@@ -10,6 +10,7 @@ GUI:
 Bugfixes:
     -Fixed a bug that made it impossible to change some of the configuration settings.
     -Added space requirement of output image to memory calculation in render dialog.
+    -Installer now displays the correct version.
     -Various small fixes.
 
 
