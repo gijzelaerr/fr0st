@@ -891,7 +891,7 @@ class ImagePanel(PreviewBase):
         one redundant preview is rendered."""
         flame = flame or self.parent.flame
 
-        ratio = 200. / max(flame.size)
+        ratio = min(230./flame.width, 210./flame.height)
         size = [int(i * ratio) for i in flame.size]
         # We can't pass in the flame itself to the render request, since this
         # function is usually called on the same flame repeatedly, with changes
