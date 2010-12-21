@@ -59,6 +59,7 @@ class ConfigDialog(wx.Dialog):
         # Immediately update GUI to see changes in quality, etc.
         self.Parent.canvas.ShowFlame(rezoom=False)
         self.Parent.image.RenderPreview()
+        self.Parent.previewframe.cache.clear()
         self.Parent.previewframe.RenderPreview()
 
 

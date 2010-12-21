@@ -39,7 +39,7 @@ class ImageCache(object):
         self.currentbytes = 0
 
 
-    def reset(self):
+    def clear(self):
         self.d.clear()
         self.currentbytes = 0
             
