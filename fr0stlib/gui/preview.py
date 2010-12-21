@@ -160,7 +160,11 @@ class PreviewFrame(wx.Frame):
         ratio = min(pw/fw, ph/fh)
         size = int(fw * ratio), int(fh * ratio)
 
+        # Remove name so that cache will hit if that's the only difference.
+        oldname, flame.name = flame.name, ""
         flamestr = flame.to_string()
+        flame.name = oldname
+
         bmp = self.cache.get(flamestr, size)
         if bmp is not None:
             self.idlefunc = partial(self.RenderCallback,
