@@ -27,6 +27,10 @@ from py2exe.build_exe import py2exe
 import os, sys, glob, shutil
 import _winreg
 
+import fr0stlib
+
+VERSION = fr0stlib.VERSION.split()[1]
+
 
 if len(sys.argv) == 1:
     sys.argv.append('py2exe') # If not specified, build the installer
@@ -57,7 +61,7 @@ sys.path.append(VC_REDIST_DIR)
 #  And some InnoSetup stuff
 
 class InnoScript:
-    def __init__(self, name, lib_dir, dist_dir, windows_exe_files = [], lib_files = [], version = "1.0"):
+    def __init__(self, name, lib_dir, dist_dir, windows_exe_files=[], lib_files=[], version=VERSION):
         self.lib_dir = lib_dir
         self.dist_dir = dist_dir
         if not self.dist_dir[-1] in "\\/":
@@ -115,7 +119,7 @@ class build_exe_plus_installer(py2exe):
         py2exe.run(self)
         
         # create the Installer, using the files py2exe has created.
-        script = InnoScript("fr0st",
+        script = InnoScript("Fractal Fr0st",
                             self.lib_dir,
                             self.dist_dir,
                             self.windows_exe_files + self.console_exe_files,
