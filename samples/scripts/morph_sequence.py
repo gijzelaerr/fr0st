@@ -9,7 +9,7 @@ def interpolate(flames):
     genomes, ngenomes = Genome.from_string(s)
     
     target = Genome()
-    for i in range(flames[0].time, flames[-1].time + 1):
+    for i in range(int(flames[0].time), int(flames[-1].time + 1)):
         flam3_interpolate(genomes, ngenomes, i, 0, byref(target))
         flame = Flame(target.to_string())
         flame.name = "morphed_%04d" % i
@@ -57,5 +57,5 @@ flame_gen = interpolate(flames)
 if preview_only:
     animation_preview(flame_gen)
 else:
-    save_flames("parameters/morph_sequence.flame", *flame_gen,
+    save_flames("parameters/morph_sequence.flame", *tuple(flame_gen),
                 confirm=False)
