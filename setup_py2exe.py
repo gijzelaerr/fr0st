@@ -153,23 +153,24 @@ includes = [
         'xml.etree',
         'xml.etree.ElementTree', 
         'xml.etree.cElementTree', 
-        'pyexpat'
+        'pyexpat',
+        'hashlib',
         ]
 
 excludes = [
     'BaseHTTPServer', 'ConfigParser', 'Queue',
     'SocketServer', 'Tkconstants', 'Tkinter',
     '_gtkagg', '_socket', '_ssl', '_tkagg',
-    'base64', 'bdb', 'bisect', 'bsddb', 'bz2',
+    'base64', 'bdb', 'bsddb', 'bz2',
     'cPickle', 'calendar', 'cmd', 'compiler', 'cookielib',
-    'ctypes.util', 'curses', 'datetime', 'difflib', 'difflib',
-    'doctest', 'email', 'hashlib', 'multiprocessing',
+    'ctypes.util', 'curses', 'datetime',
+    'doctest', 'email', 'multiprocessing',
     'numpy.core._dotblas', 'numpy.numarray', 'numpy.numarray.util',
     'numpy.random', 'optparse', 'parser', 'pdb', 'pkgutil', 
     'pydoc', 'pyreadline', 'pywin.debugger',
     'pywin.debugger.dbgcon', 'pywin.dialogs', 'readline', 'rfc822',
     'select', 'sets', 'shlex', 'signal', 'socket', 'ssl', 'subprocess',
-    'symbol', 'symtable', 'tcl', 'textwrap', 'tty', 'uu', 'weakref',
+    'symbol', 'symtable', 'tcl', 'textwrap', 'tty', 'uu',
     'webbrowser', 'xmlrpclib', 'zipfile', 'zipimport',
 ]
 
