@@ -46,12 +46,12 @@ def angle_helper(*points):
 
 class VarPreview(object):
     def __init__(self, xform, Color):
+        self.genome = Genome.from_string(xform._parent.to_string(True))[0][0]
         xform = xform._parent if xform.ispost() else xform
         self.index = xform.index
         if self.index is None:
             self.index = self.genome.final_xform_index
 
-        self.genome = Genome.from_string(xform._parent.to_string(True))[0][0]
         kwds = config["Var-Preview-Settings"].copy()
         depth = kwds.pop("depth")
         self.objects = [FC.PointSet(self.var_preview(depth=i + 1, **kwds), 
