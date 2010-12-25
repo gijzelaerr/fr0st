@@ -59,6 +59,7 @@ class VarPreview(object):
                         for i in range(depth)]
 
     def var_preview(self, range, numvals, depth):
+        numvals = int(numvals * range)
         result = (c_double * (2* (2*numvals+1)**2))()
         flam3_xform_preview(self.genome, self.index, range, numvals, depth,
                             result, RandomContext())
