@@ -56,8 +56,8 @@ def init_config(path):
           "Variation-Preview": True,
           "Edit-Post-Xform": False,
           "Var-Preview-Settings": {"range": 2,
-                                   "numvals": 20,
-                                   "depth": 1},
+                                   "numvals": 10,
+                                   "depth": 3},
           "Preview-Settings": {"quality": 5,
                                "estimator": 0,
                                "filter_radius": 0},
@@ -106,6 +106,11 @@ def init_config(path):
     
     if os.path.exists(path):
         update_dict(config, load_config(path))
+
+    # HACK: 1.4 changes the definition of depth and numvals, so the older, obsolete setting needs to be 
+    # overwritten when updating to 1.4. This code should be removed after 1.4 is released.
+    config["Var-Preview-Settings"]["depth"] = 3
+    config["Var-Preview-Settings"]["numvals"] = 10
 
     # We always want to open an existing flame file. This also takes care of
     # older (1.0beta) config files, where a plain 'samples.flame' was included.
