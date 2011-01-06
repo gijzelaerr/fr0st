@@ -105,13 +105,13 @@ class PreviewPanel(wx.Panel):
         gbs.AddGrowableCol(0)
 
         number_text(self, parent, gbs, 0, 'Range', 
-                'Var-Preview-Settings', 'range', 1.0, 5.0, set_focus=True)
+                'Xform-Preview-Settings', 'range', 1.0, 5.0, set_focus=True)
         
         number_text(self, parent, gbs, 1, 'Quality', 
-                'Var-Preview-Settings', 'numvals', 5, 50, is_int=True)
+                'Xform-Preview-Settings', 'numvals', 5, 50, is_int=True)
 
         number_text(self, parent, gbs, 2, 'Depth',
-                'Var-Preview-Settings', 'depth', 1, 10, is_int=True) 
+                'Xform-Preview-Settings', 'depth', 1, 10, is_int=True) 
 
         return Box(self, 'Variation Preview', (gbs, 0, wx.EXPAND))
 

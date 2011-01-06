@@ -52,7 +52,7 @@ class VarPreview(object):
         if self.index is None:
             self.index = self.genome.final_xform_index
 
-        kwds = config["Var-Preview-Settings"].copy()
+        kwds = config["Xform-Preview-Settings"].copy()
         depth = kwds.pop("depth")
         self.objects = [FC.PointSet(self.var_preview(depth=i + 1, **kwds), 
                                     Color=tuple(c/(depth - i) for c in Color))
