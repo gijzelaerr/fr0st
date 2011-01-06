@@ -539,11 +539,6 @@ class XformCanvas(FC.FloatCanvas):
             self._left_drag = e.Coords
 
         else:
-            # TODO: maybe uncomment this SetFocus, but activate it only
-            # when main frame has focus.
-##            self.SetFocus() # Makes Canvas take focus under windows.
-
-
             # First, test for vertices
             point, xform, cb = self.VertexHitTest(*e.Coords)
             if cb:
@@ -559,9 +554,7 @@ class XformCanvas(FC.FloatCanvas):
                 return
 
             # Finally, test for area
-
             xform, cb = self.XformHitTest(*e.Coords)
-
             if cb:
                 self.SelectXform(xform)
                 self.callback = cb
