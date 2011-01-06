@@ -198,7 +198,6 @@ class XformCanvas(FC.FloatCanvas):
         # These mark different states of the canvas
         self.parent.ActiveXform = None
         self.SelectedXform = None
-        self._highlight = None
         self.HasChanged = False
         self.StartMove = None
         self.callback = None
@@ -306,13 +305,14 @@ class XformCanvas(FC.FloatCanvas):
             a,d,b,e,c,f = xf.coefs
 
             if polar((x - c, y - f))[0] < self.circle_radius:
-                return (xform, partial(setattr, xf, "pos") if config["Lock-Axes"] else partial(setattr, xf, "o"))
+                cb = partial(setattr, xf, "pos") if config["Lock-Axes"] else partial(setattr, xf, "o")
+                return xform.o, xform, cb
             elif polar((x - a - c, y - d - f))[0] < self.circle_radius:
-                return xform, partial(setattr, xf, "x")
+                return xform.x, xform, partial(setattr, xf, "x")
             elif polar((x - b - c, y - e - f))[0] < self.circle_radius:
-                return xform, partial(setattr, xf, "y")
+                return xform.y, xform, partial(setattr, xf, "y")
 
-        return None, None
+        return None, None, None
 
 
 
@@ -542,16 +542,16 @@ class XformCanvas(FC.FloatCanvas):
 
 
             # First, test for vertices
-            xform, cb = self.VertexHitTest(*e.Coords)
+            point, xform, cb = self.VertexHitTest(*e.Coords)
             if cb:
-                self.SelectXform(xform)
+                self.SelectXform(xform, highlight_point=point)
                 self.callback = cb
                 return
 
             # Then, test for sides
             line, xform, cb = self.SideHitTest(*e.Coords)
             if cb:
-                self.SelectXform(xform, highlight=line)
+                self.SelectXform(xform, highlight_line=line)
                 self.callback = cb
                 return
 
@@ -571,13 +571,8 @@ class XformCanvas(FC.FloatCanvas):
                 self.ShowFlame(rezoom=False)
 
 
-    def SelectXform(self, xform, highlight=None):
-        if self.SelectedXform == xform and self._highlight == highlight:
-            return
-
+    def SelectXform(self, xform, highlight_line=None, highlight_point=None):
         self.SelectedXform = xform
-        self._highlight = highlight
-
         color = self.color_helper(xform)
 
         if not xform.ispost():
@@ -590,9 +585,12 @@ class XformCanvas(FC.FloatCanvas):
                 self.objects.append(self.AddText(i, self.PixelToWorld((hor,ver)),
                                     Size = 8, Position = "tr", Color=color))
 
-        if highlight:
-            self.objects.append(self.AddLine(highlight, LineColor=color,
+        if highlight_line is not None:
+            self.objects.append(self.AddLine(highlight_line, LineColor=color,
                                              LineWidth=2))
+        if highlight_point is not None:
+            self.objects.append(self.AddCircle(highlight_point, Diameter=self.circle_radius * 1.7,
+                                              FillColor=color))
         self.ShowFlame(rezoom=False)
 
 
