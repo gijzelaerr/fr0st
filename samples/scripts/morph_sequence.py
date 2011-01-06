@@ -25,7 +25,7 @@ def getinput():
                  ("Last flame", flames, len(flames) - 1),
                  ("keyframe interval", int, 0),
                  ("wrap around", bool),
-                 ("preview only", bool))
+                 ("preview only", bool, True))
     first, last, interval, wrap, preview = res
     flames = flames[flames.index(first):flames.index(last)+1]
     if len(flames) < 2:
