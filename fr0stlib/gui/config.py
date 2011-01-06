@@ -39,6 +39,8 @@ def dump_config(path):
 
 def update_dict(old, new):
     for k,v in new.iteritems():
+        if k not in old:
+            continue
         if type(v) == dict:
             update_dict(old[k], v)
         else:
