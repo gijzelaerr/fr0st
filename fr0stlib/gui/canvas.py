@@ -489,6 +489,9 @@ class XformCanvas(FC.FloatCanvas):
         self.RemoveObjects(self.shadow)
         self.shadow = []
 
+        # this triggers the checks for vertex and side highlighting.
+        self.OnMove(e)
+
         if self.HasChanged:
             # Heisenbug, thou art no more! Since TempSave triggers a redraw,
             # It was possible that an idle event was still pending afterwards,
