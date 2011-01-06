@@ -299,18 +299,17 @@ class XformCanvas(FC.FloatCanvas):
 
     def VertexHitTest(self,x,y):
         """Checks if the given point is on top of a vertex."""
-
         for xform in self.IterXforms():
-            xf = xform # TODO:refactor
-            a,d,b,e,c,f = xf.coefs
+            a,d,b,e,c,f = xform.coefs
 
             if polar((x - c, y - f))[0] < self.circle_radius:
-                cb = partial(setattr, xf, "pos") if config["Lock-Axes"] else partial(setattr, xf, "o")
+                cb = (partial(setattr, xform, "pos") if config["Lock-Axes"] 
+                      else partial(setattr, xform, "o"))
                 return xform.o, xform, cb
             elif polar((x - a - c, y - d - f))[0] < self.circle_radius:
-                return xform.x, xform, partial(setattr, xf, "x")
+                return xform.x, xform, partial(setattr, xform, "x")
             elif polar((x - b - c, y - e - f))[0] < self.circle_radius:
-                return xform.y, xform, partial(setattr, xf, "y")
+                return xform.y, xform, partial(setattr, xform, "y")
 
         return None, None, None
 
@@ -401,13 +400,12 @@ class XformCanvas(FC.FloatCanvas):
         at least 2 of its vertices."""
 
         for xform in self.IterXforms():
-            xf = xform #TODO:refactor
-            a,d,b,e,c,f = xf.coefs
+            a,d,b,e,c,f = xform.coefs
 
             if angle_helper((x-c, y-f), (a, d), (b, e)) and \
                angle_helper((x-a-c, y-d-f), (-a, -d), (b-a, e-d)):
                 diff = x - c, y - f
-                return xform, lambda coord: setattr(xf, "pos", coord-diff)
+                return xform, lambda coord: setattr(xform, "pos", coord-diff)
 
         return None, None
 
