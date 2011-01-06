@@ -530,42 +530,37 @@ class XformCanvas(FC.FloatCanvas):
         if  e.RightIsDown() and e.Dragging() and self.StartMove is not None:
             self.EndMove = N.array(e.GetPosition())
             self._right_drag = self.StartMove - self.EndMove
-
         elif self.parent.scriptrunning:
             # Disable everything except canvas dragging.
-            return
-
+            pass
         elif e.LeftIsDown() and e.Dragging():
             self._left_drag = e.Coords
-
         else:
-            # First, test for vertices
-            point, xform, cb = self.VertexHitTest(*e.Coords)
-            if cb:
-                self.SelectXform(xform, highlight_point=point)
-                self.callback = cb
-                return
+            self.callback = self.PerformHitTests(e.Coords)
+            self.ShowFlame(rezoom=False)
 
-            # Then, test for sides
-            line, xform, cb = self.SideHitTest(*e.Coords)
-            if cb:
-                self.SelectXform(xform, highlight_line=line)
-                self.callback = cb
-                return
 
-            # Finally, test for area
-            xform, cb = self.XformHitTest(*e.Coords)
-            if cb:
-                self.SelectXform(xform)
-                self.callback = cb
-                return
+    def PerformHitTests(self, coords):
+        # First, test for vertices
+        point, xform, cb = self.VertexHitTest(*coords)
+        if cb:
+            self.SelectXform(xform, highlight_point=point)
+            return cb
 
-            if self.SelectedXform is not None:
-                # Showflame is called here because SelectXform is not.
-                self.SelectedXform = None
-                self.callback = None
-                self.ShowFlame(rezoom=False)
+        # Then, test for sides
+        line, xform, cb = self.SideHitTest(*coords)
+        if cb:
+            self.SelectXform(xform, highlight_line=line)
+            return cb
 
+        # Finally, test for area
+        xform, cb = self.XformHitTest(*coords)
+        if cb:
+            self.SelectXform(xform)
+            return cb
+
+        self.SelectedXform = None
+        
 
     def SelectXform(self, xform, highlight_line=None, highlight_point=None):
         self.SelectedXform = xform
@@ -587,7 +582,6 @@ class XformCanvas(FC.FloatCanvas):
         if highlight_point is not None:
             self.objects.append(self.AddCircle(highlight_point, Diameter=self.circle_radius * 1.7,
                                               FillColor=color))
-        self.ShowFlame(rezoom=False)
 
 
     # Win uses MidMove, while Linux uses StartMove (WHY?). This makes the code
