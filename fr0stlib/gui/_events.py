@@ -51,10 +51,9 @@ def InMain(f):
         wx.PostEvent(wx.GetApp(), ThreadMessageEvent(__ID, res, f, a, k))
         while not res:
             time.sleep(.0001)
-        result = res[0]
-        if isinstance(result, Exception):
-            raise result
-        return result
+        if len(res) == 3:
+            raise res[0], res[1], res[2]
+        return res[0]
     return inner
 
 
@@ -77,7 +76,7 @@ def __callback(e):
     try:
         res.append(f(*a, **k))
     except Exception as e:
-        res.append(e)
+        res.extend(sys.exc_info())
 
 
 def __callback_fast(e):
