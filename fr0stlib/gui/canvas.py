@@ -198,7 +198,6 @@ class XformCanvas(FC.FloatCanvas):
         # These mark different states of the canvas
         self.parent.ActiveXform = None
         self.SelectedXform = None
-        self._highlight = None
         self.HasChanged = False
         self.StartMove = None
         self.callback = None
@@ -300,19 +299,19 @@ class XformCanvas(FC.FloatCanvas):
 
     def VertexHitTest(self,x,y):
         """Checks if the given point is on top of a vertex."""
-
         for xform in self.IterXforms():
-            xf = xform # TODO:refactor
-            a,d,b,e,c,f = xf.coefs
+            a,d,b,e,c,f = xform.coefs
 
             if polar((x - c, y - f))[0] < self.circle_radius:
-                return (xform, partial(setattr, xf, "pos") if config["Lock-Axes"] else partial(setattr, xf, "o"))
+                cb = (partial(setattr, xform, "pos") if config["Lock-Axes"] 
+                      else partial(setattr, xform, "o"))
+                return xform.o, xform, cb
             elif polar((x - a - c, y - d - f))[0] < self.circle_radius:
-                return xform, partial(setattr, xf, "x")
+                return xform.x, xform, partial(setattr, xform, "x")
             elif polar((x - b - c, y - e - f))[0] < self.circle_radius:
-                return xform, partial(setattr, xf, "y")
+                return xform.y, xform, partial(setattr, xform, "y")
 
-        return None, None
+        return None, None, None
 
 
 
@@ -401,13 +400,12 @@ class XformCanvas(FC.FloatCanvas):
         at least 2 of its vertices."""
 
         for xform in self.IterXforms():
-            xf = xform #TODO:refactor
-            a,d,b,e,c,f = xf.coefs
+            a,d,b,e,c,f = xform.coefs
 
             if angle_helper((x-c, y-f), (a, d), (b, e)) and \
                angle_helper((x-a-c, y-d-f), (-a, -d), (b-a, e-d)):
                 diff = x - c, y - f
-                return xform, lambda coord: setattr(xf, "pos", coord-diff)
+                return xform, lambda coord: setattr(xform, "pos", coord-diff)
 
         return None, None
 
@@ -489,6 +487,9 @@ class XformCanvas(FC.FloatCanvas):
         self.RemoveObjects(self.shadow)
         self.shadow = []
 
+        # this triggers the checks for vertex and side highlighting.
+        self.OnMove(e)
+
         if self.HasChanged:
             # Heisenbug, thou art no more! Since TempSave triggers a redraw,
             # It was possible that an idle event was still pending afterwards,
@@ -527,57 +528,40 @@ class XformCanvas(FC.FloatCanvas):
         if  e.RightIsDown() and e.Dragging() and self.StartMove is not None:
             self.EndMove = N.array(e.GetPosition())
             self._right_drag = self.StartMove - self.EndMove
-
         elif self.parent.scriptrunning:
             # Disable everything except canvas dragging.
-            return
-
+            pass
         elif e.LeftIsDown() and e.Dragging():
             self._left_drag = e.Coords
-
         else:
-            # TODO: maybe uncomment this SetFocus, but activate it only
-            # when main frame has focus.
-##            self.SetFocus() # Makes Canvas take focus under windows.
+            self.callback = self.PerformHitTests(e.Coords)
+            self.ShowFlame(rezoom=False)
 
 
-            # First, test for vertices
-            xform, cb = self.VertexHitTest(*e.Coords)
-            if cb:
-                self.SelectXform(xform)
-                self.callback = cb
-                return
+    def PerformHitTests(self, coords):
+        # First, test for vertices
+        point, xform, cb = self.VertexHitTest(*coords)
+        if cb:
+            self.SelectXform(xform, highlight_point=point)
+            return cb
 
-            # Then, test for sides
-            line, xform, cb = self.SideHitTest(*e.Coords)
-            if cb:
-                self.SelectXform(xform, highlight=line)
-                self.callback = cb
-                return
+        # Then, test for sides
+        line, xform, cb = self.SideHitTest(*coords)
+        if cb:
+            self.SelectXform(xform, highlight_line=line)
+            return cb
 
-            # Finally, test for area
+        # Finally, test for area
+        xform, cb = self.XformHitTest(*coords)
+        if cb:
+            self.SelectXform(xform)
+            return cb
 
-            xform, cb = self.XformHitTest(*e.Coords)
+        self.SelectedXform = None
+        
 
-            if cb:
-                self.SelectXform(xform)
-                self.callback = cb
-                return
-
-            if self.SelectedXform is not None:
-                # Showflame is called here because SelectXform is not.
-                self.SelectedXform = None
-                self.callback = None
-                self.ShowFlame(rezoom=False)
-
-
-    def SelectXform(self, xform, highlight=None):
-        if self.SelectedXform == xform and self._highlight == highlight:
-            return
-
+    def SelectXform(self, xform, highlight_line=None, highlight_point=None):
         self.SelectedXform = xform
-        self._highlight = highlight
-
         color = self.color_helper(xform)
 
         if not xform.ispost():
@@ -590,10 +574,12 @@ class XformCanvas(FC.FloatCanvas):
                 self.objects.append(self.AddText(i, self.PixelToWorld((hor,ver)),
                                     Size = 8, Position = "tr", Color=color))
 
-        if highlight:
-            self.objects.append(self.AddLine(highlight, LineColor=color,
+        if highlight_line is not None:
+            self.objects.append(self.AddLine(highlight_line, LineColor=color,
                                              LineWidth=2))
-        self.ShowFlame(rezoom=False)
+        if highlight_point is not None:
+            self.objects.append(self.AddCircle(highlight_point, Diameter=self.circle_radius * 1.7,
+                                              FillColor=color))
 
 
     # Win uses MidMove, while Linux uses StartMove (WHY?). This makes the code
