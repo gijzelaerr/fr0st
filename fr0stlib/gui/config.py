@@ -101,6 +101,7 @@ def init_config(path):
           "Xform-Combo": {"rotate": 15.0,
                           "scale": 1.25,
                           "translate": 0.1},
+          "version": "Fr0st 0.0",
           })
 
     # Make a copy of default values, so they can be restored later.
