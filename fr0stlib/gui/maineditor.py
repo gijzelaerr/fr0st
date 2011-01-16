@@ -467,7 +467,7 @@ class AdjustPanel(MultiSliderMixin, wx.Panel):
         flame = self.parent.flame
         for name in self.sliders:
             self.UpdateSlider(name, getattr(flame, name))
-        self.sizepanel.UpdateSize(flame.size)
+        self.sizepanel.Size = flame.size
         self.bgcolor_panel.SetBackgroundColour(
                 tuple(c*255.0 for c in flame.background))
 
@@ -476,7 +476,7 @@ class AdjustPanel(MultiSliderMixin, wx.Panel):
         flame = self.parent.flame
         for name, val in self.IterSliders():
             setattr(flame, name, val)
-        flame.size = self.sizepanel.GetInts()
+        flame.size = self.sizepanel.Size
         flame.background = tuple(c/255.0
                         for c in self.bgcolor_panel.GetBackgroundColour())
         self.UpdateView()

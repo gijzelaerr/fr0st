@@ -149,15 +149,15 @@ class SizePanel(wx.Panel):
         box.Fit(self)
     
 
-    def GetInts(self):
-        return [int(tc.GetFloat()) for tc in (self.width, self.height)]
-
-
-    def UpdateSize(self, size):
-        width, height = (float(i) for i in size)
+    @property
+    def Size(self):
+        return [tc.GetFloat() for tc in (self.width, self.height)]
+    @Size.setter
+    def Size(self, size):
+        width, height = size
         self.width.SetFloat(width)
         self.height.SetFloat(height)
-        self.ratio = width / height
+        self._oldsize = size
 
 
     def OnRatio(self, e):
@@ -166,16 +166,12 @@ class SizePanel(wx.Panel):
 
     def SizeCallback(self, tc, tempsave=True):
         if self.keepratio:
-            v = tc.GetFloat()
-            tc.SetInt(v)
-            if tc == self.width:
-                w, h = v, v / self.ratio
-                self.height.SetInt(h)
-            else:
-                w, h = v * self.ratio, v
-                self.width.SetInt(w)
+            w, h = self.Size
+            oldw, oldh = self._oldsize
+            newsize = (int(w * h / float(oldh)), int(h * w / float(oldw)))
+            self.Size = newsize
         else:
-            self.ratio = float(self.width.GetFloat()) / self.height.GetFloat()
+            self._oldsize = self.Size
         self.callback(tempsave)
 
 
