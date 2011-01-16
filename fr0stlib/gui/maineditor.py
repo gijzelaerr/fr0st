@@ -271,7 +271,7 @@ class GradientPanel(wx.Panel):
             self._flame = self.parent.flame
 
 
-    def OptCallback(self, tc, tempsave=None):
+    def OptCallback(self, tempsave=None):
         for k,v in self.dict.iteritems():
             self.config[k] = tuple(i.GetFloat() for i in v)
 
@@ -523,7 +523,7 @@ class AnimPanel(wx.Panel):
             v.Set(getattr(flame, k))
 
 
-    def UpdateFlame(self, tc=None):
+    def UpdateFlame(self, tempsave=None):
         flame = self.parent.flame
         for k,v in self.dict.iteritems():
             setattr(flame, k, v.Get())

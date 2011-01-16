@@ -107,10 +107,7 @@ class MyChoice(wx.Choice):
         wx.Choice.__init__(self, parent, -1, choices=[k for k,_ in choices])
         if initial is not None:
             self.Set(initial)
-        if callback is not None:
-            self.callback = callback
-        else:
-            self.callback = lambda: None
+        self.callback = callback or (lambda: None)
         
 
     def Get(self):
@@ -164,7 +161,7 @@ class SizePanel(wx.Panel):
         self.keepratio = e.GetInt()
 
 
-    def SizeCallback(self, tc, tempsave=True):
+    def SizeCallback(self, tempsave=True):
         if self.keepratio:
             w, h = self.Size
             oldw, oldh = self._oldsize
@@ -193,10 +190,7 @@ class NumberTextCtrl(wx.TextCtrl):
         if int_only:
             self.MakeIntOnly()
 
-        if callback:
-            self.callback = partial(callback, self)
-        else:
-            self.callback = lambda tempsave=None: None
+        self.callback = callback or (lambda tempsave=None: None)
 
         self.HasChanged = False
         self.SetFloat(val)
@@ -381,7 +375,7 @@ class MultiSliderMixin(object):
             self._changed = True
 
 
-    def __callback(self, tc, tempsave=True):
+    def __callback(self, tempsave=True):
         self.UpdateFlame()
         if tempsave:
             self.parent.TempSave()
