@@ -201,6 +201,7 @@ class XformCanvas(FC.FloatCanvas):
         self.HasChanged = False
         self.StartMove = None
         self.callback = None
+        self.last_mouse_pos = 0,0
 
 
     def ShowFlame(self, flame=None, rezoom=True, refresh=True):
@@ -225,7 +226,7 @@ class XformCanvas(FC.FloatCanvas):
         if rezoom:
             self.ZoomToFit()
         elif refresh:
-            # This is an elif because AdjustZoom already forces a Draw.
+            # This is an elif because ZoomToFit already forces a Draw.
             self.Draw()
 
 
@@ -270,10 +271,6 @@ class XformCanvas(FC.FloatCanvas):
         diameter = self.circle_radius * 2
         map(lambda x: x.SetDiameter(diameter),
             itertools.chain(*(i._circles for i in self.xform_groups)))
-
-        # Refresh canvas
-        self._BackgroundDirty = True
-        self.Draw()
 
 
     def IterXforms(self):
@@ -417,6 +414,9 @@ class XformCanvas(FC.FloatCanvas):
         
         # Refresh grid size, etc. Factor of .8 is to leave some breathing room
         self.AdjustZoom(.8)
+        # Refresh canvas
+        self._BackgroundDirty = True
+        self.Draw()
 
 
     @Bind(wx.EVT_ENTER_WINDOW)
@@ -445,6 +445,8 @@ class XformCanvas(FC.FloatCanvas):
 
         if self._resize_pending != 1:
             self.AdjustZoom(self._resize_pending)
+            self.PerformHitTests(self.PixelToWorld(self.last_mouse_pos))
+            self.ShowFlame(rezoom=False)
             self._resize_pending = 1
 
 
@@ -522,8 +524,18 @@ class XformCanvas(FC.FloatCanvas):
 
     @Bind(FC.EVT_MOTION)
     def OnMove(self,e):
-        self.RemoveObjects(self.objects)
-        self.objects = []
+        self.ClearSelectedXform()
+
+        # HACK: OnMove event is called when scrolling with the mousewheel.
+        # This needs to be caught, but the event itself doesn't indicate
+        # that it was caused by scrolling. Use e.Position (mouse pixels)
+        # i.o. e.Coords (world coordinates), because ints can be compared
+        # and the Position remains invariant even after AdjustZoom is called.
+        # See OnIdle for reference.
+        pos = tuple(e.Position) 
+        if pos == self.last_mouse_pos:
+            return
+        self.last_mouse_pos = pos
 
         if  e.RightIsDown() and e.Dragging() and self.StartMove is not None:
             self.EndMove = N.array(e.GetPosition())
@@ -534,30 +546,34 @@ class XformCanvas(FC.FloatCanvas):
         elif e.LeftIsDown() and e.Dragging():
             self._left_drag = e.Coords
         else:
-            self.callback = self.PerformHitTests(e.Coords)
+            self.PerformHitTests(e.Coords)
             self.ShowFlame(rezoom=False)
 
 
     def PerformHitTests(self, coords):
+        if self.parent.scriptrunning:
+            return
         # First, test for vertices
         point, xform, cb = self.VertexHitTest(*coords)
         if cb:
             self.SelectXform(xform, highlight_point=point)
-            return cb
+            self.callback = cb
+            return
 
         # Then, test for sides
         line, xform, cb = self.SideHitTest(*coords)
         if cb:
             self.SelectXform(xform, highlight_line=line)
-            return cb
+            self.callback = cb
+            return 
 
         # Finally, test for area
         xform, cb = self.XformHitTest(*coords)
         if cb:
             self.SelectXform(xform)
-            return cb
+            self.callback = cb
+            return 
 
-        self.SelectedXform = None
         
 
     def SelectXform(self, xform, highlight_line=None, highlight_point=None):
@@ -580,6 +596,12 @@ class XformCanvas(FC.FloatCanvas):
         if highlight_point is not None:
             self.objects.append(self.AddCircle(highlight_point, Diameter=self.circle_radius * 1.7,
                                               FillColor=color))
+
+
+    def ClearSelectedXform(self):
+        self.SelectedXform = None
+        self.RemoveObjects(self.objects)
+        del self.objects[:]
 
 
     # Win uses MidMove, while Linux uses StartMove (WHY?). This makes the code
