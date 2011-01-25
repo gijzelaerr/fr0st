@@ -589,7 +589,11 @@ flam4 - (c) 2009 - 2010 Steven Broadhead""" % fr0stlib.VERSION,
         self.notebook.UpdateView(rezoom=rezoom)
         if self.renderdialog:
             self.renderdialog.UpdateView()
+        
+        self.RefreshUndoRedo()
 
+
+    def RefreshUndoRedo(self):
         # Set Undo and redo buttons to the correct value:
         data = self.tree.itemdata
         self.Enable(ID.UNDOALL, data.undo)
@@ -618,8 +622,10 @@ flam4 - (c) 2009 - 2010 Steven Broadhead""" % fr0stlib.VERSION,
         # HACK: this prevents loads of useless tempsaves when running a script.
         # the GUI can still be manipulated. This also prevents some weird
         # segfaults.
-        if self.scriptrunning:
-            return
+        # Update 25/01/2011: Looks like this isn't necessary anymore now
+        # that canvas is refactored.
+        ##if self.scriptrunning:
+        ##    return
 
         data = self.tree.itemdata
 
@@ -734,13 +740,6 @@ flam4 - (c) 2009 - 2010 Steven Broadhead""" % fr0stlib.VERSION,
         # Run the script
         self.RunScript(script, namespace).join()
 
-        # Teardown: Remove modules imported by the script so they can be 
-        # reloaded and clean up path.
-        sys.modules.clear()
-        sys.modules.update(sysmodules)
-        sys.path[:] = syspath
-        self.BlockGUI(False)
-        
         if namespace["update_flame"]:
             try:
                 # Check if changes made to the flame by the script are legal.
@@ -754,6 +753,13 @@ flam4 - (c) 2009 - 2010 Steven Broadhead""" % fr0stlib.VERSION,
         else:
             self.SetFlame(oldflame, rezoom=False)
 
+        # Teardown: Remove modules imported by the script so they can be 
+        # reloaded and clean up path.
+        sys.modules.clear()
+        sys.modules.update(sysmodules)
+        sys.path[:] = syspath
+        self.BlockGUI(False)
+        
 
     @Threaded
     def RunScript(self, script, namespace):
@@ -784,11 +790,12 @@ flam4 - (c) 2009 - 2010 Steven Broadhead""" % fr0stlib.VERSION,
         self.Enable(ID.RUN, not flag, editor=True)
         self.Enable(ID.STOP, flag, editor=True)
         
-        self.canvas.ClearSelectedXform()
 
         self.editor.tc.SetEditable(not flag)
         self.scriptrunning = flag
         self.SetStatusText("")
+
+        self.canvas.BlockCanvas(flag)
 
         # Disable all menus except script
         for i in range(3):
@@ -832,6 +839,9 @@ flam4 - (c) 2009 - 2010 Steven Broadhead""" % fr0stlib.VERSION,
                   self.image,
                   self.previewframe):
             i.Enable(not flag)
+
+        if not flag:
+            self.RefreshUndoRedo()
 
 
     def Enable(self, id, flag, main=True, editor=False):

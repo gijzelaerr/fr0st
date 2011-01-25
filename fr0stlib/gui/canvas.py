@@ -445,8 +445,7 @@ class XformCanvas(FC.FloatCanvas):
 
         if self._resize_pending != 1:
             self.AdjustZoom(self._resize_pending)
-            self.PerformHitTests(self.PixelToWorld(self.last_mouse_pos))
-            self.ShowFlame(rezoom=False)
+            self.PerformHitTests()
             self._resize_pending = 1
 
 
@@ -490,7 +489,7 @@ class XformCanvas(FC.FloatCanvas):
         self.shadow = []
 
         # this triggers the checks for vertex and side highlighting.
-        self.OnMove(e)
+        self.PerformHitTests()
 
         if self.HasChanged:
             # Heisenbug, thou art no more! Since TempSave triggers a redraw,
@@ -546,18 +545,21 @@ class XformCanvas(FC.FloatCanvas):
         elif e.LeftIsDown() and e.Dragging():
             self._left_drag = e.Coords
         else:
-            self.PerformHitTests(e.Coords)
-            self.ShowFlame(rezoom=False)
+            self.PerformHitTests()
 
 
-    def PerformHitTests(self, coords):
+    def PerformHitTests(self):
         if self.parent.scriptrunning:
             return
+
+        coords = self.PixelToWorld(self.last_mouse_pos)
+
         # First, test for vertices
         point, xform, cb = self.VertexHitTest(*coords)
         if cb:
             self.SelectXform(xform, highlight_point=point)
             self.callback = cb
+            self.ShowFlame(rezoom=False)
             return
 
         # Then, test for sides
@@ -565,6 +567,7 @@ class XformCanvas(FC.FloatCanvas):
         if cb:
             self.SelectXform(xform, highlight_line=line)
             self.callback = cb
+            self.ShowFlame(rezoom=False)
             return 
 
         # Finally, test for area
@@ -572,8 +575,10 @@ class XformCanvas(FC.FloatCanvas):
         if cb:
             self.SelectXform(xform)
             self.callback = cb
+            self.ShowFlame(rezoom=False)
             return 
 
+        self.ShowFlame(rezoom=False)
         
 
     def SelectXform(self, xform, highlight_line=None, highlight_point=None):
@@ -602,6 +607,14 @@ class XformCanvas(FC.FloatCanvas):
         self.SelectedXform = None
         self.RemoveObjects(self.objects)
         del self.objects[:]
+
+
+    def BlockCanvas(self, flag):
+        if not flag:
+            self.PerformHitTests()
+            return
+        self.OnLeftUp(None)
+        self.ClearSelectedXform()
 
 
     # Win uses MidMove, while Linux uses StartMove (WHY?). This makes the code
