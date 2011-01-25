@@ -784,6 +784,8 @@ flam4 - (c) 2009 - 2010 Steven Broadhead""" % fr0stlib.VERSION,
         self.Enable(ID.RUN, not flag, editor=True)
         self.Enable(ID.STOP, flag, editor=True)
         
+        self.canvas.ClearSelectedXform()
+
         self.editor.tc.SetEditable(not flag)
         self.scriptrunning = flag
         self.SetStatusText("")
