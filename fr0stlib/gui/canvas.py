@@ -255,7 +255,7 @@ class XformCanvas(FC.FloatCanvas):
                                     CrossThickness=1)
 
 
-    def AdjustZoom(self, factor):
+    def AdjustZoom(self, factor, refresh=True):
         """Changes the scale, resets the grid and circle sizes and refreshes
         the canvas."""
         self.Scale *= factor
@@ -271,6 +271,10 @@ class XformCanvas(FC.FloatCanvas):
         diameter = self.circle_radius * 2
         map(lambda x: x.SetDiameter(diameter),
             itertools.chain(*(i._circles for i in self.xform_groups)))
+
+        # Refresh canvas
+        self._BackgroundDirty = True
+        self.Draw()
 
 
     def IterXforms(self):
@@ -412,11 +416,8 @@ class XformCanvas(FC.FloatCanvas):
         points = list(itertools.chain(x.points for x in self.IterXforms()))
         self.ZoomToBB(NewBB=BBox.fromPoints(points), DrawFlag=False)
         
-        # Refresh grid size, etc. Factor of .8 is to leave some breathing room
+        # Factor of .8 is to leave some breathing room
         self.AdjustZoom(.8)
-        # Refresh canvas
-        self._BackgroundDirty = True
-        self.Draw()
 
 
     @Bind(wx.EVT_ENTER_WINDOW)
@@ -444,7 +445,7 @@ class XformCanvas(FC.FloatCanvas):
             self.MoveImage(move, 'Pixel')
 
         if self._resize_pending != 1:
-            self.AdjustZoom(self._resize_pending)
+            self.AdjustZoom(self._resize_pending, refresh=False)
             self.PerformHitTests()
             self._resize_pending = 1
 
