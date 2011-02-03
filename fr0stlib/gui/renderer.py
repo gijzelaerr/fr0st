@@ -55,7 +55,7 @@ class Renderer():
     def PreviewRequest(self, callback, *args, **kwds):
         """Schedules a render immediately after the current render is done.
         Cancels previous requests (assuming they are obsolete)."""
-        kwds["nthreads"] = 1
+        kwds["nthreads"] = -1
         kwds["fixed_seed"] = True
         kwds["renderer"] = "flam3"
         self.previewflag = 1
