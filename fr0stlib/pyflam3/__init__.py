@@ -132,10 +132,11 @@ class Frame(BaseFrame):
         if callable(progress_func):
             self.progress = ProgressFunction(progress_func)
 
-        if nthreads:
+        if nthreads > 0:
             self.nthreads = nthreads
         else:
-            self.nthreads = flam3_count_nthreads()
+            # 0: all cores, -1: all cores except 1, etc...
+            self.nthreads = max(1, flam3_count_nthreads() - nthreads)
 
 
     def iter_genomes(self):
