@@ -136,7 +136,7 @@ class Frame(BaseFrame):
             self.nthreads = nthreads
         else:
             # 0: all cores, -1: all cores except 1, etc...
-            self.nthreads = max(1, flam3_count_nthreads() - nthreads)
+            self.nthreads = max(1, flam3_count_nthreads() + nthreads)
 
 
     def iter_genomes(self):
