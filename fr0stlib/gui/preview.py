@@ -332,7 +332,7 @@ class PreviewPanel(PreviewBase):
         newimg = wx.EmptyImage(w, h, 32)
         # TODO: not sure if this is efficient for filling an image with a
         # given color. wx.Image has no other API to do this, however.
-        bgcolor = (c*256 for c in self.parent.flame.background)
+        bgcolor = (min(255, c*256) for c in self.parent.flame.background)
         newimg.SetRGBRect((0 ,0, w, h), *bgcolor)
         return newimg
     
