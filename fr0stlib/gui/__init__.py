@@ -469,7 +469,7 @@ flam4 - (c) 2009 - 2010 Steven Broadhead""" % fr0stlib.VERSION,
 
     @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=ID.STOP)
     def OnStopScript(self,e=None):
-        interruptall('RunScript')
+        interruptall('Execute')
 
 
     @Bind((wx.EVT_MENU, wx.EVT_TOOL),id=ID.EDITOR)
@@ -738,7 +738,7 @@ flam4 - (c) 2009 - 2010 Steven Broadhead""" % fr0stlib.VERSION,
         sys.path.insert(0, os.path.dirname(scriptpath))
 
         # Run the script
-        self.RunScript(script, namespace).join()
+        self.RunScript(script, namespace)
 
         if namespace["update_flame"]:
             try:
@@ -761,7 +761,6 @@ flam4 - (c) 2009 - 2010 Steven Broadhead""" % fr0stlib.VERSION,
         self.BlockGUI(False)
         
 
-    @Threaded
     def RunScript(self, script, namespace):
         print time.strftime("\n------------ %H:%M:%S ------------")
         start = time.time()
