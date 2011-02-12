@@ -128,6 +128,8 @@ class PreviewPanel(wx.Panel):
         number_text(self, parent, gbs, 2, 'Filter Radius', 
                 'Preview-Settings', 'filter_radius', 0.0, 2.0)
 
+        number_text(self, parent, gbs, 3, 'Oversample', 
+                'Preview-Settings', 'spatial_oversample', 1, 4, is_int=True)
         return Box(self, 'Preview', (gbs, 0, wx.EXPAND))
 
     def CreateLargePreviewSettings(self, parent):
