@@ -95,12 +95,12 @@ class PreviewPanel(wx.Panel):
         self.parent = parent.Parent
         wx.Panel.__init__(self, parent, -1)
         gbs = wx.GridBagSizer(5, 5)
-        gbs.Add(self.CreateVariationPreviewSettings(self.parent), (0, 0), flag=wx.EXPAND)
-        gbs.Add(self.CreateSmallPreviewSettings(self.parent), (1, 0), (1, 1), flag=wx.EXPAND)
-        gbs.Add(self.CreateLargePreviewSettings(self.parent), (0, 1), (2, 1))
+        gbs.Add(self.CreateSmallPreviewSettings(self.parent), (0, 0), flag=wx.EXPAND)
+        gbs.Add(self.CreateLargePreviewSettings(self.parent), (1, 0))
+        gbs.Add(self.CreateXformPreviewSettings(self.parent), (0, 1), flag=wx.EXPAND)
         self.SetSizerAndFit(gbs)
 
-    def CreateVariationPreviewSettings(self, parent):
+    def CreateXformPreviewSettings(self, parent):
         gbs = wx.GridBagSizer(5, 5)
         gbs.AddGrowableCol(0)
 
@@ -113,7 +113,7 @@ class PreviewPanel(wx.Panel):
         number_text(self, parent, gbs, 2, 'Depth',
                 'Xform-Preview-Settings', 'depth', 1, 10, is_int=True) 
 
-        return Box(self, 'Variation Preview', (gbs, 0, wx.EXPAND))
+        return Box(self, 'Xform Preview', (gbs, 0, wx.EXPAND))
 
     def CreateSmallPreviewSettings(self, parent):
         gbs = wx.GridBagSizer(5, 5)
