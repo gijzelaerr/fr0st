@@ -107,10 +107,7 @@ class MyChoice(wx.Choice):
         wx.Choice.__init__(self, parent, -1, choices=[k for k,_ in choices])
         if initial is not None:
             self.Set(initial)
-        if callback is not None:
-            self.callback = callback
-        else:
-            self.callback = lambda: None
+        self.callback = callback or (lambda: None)
         
 
     def Get(self):
@@ -149,33 +146,29 @@ class SizePanel(wx.Panel):
         box.Fit(self)
     
 
-    def GetInts(self):
-        return [int(tc.GetFloat()) for tc in (self.width, self.height)]
-
-
-    def UpdateSize(self, size):
-        width, height = (float(i) for i in size)
+    @property
+    def Size(self):
+        return [tc.GetFloat() for tc in (self.width, self.height)]
+    @Size.setter
+    def Size(self, size):
+        width, height = size
         self.width.SetFloat(width)
         self.height.SetFloat(height)
-        self.ratio = width / height
+        self._oldsize = size
 
 
     def OnRatio(self, e):
         self.keepratio = e.GetInt()
 
 
-    def SizeCallback(self, tc, tempsave=True):
+    def SizeCallback(self, tempsave=True):
         if self.keepratio:
-            v = tc.GetFloat()
-            tc.SetInt(v)
-            if tc == self.width:
-                w, h = v, v / self.ratio
-                self.height.SetInt(h)
-            else:
-                w, h = v * self.ratio, v
-                self.width.SetInt(w)
+            w, h = self.Size
+            oldw, oldh = self._oldsize
+            newsize = (int(w * h / float(oldh)), int(h * w / float(oldw)))
+            self.Size = newsize
         else:
-            self.ratio = float(self.width.GetFloat()) / self.height.GetFloat()
+            self._oldsize = self.Size
         self.callback(tempsave)
 
 
@@ -197,10 +190,7 @@ class NumberTextCtrl(wx.TextCtrl):
         if int_only:
             self.MakeIntOnly()
 
-        if callback:
-            self.callback = partial(callback, self)
-        else:
-            self.callback = lambda tempsave=None: None
+        self.callback = callback or (lambda tempsave=None: None)
 
         self.HasChanged = False
         self.SetFloat(val)
@@ -385,7 +375,7 @@ class MultiSliderMixin(object):
             self._changed = True
 
 
-    def __callback(self, tc, tempsave=True):
+    def __callback(self, tempsave=True):
         self.UpdateFlame()
         if tempsave:
             self.parent.TempSave()

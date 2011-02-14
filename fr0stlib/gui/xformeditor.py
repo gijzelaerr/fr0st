@@ -121,7 +121,7 @@ class XformPanel(wx.Panel):
         self.view = "triangle"
         self.parent = parent.parent
 
-        def cb(tc, tempsave=True):
+        def cb(tempsave=True):
             self.UpdateFlame(tempsave=tempsave)
             self.parent.image.RenderPreview()
             self.parent.canvas.ShowFlame(rezoom=False)

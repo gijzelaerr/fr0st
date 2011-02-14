@@ -271,7 +271,7 @@ class GradientPanel(wx.Panel):
             self._flame = self.parent.flame
 
 
-    def OptCallback(self, tc, tempsave=None):
+    def OptCallback(self, tempsave=None):
         for k,v in self.dict.iteritems():
             self.config[k] = tuple(i.GetFloat() for i in v)
 
@@ -467,7 +467,7 @@ class AdjustPanel(MultiSliderMixin, wx.Panel):
         flame = self.parent.flame
         for name in self.sliders:
             self.UpdateSlider(name, getattr(flame, name))
-        self.sizepanel.UpdateSize(flame.size)
+        self.sizepanel.Size = flame.size
         self.bgcolor_panel.SetBackgroundColour(
                 tuple(c*255.0 for c in flame.background))
 
@@ -476,7 +476,7 @@ class AdjustPanel(MultiSliderMixin, wx.Panel):
         flame = self.parent.flame
         for name, val in self.IterSliders():
             setattr(flame, name, val)
-        flame.size = self.sizepanel.GetInts()
+        flame.size = self.sizepanel.Size
         flame.background = tuple(c/255.0
                         for c in self.bgcolor_panel.GetBackgroundColour())
         self.UpdateView()
@@ -523,7 +523,7 @@ class AnimPanel(wx.Panel):
             v.Set(getattr(flame, k))
 
 
-    def UpdateFlame(self, tc=None):
+    def UpdateFlame(self, tempsave=None):
         flame = self.parent.flame
         for k,v in self.dict.iteritems():
             setattr(flame, k, v.Get())

@@ -80,7 +80,7 @@ class FreeMemoryPanel(wx.Panel):
 
 
     def GetRequired(self):
-        w, h = self.GetParent().GetParent().sizepanel.GetInts()
+        w, h = self.GetParent().GetParent().sizepanel.Size
         os = self.GetParent().GetParent().dict["spatial_oversample"].GetFloat()
         depth = int(self.depth.GetStringSelection().split("-")[0]) / 8
         # the *9 is for: 5 in bucket (RGBA+density) + 4 in abucket (RGBA)
@@ -296,7 +296,7 @@ class RenderDialog(wx.Frame):
         self.fbb.SetValue(os.path.join(os.path.dirname(path), name) + ext)
 
         tempflame = fr0stlib.Flame(self.choices[selections[0]][-1])
-        self.sizepanel.UpdateSize(tempflame.size)
+        self.sizepanel.Size = tempflame.size
         self.mem.UpdateView()
 
         
@@ -428,7 +428,7 @@ class RenderDialog(wx.Frame):
 
 
     def render_gen(self, selections, paths, kwds):
-        size = self.sizepanel.GetInts()
+        size = self.sizepanel.Size
         len_ = len(selections)
         old_title = self.Title
         req = self.parent.renderer.RenderRequest
