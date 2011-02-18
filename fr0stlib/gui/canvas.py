@@ -203,6 +203,7 @@ class XformCanvas(FC.FloatCanvas):
         self.StartMove = None
         self.callback = None
         self.last_mouse_pos = 0,0
+        self._cornerpoints = ()
 
 
     def ShowFlame(self, flame=None, rezoom=True):
@@ -493,9 +494,6 @@ class XformCanvas(FC.FloatCanvas):
         # EXPERIMENT!
         self.RemoveObjects(self.shadow)
         self.shadow = []
-
-        # this triggers the checks for vertex and side highlighting.
-        self.PerformHitTests()
 
         if self.HasChanged:
             # Heisenbug, thou art no more! Since TempSave triggers a redraw,

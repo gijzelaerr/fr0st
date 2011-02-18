@@ -54,6 +54,8 @@ class MainNotebook(wx.Notebook):
     def UpdateView(self, rezoom=False):
         for i in self.grad, self.adjust, self.anim:
             i.UpdateView()
+        self.canvas.ClearSelectedXform()
+        self.canvas.PerformHitTests()
         self.canvas.ShowFlame(rezoom=rezoom)
         self.transform.toolbar.ToggleTool(ID.EditPostXform,
                                           config['Edit-Post-Xform'])
