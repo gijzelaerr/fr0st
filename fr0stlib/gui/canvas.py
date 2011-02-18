@@ -191,9 +191,9 @@ class XformCanvas(FC.FloatCanvas):
         self.MakeGrid()
 
         # These are used in the OnIdle Method
-        self._right_drag = None
-        self._left_drag = None
-        self._resize_pending = 1
+        self._idle_right_drag = None
+        self._idle_left_drag = None
+        self._idle_resize = 1
         self._idle_refresh = False
 
         # These mark different states of the canvas
@@ -434,21 +434,21 @@ class XformCanvas(FC.FloatCanvas):
 
     @Bind(wx.EVT_IDLE)
     def OnIdle(self,e):
-        if self._left_drag is not None:
-            coords = self._left_drag
-            self._left_drag = None
+        if self._idle_left_drag is not None:
+            coords = self._idle_left_drag
+            self._idle_left_drag = None
             self.ActivateCallback(coords)
 
-        if self._right_drag is not None:
-            move = self._right_drag
-            self._right_drag = None
+        if self._idle_right_drag is not None:
+            move = self._idle_right_drag
+            self._idle_right_drag = None
             self.StartMove = self.EndMove
             self.MoveImage(move, 'Pixel')
 
-        if self._resize_pending != 1:
-            self.AdjustZoom(self._resize_pending, refresh=False)
+        if self._idle_resize != 1:
+            self.AdjustZoom(self._idle_resize, refresh=False)
             self.PerformHitTests()
-            self._resize_pending = 1
+            self._idle_resize = 1
 
         if self._idle_refresh:
             self.ShowFlame(rezoom=False)
@@ -456,7 +456,7 @@ class XformCanvas(FC.FloatCanvas):
 
     @Bind(FC.EVT_MOUSEWHEEL)
     def OnWheel(self,e):
-        self._resize_pending *= 1.25 if e.GetWheelRotation()>0 else 0.8
+        self._idle_resize *= 1.25 if e.GetWheelRotation()>0 else 0.8
 
 
     @Bind(FC.EVT_LEFT_DOWN)
@@ -543,12 +543,12 @@ class XformCanvas(FC.FloatCanvas):
 
         if  e.RightIsDown() and e.Dragging() and self.StartMove is not None:
             self.EndMove = N.array(e.GetPosition())
-            self._right_drag = self.StartMove - self.EndMove
+            self._idle_right_drag = self.StartMove - self.EndMove
         elif self.parent.scriptrunning:
             # Disable everything except canvas dragging.
             pass
         elif e.LeftIsDown() and e.Dragging():
-            self._left_drag = e.Coords
+            self._idle_left_drag = e.Coords
         else:
             self.PerformHitTests()
 
