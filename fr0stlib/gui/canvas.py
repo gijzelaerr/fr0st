@@ -194,6 +194,7 @@ class XformCanvas(FC.FloatCanvas):
         self._right_drag = None
         self._left_drag = None
         self._resize_pending = 1
+        self._idle_refresh = False
 
         # These mark different states of the canvas
         self.parent.ActiveXform = None
@@ -449,6 +450,9 @@ class XformCanvas(FC.FloatCanvas):
             self.PerformHitTests()
             self._resize_pending = 1
 
+        if self._idle_refresh:
+            self.ShowFlame(rezoom=False)
+
 
     @Bind(FC.EVT_MOUSEWHEEL)
     def OnWheel(self,e):
@@ -560,7 +564,6 @@ class XformCanvas(FC.FloatCanvas):
         if cb:
             self.SelectXform(xform, highlight_point=point)
             self.callback = cb
-            self.ShowFlame(rezoom=False)
             return
 
         # Then, test for sides
@@ -568,7 +571,6 @@ class XformCanvas(FC.FloatCanvas):
         if cb:
             self.SelectXform(xform, highlight_line=line)
             self.callback = cb
-            self.ShowFlame(rezoom=False)
             return 
 
         # Finally, test for area
@@ -576,10 +578,7 @@ class XformCanvas(FC.FloatCanvas):
         if cb:
             self.SelectXform(xform)
             self.callback = cb
-            self.ShowFlame(rezoom=False)
             return 
-
-        self.ShowFlame(rezoom=False)
         
 
     def SelectXform(self, xform, highlight_line=None, highlight_point=None):
@@ -608,6 +607,7 @@ class XformCanvas(FC.FloatCanvas):
         self.SelectedXform = None
         self.RemoveObjects(self.objects)
         del self.objects[:]
+        self._idle_refresh = True
 
 
     def BlockCanvas(self, flag):
