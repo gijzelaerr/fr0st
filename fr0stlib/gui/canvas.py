@@ -205,7 +205,7 @@ class XformCanvas(FC.FloatCanvas):
         self.last_mouse_pos = 0,0
 
 
-    def ShowFlame(self, flame=None, rezoom=True, refresh=True):
+    def ShowFlame(self, flame=None, rezoom=True):
         flame = flame or self.parent.flame
         active = self.parent.ActiveXform
         
@@ -226,9 +226,10 @@ class XformCanvas(FC.FloatCanvas):
 
         if rezoom:
             self.ZoomToFit()
-        elif refresh:
-            # This is an elif because ZoomToFit already forces a Draw.
+        else:
+            # This is an else because ZoomToFit already forces a Draw.
             self.Draw()
+        self._idle_refresh = False
 
 
     def AddXform(self, xform, isactive=False, isselected=None, style='Solid'):
