@@ -553,7 +553,7 @@ class XformCanvas(FC.FloatCanvas):
     def PerformHitTests(self):
         if self.parent.scriptrunning:
             return
-
+        
         coords = self.PixelToWorld(self.last_mouse_pos)
 
         # First, test for vertices
@@ -598,6 +598,8 @@ class XformCanvas(FC.FloatCanvas):
         if highlight_point is not None:
             self.objects.append(self.AddCircle(highlight_point, Diameter=self.circle_radius * 1.7,
                                               FillColor=color))
+
+        self._idle_refresh = True
 
 
     def ClearSelectedXform(self):
