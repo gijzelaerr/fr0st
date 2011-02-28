@@ -554,6 +554,7 @@ class XformCanvas(FC.FloatCanvas):
         if self.parent.scriptrunning:
             return
         
+        self.ClearSelectedXform()
         coords = self.PixelToWorld(self.last_mouse_pos)
 
         # First, test for vertices
