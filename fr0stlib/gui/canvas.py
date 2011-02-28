@@ -528,15 +528,12 @@ class XformCanvas(FC.FloatCanvas):
     @Bind(FC.EVT_MOTION)
     def OnMove(self,e):
         self.ClearSelectedXform()
-        # HACK: OnMove event is called when scrolling with the mousewheel.
-        # This needs to be caught, but the event itself doesn't indicate
-        # that it was caused by scrolling. Use e.Position (mouse pixels)
-        # i.o. e.Coords (world coordinates), because ints can be compared
-        # and the Position remains invariant even after AdjustZoom is 
-        # called. See OnIdle for reference.
-        pos = tuple(e.Position) 
-        if pos != self.last_mouse_pos:
-            self.last_mouse_pos = pos
+        # NOTE: OnMove is called when scrolling, but the event itself doesn't
+        # indicate that it was caused by scrolling.
+        # Use e.Position (mouse pixels) i.o. e.Coords (world coordinates),
+        # because ints can be compared and the Position remains invariant
+        # even after AdjustZoom is called. See OnIdle for reference.
+        self.last_mouse_pos = tuple(e.Position)
 
         if e.RightIsDown() and e.Dragging() and self.StartMove is not None:
             self.EndMove = N.array(e.GetPosition())
