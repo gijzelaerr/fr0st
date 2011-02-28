@@ -528,19 +528,17 @@ class XformCanvas(FC.FloatCanvas):
     @Bind(FC.EVT_MOTION)
     def OnMove(self,e):
         self.ClearSelectedXform()
-
         # HACK: OnMove event is called when scrolling with the mousewheel.
         # This needs to be caught, but the event itself doesn't indicate
         # that it was caused by scrolling. Use e.Position (mouse pixels)
         # i.o. e.Coords (world coordinates), because ints can be compared
-        # and the Position remains invariant even after AdjustZoom is called.
-        # See OnIdle for reference.
+        # and the Position remains invariant even after AdjustZoom is 
+        # called. See OnIdle for reference.
         pos = tuple(e.Position) 
-        if pos == self.last_mouse_pos:
-            return
-        self.last_mouse_pos = pos
+        if pos != self.last_mouse_pos:
+            self.last_mouse_pos = pos
 
-        if  e.RightIsDown() and e.Dragging() and self.StartMove is not None:
+        if e.RightIsDown() and e.Dragging() and self.StartMove is not None:
             self.EndMove = N.array(e.GetPosition())
             self._idle_right_drag = self.StartMove - self.EndMove
         elif self.parent.scriptrunning:
@@ -555,7 +553,8 @@ class XformCanvas(FC.FloatCanvas):
     def PerformHitTests(self):
         if self.parent.scriptrunning:
             return
-
+        
+        self.ClearSelectedXform()
         coords = self.PixelToWorld(self.last_mouse_pos)
 
         # First, test for vertices
@@ -600,6 +599,8 @@ class XformCanvas(FC.FloatCanvas):
         if highlight_point is not None:
             self.objects.append(self.AddCircle(highlight_point, Diameter=self.circle_radius * 1.7,
                                               FillColor=color))
+
+        self._idle_refresh = True
 
 
     def ClearSelectedXform(self):
