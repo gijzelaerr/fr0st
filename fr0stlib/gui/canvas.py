@@ -518,6 +518,7 @@ class XformCanvas(FC.FloatCanvas):
             self.ReleaseMouse()
 
         self.StartMove = None
+        self.PerformHitTests()
 
 
     @Bind(wx.EVT_MOUSE_CAPTURE_LOST)
