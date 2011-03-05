@@ -525,7 +525,7 @@ class AnimPanel(wx.Panel):
             v.Set(getattr(flame, k))
 
 
-    def UpdateFlame(self, tempsave=None):
+    def UpdateFlame(self, tempsave=True):
         flame = self.parent.flame
         for k,v in self.dict.iteritems():
             setattr(flame, k, v.Get())
@@ -533,5 +533,6 @@ class AnimPanel(wx.Panel):
         self.UpdateView()
         self.parent.image.RenderPreview()
         
-        self.parent.TempSave()
+        if tempsave:
+            self.parent.TempSave()
 

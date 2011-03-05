@@ -363,7 +363,7 @@ class MultiSliderMixin(object):
 
     def OnSliderUp(self, e):
         if self._changed:
-            self.parent.TempSave()
+            self.UpdateFlame(tempsave=True)
             self._changed = False
         e.Skip()
 
@@ -376,9 +376,7 @@ class MultiSliderMixin(object):
 
 
     def __callback(self, tempsave=True):
-        self.UpdateFlame()
-        if tempsave:
-            self.parent.TempSave()
+        self.UpdateFlame(tempsave)
         
 
     def UpdateFlame(self):

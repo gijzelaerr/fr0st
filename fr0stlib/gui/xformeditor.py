@@ -654,7 +654,7 @@ class ColorPanel(MultiSliderMixin, wx.Panel):
         self.Refresh()
 
 
-    def UpdateFlame(self):
+    def UpdateFlame(self, tempsave=False):
         # Note: This method is also called by OnIdle.
         for name, val in self.IterSliders():
             setattr(self.parent.ActiveXform, name, val)
@@ -662,6 +662,8 @@ class ColorPanel(MultiSliderMixin, wx.Panel):
         self.UpdateView()
         self.parent.image.RenderPreview() 
         self.parent.grad.image.Update()
+        if tempsave:
+            self.parent.TempSave()
         
 
     @Bind(wx.EVT_PAINT)
