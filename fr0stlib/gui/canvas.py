@@ -452,7 +452,7 @@ class XformCanvas(FC.FloatCanvas):
             self.PerformHitTests()
             self._idle_resize = 1
 
-        if self._idle_refresh:
+        if self._idle_refresh and not self.parent.scriptrunning:
             self.ShowFlame(rezoom=False)
 
 
