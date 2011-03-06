@@ -319,7 +319,7 @@ class MultiSliderMixin(object):
 
     def MakeSlider(self, name, init, low, high, strictrange=True):
         """Programatically builds stuff."""
-        tc = NumberTextCtrl(self, callback=self.__callback)
+        tc = NumberTextCtrl(self, callback=self.UpdateFlame)
         if strictrange:
             tc.SetAllowedRange(low, high)
 
@@ -375,11 +375,7 @@ class MultiSliderMixin(object):
             self._changed = True
 
 
-    def __callback(self, tempsave=True):
-        self.UpdateFlame(tempsave)
-        
-
-    def UpdateFlame(self):
+    def UpdateFlame(self, tempsave):
         Abstract
 
 
