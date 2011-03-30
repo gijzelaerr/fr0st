@@ -302,7 +302,7 @@ class NumberTextCtrl(wx.TextCtrl):
                 self.SetFloat(self._value)
                 return
             self.SetFloat(v)
-            self.callback()
+            self.callback(tempsave=True)
         
 
 
@@ -370,7 +370,7 @@ class MultiSliderMixin(object):
 
     def OnIdle(self, e):
         if self._new:
-            self.UpdateFlame()
+            self.UpdateFlame(tempsave=False)
             self._new = False
             self._changed = True
 
