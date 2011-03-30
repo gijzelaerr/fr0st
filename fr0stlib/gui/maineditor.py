@@ -460,6 +460,7 @@ class AdjustPanel(MultiSliderMixin, wx.Panel):
 
         if dlg.ShowModal() == wx.ID_OK:
             self.bgcolor_panel.SetBackgroundColour(dlg.GetColourData().GetColour())
+            self.bgcolor_panel.Refresh()
             self.UpdateFlame(tempsave=True)
 
         dlg.Destroy()
@@ -472,6 +473,7 @@ class AdjustPanel(MultiSliderMixin, wx.Panel):
         self.sizepanel.Size = flame.size
         self.bgcolor_panel.SetBackgroundColour(
                 tuple(c*255.0 for c in flame.background))
+        self.bgcolor_panel.Refresh()
 
 
     def UpdateFlame(self, tempsave=False):
