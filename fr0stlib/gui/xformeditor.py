@@ -481,8 +481,6 @@ class VarPanel(wx.Panel):
             return
         if value:
             self.tree.Expand(item)
-        else:
-            self.tree.Collapse(item)
         if value != oldvalue:
             self.SetFlameAttribute(item, value)
             self.parent.TempSave()
@@ -493,8 +491,6 @@ class VarPanel(wx.Panel):
 ##    #   -SEL_CHANGED:    immediate edit of values
 ##    # TODO: Need to test this under win!
 ####    @Bind(wx.EVT_TREE_ITEM_ACTIVATED)
-
-    
     @Bind(wx.EVT_TREE_SEL_CHANGED)
     def OnSelChanged(self,e):
         """Makes sure the tree always knows what item is selected."""
@@ -551,7 +547,6 @@ class VarPanel(wx.Panel):
                 self.tree.Expand(item)
             else:
                 new = 0.0
-                self.tree.Collapse(item)
             self.SetFlameAttribute(item, new)
             self.SetItemText(item, str(new), 1)
             self.parent.TempSave()
