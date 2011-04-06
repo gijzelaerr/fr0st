@@ -431,22 +431,14 @@ class VarPanel(wx.Panel):
         value."""
         self.tree.SetItemText(i, s, col)
 
-        parent = self.tree.GetItemParent(i)
-
-        if parent != self.root:
-            self.tree.SetItemTextColour(i, 
-                    "BLACK" if self.tree.GetItemText(parent, 1) != '0.0' else 'grey')
-        else:
-            color = "BLACK" if s != '0.0' else 'grey'
+        if self.tree.GetItemParent(i) == self.root:
+            color = "BLACK" if s != '0.0' else (128, 128, 128)
             self.tree.SetItemTextColour(i, color)
 
             child, cookie = self.tree.GetFirstChild(i)
-
             while child.IsOk():
                 self.tree.SetItemTextColour(child, color)
                 child, cookie = self.tree.GetNextChild(i, cookie)
-
-
             
 
     def SetFlameAttribute(self, item, value):
