@@ -431,22 +431,14 @@ class VarPanel(wx.Panel):
         value."""
         self.tree.SetItemText(i, s, col)
 
-        parent = self.tree.GetItemParent(i)
-
-        if parent != self.root:
-            self.tree.SetItemTextColour(i, 
-                    "BLACK" if self.tree.GetItemText(parent, 1) != '0.0' else 'grey')
-        else:
-            color = "BLACK" if s != '0.0' else 'grey'
+        if self.tree.GetItemParent(i) == self.root:
+            color = "BLACK" if s != '0.0' else (128, 128, 128)
             self.tree.SetItemTextColour(i, color)
 
             child, cookie = self.tree.GetFirstChild(i)
-
             while child.IsOk():
                 self.tree.SetItemTextColour(child, color)
                 child, cookie = self.tree.GetNextChild(i, cookie)
-
-
             
 
     def SetFlameAttribute(self, item, value):
@@ -489,8 +481,6 @@ class VarPanel(wx.Panel):
             return
         if value:
             self.tree.Expand(item)
-        else:
-            self.tree.Collapse(item)
         if value != oldvalue:
             self.SetFlameAttribute(item, value)
             self.parent.TempSave()
@@ -501,8 +491,6 @@ class VarPanel(wx.Panel):
 ##    #   -SEL_CHANGED:    immediate edit of values
 ##    # TODO: Need to test this under win!
 ####    @Bind(wx.EVT_TREE_ITEM_ACTIVATED)
-
-    
     @Bind(wx.EVT_TREE_SEL_CHANGED)
     def OnSelChanged(self,e):
         """Makes sure the tree always knows what item is selected."""
@@ -559,7 +547,6 @@ class VarPanel(wx.Panel):
                 self.tree.Expand(item)
             else:
                 new = 0.0
-                self.tree.Collapse(item)
             self.SetFlameAttribute(item, new)
             self.SetItemText(item, str(new), 1)
             self.parent.TempSave()
