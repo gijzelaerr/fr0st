@@ -300,22 +300,23 @@ class MainWindow(wx.Frame):
 
     @Bind(wx.EVT_MENU,id=ID.ABOUT)
     def OnAbout(self,e):
-        wx.MessageDialog(self,"""%s
+        wx.MessageDialog(self,"""Fractal %s
 
-Copyright (c) 2008 - 2010 Vitor Bosshard
+Copyright (c) 2008 - 2011 Vitor Bosshard
 
-This program is free software.
-View license.txt for more details.
+This program is free software. View license.txt for more details.
+
+Fr0st is an editor/designer for creating images and animations with the fractal flame algorithm. It is built on top of the Flam3 renderer by Scott Draves and Erik Reckase.
+Also includes Flam4 by Steven Broadhead.
+
+For more information about the flame algorithm see www.flam3.com.
 
 Top Contributors:
 Bobby R. Ward
 Erik Reckase
-John Miller
-
-Built on top of:
-flam3 - (c) 1992 - 2010 Scott Draves
-flam4 - (c) 2009 - 2010 Steven Broadhead""" % fr0stlib.VERSION,
+John Miller""" % fr0stlib.VERSION,
                          "About Fractal Fr0st", wx.OK).ShowModal()
+
 
     @Bind(wx.EVT_MENU, id=wx.ID_PREFERENCES)
     def OnPreferences(self, evt):
