@@ -718,34 +718,32 @@ class Xform(object):
 
         
     def rotate_x(self, deg):
-        self.xp = (self.xp[0], self.xp[1] + deg)
+        self.xp += (0, deg)
         
     def rotate_y(self, deg):
-        self.yp = (self.yp[0], self.yp[1] + deg)
+        self.yp += (0, deg)
 
     def rotate(self, deg, pivot=None):
         self.rotate_x(deg)
         self.rotate_y(deg)
         if pivot is not None:
-            self.orbit(deg,pivot)
+            self.orbit(deg, pivot)
             
         
-    def move(self,v):
+    # TODO: this function looks useless and unused
+    def move(self, v):
         self.op = (self.op[0] + v, self.op[1])
+        #self.op += (v, 0)
 
 
-    def orbit(self,deg,pivot=(0,0)):
+    def orbit(self, deg, pivot=(0, 0)):
         """Orbits the transform around a fixed point without rotating it."""
-        if pivot == (0,0):
-            self.op = (self.op[0], self.op[1] + deg)
+        if pivot == (0, 0):
+            self.op += (0, deg)
         else:
-            hor = self.c - pivot[0]
-            ver = self.f - pivot[1]   
-            angle  = atan2(hor,ver) - radians(deg)
-            
-            vector = hypot(hor,ver)
-            self.c = pivot[0] + sin(angle) * vector
-            self.f = pivot[1] + cos(angle) * vector
+            self.pos -= pivot
+            self.op += (0, deg)
+            self.pos += pivot
 
 #----------------------------------------------------------------------
 
