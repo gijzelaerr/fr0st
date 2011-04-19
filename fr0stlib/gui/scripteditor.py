@@ -19,7 +19,7 @@
 #  the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 #  Boston, MA 02111-1307, USA.
 ##############################################################################
-import wx, os, sys, re
+import wx, os, sys
 from wx import stc
 
 from wx.lib.newevent import NewEvent
@@ -230,12 +230,6 @@ class EditorFrame(wx.Frame):
 
 
 class MyLog(wx.TextCtrl):
-    re_exc = re.compile(r'^.*?(?=  File "<string>")',re.DOTALL)
-    re_line = re.compile(r'(Script, line \d*, in .*?)$',re.MULTILINE)
-    re_linenum = re.compile(r'Script, line (\d*),')
-    _script = None # This is set by the parent
-
-
     def __init__(self,parent):
         self.parent = parent
         wx.TextCtrl.__init__(self,parent,-1,
@@ -246,31 +240,8 @@ class MyLog(wx.TextCtrl):
 
     @InMainFast
     def write(self, message):
-        if not message.startswith("Exception"):
-            self.AppendText(message)
-            return
-
-        # Strip junk from start of exception, and rename 'File "<string>"' to
-        # 'Script'
-        message = self.re_exc.sub('', message)
-        message = message.replace('File "<string>"', 'Script')
-        
-        # prevent '%' occurring in code from screwing up string formatting
-        message = message.replace('%', '%%')
-        
-        lines = (self._lines[int(i)-1].strip()
-                 for i in self.re_linenum.findall(message))
-        message = ("Traceback (most recent call last):\n" +
-                   self.re_line.sub('\g<1>\n    %s',message) %tuple(lines))
         self.AppendText(message)
-        self.ScriptErrorDialog(message)
 
-
-    def ScriptErrorDialog(self, message):
-        window = wx.GetApp().GetTopWindow()
-        if window.editor.IsShown():
-            window = window.editor
-        wx.MessageDialog(window, message, "Fr0st", wx.OK).ShowModal()
 
 
 

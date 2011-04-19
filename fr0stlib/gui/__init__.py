@@ -19,7 +19,8 @@
 #  the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 #  Boston, MA 02111-1307, USA.
 ##############################################################################
-import imp, os, sys, wx, time, shutil, copy, cPickle as Pickle, itertools
+import imp, os, sys, wx, time, shutil, copy, cPickle as Pickle, itertools, \
+       traceback, re
 
 import fr0stlib
 from fr0stlib import Flame, save_flames
@@ -34,7 +35,7 @@ from fr0stlib.gui.constants import ID
 from fr0stlib.gui.maineditor import MainNotebook
 from fr0stlib.gui.xformeditor import XformTabs
 from fr0stlib.gui.renderer import Renderer
-from fr0stlib.gui._events import InMain, InMainSetup
+from fr0stlib.gui._events import InMain, InMainFast, InMainSetup
 from fr0stlib.gui.itemdata import ItemData
 from fr0stlib.gui.renderdialog import RenderDialog
 from fr0stlib.gui.config import config, init_config, dump_config
@@ -725,10 +726,6 @@ John Miller""" % fr0stlib.VERSION,
     @Catches(wx.PyDeadObjectError)
     @Locked(blocking=False)
     def Execute(self, scriptpath, string):
-        # split and join fixes linebreak issues between windows and linux
-        lines = self.log._lines = string.splitlines()
-        script = "\n".join(lines) +'\n'
-        
         oldflame = self.flame.copy()
         namespace = self.CreateNamespace()
         
@@ -739,7 +736,7 @@ John Miller""" % fr0stlib.VERSION,
         sys.path.insert(0, os.path.dirname(scriptpath))
 
         # Run the script
-        self.RunScript(script, namespace)
+        self.RunScript(string, namespace)
 
         if namespace["update_flame"]:
             try:
@@ -748,7 +745,7 @@ John Miller""" % fr0stlib.VERSION,
                     raise ValueError("Flame has no xforms")
                 self.SetFlame(self.flame, rezoom=False)
                 self.TempSave()
-            except Exception as e:
+            except Exception: 
                 print "Exception updating flame:\n%s" %e
                 self.SetFlame(oldflame, rezoom=False)
         else:
@@ -762,7 +759,11 @@ John Miller""" % fr0stlib.VERSION,
         self.BlockGUI(False)
         
 
-    def RunScript(self, script, namespace):
+    def RunScript(self, string, namespace):
+        # split and join fixes linebreak issues between windows and linux
+        lines = string.splitlines()
+        script = "\n".join(lines) +'\n'
+
         print time.strftime("\n------------ %H:%M:%S ------------")
         start = time.time()
         try:
@@ -773,11 +774,33 @@ John Miller""" % fr0stlib.VERSION,
             return
         except SystemExit:
             pass
-        except Exception:
+        except Exception as e:
             namespace["update_flame"] = False
-            raise
+            #message = traceback.format_exc()
+            self.ScriptErrorMessage(lines, *sys.exc_info())
+        else:
+            print "\nSCRIPT FINISHED (%.2f seconds)" %(time.time()-start)
+
+
+    @InMainFast
+    def ScriptErrorMessage(self, lines, ty, val, tb):
+        # extract_tb returns a list of (file, line, function, None) tuples
+        # first entry is skipped as it corresponds to RunScript
+        lst = traceback.extract_tb(tb)[1:]
+        message = ["Traceback (most recent call last):"]
+        message.extend(('Script, line {1}, in {2}\n'
+                        '    {line}').format(*i, line=lines[i[1]-1].lstrip())
+                       for i in lst)
+        message.extend(traceback.format_exception_only(ty, val))
         
-        print "\nSCRIPT FINISHED (%.2f seconds)" %(time.time()-start)
+        message = "\n".join(message)
+        print message
+
+        window = self.editor if self.editor.IsShown() else self
+        wx.MessageDialog(window, message, "Fr0st", 
+                         wx.OK | wx.ICON_WARNING).ShowModal()
+
+
         
 
     @InMain
