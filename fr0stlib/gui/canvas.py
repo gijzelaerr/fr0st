@@ -325,7 +325,6 @@ class XformCanvas(FC.FloatCanvas):
         If hittest is set to true, this func doubles as a hittest, and checks
         if the point is inside the line's hitbox."""
 
-        point = N.array((h,v))
         xf = Xform(None, points=points)
 
         # Get angle of the hypothenuse
@@ -335,7 +334,7 @@ class XformCanvas(FC.FloatCanvas):
         # hypothenuse is guaranteed to be horizontal, which makes everything
         # easier.
         xf.rotate(-angle)
-        l, theta = polar(point - xf.o)
+        l, theta = polar((h,v) - xf.o)
         width, height = rect((l, theta - angle))
 
         # return the result.
