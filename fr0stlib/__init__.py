@@ -662,10 +662,14 @@ class Xform(object):
 
     @property_array
     def points(self):
-        return self.x,self.y,self.o
+        return ((self.a + self.c, self.d + self.f),
+                (self.b + self.c, self.e + self.f),
+                (self.c, self.f))
     @points.setter
     def points(self, v):
-        self.x,self.y,self.o = v
+        # no need to optimize the setter as much as the getter, so we keep
+        # it simple
+        self.x, self.y, self.o = v
 
 #----------------------------------------------------------------------
        
