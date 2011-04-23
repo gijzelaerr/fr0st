@@ -324,24 +324,20 @@ class XformCanvas(FC.FloatCanvas):
         the hypot pass through the point.
         If hittest is set to true, this func doubles as a hittest, and checks
         if the point is inside the line's hitbox."""
+        x, y, o = points
 
-        xf = Xform(None, points=points)
-
-        # Get angle of the hypothenuse
-        angle = polar(xf.y - xf.x)[1]
-
-        # Rotate xf to make hypothenuse horizontal. Calculate updated
-        # o->mousepos vector in the new system.
-        xf.rotate(-angle)
-        l, theta = polar(mousepos - xf.o)
-        width, height = rect((l, theta - angle))
+        # The idea is simple. Recenter the system around x, and rotate it so
+        # the side under test runs along the x-axis.
+        l, theta = polar(y - x)
+        angle = N.array((0, theta))
+        width, height = rect(polar(mousepos - x) - angle)
 
         # return the result.
-        # Note that xf.d and xf.e are guaranteed to be equal.
         if hittest:
-            return xf.a < width < xf.b and \
-                   abs(height - xf.d) < self.circle_radius
-        return height / xf.d
+            return 0 < width < l and abs(height) < self.circle_radius
+        else:
+            ref_height = rect(polar(o - x) - angle)[1]
+            return (ref_height - height) / ref_height
 
 
     def side_helper(self, xform, funcname, mousepos):
