@@ -68,7 +68,7 @@ class FavoritesHandler(object):
                 menu.Delete(self.id + i)
             for i, path in enumerate(lst):
                 menu.Append(self.id + i, "&%s\tCtrl-F%s"
-                            %(os.path.basename(str(path)), i+1))
+                            %(os.path.basename(path), i+1))
         self.max = i + 1
         self.lst = lst
 
