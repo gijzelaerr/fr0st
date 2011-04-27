@@ -261,7 +261,7 @@ class NumberTextCtrl(wx.TextCtrl):
 
         self.SetFocus() # Makes sure OnKeyUp gets called.
 
-        v = self._value + delta * evt.GetWheelRotation() / evt.GetWheelDelta()
+        v = self._value + delta * ((evt.GetWheelRotation() > 0) * 2 - 1)
         self.SetFloat(v)
         self.callback(tempsave=False)
         self.HasChanged = True
