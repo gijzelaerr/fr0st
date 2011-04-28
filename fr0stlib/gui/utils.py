@@ -182,11 +182,8 @@ class NumberTextCtrl(wx.TextCtrl):
         wx.TextCtrl.__init__(self,parent,-1, size=(75,27))
         
         self.SetAllowedRange(low, high)
-            
-        self.int_only = int_only
-        
         self.callback = callback or (lambda tempsave=None: None)
-
+        self.int_only = int_only
         self.SetFloat(val)
         self.has_changed = False
 
