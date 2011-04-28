@@ -174,9 +174,6 @@ class SizePanel(wx.Panel):
 
 
 class NumberTextCtrl(wx.TextCtrl):
-    low = None
-    high = None
-
     @BindEvents
     def __init__(self, parent, val=0.0, low=None, high=None, callback=None,
                  int_only=False):
@@ -184,24 +181,28 @@ class NumberTextCtrl(wx.TextCtrl):
         # Size is set to ubuntu default (75,27), maybe make it 75x21 in win
         wx.TextCtrl.__init__(self,parent,-1, size=(75,27))
         
-        if (low,high) != (None,None):
-            self.SetAllowedRange(low, high)
-            
-        if int_only:
-            self.MakeIntOnly()
-
+        self.SetAllowedRange(low, high)
         self.callback = callback or (lambda tempsave=None: None)
-
-        self.HasChanged = False
+        self.int_only = int_only
         self.SetFloat(val)
-            
+        self.has_changed = False
+
+        
 
     def GetFloat(self):
-        return float(self.GetValue() or "0")
+        if self.int_only:
+            return self.GetInt()
+        try:
+            return float(self.GetValue() or "0")
+        except ValueError:
+            self.SetFloat(self._old_val)
+            return self._old_val
 
     def SetFloat(self, v):
-        v = self.Checkrange(float(v))
-        self._value = v
+        if self.int_only:
+            return self.SetInt(v)
+        v = self.ClipToRange(float(v))
+        self._old_val = v
         string = ("%.6f" %v).rstrip("0")
         if string.endswith("."):
             string += "0" # Avoid values like '0.' or '1.'
@@ -209,25 +210,27 @@ class NumberTextCtrl(wx.TextCtrl):
 
 
     def GetInt(self):
-        return int(float(self.GetValue() or "0"))
+        try:
+            return int(float(self.GetValue() or "0"))
+        except ValueError:
+            self.SetInt(self._old_val)
+            return self._old_val
 
     def SetInt(self, v):
-        v = self.Checkrange(int(v))
-        self._value = v
+        v = self.ClipToRange(int(v))
+        self._old_val = v
         self.SetValue(str(v))
 
 
     # Aliases for compatibility with other widgets (e.g. MyChoice)
-    def Get(self):
-        return self.GetFloat()
-
-    def Set(self, v):
-        self.SetFloat(v)
+    Get = GetFloat
+    Set = SetFloat
 
 
     def MakeIntOnly(self):
+        #HACK: this method is left here for the sake of existing code only
         self.SetInt(self.GetFloat())
-        self.SetFloat, self.GetFloat = self.SetInt, self.GetInt
+        self.int_only = True
         
 
     def SetAllowedRange(self, low=None, high=None):
@@ -235,12 +238,13 @@ class NumberTextCtrl(wx.TextCtrl):
         self.high = high
 
 
-    def Checkrange(self, v):
+    def ClipToRange(self, v):
         if self.low is not None and v < self.low:
             return self.low
         elif self.high is not None and v > self.high:
             return self.high
         return v
+
 
     @Bind(wx.EVT_MOUSEWHEEL)
     def OnMouseWheel(self, evt):
@@ -255,16 +259,15 @@ class NumberTextCtrl(wx.TextCtrl):
             evt.Skip()
             return
 
-        if self.SetFloat == self.SetInt:
-            # widget is int only: change the intervals to 1, 10 and 100
-            delta *= 1000
+        if self.int_only:
+            delta *= 1000 # change intervals to 1, 10 and 100
 
         self.SetFocus() # Makes sure OnKeyUp gets called.
 
-        v = self._value + delta * ((evt.GetWheelRotation() > 0) * 2 - 1)
+        v = self.GetFloat() + delta * ((evt.GetWheelRotation() > 0) * 2 - 1)
         self.SetFloat(v)
         self.callback(tempsave=False)
-        self.HasChanged = True
+        self.has_changed = True
 
         
     @Bind(wx.EVT_KEY_UP)
@@ -273,9 +276,9 @@ class NumberTextCtrl(wx.TextCtrl):
         key = e.GetKeyCode()
         if (key == wx.WXK_CONTROL and not e.AltDown()) or (
             key == wx.WXK_ALT and not e.ControlDown()):
-            if self.HasChanged:
-                wx.GetApp().MainWindow.TempSave()
-                self.HasChanged = False
+            if self.has_changed:
+                self.callback(tempsave=True)
+                self.has_changed = False
 
 
     @Bind(wx.EVT_CHAR)
@@ -295,13 +298,9 @@ class NumberTextCtrl(wx.TextCtrl):
     @Bind(wx.EVT_KILL_FOCUS)
     def OnKillFocus(self, e=None):
         # cmp done with strings because equal floats can compare differently.
-        if str(self._value) != self.GetValue():
-            try:
-                v = self.GetFloat() # Can raise ValueError
-            except ValueError:
-                self.SetFloat(self._value)
-                return
-            self.SetFloat(v)
+        if "%.6f" %self._old_val != "%.6f" %self.GetFloat():
+            # Calling GetFloat here purges badly formed input.
+            self._old_val = self.GetFloat()
             self.callback(tempsave=True)
         
 
@@ -349,11 +348,8 @@ class MultiSliderMixin(object):
 
     
     def OnSlider(self, e, tc):
-        val = e.GetInt()/100.
-        # Make sure _new is only set when there are actual changes.
-        if val != tc._value:
-            self._new = True
-            tc.SetFloat(str(val))
+        self._new = True
+        tc.SetFloat(e.GetInt()/100.)
         e.Skip()
 
      
