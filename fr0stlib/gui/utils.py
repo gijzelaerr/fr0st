@@ -183,15 +183,12 @@ class NumberTextCtrl(wx.TextCtrl):
         
         self.SetAllowedRange(low, high)
             
-        self.has_changed = False
-        self.int_only = False
+        self.int_only = int_only
         
-        if int_only:
-            self.MakeIntOnly()
-
         self.callback = callback or (lambda tempsave=None: None)
 
         self.SetFloat(val)
+        self.has_changed = False
 
         
 
@@ -226,6 +223,7 @@ class NumberTextCtrl(wx.TextCtrl):
 
 
     def MakeIntOnly(self):
+        #HACK: this method is left here for the sake of existing code only
         self.SetInt(self.GetFloat())
         self.int_only = True
         
