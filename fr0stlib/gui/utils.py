@@ -277,7 +277,7 @@ class NumberTextCtrl(wx.TextCtrl):
         if (key == wx.WXK_CONTROL and not e.AltDown()) or (
             key == wx.WXK_ALT and not e.ControlDown()):
             if self.has_changed:
-                wx.GetApp().MainWindow.TempSave()
+                self.callback(tempsave=True)
                 self.has_changed = False
 
 
