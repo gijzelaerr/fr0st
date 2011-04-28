@@ -348,11 +348,8 @@ class MultiSliderMixin(object):
 
     
     def OnSlider(self, e, tc):
-        val = e.GetInt()/100.
-        # Make sure _new is only set when there are actual changes.
-        if val != tc._value:
-            self._new = True
-            tc.SetFloat(str(val))
+        self._new = True
+        tc.SetFloat(e.GetInt()/100.)
         e.Skip()
 
      
