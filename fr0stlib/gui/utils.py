@@ -192,7 +192,11 @@ class NumberTextCtrl(wx.TextCtrl):
     def GetFloat(self):
         if self.int_only:
             return self.GetInt()
-        return float(self.GetValue() or "0")
+        try:
+            return float(self.GetValue() or "0")
+        except ValueError:
+            self.SetFloat(self._old_val)
+            return self._old_val
 
     def SetFloat(self, v):
         if self.int_only:
@@ -206,7 +210,11 @@ class NumberTextCtrl(wx.TextCtrl):
 
 
     def GetInt(self):
-        return int(float(self.GetValue() or "0"))
+        try:
+            return int(float(self.GetValue() or "0"))
+        except ValueError:
+            self.SetInt(self._old_val)
+            return self._old_val
 
     def SetInt(self, v):
         v = self.ClipToRange(int(v))
@@ -291,13 +299,8 @@ class NumberTextCtrl(wx.TextCtrl):
     def OnKillFocus(self, e=None):
         # cmp done with strings because equal floats can compare differently.
         if "%.6f" %self._old_val != "%.6f" %self.GetFloat():
-        #if str(self._value) != self.GetValue():
-            try:
-                v = self.GetFloat() # Can raise ValueError
-            except ValueError:
-                self.SetFloat(self._value)
-                return
-            self.SetFloat(v)
+            # Calling GetFloat here purges badly formed input.
+            self._old_val = self.GetFloat()
             self.callback(tempsave=True)
         
 
