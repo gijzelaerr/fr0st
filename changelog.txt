@@ -1,3 +1,20 @@
+Fr0st 1.4
+---------
+
+GUI:
+    -Variation preview now has layers of different depths, to better show off what each xform is actually doing.
+    -Highlight triangle corners when hovering over them with mouse.
+    -Small preview now uses multiple threads on systems with more than 2 cores.
+
+Bugfixes:
+    -Allow unicode paths for favorite scripts.
+    -Fixed several bugs that ocurred when manipulating flames with non-black backgrounds.
+    -Small alpha values in palette produced by smooth interpolation (due to rounding errors) are now ignored.
+    -Fixed bug where some error messages were being cut short.
+    -Fixed bug where starting a script while the canvas was being manipulated led to an inconsistent program state.
+
+
+
 Fr0st 1.3
 ---------
 
