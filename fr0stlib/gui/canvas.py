@@ -301,56 +301,50 @@ class XformCanvas(FC.FloatCanvas):
             self.parent.image.RenderPreview()
 
 
-    def VertexHitTest(self,x,y):
+    def VertexHitTest(self, mousepos):
         """Checks if the given point is on top of a vertex."""
         for xform in self.IterXforms():
-            a,d,b,e,c,f = xform.coefs
+            x, y, o = xform.points
 
-            if polar((x - c, y - f))[0] < self.circle_radius:
+            if polar(mousepos - o)[0] < self.circle_radius:
                 cb = (partial(setattr, xform, "pos") if config["Lock-Axes"] 
                       else partial(setattr, xform, "o"))
-                return xform.o, xform, cb
-            elif polar((x - a - c, y - d - f))[0] < self.circle_radius:
-                return xform.x, xform, partial(setattr, xform, "x")
-            elif polar((x - b - c, y - e - f))[0] < self.circle_radius:
-                return xform.y, xform, partial(setattr, xform, "y")
+                return o, xform, cb
+            elif polar(mousepos - x)[0] < self.circle_radius:
+                return x, xform, partial(setattr, xform, "x")
+            elif polar(mousepos - y)[0] < self.circle_radius:
+                return y, xform, partial(setattr, xform, "y")
 
         return None, None, None
 
 
 
-    def CalcScale(self, points, h, v, hittest=False):
+    def CalcScale(self, points, mousepos, hittest=False):
         """Returns the proportion by which the xform needs to be scaled to make
         the hypot pass through the point.
         If hittest is set to true, this func doubles as a hittest, and checks
         if the point is inside the line's hitbox."""
+        x, y, o = points
 
-        xf = Xform(None, points=points)
-        a,d,b,e,c,f = xf.coefs
-
-        # Get angle of the hypothenuse
-        angle = polar(((b-a), (e-d)))[1]
-
-        # create a rotated triangle and (c,f)->(h,v) vector. This way, the
-        # hypothenuse is guaranteed to be horizontal, which makes everything
-        # easier.
-        xf.rotate(-angle)
-        l, theta = polar(((h-c), (v-f)))
-        width,height = rect((l, theta - angle))
+        # The idea is simple. Recenter the system around x, and rotate it so
+        # the side under test runs along the x-axis.
+        l, theta = polar(y - x)
+        angle = N.array((0, theta))
+        width, height = rect(polar(mousepos - x) - angle)
 
         # return the result.
-        # Note that xf.d and xf.e are guaranteed to be equal.
         if hittest:
-            return xf.a < width < xf.b and \
-                   abs(height - xf.d) < self.circle_radius
-        return height / xf.d
+            return 0 < width < l and abs(height) < self.circle_radius
+        else:
+            ref_height = rect(polar(o - x) - angle)[1]
+            return (ref_height - height) / ref_height
 
 
-    def side_helper(self, xform, funcname, h, v):
+    def side_helper(self, xform, funcname, mousepos):
         """Takes the result of SideHitTest and builds a proper callback."""
         if funcname == 'scale':
-            def cb((h,v)):
-                return xform.scale(self.CalcScale(xform.points, h, v))
+            def cb(pos):
+                return xform.scale(self.CalcScale(xform.points, pos))
             return cb
 
         if funcname == "rotate":
@@ -363,15 +357,15 @@ class XformCanvas(FC.FloatCanvas):
             pivot = xform.o
             func = getattr(xform, funcname)
 
-        def cb((h, v)):
-            angle = polar((h - pivot[0], v - pivot[1]))[1]
+        def cb(pos):
+            angle = polar(pos - pivot)[1]
             func(angle - cb.prev_angle)
             cb.prev_angle = angle
-        cb.prev_angle = polar((h - pivot[0], v - pivot[1]))[1]
+        cb.prev_angle = polar(mousepos - pivot)[1]
         return cb
 
 
-    def SideHitTest(self, h, v):
+    def SideHitTest(self, mousepos):
         """Checks if the given point is near one of the triangle sides
         or corners."""
         for xform in self.IterXforms():
@@ -380,35 +374,35 @@ class XformCanvas(FC.FloatCanvas):
             for points,func in (((x,y,o), 'scale'),
                                 ((x,o,y), 'rotate_x'),
                                 ((y,o,x), 'rotate_y')):
-                if self.CalcScale(points, h, v, hittest=True):
+                if self.CalcScale(points, mousepos, hittest=True):
                     return (points[:2], xform,
-                            self.side_helper(xf, func, h,v))
+                            self.side_helper(xf, func, mousepos))
 
         # TODO: detect the actual lines. Right now, it just checks a radius
         # from the middle point.
         radius = self.circle_radius * 3 # better too big than too small.
         for i,j,k in (self._cornerpoints):
-            if polar((h - j[0], v - j[1]))[0] < radius:
+            if polar(mousepos - j)[0] < radius:
                 if config["Edit-Post-Xform"]:
                     xform = self.parent.ActiveXform.post
                 else:
                     xform = self.parent.ActiveXform
-                return ((i,j,k), xform, self.side_helper(xform, 'rotate', h,v))
+                return (i,j,k), xform, self.side_helper(xform, 'rotate', mousepos)
 
         return None, None, None
 
 
-    def XformHitTest(self,x,y):
+    def XformHitTest(self, mousepos):
         """Checks if the given point is inside the area of the xform.
         This is done by testing if it falls inside the angles projected from
         at least 2 of its vertices."""
 
         for xform in self.IterXforms():
-            a,d,b,e,c,f = xform.coefs
+            x, y, o = xform.points
 
-            if angle_helper((x-c, y-f), (a, d), (b, e)) and \
-               angle_helper((x-a-c, y-d-f), (-a, -d), (b-a, e-d)):
-                diff = x - c, y - f
+            if angle_helper(mousepos - o, x - o, y - o) and \
+               angle_helper(mousepos - x, o - x, y - x):
+                diff = mousepos - o
                 return xform, lambda coord: setattr(xform, "pos", coord-diff)
 
         return None, None
@@ -553,24 +547,26 @@ class XformCanvas(FC.FloatCanvas):
             return
         
         self.ClearSelectedXform()
-        coords = self.PixelToWorld(self.last_mouse_pos)
+        # turn coords into N.array explicitly, as it's not guaranteed to
+        # be of that type on all platforms.
+        coords = N.array(self.PixelToWorld(self.last_mouse_pos))
 
         # First, test for vertices
-        point, xform, cb = self.VertexHitTest(*coords)
+        point, xform, cb = self.VertexHitTest(coords)
         if cb:
             self.SelectXform(xform, highlight_point=point)
             self.callback = cb
             return
 
         # Then, test for sides
-        line, xform, cb = self.SideHitTest(*coords)
+        line, xform, cb = self.SideHitTest(coords)
         if cb:
             self.SelectXform(xform, highlight_line=line)
             self.callback = cb
             return 
 
         # Finally, test for area
-        xform, cb = self.XformHitTest(*coords)
+        xform, cb = self.XformHitTest(coords)
         if cb:
             self.SelectXform(xform)
             self.callback = cb

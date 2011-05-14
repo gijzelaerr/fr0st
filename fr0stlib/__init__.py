@@ -662,10 +662,14 @@ class Xform(object):
 
     @property_array
     def points(self):
-        return self.x,self.y,self.o
+        return ((self.a + self.c, self.d + self.f),
+                (self.b + self.c, self.e + self.f),
+                (self.c, self.f))
     @points.setter
     def points(self, v):
-        self.x,self.y,self.o = v
+        # no need to optimize the setter as much as the getter, so we keep
+        # it simple
+        self.x, self.y, self.o = v
 
 #----------------------------------------------------------------------
        
@@ -908,14 +912,16 @@ def compare_version(v1, v2=VERSION):
 #Converters
 
 def polar(coord):
-    l = sqrt(coord[0]**2 + coord[1]**2)
-    theta = atan2(coord[1], coord[0]) * (180.0/pi)
+    x, y = coord
+    l = sqrt(x**2 + y**2)
+    theta = atan2(y, x) * (180.0/pi)
     return l, theta   
 
 
 def rect(coord):
-    real = coord[0] * cos(coord[1]*pi/180.0)
-    imag = coord[0] * sin(coord[1]*pi/180.0)
+    l, theta = coord
+    real = l * cos(theta*pi/180.0)
+    imag = l * sin(theta*pi/180.0)
     return real, imag
 
 
