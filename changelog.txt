@@ -8,7 +8,7 @@ GUI:
 
 Bugfixes:
     -Allow unicode paths for favorite scripts.
-    -Fixed several bugs that ocurred when manipulating flames with non-black backgrounds.
+    -Fixed several bugs that occurred when manipulating flames with non-black backgrounds.
     -Small alpha values in palette produced by smooth interpolation (due to rounding errors) are now ignored.
     -Fixed bug where some error messages were being cut short.
     -Fixed bug where starting a script while the canvas was being manipulated led to an inconsistent program state.
