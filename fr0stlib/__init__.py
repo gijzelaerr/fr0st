@@ -31,7 +31,7 @@ from fr0stlib.compatibility import compatibilize
 from fr0stlib.property_array import property_array
 
 
-VERSION = "Fr0st 1.4"
+VERSION = "Fr0st 1.5"
 GUI = False
 
 
