@@ -20,6 +20,7 @@
 #  Boston, MA 02111-1307, USA.
 ##############################################################################
 import itertools, numpy as N, wx, sys, math
+import wx
 from functools import partial
 from wx.lib.floatcanvas import FloatCanvas as FC
 from wx.lib.floatcanvas.Utilities import BBox
@@ -79,7 +80,7 @@ class AlphaPolygon(FC.Polygon):
 
     def SetBrush(self, FillColor, FillStyle):
         r,g,b = FillColor
-        c = wx.Color(r,g,b, self.Opacity)
+        c = wx.Colour(r,g,b, self.Opacity)
         self.Brush = wx.Brush(c)
 
 
